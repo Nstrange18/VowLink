@@ -1,56 +1,62 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'react-toastify'
 import api from '../../utils/api'
+import { signupSchema } from '../../utils/schemas'
 
 const EyeIcon = ({ open }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-    {open ? (
-      <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>
-    ) : (
-      <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></>
-    )}
+    {open ? (<><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>) : (<><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></>)}
   </svg>
 )
 
-const inputClass = "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30 transition"
+const inputBase = "w-full rounded-xl border bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition"
+const inputOk = "border-white/10 focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30"
+const inputErr = "border-red-400/50 focus:border-red-400/70"
+const cls = (err) => `${inputBase} ${err ? inputErr : inputOk}`
 
 const SignupPage = () => {
-  const [form, setForm] = useState({
-    partner1Name: '', partner2Name: '', email: '',
-    password: '', confirmPassword: '', weddingDate: '', venue: '', rsvpDeadline: '',
-  })
   const [show, setShow] = useState({ password: false, confirm: false })
-  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }))
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({
+    resolver: zodResolver(signupSchema),
+    defaultValues: { partner1Name: '', partner2Name: '', email: '', password: '', confirmPassword: '', weddingDate: '', rsvpDeadline: '', venue: '' },
+  })
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    if (form.password !== form.confirmPassword) return setError('Passwords do not match.')
-    if (form.password.length < 6) return setError('Password must be at least 6 characters.')
+  const p1 = watch('partner1Name')
+  const p2 = watch('partner2Name')
+  const weddingDate = watch('weddingDate')
+  const rsvpDeadline = watch('rsvpDeadline')
+  const venue = watch('venue')
+
+  const onSubmit = async (data) => {
     setLoading(true)
     try {
       const res = await api.post('/auth/signup', {
-        partner1Name: form.partner1Name,
-        partner2Name: form.partner2Name,
-        email: form.email,
-        password: form.password,
-        weddingDate: form.weddingDate || null,
-        rsvpDeadline: form.rsvpDeadline || null,
-        venue: form.venue || '',
+        partner1Name: data.partner1Name,
+        partner2Name: data.partner2Name,
+        email: data.email,
+        password: data.password,
+        weddingDate: data.weddingDate || null,
+        rsvpDeadline: data.rsvpDeadline || null,
+        venue: data.venue || '',
       })
       localStorage.setItem('token', res.data.accessToken)
       localStorage.setItem('refreshToken', res.data.refreshToken)
       localStorage.setItem('user', JSON.stringify(res.data.user))
+      toast.success('Account created! Welcome to Vowlink 🎉')
       navigate('/admin/dashboard')
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed. Please try again.')
+      toast.error(err.response?.data?.message || 'Signup failed. Please try again.')
       setLoading(false)
     }
   }
+
+  const FieldError = ({ name }) => errors[name] ? <p className="mt-1 text-xs text-red-400">{errors[name].message}</p> : null
 
   return (
     <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg.png')] bg-cover bg-top bg-no-repeat px-6 py-10">
@@ -59,91 +65,81 @@ const SignupPage = () => {
         <h1 className="mb-2 text-center font-serif text-3xl text-white">Start Your Journey</h1>
         <p className="mb-8 text-center text-sm text-white/40">Set up your wedding invitation portal</p>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Partner names */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Partner 1 *</label>
-              <input id="partner1-name" name="partner1Name" value={form.partner1Name} onChange={handleChange}
-                placeholder="e.g. Allen" required className={inputClass} />
+              <input id="partner1-name" placeholder="e.g. Allen" {...register('partner1Name')} className={cls(errors.partner1Name)} />
+              <FieldError name="partner1Name" />
             </div>
             <div>
               <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Partner 2 *</label>
-              <input id="partner2-name" name="partner2Name" value={form.partner2Name} onChange={handleChange}
-                placeholder="e.g. Justina" required className={inputClass} />
+              <input id="partner2-name" placeholder="e.g. Justina" {...register('partner2Name')} className={cls(errors.partner2Name)} />
+              <FieldError name="partner2Name" />
             </div>
           </div>
 
           {/* Email */}
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Email *</label>
-            <input id="signup-email" name="email" type="email" value={form.email} onChange={handleChange}
-              placeholder="your@email.com" required className={inputClass} />
+            <input id="signup-email" type="email" placeholder="your@email.com" {...register('email')} className={cls(errors.email)} />
+            <FieldError name="email" />
           </div>
 
           {/* Password */}
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Password *</label>
             <div className="relative">
-              <input id="signup-password" name="password" type={show.password ? 'text' : 'password'}
-                value={form.password} onChange={handleChange} placeholder="Min 6 characters" required
-                className={inputClass + ' pr-11'} />
+              <input id="signup-password" type={show.password ? 'text' : 'password'} placeholder="Min 6 characters"
+                {...register('password')} className={`${cls(errors.password)} pr-11`} />
               <button type="button" onClick={() => setShow(s => ({ ...s, password: !s.password }))}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition">
-                <EyeIcon open={show.password} />
-              </button>
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition"><EyeIcon open={show.password} /></button>
             </div>
+            <FieldError name="password" />
           </div>
 
           {/* Confirm password */}
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Confirm Password *</label>
             <div className="relative">
-              <input id="signup-confirm-password" name="confirmPassword" type={show.confirm ? 'text' : 'password'}
-                value={form.confirmPassword} onChange={handleChange} placeholder="Repeat password" required
-                className={inputClass + ' pr-11'} />
+              <input id="signup-confirm-password" type={show.confirm ? 'text' : 'password'} placeholder="Repeat password"
+                {...register('confirmPassword')} className={`${cls(errors.confirmPassword)} pr-11`} />
               <button type="button" onClick={() => setShow(s => ({ ...s, confirm: !s.confirm }))}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition">
-                <EyeIcon open={show.confirm} />
-              </button>
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition"><EyeIcon open={show.confirm} /></button>
             </div>
+            <FieldError name="confirmPassword" />
           </div>
 
           {/* Wedding date */}
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Wedding Date</label>
-            <input id="wedding-date" name="weddingDate" type="date" value={form.weddingDate}
-              onChange={handleChange} className={inputClass + ' [color-scheme:dark]'} />
-            <p className="mt-1 text-xs text-white/30">You can update this later in Settings.</p>
+            <input id="wedding-date" type="date" {...register('weddingDate')} className={`${cls(false)} [color-scheme:dark]`} />
           </div>
 
           {/* RSVP Deadline */}
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">RSVP Deadline</label>
-            <input id="signup-rsvp-deadline" name="rsvpDeadline" type="date" value={form.rsvpDeadline}
-              onChange={handleChange} className={inputClass + ' [color-scheme:dark]'} />
-            <p className="mt-1 text-xs text-white/30">Cut-off date for RSVPs. Leave blank for no deadline.</p>
+            <input id="signup-rsvp-deadline" type="date" {...register('rsvpDeadline')} className={`${cls(false)} [color-scheme:dark]`} />
+            <p className="mt-1 text-xs text-white/30">Cut-off date for RSVPs. Optional.</p>
           </div>
 
           {/* Venue */}
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Venue / Location</label>
-            <input id="signup-venue" name="venue" value={form.venue} onChange={handleChange}
-              placeholder="e.g. The Grand Ballroom, Lagos" className={inputClass} />
-            <p className="mt-1 text-xs text-white/30">Shown on your guests' invitation cards.</p>
+            <input id="signup-venue" placeholder="e.g. The Grand Ballroom, Lagos" {...register('venue')} className={cls(false)} />
           </div>
 
           {/* Preview */}
-          {(form.partner1Name || form.partner2Name) && (
-            <div className="rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-4 py-3 text-center">
-              <p className="text-xs text-white/40 mb-1 uppercase tracking-widest">Your invitation portal</p>
-              <p className="font-serif text-lg text-white">
-                {form.partner1Name || '—'} <span className="text-[#D8B76A]">&</span> {form.partner2Name || '—'}
-              </p>
+          {(p1 || p2) && (
+            <div className="rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-4 py-3 text-center space-y-1">
+              <p className="text-xs text-white/40 uppercase tracking-widest">Preview</p>
+              <p className="font-serif text-lg text-white">{p1 || '—'} <span className="text-[#D8B76A]">&</span> {p2 || '—'}</p>
+              {weddingDate && <p className="text-xs text-white/50">{new Date(weddingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+              {rsvpDeadline && <p className="text-xs text-amber-400/70">⏰ RSVP by {new Date(rsvpDeadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+              {venue && <p className="text-xs text-white/40">📍 {venue}</p>}
             </div>
           )}
-
-          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <button type="submit" disabled={loading} id="signup-submit-btn"
             className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-3 text-sm font-semibold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] disabled:opacity-60">
@@ -152,8 +148,7 @@ const SignupPage = () => {
         </form>
 
         <p className="mt-6 text-center text-sm text-white/40">
-          Already have an account?{' '}
-          <Link to="/admin/login" className="text-[#D8B76A] hover:underline">Sign in</Link>
+          Already have an account? <Link to="/admin/login" className="text-[#D8B76A] hover:underline">Sign in</Link>
         </p>
       </div>
     </section>

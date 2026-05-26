@@ -1,7 +1,11 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'react-toastify'
 import { toPng } from 'html-to-image'
 import api from '../utils/api'
+import { rsvpSchema } from '../utils/schemas'
 
 // ── Countdown hook ────────────────────────────────────────────────────────────
 const useCountdown = (targetDate) => {
@@ -53,43 +57,44 @@ const InvitePage = () => {
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
   const [downloading, setDownloading] = useState(false)
-  const [form, setForm] = useState({
-    guestName: '', phone: '', attending: 'Yes',
-    numberOfGuests: 1, mealPreference: 'No Preference', message: '',
-  })
 
   const countdown = useCountdown(invitation?.userId?.weddingDate)
   const rsvpDeadline = invitation?.userId?.rsvpDeadline
   const deadlinePassed = rsvpDeadline ? new Date(rsvpDeadline) < new Date() : false
 
+  const { register, handleSubmit, control, setValue, watch, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(rsvpSchema),
+    defaultValues: {
+      guestName: '', phone: '', attending: 'Yes',
+      numberOfGuests: 1, mealPreference: 'No Preference', message: '',
+    },
+  })
+
+  const attendingVal = watch('attending')
+  const mealVal = watch('mealPreference')
+
   useEffect(() => {
     api.get(`/invitations/slug/${slug}`)
       .then((res) => {
         setInvitation(res.data)
-        setForm((f) => ({ ...f, guestName: res.data.guestName }))
+        setValue('guestName', res.data.guestName)
       })
       .catch((err) => { if (err.response?.status === 404) setNotFound(true) })
       .finally(() => setLoading(false))
-  }, [slug])
+  }, [slug, setValue])
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleChange = undefined // replaced by RHF
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSubmitting(true)
-    setFormError('')
+  const onRsvpSubmit = async (data) => {
     try {
       await api.post('/rsvps', {
         invitationId: invitation._id,
-        guestName: form.guestName,
-        phone: form.phone,
-        attending: form.attending,
-        numberOfGuests: Number(form.numberOfGuests),
-        mealPreference: form.mealPreference,
-        message: form.message,
+        guestName: data.guestName,
+        phone: data.phone,
+        attending: data.attending,
+        numberOfGuests: Number(data.numberOfGuests),
+        mealPreference: data.mealPreference,
+        message: data.message,
       })
       navigate('/rsvp-success', {
         state: {
@@ -99,8 +104,7 @@ const InvitePage = () => {
         },
       })
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Failed to submit. Please try again.')
-      setSubmitting(false)
+      toast.error(err.response?.data?.message || 'Failed to submit RSVP. Please try again.')
     }
   }
 
@@ -330,32 +334,44 @@ const InvitePage = () => {
               <button onClick={() => setShowForm(false)} className="text-[#1A2E4A]/40 hover:text-[#1A2E4A] transition text-xl">✕</button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onRsvpSubmit)} className="space-y-4">
+              {/* Name */}
               <div>
                 <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Name *</label>
-                <input id="rsvp-name" name="guestName" value={form.guestName} onChange={handleChange} required className={inputClass} />
+                <input id="rsvp-name" {...register('guestName')}
+                  className={`${inputClass} ${errors.guestName ? 'border-red-400/50' : ''}`} />
+                {errors.guestName && <p className="mt-1 text-xs text-red-500">{errors.guestName.message}</p>}
               </div>
+
+              {/* Phone */}
               <div>
                 <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Phone Number *</label>
-                <input id="rsvp-phone" name="phone" value={form.phone} onChange={handleChange} placeholder="+234 800 000 0000" required className={inputClass} />
+                <input id="rsvp-phone" placeholder="+234 800 000 0000" {...register('phone')}
+                  className={`${inputClass} ${errors.phone ? 'border-red-400/50' : ''}`} />
+                {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>}
               </div>
 
               {/* Attending toggle */}
               <div>
                 <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Will you attend? *</label>
-                <div className="flex gap-3">
-                  {['Yes', 'No'].map((opt) => (
-                    <button key={opt} type="button"
-                      onClick={() => setForm((f) => ({ ...f, attending: opt }))}
-                      className={`flex-1 rounded-xl border py-3 text-sm font-medium transition ${
-                        form.attending === opt
-                          ? opt === 'Yes' ? 'border-emerald-500/50 bg-emerald-50 text-emerald-700' : 'border-red-400/50 bg-red-50 text-red-600'
-                          : 'border-[#1A2E4A]/10 bg-[#F8F8F8] text-[#1A2E4A]/50 hover:border-[#1A2E4A]/20'
-                      }`}>
-                      {opt === 'Yes' ? '✓ Yes' : '✗ No'}
-                    </button>
-                  ))}
-                </div>
+                <Controller
+                  name="attending"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="flex gap-3">
+                      {['Yes', 'No'].map((opt) => (
+                        <button key={opt} type="button" onClick={() => field.onChange(opt)}
+                          className={`flex-1 rounded-xl border py-3 text-sm font-medium transition ${
+                            field.value === opt
+                              ? opt === 'Yes' ? 'border-emerald-500/50 bg-emerald-50 text-emerald-700' : 'border-red-400/50 bg-red-50 text-red-600'
+                              : 'border-[#1A2E4A]/10 bg-[#F8F8F8] text-[#1A2E4A]/50 hover:border-[#1A2E4A]/20'
+                          }`}>
+                          {opt === 'Yes' ? '✓ Yes' : '✗ No'}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                />
               </div>
 
               {/* Number of guests */}
@@ -363,40 +379,44 @@ const InvitePage = () => {
                 <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
                   Number of Guests (max {invitation.allowedGuests})
                 </label>
-                <input id="rsvp-guests" name="numberOfGuests" type="number" min={1}
-                  max={invitation.allowedGuests} value={form.numberOfGuests} onChange={handleChange} className={inputClass} />
+                <input id="rsvp-guests" type="number" min={1} max={invitation.allowedGuests}
+                  {...register('numberOfGuests')} className={inputClass} />
+                {errors.numberOfGuests && <p className="mt-1 text-xs text-red-500">{errors.numberOfGuests.message}</p>}
               </div>
 
               {/* Meal preference */}
               <div>
                 <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Meal Preference</label>
-                <div className="flex flex-wrap gap-2">
-                  {MEAL_OPTIONS.map((opt) => (
-                    <button key={opt} type="button"
-                      onClick={() => setForm((f) => ({ ...f, mealPreference: opt }))}
-                      className={`rounded-full border px-4 py-1.5 text-xs font-medium transition ${
-                        form.mealPreference === opt
-                          ? 'border-[#B8963A]/60 bg-[#D8B76A]/15 text-[#B8963A]'
-                          : 'border-[#1A2E4A]/10 bg-[#F8F8F8] text-[#1A2E4A]/50 hover:border-[#1A2E4A]/20'
-                      }`}>
-                      {opt}
-                    </button>
-                  ))}
-                </div>
+                <Controller
+                  name="mealPreference"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="flex flex-wrap gap-2">
+                      {MEAL_OPTIONS.map((opt) => (
+                        <button key={opt} type="button" onClick={() => field.onChange(opt)}
+                          className={`rounded-full border px-4 py-1.5 text-xs font-medium transition ${
+                            field.value === opt
+                              ? 'border-[#B8963A]/60 bg-[#D8B76A]/15 text-[#B8963A]'
+                              : 'border-[#1A2E4A]/10 bg-[#F8F8F8] text-[#1A2E4A]/50 hover:border-[#1A2E4A]/20'
+                          }`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                />
               </div>
 
               {/* Message */}
               <div>
                 <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Message (optional)</label>
-                <textarea id="rsvp-message" name="message" value={form.message} onChange={handleChange}
-                  rows={3} placeholder="A note for the couple..." className={inputClass + ' resize-none'} />
+                <textarea id="rsvp-message" rows={3} placeholder="A note for the couple..."
+                  {...register('message')} className={`${inputClass} resize-none`} />
               </div>
 
-              {formError && <p className="text-sm text-red-500">{formError}</p>}
-
-              <button type="submit" id="rsvp-submit-btn" disabled={submitting}
+              <button type="submit" id="rsvp-submit-btn" disabled={isSubmitting}
                 className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.4)] disabled:opacity-60 mt-2">
-                {submitting ? 'Sending...' : 'Submit RSVP'}
+                {isSubmitting ? 'Sending...' : 'Submit RSVP'}
               </button>
             </form>
           </div>

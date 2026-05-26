@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 import InvitePage from './pages/InvitePage'
 import RsvpSuccessPage from './pages/RsvpSuccessPage'
@@ -22,6 +24,22 @@ import ProtectedRoute from './components/ProtectedRoute'
 function App() {
   return (
     <BrowserRouter>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="dark"
+        toastStyle={{
+          background: '#0D1220',
+          border: '1px solid rgba(216,183,106,0.2)',
+          borderRadius: '16px',
+          color: '#fff',
+          fontSize: '14px',
+        }}
+      />
       <Routes>
         {/* Default route */}
         <Route path="/" element={<LandingPage />} />
