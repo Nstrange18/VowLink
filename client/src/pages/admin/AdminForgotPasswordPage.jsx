@@ -28,7 +28,7 @@ const AdminForgotPasswordPage = () => {
   }
 
   return (
-    <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg.png')] bg-cover bg-top bg-no-repeat px-6">
+    <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg2.png')] bg-cover bg-top bg-no-repeat px-6">
       <div className="w-full max-w-sm rounded-[24px] border border-[#D8B76A]/40 bg-[#070A13]/85 px-8 py-12 shadow-2xl backdrop-blur-md">
         <p className="mb-2 text-center text-xs uppercase tracking-[0.35em] text-[#D8B76A]">Account Recovery</p>
         <h1 className="mb-2 text-center font-serif text-3xl text-white">Forgot Password?</h1>

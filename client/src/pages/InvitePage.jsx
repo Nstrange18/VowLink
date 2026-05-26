@@ -107,7 +107,7 @@ const InvitePage = () => {
     if (!cardRef.current) return
     setDownloading(true)
     try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: '#070A13' })
+      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: '#07101f' })
       const link = document.createElement('a')
       link.download = `invitation-${invitation.guestName?.toLowerCase().replace(/\s+/g, '-') || 'card'}.png`
       link.href = dataUrl
@@ -150,13 +150,13 @@ const InvitePage = () => {
   return (
     <div className="min-h-screen bg-[#070A13]">
       {/* HERO — dark floral frame bg, card centred in dark middle */}
-      <section className="relative min-h-screen bg-[url('/hero-bg.png')] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center">
+      <section className="relative min-h-screen bg-[url('/hero-bg2.png')] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center">
         <div className="w-full flex flex-col items-center justify-center gap-4 px-5 sm:px-8 py-20 sm:py-24">
 
           {/* The downloadable card — DARK THEME */}
           <div
             ref={cardRef}
-            className="w-full max-w-[340px] sm:max-w-md rounded-[28px] border border-[#D8B76A]/30 bg-[#070A13] px-5 sm:px-8 py-8 sm:py-12 text-center shadow-[0_20px_80px_rgba(0,0,0,0.9)]"
+            className="w-full max-w-[340px] sm:max-w-md rounded-[28px] border border-[#D8B76A]/40 bg-[#07101f] px-5 sm:px-8 py-8 sm:py-12 text-center shadow-[0_30px_80px_rgba(7,16,31,0.55),0_0_0_1px_rgba(216,183,106,0.15)]"
           >
           <p className="mb-5 text-xs uppercase tracking-[0.35em] text-[#D8B76A]">
             You are cordially invited
@@ -279,11 +279,11 @@ const InvitePage = () => {
           {/* Action buttons row */}
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button onClick={handleDownload} disabled={downloading}
-              className="flex items-center gap-2 rounded-full border border-white/20 bg-black/50 px-5 py-2.5 text-xs font-medium uppercase tracking-widest text-white/70 backdrop-blur-sm transition hover:bg-black/70 hover:text-white disabled:opacity-50">
+              className="flex items-center gap-2 rounded-full border border-[#1A2E4A]/30 bg-[#1A2E4A]/80 px-5 py-2.5 text-xs font-medium uppercase tracking-widest text-white backdrop-blur-sm transition hover:bg-[#1A2E4A] disabled:opacity-50">
               {downloading ? <span className="animate-pulse">Downloading...</span> : <><span>⬇</span> Download</>}
             </button>
             <button onClick={handleWhatsAppShare}
-              className="flex items-center gap-2 rounded-full border border-[#25D366]/30 bg-[#25D366]/10 px-5 py-2.5 text-xs font-medium uppercase tracking-widest text-[#25D366] backdrop-blur-sm transition hover:bg-[#25D366]/20">
+              className="flex items-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/20 px-5 py-2.5 text-xs font-medium uppercase tracking-widest text-[#1a7a3a] backdrop-blur-sm transition hover:bg-[#25D366]/30">
               <span>📲</span> Share
             </button>
           </div>
