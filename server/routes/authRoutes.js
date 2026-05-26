@@ -2,16 +2,14 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
-const dns = require("dns");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 const sgMail = require("@sendgrid/mail");
 
 const router = express.Router();
 
-dns.setDefaultResultOrder("ipv4first");
-
+// Set SendGrid API key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
 const userPayload = (user) => ({
@@ -50,11 +48,6 @@ const userPublic = (user) => ({
   kidsAllowed: typeof user.kidsAllowed === "boolean" ? user.kidsAllowed : true,
 });
 
-
-
-// At the top of file, after requires:
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
 // ── Email helper ──────────────────────────────────────────────────────────────
 const sendResetEmail = async (email, resetUrl) => {
   console.log("📧 [sendResetEmail] Attempting to send reset email to:", email);
@@ -67,7 +60,7 @@ const sendResetEmail = async (email, resetUrl) => {
   try {
     await sgMail.send({
       to: email,
-      from: process.env.EMAIL_USER,
+      from: "noreplybiru556@gmail.com",
       subject: "Reset your VowLink password",
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;background:#fdf8f0;border-radius:16px">
@@ -130,7 +123,9 @@ router.post("/signup", async (req, res) => {
       weddingColors: Array.isArray(weddingColors) ? weddingColors : [],
       dressCode: dressCode || "",
       plusOnePolicy:
-        plusOnePolicy === "plus_one_allowed" ? "plus_one_allowed" : "invitation_only",
+        plusOnePolicy === "plus_one_allowed"
+          ? "plus_one_allowed"
+          : "invitation_only",
       kidsAllowed: typeof kidsAllowed === "boolean" ? kidsAllowed : true,
     });
 
@@ -216,7 +211,9 @@ router.put("/me", protect, async (req, res) => {
         weddingColors: Array.isArray(weddingColors) ? weddingColors : [],
         dressCode: dressCode || "",
         plusOnePolicy:
-          plusOnePolicy === "plus_one_allowed" ? "plus_one_allowed" : "invitation_only",
+          plusOnePolicy === "plus_one_allowed"
+            ? "plus_one_allowed"
+            : "invitation_only",
         kidsAllowed: typeof kidsAllowed === "boolean" ? kidsAllowed : true,
       },
       { new: true },
@@ -234,7 +231,9 @@ router.put("/me", protect, async (req, res) => {
 // ── POST /api/auth/forgot-password ───────────────────────────────────────────
 router.post("/forgot-password", async (req, res) => {
   try {
-    const email = String(req.body?.email || "").trim().toLowerCase();
+    const email = String(req.body?.email || "")
+      .trim()
+      .toLowerCase();
     console.log("📬 [forgot-password] Request received for email:", email);
 
     if (!email) return res.status(400).json({ message: "Email is required." });
@@ -242,7 +241,6 @@ router.post("/forgot-password", async (req, res) => {
     const user = await User.findOne({ email });
     console.log("🔍 [forgot-password] User found:", !!user);
 
-    // Always respond with success to prevent email enumeration
     if (!user) {
       console.log("⚠️ [forgot-password] Email not in database:", email);
       return res
@@ -250,10 +248,9 @@ router.post("/forgot-password", async (req, res) => {
         .json({ message: "If that email exists, a reset link has been sent." });
     }
 
-    // Generate token
     const token = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = token;
-    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
     await user.save();
     console.log("💾 [forgot-password] Reset token saved to database");
 
@@ -261,9 +258,9 @@ router.post("/forgot-password", async (req, res) => {
     const resetUrl = `${clientUrl}/admin/reset-password/${token}`;
     console.log("🔗 [forgot-password] Reset URL:", resetUrl);
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    if (!process.env.SENDGRID_API_KEY) {
       console.log(
-        `⚠️ [forgot-password] SMTP not configured. Reset link for ${email}: ${resetUrl}`,
+        `⚠️ [forgot-password] SendGrid not configured. Reset link for ${email}: ${resetUrl}`,
       );
     } else {
       try {
@@ -275,8 +272,10 @@ router.post("/forgot-password", async (req, res) => {
           "❌ [forgot-password] Failed to send reset email for",
           email,
         );
-        console.error("❌ [forgot-password] Error:", mailError?.message || mailError);
-        console.error("❌ [forgot-password] Full error:", mailError);
+        console.error(
+          "❌ [forgot-password] Error:",
+          mailError?.message || mailError,
+        );
       }
     }
 
