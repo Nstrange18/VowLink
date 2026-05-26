@@ -166,7 +166,7 @@ const InvitePage = () => {
         {/* ═══ THE CARD (this gets downloaded) ═══ */}
         <div
           ref={cardRef}
-          className="w-full max-w-[360px] sm:max-w-[400px] rounded-2xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+          className="w-full max-w-90 sm:max-w-100 rounded-2xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
         >
           {/* hero-bg2.png IS the card background */}
           <div
@@ -177,7 +177,7 @@ const InvitePage = () => {
             <div className="px-10 pt-14 pb-16 flex flex-col items-center text-center">
 
               {/* ── Wedding Invitation title ── */}
-              <h2 style={{ ...script, fontSize: '2rem', lineHeight: 1.25, color: '#1A2E4A' }} className="mb-2">
+              <h2 style={{ ...script, fontSize: '2rem', lineHeight: 1.25, color: '#1A2E4A' }} className="mt-3">
                 Wedding Invitation
               </h2>
 
@@ -218,7 +218,7 @@ const InvitePage = () => {
               </p>
 
               {/* ── Custom message ── */}
-              <p style={{ ...serif, fontSize: '1rem', lineHeight: 1.8, color: '#1A2E4A' }} className="mb-5 max-w-[240px]">
+              <p style={{ ...serif, fontSize: '1rem', lineHeight: 1.8, color: '#1A2E4A' }} className="mb-5 max-w-60">
                 {invitation.customMessage}
               </p>
 
@@ -236,7 +236,7 @@ const InvitePage = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ ...serif, fontSize: '0.95rem', color: '#1A2E4A', textDecoration: 'underline', textDecorationColor: '#B8963A55', textUnderlineOffset: '3px' }}
-                  className="mb-5 hover:text-[#B8963A] transition text-center block max-w-[220px]"
+                  className="mb-5 hover:text-[#B8963A] transition text-center block max-w-55"
                 >
                   Location: {venue}
                 </a>
@@ -261,7 +261,7 @@ const InvitePage = () => {
 
         {/* ── Countdown (outside card, not downloaded) ── */}
         {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
-          <div className="w-full max-w-[360px] sm:max-w-[400px]">
+          <div className="w-full max-w-90 sm:max-w-100">
             <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">Counting Down</p>
             <div className="flex items-end justify-center gap-2">
               <CountdownBox value={countdown.days} label="Days" />
@@ -304,7 +304,7 @@ const InvitePage = () => {
           <button
             id="rsvp-open-btn"
             onClick={() => setShowForm(true)}
-            className="rounded-full bg-gradient-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.45)]"
+            className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.45)]"
           >
             ✦ RSVP Now
           </button>
