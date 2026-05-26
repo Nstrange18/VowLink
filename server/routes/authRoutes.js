@@ -47,9 +47,11 @@ const sendResetEmail = async (email, resetUrl) => {
 
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // SSL
+    port: 587,
+    secure: false,       // STARTTLS (more reliable on cloud hosts than port 465)
+    requireTLS: true,
     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    tls: { rejectUnauthorized: false },
   });
 
   await transporter.sendMail({

@@ -1,3 +1,7 @@
+// Force IPv4 DNS resolution — prevents ENETUNREACH on Render (IPv6 not available)
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
