@@ -254,16 +254,26 @@ const InvitePage = () => {
 
               {/* ── Wedding colour swatches (name-based) ── */}
               {weddingColors.length > 0 && (
-                <div className="flex flex-wrap items-center justify-center gap-2 mb-3">
-                  {weddingColors.map((name, i) => {
-                    const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || '#999'
-                    return (
-                      <div key={i} className="flex items-center gap-1">
-                        <div className="h-3.5 w-3.5 rounded-full border border-[#1A2E4A]/25" style={{ background: hex }} />
-                        <span style={{ ...serif, fontSize: '0.7rem', color: '#1A2E4A' }}>{name}</span>
-                      </div>
-                    )
-                  })}
+                <div className="mb-4">
+                  <p style={{ ...serif, fontSize: '0.7rem', letterSpacing: '0.12em', color: '#B8963A' }} className="uppercase mb-2">
+                    Colour of the Day
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {weddingColors.map((name, i) => {
+                      const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || '#999'
+                      return (
+                        <div key={i} className="flex flex-col items-center gap-1">
+                          <div
+                            className="h-6 w-6 rounded-full shadow-sm"
+                            style={{ background: hex, border: '2px solid rgba(26,46,74,0.2)' }}
+                          />
+                          <span style={{ ...serif, fontSize: '0.6rem', color: '#1A2E4A', lineHeight: 1.2 }} className="text-center max-w-10">
+                            {name}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
 
@@ -390,7 +400,7 @@ const InvitePage = () => {
                   return (
                     <div key={i} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
                       <div className="h-3 w-3 rounded-full shrink-0" style={{ background: hex }} />
-                      <span className="text-xs text-white">{name}</span>
+                      <span className="text-sm text-white">{name}</span>
                     </div>
                   )
                 })}
