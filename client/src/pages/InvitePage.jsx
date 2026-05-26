@@ -390,7 +390,7 @@ const InvitePage = () => {
                   return (
                     <div key={i} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
                       <div className="h-3 w-3 rounded-full shrink-0" style={{ background: hex }} />
-                      <span className="text-xs text-white/70">{name}</span>
+                      <span className="text-xs text-white">{name}</span>
                     </div>
                   )
                 })}

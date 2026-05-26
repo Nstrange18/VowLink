@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import { signupSchema } from '../../utils/schemas'
-import ColorPicker from '../../components/ColorPicker'
+import ColorPicker, { WEDDING_COLORS } from '../../components/ColorPicker'
 
 const EyeIcon = ({ open }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -160,7 +160,15 @@ const SignupPage = () => {
               {venue && <p className="text-xs text-white/40">📍 {venue}</p>}
               {weddingColors.length > 0 && (
                 <div className="flex justify-center gap-1 pt-1">
-                  {weddingColors.map((c, i) => <div key={i} className="h-4 w-4 rounded-full border border-white/20" style={{ background: c }} />)}
+                  {weddingColors.map((name, i) => {
+                    const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || '#999'
+                    return (
+                      <div key={i} title={name}
+                        className="h-4 w-4 rounded-full border border-white/20"
+                        style={{ background: hex }}
+                      />
+                    )
+                  })}
                 </div>
               )}
             </div>

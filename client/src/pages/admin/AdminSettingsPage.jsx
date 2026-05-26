@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import { settingsSchema } from '../../utils/schemas'
-import ColorPicker from '../../components/ColorPicker'
+import ColorPicker, { WEDDING_COLORS } from '../../components/ColorPicker'
 
 const inputBase = "w-full rounded-xl border bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition"
 const inputOk = "border-white/10 focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30"
@@ -129,10 +129,16 @@ const AdminSettingsPage = () => {
             {weddingColors.length > 0 && (
               <div className="flex items-center gap-2 pt-1">
                 <span className="text-xs text-white/30">Colours:</span>
-                <div className="flex gap-1.5">
-                  {weddingColors.map((c, i) => (
-                    <div key={i} className="h-4 w-4 rounded-full border border-white/20" style={{ background: c }} />
-                  ))}
+                <div className="flex flex-wrap gap-1.5">
+                  {weddingColors.map((name, i) => {
+                    const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || '#999'
+                    return (
+                      <div key={i} title={name}
+                        className="h-4 w-4 rounded-full border border-white/20"
+                        style={{ background: hex }}
+                      />
+                    )
+                  })}
                 </div>
               </div>
             )}
