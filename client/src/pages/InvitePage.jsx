@@ -350,43 +350,63 @@ const InvitePage = () => {
       <section className="px-4 sm:px-6 py-16 sm:py-20 text-center bg-[#070A13]">
         <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-4">The Details</p>
         <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 sm:mb-10">Wedding Day</h2>
-        <div className="mx-auto max-w-3xl grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              icon: '◈', label: 'Date',
-              value: weddingDate
+        <div className="mx-auto max-w-4xl grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+
+          {/* Date */}
+          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+            <span className="text-2xl text-[#D8B76A]">◈</span>
+            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Date</p>
+            <p className="text-white text-sm leading-6">
+              {weddingDate
                 ? new Date(weddingDate).toLocaleDateString('en-GB', {
                     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
                   })
-                : 'To be announced',
-            },
-            { icon: '📍', label: 'Venue', value: venue || 'To be announced' },
-            {
-              icon: '👔', label: 'Dress Code',
-              value: dressCode || 'To be announced',
-              extra: weddingColors.length > 0 ? weddingColors : null,
-            },
-            { icon: '✦', label: 'Your Category', value: invitation.category || 'Guest' },
-          ].map(({ icon, label, value, extra }) => (
-            <div key={label} className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-              <span className="text-2xl text-[#D8B76A]">{icon}</span>
-              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">{label}</p>
-              <p className="text-white text-sm leading-6 whitespace-pre-line">{value}</p>
-              {extra && (
-                <div className="flex justify-center flex-wrap gap-2 mt-3">
-                  {extra.map((name, i) => {
-                    const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || '#999'
-                    return (
-                      <div key={i} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
-                        <div className="h-3 w-3 rounded-full flex-shrink-0" style={{ background: hex }} />
-                        <span className="text-xs text-white/70">{name}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
+                : 'To be announced'}
+            </p>
+          </div>
+
+          {/* Venue */}
+          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+            <span className="text-2xl text-[#D8B76A]">📍</span>
+            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Venue</p>
+            <p className="text-white text-sm leading-6">{venue || 'To be announced'}</p>
+          </div>
+
+          {/* Dress Code */}
+          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+            <span className="text-2xl text-[#D8B76A]">👔</span>
+            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Dress Code</p>
+            <p className="text-white text-sm leading-6">{dressCode || 'To be announced'}</p>
+          </div>
+
+          {/* Colour of the Day */}
+          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+            <span className="text-2xl text-[#D8B76A]">🎨</span>
+            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-3">Colour of the Day</p>
+            {weddingColors.length > 0 ? (
+              <div className="flex justify-center flex-wrap gap-2">
+                {weddingColors.map((name, i) => {
+                  const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || '#999'
+                  return (
+                    <div key={i} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
+                      <div className="h-3 w-3 rounded-full shrink-0" style={{ background: hex }} />
+                      <span className="text-xs text-white/70">{name}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-white text-sm">To be announced</p>
+            )}
+          </div>
+
+          {/* Your Category */}
+          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+            <span className="text-2xl text-[#D8B76A]">✦</span>
+            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Your Category</p>
+            <p className="text-white text-sm leading-6">{invitation.category || 'Guest'}</p>
+          </div>
+
         </div>
       </section>
 

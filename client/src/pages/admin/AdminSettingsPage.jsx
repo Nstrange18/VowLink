@@ -71,7 +71,7 @@ const AdminSettingsPage = () => {
         {/* Wedding date */}
         <div>
           <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Wedding Date</label>
-          <input id="settings-wedding-date" type="date" {...register('weddingDate')} className={`${cls(false)} [color-scheme:dark]`} />
+          <input id="settings-wedding-date" type="date" {...register('weddingDate')} className={`${cls(false)} scheme-dark`} />
           <p className="mt-1 text-xs text-white/30">Appears on all invitation cards and countdown timer.</p>
         </div>
 
@@ -80,7 +80,7 @@ const AdminSettingsPage = () => {
           <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">RSVP Deadline</label>
           <input id="settings-rsvp-deadline" type="date" {...register('rsvpDeadline')}
             max={weddingDate || undefined}
-            className={`${cls(false)} [color-scheme:dark]`} />
+            className={`${cls(false)} scheme-dark`} />
           <p className="mt-1 text-xs text-white/30">Guests cannot RSVP after this date. Leave blank for no deadline.</p>
         </div>
 
@@ -109,7 +109,7 @@ const AdminSettingsPage = () => {
 
         {/* Live preview */}
         {(p1 || p2) && (
-          <div className="rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-5 py-4 space-y-2">
+          <div className="rounded-xl border border-[#D8B76A]/20 bg-[#dcdcdc46] px-5 py-4 space-y-2">
             <p className="text-xs text-white/40 mb-2 uppercase tracking-widest">Preview on invitation cards</p>
             <p className="font-serif text-2xl text-white">
               {p1 || '—'} <span className="text-[#D8B76A]">&</span> {p2 || '—'}
