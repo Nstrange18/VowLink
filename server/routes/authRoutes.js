@@ -52,41 +52,57 @@ const userPublic = (user) => ({
 
 // ── Email helper ──────────────────────────────────────────────────────────────
 const sendResetEmail = async (email, resetUrl) => {
+  console.log("📧 [sendResetEmail] Attempting to send reset email to:", email);
+
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.error("❌ [sendResetEmail] SMTP credentials missing");
     throw new Error(
       "SMTP not configured – set EMAIL_USER and EMAIL_PASS in environment variables.",
     );
   }
 
+  console.log("🔐 [sendResetEmail] Using EMAIL_USER:", process.env.EMAIL_USER);
+
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
-    secure: false, // STARTTLS (more reliable on cloud hosts than port 465)
+    secure: false,
     requireTLS: true,
     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
     tls: { rejectUnauthorized: false },
-    // Ensure the API responds quickly even if SMTP is misconfigured.
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,
     socketTimeout: 10_000,
   });
 
-  await transporter.sendMail({
-    from: `"VowLink" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Reset your VowLink password",
-    html: `
-      <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;background:#fdf8f0;border-radius:16px">
-        <h2 style="color:#1A2E4A;font-size:22px;margin-bottom:8px">Reset your password</h2>
-        <p style="color:#444;line-height:1.6">Click the button below to reset your VowLink password. This link expires in <strong>1 hour</strong>.</p>
-        <a href="${resetUrl}" style="display:inline-block;background:#D8B76A;color:#1A2E4A;padding:14px 28px;border-radius:100px;text-decoration:none;font-weight:bold;letter-spacing:1px;margin:20px 0;font-size:14px">
-          Reset Password
-        </a>
-        <p style="color:#999;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
-        <p style="color:#ccc;font-size:11px;word-break:break-all">${resetUrl}</p>
-      </div>
-    `,
-  });
+  console.log("🔗 [sendResetEmail] Reset URL:", resetUrl);
+
+  try {
+    const info = await transporter.sendMail({
+      from: `"VowLink" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Reset your VowLink password",
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;background:#fdf8f0;border-radius:16px">
+          <h2 style="color:#1A2E4A;font-size:22px;margin-bottom:8px">Reset your password</h2>
+          <p style="color:#444;line-height:1.6">Click the button below to reset your VowLink password. This link expires in <strong>1 hour</strong>.</p>
+          <a href="${resetUrl}" style="display:inline-block;background:#D8B76A;color:#1A2E4A;padding:14px 28px;border-radius:100px;text-decoration:none;font-weight:bold;letter-spacing:1px;margin:20px 0;font-size:14px">
+            Reset Password
+          </a>
+          <p style="color:#999;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
+          <p style="color:#ccc;font-size:11px;word-break:break-all">${resetUrl}</p>
+        </div>
+      `,
+    });
+
+    console.log("✅ [sendResetEmail] Email sent successfully. MessageID:", info.messageId);
+    console.log("✅ [sendResetEmail] Response:", info.response);
+  } catch (error) {
+    console.error("❌ [sendResetEmail] Failed to send email");
+    console.error("❌ [sendResetEmail] Error:", error.message);
+    console.error("❌ [sendResetEmail] Full error:", error);
+    throw error;
+  }
 };
 
 // ── POST /api/auth/signup ─────────────────────────────────────────────────────
@@ -235,11 +251,16 @@ router.put("/me", protect, async (req, res) => {
 router.post("/forgot-password", async (req, res) => {
   try {
     const email = String(req.body?.email || "").trim().toLowerCase();
+    console.log("📬 [forgot-password] Request received for email:", email);
+
     if (!email) return res.status(400).json({ message: "Email is required." });
 
     const user = await User.findOne({ email });
+    console.log("🔍 [forgot-password] User found:", !!user);
+
     // Always respond with success to prevent email enumeration
     if (!user) {
+      console.log("⚠️ [forgot-password] Email not in database:", email);
       return res
         .status(200)
         .json({ message: "If that email exists, a reset link has been sent." });
@@ -250,29 +271,28 @@ router.post("/forgot-password", async (req, res) => {
     user.resetPasswordToken = token;
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
+    console.log("💾 [forgot-password] Reset token saved to database");
 
     const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
     const resetUrl = `${clientUrl}/admin/reset-password/${token}`;
+    console.log("🔗 [forgot-password] Reset URL:", resetUrl);
 
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log(`[reset-password] SMTP not configured. Reset link for ${email}: ${resetUrl}`);
+      console.log(
+        `⚠️ [forgot-password] SMTP not configured. Reset link for ${email}: ${resetUrl}`,
+      );
     } else {
       try {
+        console.log("📧 [forgot-password] Calling sendResetEmail()...");
         await sendResetEmail(email, resetUrl);
+        console.log("✅ [forgot-password] Email sent successfully");
       } catch (mailError) {
-        // Don't fail the whole request if email sending fails.
-        // (This avoids browser timeouts and keeps the UX consistent.)
-        if (process.env.NODE_ENV !== "production") {
-          console.log(
-            `[dev] Failed to send reset email for ${email}. Reset link: ${resetUrl}`,
-          );
-          console.log("[dev] SMTP error:", mailError?.message || mailError);
-        } else {
-          console.error(
-            "Failed to send reset email:",
-            mailError?.message || mailError,
-          );
-        }
+        console.error(
+          "❌ [forgot-password] Failed to send reset email for",
+          email,
+        );
+        console.error("❌ [forgot-password] Error:", mailError?.message || mailError);
+        console.error("❌ [forgot-password] Full error:", mailError);
       }
     }
 
@@ -280,6 +300,7 @@ router.post("/forgot-password", async (req, res) => {
       .status(200)
       .json({ message: "If that email exists, a reset link has been sent." });
   } catch (error) {
+    console.error("❌ [forgot-password] Unexpected error:", error);
     res
       .status(500)
       .json({ message: "Failed to process request.", error: error.message });
