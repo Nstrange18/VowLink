@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema(
     weddingDate: { type: Date, default: null },
     rsvpDeadline: { type: Date, default: null },
     venue: { type: String, trim: true, default: '' },
+    weddingColors: { type: [String], default: [] }, // e.g. ["#FFFFFF", "#D8B76A", "#1A2E4A"]
+    dressCode: { type: String, trim: true, default: '' }, // e.g. "Black Tie", "Smart Casual"
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
   },

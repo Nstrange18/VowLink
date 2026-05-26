@@ -16,6 +16,8 @@ export const signupSchema = z
     weddingDate: z.string().optional(),
     rsvpDeadline: z.string().optional(),
     venue: z.string().optional(),
+    weddingColors: z.array(z.string()).optional().default([]),
+    dressCode: z.string().optional().default(''),
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: "Passwords don't match",
@@ -62,6 +64,8 @@ export const settingsSchema = z
     weddingDate: z.string().optional(),
     rsvpDeadline: z.string().optional(),
     venue: z.string().optional(),
+    weddingColors: z.array(z.string()).optional().default([]),
+    dressCode: z.string().optional().default(''),
   })
   .refine(
     (d) => {

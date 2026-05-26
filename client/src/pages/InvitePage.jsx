@@ -146,6 +146,8 @@ const InvitePage = () => {
   const inputClass = "w-full rounded-xl border border-[#1A2E4A]/15 bg-white px-4 py-3 text-sm text-[#1A2E4A] placeholder-[#1A2E4A]/30 outline-none focus:border-[#B8963A]/60 focus:ring-1 focus:ring-[#B8963A]/30 transition"
   const venue = invitation.userId?.venue
   const weddingDate = invitation.userId?.weddingDate
+  const dressCode = invitation.userId?.dressCode || ''
+  const weddingColors = invitation.userId?.weddingColors || []
   const script = { fontFamily: "'Dancing Script', cursive" }
   const serif  = { fontFamily: "'Cormorant Garamond', serif" }
   const formattedDate = weddingDate
@@ -249,6 +251,19 @@ const InvitePage = () => {
                 <div className="h-px w-8" style={{ background: '#B8963A', opacity: 0.6 }} />
               </div>
 
+              {/* ── Wedding colour swatches ── */}
+              {weddingColors.length > 0 && (
+                <div className="flex items-center justify-center gap-1.5 mb-3">
+                  {weddingColors.map((hex, i) => (
+                    <div
+                      key={i}
+                      className="h-4 w-4 rounded-full border border-[#1A2E4A]/20"
+                      style={{ background: hex }}
+                    />
+                  ))}
+                </div>
+              )}
+
               {/* ── Category badge (VIP ACCESS style) ── */}
               <p style={{ ...serif, fontSize: '1.25rem', letterSpacing: '0.18em', color: '#1A2E4A', fontWeight: 700 }} className="uppercase">
                 {invitation.category || 'Guest'}
@@ -329,7 +344,6 @@ const InvitePage = () => {
 
       </section>
 
-      {/* WEDDING DETAILS SECTION */}
       <section className="px-4 sm:px-6 py-16 sm:py-20 text-center bg-[#070A13]">
         <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-4">The Details</p>
         <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 sm:mb-10">Wedding Day</h2>
@@ -344,13 +358,27 @@ const InvitePage = () => {
                 : 'To be announced',
             },
             { icon: '📍', label: 'Venue', value: venue || 'To be announced' },
-            { icon: '◉', label: 'Dress Code', value: 'White\nChampagne Gold\nNavy Blue' },
+            {
+              icon: '👔', label: 'Dress Code',
+              value: dressCode || 'To be announced',
+              extra: weddingColors.length > 0 ? weddingColors : null,
+            },
             { icon: '✦', label: 'Your Category', value: invitation.category || 'Guest' },
-          ].map(({ icon, label, value }) => (
+          ].map(({ icon, label, value, extra }) => (
             <div key={label} className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
               <span className="text-2xl text-[#D8B76A]">{icon}</span>
               <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">{label}</p>
               <p className="text-white text-sm leading-6 whitespace-pre-line">{value}</p>
+              {extra && (
+                <div className="flex justify-center flex-wrap gap-2 mt-3">
+                  {extra.map((hex, i) => (
+                    <div key={i} title={hex}
+                      className="h-6 w-6 rounded-full border-2 border-white/20 shadow-sm"
+                      style={{ background: hex }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>

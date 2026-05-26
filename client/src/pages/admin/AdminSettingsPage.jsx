@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import { settingsSchema } from '../../utils/schemas'
+import ColorPicker from '../../components/ColorPicker'
 
 const inputBase = "w-full rounded-xl border bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition"
 const inputOk = "border-white/10 focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30"
@@ -14,6 +16,8 @@ const toInputDate = (dateStr) => dateStr ? new Date(dateStr).toISOString().split
 const AdminSettingsPage = () => {
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
 
+  const [weddingColors, setWeddingColors] = useState(storedUser.weddingColors || [])
+
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
@@ -22,6 +26,7 @@ const AdminSettingsPage = () => {
       weddingDate: toInputDate(storedUser.weddingDate),
       rsvpDeadline: toInputDate(storedUser.rsvpDeadline),
       venue: storedUser.venue || '',
+      dressCode: storedUser.dressCode || '',
     },
   })
 
@@ -30,10 +35,11 @@ const AdminSettingsPage = () => {
   const weddingDate = watch('weddingDate')
   const rsvpDeadline = watch('rsvpDeadline')
   const venue = watch('venue')
+  const dressCode = watch('dressCode')
 
   const onSubmit = async (data) => {
     try {
-      const res = await api.put('/auth/me', data)
+      const res = await api.put('/auth/me', { ...data, weddingColors })
       localStorage.setItem('token', res.data.accessToken)
       localStorage.setItem('user', JSON.stringify(res.data.user))
       toast.success('Settings saved! ✓ Changes appear on all invitation cards.')
@@ -86,9 +92,24 @@ const AdminSettingsPage = () => {
           <p className="mt-1 text-xs text-white/30">Shown in the Wedding Details section of every invitation.</p>
         </div>
 
+        {/* Dress Code */}
+        <div>
+          <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Dress Code</label>
+          <input id="settings-dress-code" placeholder="e.g. Black Tie, Smart Casual, White & Gold"
+            {...register('dressCode')} className={cls(false)} />
+          <p className="mt-1 text-xs text-white/30">Shown on every invitation card under Wedding Details.</p>
+        </div>
+
+        {/* Wedding Colours */}
+        <div>
+          <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Wedding Colours</label>
+          <ColorPicker value={weddingColors} onChange={setWeddingColors} />
+          <p className="mt-1 text-xs text-white/30">Displayed as colour swatches on each invitation card. Up to 5 colours.</p>
+        </div>
+
         {/* Live preview */}
         {(p1 || p2) && (
-          <div className="rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-5 py-4 space-y-1">
+          <div className="rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-5 py-4 space-y-2">
             <p className="text-xs text-white/40 mb-2 uppercase tracking-widest">Preview on invitation cards</p>
             <p className="font-serif text-2xl text-white">
               {p1 || '—'} <span className="text-[#D8B76A]">&</span> {p2 || '—'}
@@ -104,6 +125,17 @@ const AdminSettingsPage = () => {
               </p>
             )}
             {venue && <p className="text-sm text-white/40">📍 {venue}</p>}
+            {dressCode && <p className="text-sm text-white/50">👔 Dress Code: {dressCode}</p>}
+            {weddingColors.length > 0 && (
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-xs text-white/30">Colours:</span>
+                <div className="flex gap-1.5">
+                  {weddingColors.map((c, i) => (
+                    <div key={i} className="h-4 w-4 rounded-full border border-white/20" style={{ background: c }} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

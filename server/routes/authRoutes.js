@@ -17,6 +17,8 @@ const userPayload = (user) => ({
   weddingDate: user.weddingDate,
   rsvpDeadline: user.rsvpDeadline,
   venue: user.venue,
+  weddingColors: user.weddingColors || [],
+  dressCode: user.dressCode || '',
 });
 
 const generateAccessToken = (user) =>
@@ -33,6 +35,8 @@ const userPublic = (user) => ({
   weddingDate: user.weddingDate,
   rsvpDeadline: user.rsvpDeadline,
   venue: user.venue,
+  weddingColors: user.weddingColors || [],
+  dressCode: user.dressCode || '',
 });
 
 // ── Email helper ──────────────────────────────────────────────────────────────
@@ -69,7 +73,7 @@ const sendResetEmail = async (email, resetUrl) => {
 // ── POST /api/auth/signup ─────────────────────────────────────────────────────
 router.post("/signup", async (req, res) => {
   try {
-    const { partner1Name, partner2Name, email, password, weddingDate, rsvpDeadline, venue } = req.body;
+    const { partner1Name, partner2Name, email, password, weddingDate, rsvpDeadline, venue, weddingColors, dressCode } = req.body;
     if (!partner1Name || !partner2Name || !email || !password)
       return res.status(400).json({ message: "All fields are required." });
     if (password.length < 6)
@@ -86,6 +90,8 @@ router.post("/signup", async (req, res) => {
       weddingDate: weddingDate || null,
       rsvpDeadline: rsvpDeadline || null,
       venue: venue || "",
+      weddingColors: Array.isArray(weddingColors) ? weddingColors : [],
+      dressCode: dressCode || '',
     });
 
     res.status(201).json({
@@ -142,10 +148,14 @@ router.post("/refresh", async (req, res) => {
 // ── PUT /api/auth/me — update profile ────────────────────────────────────────
 router.put("/me", protect, async (req, res) => {
   try {
-    const { partner1Name, partner2Name, weddingDate, rsvpDeadline, venue } = req.body;
+    const { partner1Name, partner2Name, weddingDate, rsvpDeadline, venue, weddingColors, dressCode } = req.body;
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { partner1Name, partner2Name, weddingDate, rsvpDeadline, venue },
+      {
+        partner1Name, partner2Name, weddingDate, rsvpDeadline, venue,
+        weddingColors: Array.isArray(weddingColors) ? weddingColors : [],
+        dressCode: dressCode || '',
+      },
       { new: true }
     );
     res.status(200).json({

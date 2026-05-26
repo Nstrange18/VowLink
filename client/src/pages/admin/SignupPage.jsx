@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import { signupSchema } from '../../utils/schemas'
+import ColorPicker from '../../components/ColorPicker'
 
 const EyeIcon = ({ open }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -20,6 +21,7 @@ const cls = (err) => `${inputBase} ${err ? inputErr : inputOk}`
 const SignupPage = () => {
   const [show, setShow] = useState({ password: false, confirm: false })
   const [loading, setLoading] = useState(false)
+  const [weddingColors, setWeddingColors] = useState([])
   const navigate = useNavigate()
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
@@ -44,6 +46,8 @@ const SignupPage = () => {
         weddingDate: data.weddingDate || null,
         rsvpDeadline: data.rsvpDeadline || null,
         venue: data.venue || '',
+        weddingColors,
+        dressCode: data.dressCode || '',
       })
       localStorage.setItem('token', res.data.accessToken)
       localStorage.setItem('refreshToken', res.data.refreshToken)
@@ -126,6 +130,20 @@ const SignupPage = () => {
             <p className="mt-1 text-xs text-white/30">Cut-off date for RSVPs. Optional.</p>
           </div>
 
+          {/* Wedding Colours */}
+          <div>
+            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Wedding Colours</label>
+            <ColorPicker value={weddingColors} onChange={setWeddingColors} />
+            <p className="mt-1 text-xs text-white/30">Pick up to 5 colours for your dress code &amp; invitation. You can update later.</p>
+          </div>
+
+          {/* Dress Code */}
+          <div>
+            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Dress Code</label>
+            <input id="signup-dress-code" placeholder="e.g. Black Tie, Smart Casual, White & Gold" {...register('dressCode')} className={cls(false)} />
+            <p className="mt-1 text-xs text-white/30">Shown on every invitation card. You can update later.</p>
+          </div>
+
           {/* Venue */}
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Venue / Location</label>
@@ -140,6 +158,11 @@ const SignupPage = () => {
               {weddingDate && <p className="text-xs text-white/50">{new Date(weddingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
               {rsvpDeadline && <p className="text-xs text-amber-400/70">⏰ RSVP by {new Date(rsvpDeadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
               {venue && <p className="text-xs text-white/40">📍 {venue}</p>}
+              {weddingColors.length > 0 && (
+                <div className="flex justify-center gap-1 pt-1">
+                  {weddingColors.map((c, i) => <div key={i} className="h-4 w-4 rounded-full border border-white/20" style={{ background: c }} />)}
+                </div>
+              )}
             </div>
           )}
 
