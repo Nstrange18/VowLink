@@ -6,6 +6,7 @@ const nodemailer = require("nodemailer");
 const dns = require("dns");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
+const sgMail = require("@sendgrid/mail");
 
 const router = express.Router();
 
@@ -50,35 +51,23 @@ const userPublic = (user) => ({
 });
 
 
+
+// At the top of file, after requires:
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 // ── Email helper ──────────────────────────────────────────────────────────────
 const sendResetEmail = async (email, resetUrl) => {
   console.log("📧 [sendResetEmail] Attempting to send reset email to:", email);
 
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.error("❌ [sendResetEmail] SMTP credentials missing");
-    throw new Error(
-      "SMTP not configured – set EMAIL_USER and EMAIL_PASS in environment variables.",
-    );
+  if (!process.env.SENDGRID_API_KEY) {
+    console.error("❌ [sendResetEmail] SendGrid API key missing");
+    throw new Error("SendGrid API key not configured");
   }
 
-  console.log("🔐 [sendResetEmail] Using EMAIL_USER:", process.env.EMAIL_USER);
-
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465, // Changed from 587 to 465 (SSL)
-    secure: true, // Changed from false to true (SSL required for port 465)
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 10_000,
-  });
-
-  console.log("🔗 [sendResetEmail] Reset URL:", resetUrl);
-
   try {
-    const info = await transporter.sendMail({
-      from: `"VowLink" <${process.env.EMAIL_USER}>`,
+    await sgMail.send({
       to: email,
+      from: process.env.EMAIL_USER,
       subject: "Reset your VowLink password",
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;background:#fdf8f0;border-radius:16px">
@@ -92,7 +81,7 @@ const sendResetEmail = async (email, resetUrl) => {
       `,
     });
 
-    console.log("✅ [sendResetEmail] Email sent successfully. MessageID:", info.messageId);
+    console.log("✅ [sendResetEmail] Email sent successfully to:", email);
   } catch (error) {
     console.error("❌ [sendResetEmail] Failed to send email");
     console.error("❌ [sendResetEmail] Error:", error.message);
