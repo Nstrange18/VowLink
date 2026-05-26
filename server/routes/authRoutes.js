@@ -63,6 +63,9 @@ const sendResetEmail = async (email, resetUrl) => {
 
   console.log("🔐 [sendResetEmail] Using EMAIL_USER:", process.env.EMAIL_USER);
 
+  // Force IPv4 lookup before creating transporter
+  dns.setDefaultResultOrder("ipv4first");
+
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
@@ -73,6 +76,7 @@ const sendResetEmail = async (email, resetUrl) => {
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,
     socketTimeout: 10_000,
+    family: 4, // Force IPv4
   });
 
   console.log("🔗 [sendResetEmail] Reset URL:", resetUrl);
@@ -90,17 +94,14 @@ const sendResetEmail = async (email, resetUrl) => {
             Reset Password
           </a>
           <p style="color:#999;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
-          <p style="color:#ccc;font-size:11px;word-break:break-all">${resetUrl}</p>
         </div>
       `,
     });
 
     console.log("✅ [sendResetEmail] Email sent successfully. MessageID:", info.messageId);
-    console.log("✅ [sendResetEmail] Response:", info.response);
   } catch (error) {
     console.error("❌ [sendResetEmail] Failed to send email");
     console.error("❌ [sendResetEmail] Error:", error.message);
-    console.error("❌ [sendResetEmail] Full error:", error);
     throw error;
   }
 };
