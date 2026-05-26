@@ -21,6 +21,15 @@ export const signupSchema = z
     message: "Passwords don't match",
     path: ['confirmPassword'],
   })
+  .refine(
+    (d) => {
+      if (d.rsvpDeadline && d.weddingDate) {
+        return new Date(d.rsvpDeadline) <= new Date(d.weddingDate)
+      }
+      return true
+    },
+    { message: 'RSVP deadline must be on or before the wedding date', path: ['rsvpDeadline'] }
+  )
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email('Enter a valid email address'),
@@ -46,13 +55,23 @@ export const invitationSchema = z.object({
 })
 
 // ── Settings ──────────────────────────────────────────────────────────────────
-export const settingsSchema = z.object({
-  partner1Name: z.string().min(1, 'Partner 1 name is required'),
-  partner2Name: z.string().min(1, 'Partner 2 name is required'),
-  weddingDate: z.string().optional(),
-  rsvpDeadline: z.string().optional(),
-  venue: z.string().optional(),
-})
+export const settingsSchema = z
+  .object({
+    partner1Name: z.string().min(1, 'Partner 1 name is required'),
+    partner2Name: z.string().min(1, 'Partner 2 name is required'),
+    weddingDate: z.string().optional(),
+    rsvpDeadline: z.string().optional(),
+    venue: z.string().optional(),
+  })
+  .refine(
+    (d) => {
+      if (d.rsvpDeadline && d.weddingDate) {
+        return new Date(d.rsvpDeadline) <= new Date(d.weddingDate)
+      }
+      return true
+    },
+    { message: 'RSVP deadline must be on or before the wedding date', path: ['rsvpDeadline'] }
+  )
 
 // ── RSVP (guest-facing) ───────────────────────────────────────────────────────
 export const rsvpSchema = z.object({

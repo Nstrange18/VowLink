@@ -72,7 +72,9 @@ const AdminSettingsPage = () => {
         {/* RSVP Deadline */}
         <div>
           <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">RSVP Deadline</label>
-          <input id="settings-rsvp-deadline" type="date" {...register('rsvpDeadline')} className={`${cls(false)} [color-scheme:dark]`} />
+          <input id="settings-rsvp-deadline" type="date" {...register('rsvpDeadline')}
+            max={weddingDate || undefined}
+            className={`${cls(false)} [color-scheme:dark]`} />
           <p className="mt-1 text-xs text-white/30">Guests cannot RSVP after this date. Leave blank for no deadline.</p>
         </div>
 

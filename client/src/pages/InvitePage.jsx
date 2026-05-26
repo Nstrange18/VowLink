@@ -35,12 +35,12 @@ const useCountdown = (targetDate) => {
 
 const CountdownBox = ({ value, label }) => (
   <div className="flex flex-col items-center">
-    <div className="rounded-xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 px-3 py-2 min-w-13 text-center">
-      <span className="font-serif text-2xl font-light text-[#1A2E4A]">
+    <div className="rounded-xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 px-3 py-2 min-w-[52px] text-center">
+      <span className="font-serif text-2xl font-light text-white">
         {String(value).padStart(2, '0')}
       </span>
     </div>
-    <span className="mt-1 text-[9px] uppercase tracking-widest text-[#B8963A]">{label}</span>
+    <span className="mt-1 text-[9px] uppercase tracking-widest text-[#D8B76A]/70">{label}</span>
   </div>
 )
 
@@ -54,15 +54,13 @@ const InvitePage = () => {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [formError, setFormError] = useState('')
   const [downloading, setDownloading] = useState(false)
 
   const countdown = useCountdown(invitation?.userId?.weddingDate)
   const rsvpDeadline = invitation?.userId?.rsvpDeadline
   const deadlinePassed = rsvpDeadline ? new Date(rsvpDeadline) < new Date() : false
 
-  const { register, handleSubmit, control, setValue, watch, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, control, setValue, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(rsvpSchema),
     defaultValues: {
       guestName: '', phone: '', attending: 'Yes',
@@ -70,8 +68,6 @@ const InvitePage = () => {
     },
   })
 
-  const attendingVal = watch('attending')
-  const mealVal = watch('mealPreference')
 
   useEffect(() => {
     api.get(`/invitations/slug/${slug}`)
@@ -83,7 +79,6 @@ const InvitePage = () => {
       .finally(() => setLoading(false))
   }, [slug, setValue])
 
-  const handleChange = undefined // replaced by RHF
 
   const onRsvpSubmit = async (data) => {
     try {
@@ -112,7 +107,7 @@ const InvitePage = () => {
     if (!cardRef.current) return
     setDownloading(true)
     try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: '#ffffff' })
+      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: '#070A13' })
       const link = document.createElement('a')
       link.download = `invitation-${invitation.guestName?.toLowerCase().replace(/\s+/g, '-') || 'card'}.png`
       link.href = dataUrl
@@ -154,24 +149,24 @@ const InvitePage = () => {
 
   return (
     <div className="min-h-screen bg-[#070A13]">
-      {/* HERO — light card on floral background */}
+      {/* HERO — light floral background, dark card */}
       <section className="min-h-screen bg-[url('/hero-bg.png')] bg-cover bg-center bg-no-repeat px-4 sm:px-6 py-10 flex flex-col items-center justify-center gap-5">
 
-        {/* The downloadable card */}
+        {/* The downloadable card — DARK THEME */}
         <div
           ref={cardRef}
-          className="w-full max-w-md rounded-[28px] border border-[#D8B76A]/30 bg-white px-6 sm:px-8 py-10 sm:py-12 text-center shadow-[0_20px_60px_rgba(0,0,0,0.15)]"
+          className="w-full max-w-md rounded-[28px] border border-[#D8B76A]/30 bg-[#070A13] px-6 sm:px-8 py-10 sm:py-12 text-center shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
         >
-          <p className="mb-5 text-xs uppercase tracking-[0.35em] text-[#B8963A]">
+          <p className="mb-5 text-xs uppercase tracking-[0.35em] text-[#D8B76A]">
             You are cordially invited
           </p>
 
           {/* Couple names */}
-          <h1 className="font-serif text-4xl sm:text-5xl font-normal leading-tight text-[#1A2E4A]">
+          <h1 className="font-serif text-4xl sm:text-5xl font-normal leading-tight text-white">
             {invitation.userId?.partner1Name || 'Partner 1'}
           </h1>
-          <h1 className="font-serif text-4xl sm:text-5xl font-normal leading-tight text-[#1A2E4A]">
-            <span className="text-[#B8963A]">&</span>{' '}
+          <h1 className="font-serif text-4xl sm:text-5xl font-normal leading-tight text-white">
+            <span className="text-[#D8B76A]">&</span>{' '}
             {invitation.userId?.partner2Name || 'Partner 2'}
           </h1>
 
@@ -183,13 +178,13 @@ const InvitePage = () => {
           </div>
 
           {/* Greeting + message */}
-          <p className="mb-3 text-base sm:text-lg font-medium text-[#4A6FA5]">{invitation.greeting}</p>
-          <p className="mx-auto mb-6 max-w-xs text-sm leading-7 text-[#4A4A4A]">{invitation.customMessage}</p>
+          <p className="mb-3 text-base sm:text-lg font-medium text-[#D8B76A]/80">{invitation.greeting}</p>
+          <p className="mx-auto mb-6 max-w-xs text-sm leading-7 text-white/60">{invitation.customMessage}</p>
 
           {/* Countdown timer */}
           {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
             <div className="mb-6">
-              <p className="mb-3 text-xs uppercase tracking-widest text-[#B8963A]">Counting down</p>
+              <p className="mb-3 text-xs uppercase tracking-widest text-[#D8B76A]">Counting down</p>
               <div className="flex items-end justify-center gap-2 sm:gap-3">
                 <CountdownBox value={countdown.days} label="Days" />
                 <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
@@ -204,8 +199,8 @@ const InvitePage = () => {
 
           {/* Wedding date */}
           <div className="mb-5 flex items-center justify-center gap-2">
-            <span className="text-[#B8963A] text-base">◈</span>
-            <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-[#1A2E4A]">
+            <span className="text-[#D8B76A] text-base">◈</span>
+            <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-white/90">
               {weddingDate
                 ? new Date(weddingDate).toLocaleDateString('en-GB', {
                     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -214,27 +209,34 @@ const InvitePage = () => {
             </p>
           </div>
 
-          {/* Venue */}
+          {/* Venue — clickable → Google Maps */}
           {venue && (
             <div className="mb-5 flex items-center justify-center gap-2">
-              <span className="text-[#B8963A] text-base">📍</span>
-              <p className="text-sm text-[#4A4A4A]">{venue}</p>
+              <span className="text-[#D8B76A] text-base">📍</span>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-white/60 hover:text-[#D8B76A] underline underline-offset-2 transition"
+              >
+                {venue}
+              </a>
             </div>
           )}
 
           {/* Colour of the day */}
-          <div className="mx-auto mb-5 max-w-xs rounded-2xl border border-[#7FA6D9]/30 bg-[#EBF1F8] px-5 py-4">
-            <span className="text-[#B8963A] text-base block mb-1">✦</span>
-            <p className="mb-1 text-xs uppercase tracking-[0.25em] text-[#B8963A]">Colour of the Day</p>
-            <p className="text-sm font-medium text-[#1A2E4A]">White • Champagne Gold • Blue</p>
+          <div className="mx-auto mb-5 max-w-xs rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-5 py-4">
+            <span className="text-[#D8B76A] text-base block mb-1">✦</span>
+            <p className="mb-1 text-xs uppercase tracking-[0.25em] text-[#D8B76A]">Colour of the Day</p>
+            <p className="text-sm font-medium text-white/80">White • Champagne Gold • Blue</p>
           </div>
 
           {/* RSVP deadline */}
           {rsvpDeadline && (
             <div className={`mb-5 flex items-center justify-center gap-2 rounded-xl border px-4 py-2 ${
               deadlinePassed
-                ? 'border-red-300/40 bg-red-50 text-red-500'
-                : 'border-amber-300/40 bg-amber-50 text-amber-700'
+                ? 'border-red-400/30 bg-red-400/10 text-red-400'
+                : 'border-amber-400/30 bg-amber-400/10 text-amber-300'
             }`}>
               <span>{deadlinePassed ? '🔒' : '⏰'}</span>
               <p className="text-xs font-medium">
@@ -248,25 +250,25 @@ const InvitePage = () => {
 
           {/* Category badge */}
           <div className="mb-6 flex items-center justify-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-[#B8963A]">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-[#D8B76A]">
               <span>✦</span>{invitation.category || 'Guest'}
             </span>
           </div>
 
           {/* RSVP button / confirmed / closed */}
           {invitation.hasRSVPed ? (
-            <div className="rounded-2xl border border-emerald-600/30 bg-emerald-50 px-6 py-4">
-              <p className="text-sm text-emerald-700">✓ We've received your RSVP. Thank you!</p>
+            <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-6 py-4">
+              <p className="text-sm text-emerald-400">✓ We've received your RSVP. Thank you!</p>
             </div>
           ) : deadlinePassed ? (
-            <div className="rounded-2xl border border-red-300/30 bg-red-50 px-6 py-4">
-              <p className="text-sm text-red-500">🔒 RSVP is now closed. Thank you!</p>
+            <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-6 py-4">
+              <p className="text-sm text-red-400">🔒 RSVP is now closed. Thank you!</p>
             </div>
           ) : (
             <button
               id="rsvp-open-btn"
               onClick={() => setShowForm(true)}
-              className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-8 sm:px-10 py-3.5 sm:py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.4)]"
+              className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-8 sm:px-10 py-3.5 sm:py-4 text-sm font-bold uppercase tracking-widest text-[#070A13] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.4)]"
             >
               ✦ RSVP Now
             </button>

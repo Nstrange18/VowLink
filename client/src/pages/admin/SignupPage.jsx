@@ -120,7 +120,9 @@ const SignupPage = () => {
           {/* RSVP Deadline */}
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">RSVP Deadline</label>
-            <input id="signup-rsvp-deadline" type="date" {...register('rsvpDeadline')} className={`${cls(false)} [color-scheme:dark]`} />
+            <input id="signup-rsvp-deadline" type="date" {...register('rsvpDeadline')}
+              max={weddingDate || undefined}
+              className={`${cls(false)} [color-scheme:dark]`} />
             <p className="mt-1 text-xs text-white/30">Cut-off date for RSVPs. Optional.</p>
           </div>
 
