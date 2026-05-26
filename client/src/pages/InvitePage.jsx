@@ -6,6 +6,7 @@ import { toast } from 'react-toastify'
 import { toPng } from 'html-to-image'
 import api from '../utils/api'
 import { rsvpSchema } from '../utils/schemas'
+import { WEDDING_COLORS } from '../components/ColorPicker'
 
 // ── Countdown hook ────────────────────────────────────────────────────────────
 const useCountdown = (targetDate) => {
@@ -251,16 +252,18 @@ const InvitePage = () => {
                 <div className="h-px w-8" style={{ background: '#B8963A', opacity: 0.6 }} />
               </div>
 
-              {/* ── Wedding colour swatches ── */}
+              {/* ── Wedding colour swatches (name-based) ── */}
               {weddingColors.length > 0 && (
-                <div className="flex items-center justify-center gap-1.5 mb-3">
-                  {weddingColors.map((hex, i) => (
-                    <div
-                      key={i}
-                      className="h-4 w-4 rounded-full border border-[#1A2E4A]/20"
-                      style={{ background: hex }}
-                    />
-                  ))}
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-3">
+                  {weddingColors.map((name, i) => {
+                    const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || '#999'
+                    return (
+                      <div key={i} className="flex items-center gap-1">
+                        <div className="h-3.5 w-3.5 rounded-full border border-[#1A2E4A]/25" style={{ background: hex }} />
+                        <span style={{ ...serif, fontSize: '0.7rem', color: '#1A2E4A' }}>{name}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
 
@@ -371,12 +374,15 @@ const InvitePage = () => {
               <p className="text-white text-sm leading-6 whitespace-pre-line">{value}</p>
               {extra && (
                 <div className="flex justify-center flex-wrap gap-2 mt-3">
-                  {extra.map((hex, i) => (
-                    <div key={i} title={hex}
-                      className="h-6 w-6 rounded-full border-2 border-white/20 shadow-sm"
-                      style={{ background: hex }}
-                    />
-                  ))}
+                  {extra.map((name, i) => {
+                    const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || '#999'
+                    return (
+                      <div key={i} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
+                        <div className="h-3 w-3 rounded-full flex-shrink-0" style={{ background: hex }} />
+                        <span className="text-xs text-white/70">{name}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
