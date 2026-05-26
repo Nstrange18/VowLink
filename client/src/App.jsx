@@ -6,6 +6,7 @@ import InvitePage from './pages/InvitePage'
 import RsvpSuccessPage from './pages/RsvpSuccessPage'
 import NotFoundPage from './pages/NotFoundPage'
 import LandingPage from './pages/LandingPage'
+import ScrollToTop from './components/ScrollToTop'
 
 import AdminLoginPage from './pages/admin/AdminLoginPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -40,6 +41,7 @@ function App() {
           fontSize: '14px',
         }}
       />
+      <ScrollToTop />
       <Routes>
         {/* Default route */}
         <Route path="/" element={<LandingPage />} />
