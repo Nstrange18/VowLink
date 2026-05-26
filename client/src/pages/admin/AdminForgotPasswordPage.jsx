@@ -19,7 +19,7 @@ const AdminForgotPasswordPage = () => {
     try {
       await api.post('/auth/forgot-password', { email: data.email })
       setSent(true)
-      toast.success('Reset link sent! Check your inbox (or server console in dev).')
+      toast.success('Reset link sent! Check your inbox or spam (or server console in dev).')
     } catch (err) {
       toast.error(err.response?.data?.error || err.response?.data?.message || 'Something went wrong. Please try again.')
     } finally {
@@ -29,7 +29,7 @@ const AdminForgotPasswordPage = () => {
 
   return (
     <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg2.png')] bg-cover bg-top bg-no-repeat px-6">
-      <div className="w-full max-w-sm rounded-[24px] border border-[#D8B76A]/40 bg-[#070A13]/85 px-8 py-12 shadow-2xl backdrop-blur-md">
+      <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/40 bg-[#070A13]/85 px-8 py-12 shadow-2xl backdrop-blur-md">
         <p className="mb-2 text-center text-xs uppercase tracking-[0.35em] text-[#D8B76A]">Account Recovery</p>
         <h1 className="mb-2 text-center font-serif text-3xl text-white">Forgot Password?</h1>
         <p className="mb-8 text-center text-sm text-white/40">
