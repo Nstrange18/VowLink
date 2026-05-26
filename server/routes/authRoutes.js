@@ -63,20 +63,14 @@ const sendResetEmail = async (email, resetUrl) => {
 
   console.log("🔐 [sendResetEmail] Using EMAIL_USER:", process.env.EMAIL_USER);
 
-  // Force IPv4 lookup before creating transporter
-  dns.setDefaultResultOrder("ipv4first");
-
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    requireTLS: true,
+    port: 465, // Changed from 587 to 465 (SSL)
+    secure: true, // Changed from false to true (SSL required for port 465)
     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    tls: { rejectUnauthorized: false },
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,
     socketTimeout: 10_000,
-    family: 4, // Force IPv4
   });
 
   console.log("🔗 [sendResetEmail] Reset URL:", resetUrl);
