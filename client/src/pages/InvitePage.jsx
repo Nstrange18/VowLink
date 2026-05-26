@@ -107,7 +107,7 @@ const InvitePage = () => {
     if (!cardRef.current) return
     setDownloading(true)
     try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: '#07101f' })
+      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 })
       const link = document.createElement('a')
       link.download = `invitation-${invitation.guestName?.toLowerCase().replace(/\s+/g, '-') || 'card'}.png`
       link.href = dataUrl
@@ -146,148 +146,187 @@ const InvitePage = () => {
   const inputClass = "w-full rounded-xl border border-[#1A2E4A]/15 bg-white px-4 py-3 text-sm text-[#1A2E4A] placeholder-[#1A2E4A]/30 outline-none focus:border-[#B8963A]/60 focus:ring-1 focus:ring-[#B8963A]/30 transition"
   const venue = invitation.userId?.venue
   const weddingDate = invitation.userId?.weddingDate
+  const script = { fontFamily: "'Dancing Script', cursive" }
+  const serif  = { fontFamily: "'Cormorant Garamond', serif" }
+  const formattedDate = weddingDate
+    ? new Date(weddingDate).toLocaleDateString('en-GB', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      })
+    : null
+  const mapsUrl = venue
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue)}`
+    : null
 
   return (
-    <div className="min-h-screen bg-[#070A13]">
-      {/* HERO — dark floral frame bg, card centred in dark middle */}
-      <section className="relative min-h-screen bg-[url('/hero-bg2.png')] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center">
-        <div className="w-full flex flex-col items-center justify-center gap-4 px-5 sm:px-8 py-20 sm:py-24">
+    <div className="min-h-screen bg-[#07101f]">
 
-          {/* The downloadable card — DARK THEME */}
+      {/* ── INVITATION CARD SECTION ── */}
+      <section className="flex flex-col items-center justify-center py-10 px-4 gap-6 bg-[#07101f]">
+
+        {/* ═══ THE CARD (this gets downloaded) ═══ */}
+        <div
+          ref={cardRef}
+          className="w-full max-w-[360px] sm:max-w-[400px] rounded-2xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+        >
+          {/* hero-bg2.png IS the card background */}
           <div
-            ref={cardRef}
-            className="w-full max-w-[340px] sm:max-w-md rounded-[28px] border border-[#D8B76A]/40 bg-[#07101f] px-5 sm:px-8 py-8 sm:py-12 text-center shadow-[0_30px_80px_rgba(7,16,31,0.55),0_0_0_1px_rgba(216,183,106,0.15)]"
+            className="relative bg-[url('/hero-bg2.png')] bg-cover bg-center w-full"
+            style={{ minHeight: 620 }}
           >
-          <p className="mb-5 text-xs uppercase tracking-[0.35em] text-[#D8B76A]">
-            You are cordially invited
-          </p>
+            {/* Text sits in the cream centre — padding keeps it away from corner flowers */}
+            <div className="px-10 pt-14 pb-16 flex flex-col items-center text-center">
 
-          {/* Couple names */}
-          <h1 className="font-serif text-4xl sm:text-5xl font-normal leading-tight text-white">
-            {invitation.userId?.partner1Name || 'Partner 1'}
-          </h1>
-          <h1 className="font-serif text-4xl sm:text-5xl font-normal leading-tight text-white">
-            <span className="text-[#D8B76A]">&</span>{' '}
-            {invitation.userId?.partner2Name || 'Partner 2'}
-          </h1>
+              {/* ── Wedding Invitation title ── */}
+              <h2 style={{ ...script, fontSize: '2rem', lineHeight: 1.25, color: '#1A2E4A' }} className="mb-2">
+                Wedding Invitation
+              </h2>
 
-          {/* Divider */}
-          <div className="my-5 flex items-center justify-center gap-3">
-            <div className="h-px w-10 bg-[#D8B76A]" />
-            <span className="text-[#D8B76A] text-sm">◇</span>
-            <div className="h-px w-10 bg-[#D8B76A]" />
-          </div>
-
-          {/* Greeting + message */}
-          <p className="mb-3 text-base sm:text-lg font-medium text-[#D8B76A]/80">{invitation.greeting}</p>
-          <p className="mx-auto mb-6 max-w-xs text-sm leading-7 text-white/60">{invitation.customMessage}</p>
-
-          {/* Countdown timer */}
-          {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
-            <div className="mb-6">
-              <p className="mb-3 text-xs uppercase tracking-widest text-[#D8B76A]">Counting down</p>
-              <div className="flex items-end justify-center gap-2 sm:gap-3">
-                <CountdownBox value={countdown.days} label="Days" />
-                <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
-                <CountdownBox value={countdown.hours} label="Hours" />
-                <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
-                <CountdownBox value={countdown.minutes} label="Mins" />
-                <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
-                <CountdownBox value={countdown.seconds} label="Secs" />
+              {/* gold divider */}
+              <div className="flex items-center gap-2 mb-5">
+                <div className="h-px w-12" style={{ background: '#B8963A', opacity: 0.6 }} />
+                <span style={{ color: '#B8963A', fontSize: '0.65rem' }}>❧</span>
+                <div className="h-px w-12" style={{ background: '#B8963A', opacity: 0.6 }} />
               </div>
-            </div>
-          )}
 
-          {/* Wedding date */}
-          <div className="mb-5 flex items-center justify-center gap-2">
-            <span className="text-[#D8B76A] text-base">◈</span>
-            <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-white/90">
-              {weddingDate
-                ? new Date(weddingDate).toLocaleDateString('en-GB', {
-                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-                  }).toUpperCase()
-                : 'DATE TO BE ANNOUNCED'}
-            </p>
-          </div>
-
-          {/* Venue — clickable → Google Maps */}
-          {venue && (
-            <div className="mb-5 flex items-center justify-center gap-2">
-              <span className="text-[#D8B76A] text-base">📍</span>
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-white/60 hover:text-[#D8B76A] underline underline-offset-2 transition"
-              >
-                {venue}
-              </a>
-            </div>
-          )}
-
-          {/* Colour of the day */}
-          <div className="mx-auto mb-5 max-w-xs rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-5 py-4">
-            <span className="text-[#D8B76A] text-base block mb-1">✦</span>
-            <p className="mb-1 text-xs uppercase tracking-[0.25em] text-[#D8B76A]">Colour of the Day</p>
-            <p className="text-sm font-medium text-white/80">White • Champagne Gold • Blue</p>
-          </div>
-
-          {/* RSVP deadline */}
-          {rsvpDeadline && (
-            <div className={`mb-5 flex items-center justify-center gap-2 rounded-xl border px-4 py-2 ${
-              deadlinePassed
-                ? 'border-red-400/30 bg-red-400/10 text-red-400'
-                : 'border-amber-400/30 bg-amber-400/10 text-amber-300'
-            }`}>
-              <span>{deadlinePassed ? '🔒' : '⏰'}</span>
-              <p className="text-xs font-medium">
-                {deadlinePassed
-                  ? 'RSVP closed'
-                  : `RSVP by ${new Date(rsvpDeadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`
-                }
+              {/* ── Marriage between ── */}
+              <p style={{ ...script, fontSize: '1.35rem', fontStyle: 'italic', color: '#1A2E4A' }} className="mb-1">
+                Marriage between
               </p>
-            </div>
-          )}
 
-          {/* Category badge */}
-          <div className="mb-6 flex items-center justify-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-[#D8B76A]">
-              <span>✦</span>{invitation.category || 'Guest'}
-            </span>
-          </div>
+              {/* ── Couple names ── */}
+              <h1 style={{ ...script, fontSize: '2.6rem', lineHeight: 1.1, color: '#1A2E4A' }} className="mb-1">
+                {invitation.userId?.partner1Name || 'Partner 1'}{' '}
+                <span style={{ color: '#B8963A' }}>and</span>{' '}
+                {invitation.userId?.partner2Name || 'Partner 2'}
+              </h1>
 
-          {/* RSVP button / confirmed / closed */}
-          {invitation.hasRSVPed ? (
-            <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-6 py-4">
-              <p className="text-sm text-emerald-400">✓ We've received your RSVP. Thank you!</p>
-            </div>
-          ) : deadlinePassed ? (
-            <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-6 py-4">
-              <p className="text-sm text-red-400">🔒 RSVP is now closed. Thank you!</p>
-            </div>
-          ) : (
-            <button
-              id="rsvp-open-btn"
-              onClick={() => setShowForm(true)}
-              className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-8 sm:px-10 py-3.5 sm:py-4 text-sm font-bold uppercase tracking-widest text-[#070A13] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.4)]"
-            >
-              ✦ RSVP Now
-            </button>
-          )}
-          </div>
+              {/* ornament */}
+              <div className="flex items-center gap-2 my-4">
+                <div className="h-px w-10" style={{ background: '#B8963A', opacity: 0.6 }} />
+                <span style={{ color: '#B8963A', fontSize: '0.6rem' }}>✦</span>
+                <div className="h-px w-10" style={{ background: '#B8963A', opacity: 0.6 }} />
+              </div>
 
-          {/* Action buttons row */}
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <button onClick={handleDownload} disabled={downloading}
-              className="flex items-center gap-2 rounded-full border border-[#1A2E4A]/30 bg-[#1A2E4A]/80 px-5 py-2.5 text-xs font-medium uppercase tracking-widest text-white backdrop-blur-sm transition hover:bg-[#1A2E4A] disabled:opacity-50">
-              {downloading ? <span className="animate-pulse">Downloading...</span> : <><span>⬇</span> Download</>}
-            </button>
-            <button onClick={handleWhatsAppShare}
-              className="flex items-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/20 px-5 py-2.5 text-xs font-medium uppercase tracking-widest text-[#1a7a3a] backdrop-blur-sm transition hover:bg-[#25D366]/30">
-              <span>📲</span> Share
-            </button>
+              {/* ── You are cordially invited ── */}
+              <p style={{ ...serif, fontSize: '1.05rem', color: '#1A2E4A' }} className="mb-4">
+                You are cordially invited
+              </p>
+
+              {/* ── Dear [guestName] ── */}
+              <p style={{ ...script, fontSize: '1.6rem', fontStyle: 'italic', color: '#1A2E4A' }} className="mb-3">
+                Dear {invitation.guestName},
+              </p>
+
+              {/* ── Custom message ── */}
+              <p style={{ ...serif, fontSize: '1rem', lineHeight: 1.8, color: '#1A2E4A' }} className="mb-5 max-w-[240px]">
+                {invitation.customMessage}
+              </p>
+
+              {/* ── Date ── */}
+              {formattedDate && (
+                <p style={{ ...serif, fontSize: '0.95rem', color: '#1A2E4A' }} className="mb-2">
+                  Date : {formattedDate}
+                </p>
+              )}
+
+              {/* ── Venue (clickable → Google Maps) ── */}
+              {venue && (
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ ...serif, fontSize: '0.95rem', color: '#1A2E4A', textDecoration: 'underline', textDecorationColor: '#B8963A55', textUnderlineOffset: '3px' }}
+                  className="mb-5 hover:text-[#B8963A] transition text-center block max-w-[220px]"
+                >
+                  Location: {venue}
+                </a>
+              )}
+
+              {/* bottom ornament */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="h-px w-8" style={{ background: '#B8963A', opacity: 0.6 }} />
+                <span style={{ color: '#B8963A', fontSize: '0.6rem' }}>◆</span>
+                <div className="h-px w-8" style={{ background: '#B8963A', opacity: 0.6 }} />
+              </div>
+
+              {/* ── Category badge (VIP ACCESS style) ── */}
+              <p style={{ ...serif, fontSize: '1.25rem', letterSpacing: '0.18em', color: '#1A2E4A', fontWeight: 700 }} className="uppercase">
+                {invitation.category || 'Guest'}
+              </p>
+
+            </div>
           </div>
         </div>
+        {/* ═══ END CARD ═══ */}
+
+        {/* ── Countdown (outside card, not downloaded) ── */}
+        {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
+          <div className="w-full max-w-[360px] sm:max-w-[400px]">
+            <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">Counting Down</p>
+            <div className="flex items-end justify-center gap-2">
+              <CountdownBox value={countdown.days} label="Days" />
+              <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
+              <CountdownBox value={countdown.hours} label="Hours" />
+              <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
+              <CountdownBox value={countdown.minutes} label="Mins" />
+              <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
+              <CountdownBox value={countdown.seconds} label="Secs" />
+            </div>
+          </div>
+        )}
+
+        {/* ── RSVP Deadline badge ── */}
+        {rsvpDeadline && (
+          <div className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 ${
+            deadlinePassed
+              ? 'border-red-400/30 bg-red-400/10 text-red-400'
+              : 'border-amber-400/30 bg-amber-400/10 text-amber-300'
+          }`}>
+            <span>{deadlinePassed ? '🔒' : '⏰'}</span>
+            <p className="text-xs font-medium">
+              {deadlinePassed
+                ? 'RSVP is now closed'
+                : `RSVP by ${new Date(rsvpDeadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+            </p>
+          </div>
+        )}
+
+        {/* ── RSVP Status / Button ── */}
+        {invitation.hasRSVPed ? (
+          <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-8 py-4">
+            <p className="text-sm text-emerald-400">✓ We've received your RSVP. Thank you!</p>
+          </div>
+        ) : deadlinePassed ? (
+          <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-8 py-4">
+            <p className="text-sm text-red-400">🔒 RSVP is now closed.</p>
+          </div>
+        ) : (
+          <button
+            id="rsvp-open-btn"
+            onClick={() => setShowForm(true)}
+            className="rounded-full bg-gradient-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.45)]"
+          >
+            ✦ RSVP Now
+          </button>
+        )}
+
+        {/* ── Download & Share ── */}
+        <div className="flex flex-wrap items-center justify-center gap-3 pb-4">
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#1A2E4A]/80 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#D8B76A] backdrop-blur-sm transition hover:bg-[#1A2E4A] hover:shadow-[0_8px_24px_rgba(216,183,106,0.2)] disabled:opacity-50"
+          >
+            {downloading ? <span className="animate-pulse">Downloading…</span> : <><span>⬇</span> Download</>}
+          </button>
+          <button
+            onClick={handleWhatsAppShare}
+            className="flex items-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/15 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#25D366] backdrop-blur-sm transition hover:bg-[#25D366]/25"
+          >
+            <span>📲</span> Share
+          </button>
+        </div>
+
       </section>
 
       {/* WEDDING DETAILS SECTION */}
@@ -316,16 +355,6 @@ const InvitePage = () => {
           ))}
         </div>
       </section>
-
-      {/* Floating download button */}
-      <button
-        onClick={handleDownload}
-        disabled={downloading}
-        title="Download your invitation as an image"
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#1A2E4A]/90 px-5 py-3 text-xs font-semibold uppercase tracking-widest text-[#D8B76A] shadow-xl backdrop-blur-md transition hover:bg-[#1A2E4A] hover:shadow-[0_8px_30px_rgba(216,183,106,0.25)] disabled:opacity-50"
-      >
-        {downloading ? <span className="animate-pulse">Downloading...</span> : <><span className="text-sm">⬇</span> Download</>}
-      </button>
 
       {/* RSVP MODAL */}
       {showForm && (

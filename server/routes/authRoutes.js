@@ -37,33 +37,30 @@ const userPublic = (user) => ({
 
 // ── Email helper ──────────────────────────────────────────────────────────────
 const sendResetEmail = async (email, resetUrl) => {
-  // If SMTP not configured, just log to console (works in dev)
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log("\n─── PASSWORD RESET LINK (no SMTP configured) ───");
-    console.log(`To: ${email}`);
-    console.log(`Link: ${resetUrl}`);
-    console.log("────────────────────────────────────────────────\n");
-    return;
+    throw new Error("SMTP not configured – set EMAIL_USER and EMAIL_PASS in environment variables.");
   }
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true, // SSL
     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
   });
 
   await transporter.sendMail({
-    from: `"Vowlink" <${process.env.EMAIL_USER}>`,
+    from: `"VowLink" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: "Reset your Vowlink password",
+    subject: "Reset your VowLink password",
     html: `
-      <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px">
-        <h2 style="color:#1A2E4A">Reset your password</h2>
-        <p>Click the button below to reset your password. This link expires in <strong>1 hour</strong>.</p>
-        <a href="${resetUrl}" style="display:inline-block;background:#D8B76A;color:#1A2E4A;padding:14px 28px;border-radius:100px;text-decoration:none;font-weight:bold;letter-spacing:1px;margin:16px 0">
+      <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;background:#fdf8f0;border-radius:16px">
+        <h2 style="color:#1A2E4A;font-size:22px;margin-bottom:8px">Reset your password</h2>
+        <p style="color:#444;line-height:1.6">Click the button below to reset your VowLink password. This link expires in <strong>1 hour</strong>.</p>
+        <a href="${resetUrl}" style="display:inline-block;background:#D8B76A;color:#1A2E4A;padding:14px 28px;border-radius:100px;text-decoration:none;font-weight:bold;letter-spacing:1px;margin:20px 0;font-size:14px">
           Reset Password
         </a>
         <p style="color:#999;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
-        <p style="color:#ccc;font-size:11px">${resetUrl}</p>
+        <p style="color:#ccc;font-size:11px;word-break:break-all">${resetUrl}</p>
       </div>
     `,
   });
