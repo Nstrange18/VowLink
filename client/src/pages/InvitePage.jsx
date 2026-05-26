@@ -264,10 +264,10 @@ const InvitePage = () => {
                       return (
                         <div key={i} className="flex flex-col items-center gap-1">
                           <div
-                            className="h-6 w-6 rounded-full shadow-sm"
-                            style={{ background: hex, border: '2px solid rgba(26,46,74,0.2)' }}
+                            className="h-7 w-7 rounded-full shadow-md"
+                            style={{ background: hex, border: '2px solid rgba(26,46,74,0.25)' }}
                           />
-                          <span style={{ ...serif, fontSize: '0.6rem', color: '#1A2E4A', lineHeight: 1.2 }} className="text-center max-w-10">
+                          <span style={{ ...serif, fontSize: '0.75rem', fontWeight: 600, color: '#3D2B1F', lineHeight: 1.3 }} className="text-center max-w-14">
                             {name}
                           </span>
                         </div>
