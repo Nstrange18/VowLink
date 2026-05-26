@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import InvitePage from './pages/InvitePage'
 import RsvpSuccessPage from './pages/RsvpSuccessPage'
 import NotFoundPage from './pages/NotFoundPage'
+import LandingPage from './pages/LandingPage'
 
 import AdminLoginPage from './pages/admin/AdminLoginPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -22,6 +23,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Default route */}
+        <Route path="/" element={<LandingPage />} />
+
         {/* Guest routes */}
         <Route path="/invite/:slug" element={<InvitePage />} />
         <Route path="/rsvp-success" element={<RsvpSuccessPage />} />
