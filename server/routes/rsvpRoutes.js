@@ -5,10 +5,18 @@ const { protect } = require("../middleware/auth");
 
 const router = express.Router();
 
+const getInvitedGuestCount = (invitation, plusOnePolicy) => {
+  const base = invitation.allowedGuests || 1;
+  if (plusOnePolicy === "plus_one_allowed") {
+    return Math.min(base + 1, 10);
+  }
+  return base;
+};
+
 // PUBLIC: Submit RSVP (guests don't need to be logged in)
 router.post("/", async (req, res) => {
   try {
-    const { invitationId, guestName, phone, attending, numberOfGuests, mealPreference, message } = req.body;
+    const { invitationId, guestName, phone, attending, mealPreference, message } = req.body;
 
     if (!invitationId || !guestName || !phone || !attending) {
       return res.status(400).json({
@@ -16,10 +24,14 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const invitation = await Invitation.findById(invitationId);
+    const invitation = await Invitation.findById(invitationId).populate("userId", "plusOnePolicy");
     if (!invitation) {
       return res.status(404).json({ message: "Invitation not found." });
     }
+
+    const plusOnePolicy = invitation.userId?.plusOnePolicy || "invitation_only";
+    const numberOfGuests =
+      attending === "Yes" ? getInvitedGuestCount(invitation, plusOnePolicy) : 0;
 
     const rsvp = await RSVP.create({
       invitationId,

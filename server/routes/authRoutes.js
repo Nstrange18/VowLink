@@ -3,10 +3,14 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const dns = require("dns");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 
 const router = express.Router();
+
+dns.setDefaultResultOrder("ipv4first");
+
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
 const userPayload = (user) => ({
@@ -18,14 +22,18 @@ const userPayload = (user) => ({
   rsvpDeadline: user.rsvpDeadline,
   venue: user.venue,
   weddingColors: user.weddingColors || [],
-  dressCode: user.dressCode || '',
+  dressCode: user.dressCode || "",
+  plusOnePolicy: user.plusOnePolicy || "invitation_only",
+  kidsAllowed: typeof user.kidsAllowed === "boolean" ? user.kidsAllowed : true,
 });
 
 const generateAccessToken = (user) =>
   jwt.sign(userPayload(user), process.env.JWT_SECRET, { expiresIn: "1h" });
 
 const generateRefreshToken = (userId) =>
-  jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: "30d" });
+  jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: "30d",
+  });
 
 const userPublic = (user) => ({
   id: user._id,
@@ -36,22 +44,31 @@ const userPublic = (user) => ({
   rsvpDeadline: user.rsvpDeadline,
   venue: user.venue,
   weddingColors: user.weddingColors || [],
-  dressCode: user.dressCode || '',
+  dressCode: user.dressCode || "",
+  plusOnePolicy: user.plusOnePolicy || "invitation_only",
+  kidsAllowed: typeof user.kidsAllowed === "boolean" ? user.kidsAllowed : true,
 });
+
 
 // ── Email helper ──────────────────────────────────────────────────────────────
 const sendResetEmail = async (email, resetUrl) => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error("SMTP not configured – set EMAIL_USER and EMAIL_PASS in environment variables.");
+    throw new Error(
+      "SMTP not configured – set EMAIL_USER and EMAIL_PASS in environment variables.",
+    );
   }
 
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
-    secure: false,       // STARTTLS (more reliable on cloud hosts than port 465)
+    secure: false, // STARTTLS (more reliable on cloud hosts than port 465)
     requireTLS: true,
     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
     tls: { rejectUnauthorized: false },
+    // Ensure the API responds quickly even if SMTP is misconfigured.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 10_000,
   });
 
   await transporter.sendMail({
@@ -75,25 +92,46 @@ const sendResetEmail = async (email, resetUrl) => {
 // ── POST /api/auth/signup ─────────────────────────────────────────────────────
 router.post("/signup", async (req, res) => {
   try {
-    const { partner1Name, partner2Name, email, password, weddingDate, rsvpDeadline, venue, weddingColors, dressCode } = req.body;
+    const {
+      partner1Name,
+      partner2Name,
+      email,
+      password,
+      weddingDate,
+      rsvpDeadline,
+      venue,
+      weddingColors,
+      dressCode,
+      plusOnePolicy,
+      kidsAllowed,
+    } = req.body;
     if (!partner1Name || !partner2Name || !email || !password)
       return res.status(400).json({ message: "All fields are required." });
     if (password.length < 6)
-      return res.status(400).json({ message: "Password must be at least 6 characters." });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters." });
 
     const existing = await User.findOne({ email });
     if (existing)
-      return res.status(400).json({ message: "An account with this email already exists." });
+      return res
+        .status(400)
+        .json({ message: "An account with this email already exists." });
 
     const hashed = await bcrypt.hash(password, 12);
     const user = await User.create({
-      partner1Name, partner2Name, email,
+      partner1Name,
+      partner2Name,
+      email,
       password: hashed,
       weddingDate: weddingDate || null,
       rsvpDeadline: rsvpDeadline || null,
       venue: venue || "",
       weddingColors: Array.isArray(weddingColors) ? weddingColors : [],
-      dressCode: dressCode || '',
+      dressCode: dressCode || "",
+      plusOnePolicy:
+        plusOnePolicy === "plus_one_allowed" ? "plus_one_allowed" : "invitation_only",
+      kidsAllowed: typeof kidsAllowed === "boolean" ? kidsAllowed : true,
     });
 
     res.status(201).json({
@@ -112,13 +150,17 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password)
-      return res.status(400).json({ message: "Email and password are required." });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required." });
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: "Invalid email or password." });
+    if (!user)
+      return res.status(401).json({ message: "Invalid email or password." });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid email or password." });
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid email or password." });
 
     res.status(200).json({
       message: "Login successful",
@@ -143,22 +185,41 @@ router.post("/refresh", async (req, res) => {
     if (!user) return res.status(401).json({ message: "User not found." });
     res.status(200).json({ accessToken: generateAccessToken(user) });
   } catch {
-    return res.status(401).json({ message: "Invalid or expired refresh token. Please log in again." });
+    return res.status(401).json({
+      message: "Invalid or expired refresh token. Please log in again.",
+    });
   }
 });
 
 // ── PUT /api/auth/me — update profile ────────────────────────────────────────
 router.put("/me", protect, async (req, res) => {
   try {
-    const { partner1Name, partner2Name, weddingDate, rsvpDeadline, venue, weddingColors, dressCode } = req.body;
+    const {
+      partner1Name,
+      partner2Name,
+      weddingDate,
+      rsvpDeadline,
+      venue,
+      weddingColors,
+      dressCode,
+      plusOnePolicy,
+      kidsAllowed,
+    } = req.body;
     const user = await User.findByIdAndUpdate(
       req.user.id,
       {
-        partner1Name, partner2Name, weddingDate, rsvpDeadline, venue,
+        partner1Name,
+        partner2Name,
+        weddingDate,
+        rsvpDeadline,
+        venue,
         weddingColors: Array.isArray(weddingColors) ? weddingColors : [],
-        dressCode: dressCode || '',
+        dressCode: dressCode || "",
+        plusOnePolicy:
+          plusOnePolicy === "plus_one_allowed" ? "plus_one_allowed" : "invitation_only",
+        kidsAllowed: typeof kidsAllowed === "boolean" ? kidsAllowed : true,
       },
-      { new: true }
+      { new: true },
     );
     res.status(200).json({
       message: "Profile updated",
@@ -173,13 +234,15 @@ router.put("/me", protect, async (req, res) => {
 // ── POST /api/auth/forgot-password ───────────────────────────────────────────
 router.post("/forgot-password", async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = String(req.body?.email || "").trim().toLowerCase();
     if (!email) return res.status(400).json({ message: "Email is required." });
 
     const user = await User.findOne({ email });
     // Always respond with success to prevent email enumeration
     if (!user) {
-      return res.status(200).json({ message: "If that email exists, a reset link has been sent." });
+      return res
+        .status(200)
+        .json({ message: "If that email exists, a reset link has been sent." });
     }
 
     // Generate token
@@ -188,14 +251,38 @@ router.post("/forgot-password", async (req, res) => {
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
 
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5174";
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
     const resetUrl = `${clientUrl}/admin/reset-password/${token}`;
 
-    await sendResetEmail(email, resetUrl);
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log(`[reset-password] SMTP not configured. Reset link for ${email}: ${resetUrl}`);
+    } else {
+      try {
+        await sendResetEmail(email, resetUrl);
+      } catch (mailError) {
+        // Don't fail the whole request if email sending fails.
+        // (This avoids browser timeouts and keeps the UX consistent.)
+        if (process.env.NODE_ENV !== "production") {
+          console.log(
+            `[dev] Failed to send reset email for ${email}. Reset link: ${resetUrl}`,
+          );
+          console.log("[dev] SMTP error:", mailError?.message || mailError);
+        } else {
+          console.error(
+            "Failed to send reset email:",
+            mailError?.message || mailError,
+          );
+        }
+      }
+    }
 
-    res.status(200).json({ message: "If that email exists, a reset link has been sent." });
+    res
+      .status(200)
+      .json({ message: "If that email exists, a reset link has been sent." });
   } catch (error) {
-    res.status(500).json({ message: "Failed to process request.", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to process request.", error: error.message });
   }
 });
 
@@ -204,7 +291,9 @@ router.post("/reset-password/:token", async (req, res) => {
   try {
     const { password } = req.body;
     if (!password || password.length < 6)
-      return res.status(400).json({ message: "Password must be at least 6 characters." });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters." });
 
     const user = await User.findOne({
       resetPasswordToken: req.params.token,
@@ -212,14 +301,18 @@ router.post("/reset-password/:token", async (req, res) => {
     });
 
     if (!user)
-      return res.status(400).json({ message: "Reset link is invalid or has expired." });
+      return res
+        .status(400)
+        .json({ message: "Reset link is invalid or has expired." });
 
     user.password = await bcrypt.hash(password, 12);
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
     await user.save();
 
-    res.status(200).json({ message: "Password reset successfully. You can now log in." });
+    res
+      .status(200)
+      .json({ message: "Password reset successfully. You can now log in." });
   } catch (error) {
     res.status(500).json({ message: "Reset failed.", error: error.message });
   }

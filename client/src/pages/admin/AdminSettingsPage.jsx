@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import { settingsSchema } from '../../utils/schemas'
 import ColorPicker, { WEDDING_COLORS } from '../../components/ColorPicker'
+import CustomSelect from '../../components/CustomSelect'
 
 const inputBase = "w-full rounded-xl border bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition"
 const inputOk = "border-white/10 focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30"
@@ -18,7 +19,7 @@ const AdminSettingsPage = () => {
 
   const [weddingColors, setWeddingColors] = useState(storedUser.weddingColors || [])
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, watch, control, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       partner1Name: storedUser.partner1Name || '',
@@ -27,6 +28,8 @@ const AdminSettingsPage = () => {
       rsvpDeadline: toInputDate(storedUser.rsvpDeadline),
       venue: storedUser.venue || '',
       dressCode: storedUser.dressCode || '',
+      plusOnePolicy: storedUser.plusOnePolicy || 'invitation_only',
+      kidsAllowed: typeof storedUser.kidsAllowed === 'boolean' ? storedUser.kidsAllowed : true,
     },
   })
 
@@ -105,6 +108,50 @@ const AdminSettingsPage = () => {
           <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Wedding Colours</label>
           <ColorPicker value={weddingColors} onChange={setWeddingColors} />
           <p className="mt-1 text-xs text-white/30">Displayed as colour swatches on each invitation card. Up to 5 colours.</p>
+        </div>
+
+        {/* Guest policies */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-5 space-y-5">
+          <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A]">Guest Policies</p>
+
+          <div>
+            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Plus One</label>
+            <Controller
+              name="plusOnePolicy"
+              control={control}
+              render={({ field }) => (
+                <CustomSelect
+                  name={field.name}
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  options={[
+                    { value: 'invitation_only', label: 'Strictly by invitation' },
+                    { value: 'plus_one_allowed', label: 'A plus one is welcome' },
+                  ]}
+                />
+              )}
+            />
+            {errors.plusOnePolicy && <p className="mt-1 text-xs text-red-400">{errors.plusOnePolicy.message}</p>}
+            <p className="mt-1 text-xs text-white/30">
+              If enabled, guests may RSVP for one extra person beyond what their invitation allows.
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-white/50">Kids Allowed</label>
+              <p className="mt-1 text-xs text-white/30">Displayed on guest invite details.</p>
+            </div>
+            <label className="inline-flex items-center gap-2 text-sm text-white/70">
+              <input
+                id="settings-kids-allowed"
+                type="checkbox"
+                {...register('kidsAllowed')}
+                className="h-4 w-4 rounded border-white/20 bg-white/10"
+              />
+              Yes
+            </label>
+          </div>
         </div>
 
         {/* Live preview */}

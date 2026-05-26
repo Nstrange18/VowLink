@@ -21,7 +21,7 @@ const AdminForgotPasswordPage = () => {
       setSent(true)
       toast.success('Reset link sent! Check your inbox (or server console in dev).')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Something went wrong. Please try again.')
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }

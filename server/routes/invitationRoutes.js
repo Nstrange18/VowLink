@@ -16,7 +16,10 @@ router.get("/slug/:slug", async (req, res) => {
   try {
     const invitation = await Invitation.findOne({
       slug: req.params.slug,
-    }).populate("userId", "partner1Name partner2Name weddingDate rsvpDeadline venue dressCode weddingColors");
+    }).populate(
+      "userId",
+      "partner1Name partner2Name weddingDate rsvpDeadline venue dressCode weddingColors plusOnePolicy kidsAllowed",
+    );
 
     if (!invitation) {
       return res.status(404).json({ message: "Invitation not found" });

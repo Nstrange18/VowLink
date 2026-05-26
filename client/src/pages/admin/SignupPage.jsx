@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import { signupSchema } from '../../utils/schemas'
 import ColorPicker, { WEDDING_COLORS } from '../../components/ColorPicker'
+import CustomSelect from '../../components/CustomSelect'
 
 const EyeIcon = ({ open }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -24,9 +25,20 @@ const SignupPage = () => {
   const [weddingColors, setWeddingColors] = useState([])
   const navigate = useNavigate()
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({
+  const { register, handleSubmit, watch, control, formState: { errors } } = useForm({
     resolver: zodResolver(signupSchema),
-    defaultValues: { partner1Name: '', partner2Name: '', email: '', password: '', confirmPassword: '', weddingDate: '', rsvpDeadline: '', venue: '' },
+    defaultValues: {
+      partner1Name: '',
+      partner2Name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      weddingDate: '',
+      rsvpDeadline: '',
+      venue: '',
+      plusOnePolicy: 'invitation_only',
+      kidsAllowed: true,
+    },
   })
 
   const p1 = watch('partner1Name')
@@ -48,6 +60,8 @@ const SignupPage = () => {
         venue: data.venue || '',
         weddingColors,
         dressCode: data.dressCode || '',
+        plusOnePolicy: data.plusOnePolicy,
+        kidsAllowed: data.kidsAllowed,
       })
       localStorage.setItem('token', res.data.accessToken)
       localStorage.setItem('refreshToken', res.data.refreshToken)
@@ -148,6 +162,51 @@ const SignupPage = () => {
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Venue / Location</label>
             <input id="signup-venue" placeholder="e.g. The Grand Ballroom, Lagos" {...register('venue')} className={cls(false)} />
+          </div>
+
+          {/* Guest policies */}
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 space-y-4">
+            <p className="text-xs uppercase tracking-widest text-white/40">Guest Policies</p>
+
+            <div>
+              <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Plus One</label>
+              <Controller
+                name="plusOnePolicy"
+                control={control}
+                render={({ field }) => (
+                  <CustomSelect
+                    name={field.name}
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    options={[
+                      { value: 'invitation_only', label: 'Strictly by invitation' },
+                      { value: 'plus_one_allowed', label: 'A plus one is welcome' },
+                    ]}
+                  />
+                )}
+              />
+              <p className="mt-1 text-xs text-white/30">
+                If enabled, guests may RSVP for one extra person beyond what their invitation allows.
+              </p>
+              <FieldError name="plusOnePolicy" />
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-white/50">Kids Allowed</label>
+                <p className="mt-1 text-xs text-white/30">Shown on invitations and in details.</p>
+              </div>
+              <label className="inline-flex items-center gap-2 text-sm text-white/70">
+                <input
+                  id="signup-kids-allowed"
+                  type="checkbox"
+                  {...register('kidsAllowed')}
+                  className="h-4 w-4 rounded border-white/20 bg-white/10"
+                  defaultChecked
+                />
+                Yes
+              </label>
+            </div>
           </div>
 
           {/* Preview */}

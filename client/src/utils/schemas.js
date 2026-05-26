@@ -18,6 +18,8 @@ export const signupSchema = z
     venue: z.string().optional(),
     weddingColors: z.array(z.string()).optional().default([]),
     dressCode: z.string().optional().default(''),
+    plusOnePolicy: z.enum(['invitation_only', 'plus_one_allowed']).optional().default('invitation_only'),
+    kidsAllowed: z.coerce.boolean().optional().default(true),
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: "Passwords don't match",
@@ -66,6 +68,8 @@ export const settingsSchema = z
     venue: z.string().optional(),
     weddingColors: z.array(z.string()).optional().default([]),
     dressCode: z.string().optional().default(''),
+    plusOnePolicy: z.enum(['invitation_only', 'plus_one_allowed']).optional().default('invitation_only'),
+    kidsAllowed: z.coerce.boolean().optional().default(true),
   })
   .refine(
     (d) => {
@@ -82,7 +86,6 @@ export const rsvpSchema = z.object({
   guestName: z.string().min(1, 'Name is required'),
   phone: z.string().min(7, 'Enter a valid phone number'),
   attending: z.enum(['Yes', 'No']),
-  numberOfGuests: z.coerce.number().min(1),
   mealPreference: z.string().optional(),
   message: z.string().optional(),
 })
