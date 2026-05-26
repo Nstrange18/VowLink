@@ -35,7 +35,7 @@ const useCountdown = (targetDate) => {
 
 const CountdownBox = ({ value, label }) => (
   <div className="flex flex-col items-center">
-    <div className="rounded-xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 px-3 py-2 min-w-[52px] text-center">
+    <div className="rounded-xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 px-3 py-2 min-w-13 text-center">
       <span className="font-serif text-2xl font-light text-white">
         {String(value).padStart(2, '0')}
       </span>
@@ -149,14 +149,15 @@ const InvitePage = () => {
 
   return (
     <div className="min-h-screen bg-[#070A13]">
-      {/* HERO — light floral background, dark card */}
-      <section className="min-h-screen bg-[url('/hero-bg.png')] bg-cover bg-center bg-no-repeat px-4 sm:px-6 py-10 flex flex-col items-center justify-center gap-5">
+      {/* HERO — dark floral frame bg, card centred in dark middle */}
+      <section className="relative min-h-screen bg-[url('/hero-bg.png')] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center">
+        <div className="w-full flex flex-col items-center justify-center gap-4 px-5 sm:px-8 py-20 sm:py-24">
 
-        {/* The downloadable card — DARK THEME */}
-        <div
-          ref={cardRef}
-          className="w-full max-w-md rounded-[28px] border border-[#D8B76A]/30 bg-[#070A13] px-6 sm:px-8 py-10 sm:py-12 text-center shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
-        >
+          {/* The downloadable card — DARK THEME */}
+          <div
+            ref={cardRef}
+            className="w-full max-w-[340px] sm:max-w-md rounded-[28px] border border-[#D8B76A]/30 bg-[#070A13] px-5 sm:px-8 py-8 sm:py-12 text-center shadow-[0_20px_80px_rgba(0,0,0,0.9)]"
+          >
           <p className="mb-5 text-xs uppercase tracking-[0.35em] text-[#D8B76A]">
             You are cordially invited
           </p>
@@ -273,20 +274,19 @@ const InvitePage = () => {
               ✦ RSVP Now
             </button>
           )}
-        </div>
+          </div>
 
-        {/* Action buttons row */}
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          {/* Download */}
-          <button onClick={handleDownload} disabled={downloading}
-            className="flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-xs font-medium uppercase tracking-widest text-white/70 backdrop-blur-sm transition hover:bg-white/10 hover:text-white disabled:opacity-50">
-            {downloading ? <span className="animate-pulse">Downloading...</span> : <><span>⬇</span> Download</>}
-          </button>
-          {/* WhatsApp share */}
-          <button onClick={handleWhatsAppShare}
-            className="flex items-center gap-2 rounded-full border border-[#25D366]/30 bg-[#25D366]/10 px-5 py-2.5 text-xs font-medium uppercase tracking-widest text-[#25D366] backdrop-blur-sm transition hover:bg-[#25D366]/20">
-            <span>📲</span> Share on WhatsApp
-          </button>
+          {/* Action buttons row */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button onClick={handleDownload} disabled={downloading}
+              className="flex items-center gap-2 rounded-full border border-white/20 bg-black/50 px-5 py-2.5 text-xs font-medium uppercase tracking-widest text-white/70 backdrop-blur-sm transition hover:bg-black/70 hover:text-white disabled:opacity-50">
+              {downloading ? <span className="animate-pulse">Downloading...</span> : <><span>⬇</span> Download</>}
+            </button>
+            <button onClick={handleWhatsAppShare}
+              className="flex items-center gap-2 rounded-full border border-[#25D366]/30 bg-[#25D366]/10 px-5 py-2.5 text-xs font-medium uppercase tracking-widest text-[#25D366] backdrop-blur-sm transition hover:bg-[#25D366]/20">
+              <span>📲</span> Share
+            </button>
+          </div>
         </div>
       </section>
 
