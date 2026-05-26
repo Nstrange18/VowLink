@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Jost', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #070A13;
+  color: white;
+  font-family: 'Jost', sans-serif;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #070A13; }
+::-webkit-scrollbar-thumb { background: #D8B76A; border-radius: 3px; }

@@ -1,0 +1,60 @@
+const express = require("express");
+const RSVP = require("../models/RSVP");
+const Invitation = require("../models/Invitation");
+const { protect } = require("../middleware/auth");
+
+const router = express.Router();
+
+// PUBLIC: Submit RSVP (guests don't need to be logged in)
+router.post("/", async (req, res) => {
+  try {
+    const { invitationId, guestName, phone, attending, numberOfGuests, mealPreference, message } = req.body;
+
+    if (!invitationId || !guestName || !phone || !attending) {
+      return res.status(400).json({
+        message: "Invitation ID, guest name, phone, and attendance are required.",
+      });
+    }
+
+    const invitation = await Invitation.findById(invitationId);
+    if (!invitation) {
+      return res.status(404).json({ message: "Invitation not found." });
+    }
+
+    const rsvp = await RSVP.create({
+      invitationId,
+      guestName,
+      phone,
+      attending,
+      numberOfGuests,
+      mealPreference: mealPreference || "No Preference",
+      message,
+    });
+
+    invitation.hasRSVPed = true;
+    await invitation.save();
+
+    res.status(201).json({ message: "RSVP submitted successfully", data: rsvp });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to submit RSVP", error: error.message });
+  }
+});
+
+// PROTECTED: Get RSVPs for the logged-in user's invitations only
+router.get("/", protect, async (req, res) => {
+  try {
+    // First get all invitation IDs belonging to this user
+    const userInvitations = await Invitation.find({ userId: req.user.id }).select("_id");
+    const invitationIds = userInvitations.map((i) => i._id);
+
+    const rsvps = await RSVP.find({ invitationId: { $in: invitationIds } })
+      .populate("invitationId", "guestName slug category allowedGuests")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(rsvps);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch RSVPs", error: error.message });
+  }
+});
+
+module.exports = router;
