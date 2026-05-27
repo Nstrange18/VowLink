@@ -123,7 +123,10 @@ const SignupPage = () => {
 
   return (
     <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg2.png')] bg-cover bg-top bg-no-repeat px-6 py-10">
-      <div className="w-full max-w-md rounded-[24px] border border-[#D8B76A]/40 bg-[#070A13]/85 px-8 py-12 shadow-2xl backdrop-blur-md max-h-[95vh] overflow-y-auto">
+      <Link to="/" className="absolute top-6 left-6 bg-[#070A13] rounded-full py-2 px-3 text-[#D8B76A] hover:text-[#D8B76A]/70 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] transition">
+        ← Back to Home
+      </Link>
+      <div className="w-full max-w-md rounded-3xl border border-[#D8B76A]/40 bg-[#070A13]/85 px-8 py-12 shadow-2xl backdrop-blur-md max-h-[95vh] overflow-y-auto">
         <p className="mb-2 text-center text-xs uppercase tracking-[0.35em] text-[#D8B76A]">
           Create Your Account
         </p>
@@ -237,7 +240,7 @@ const SignupPage = () => {
               id="wedding-date"
               type="date"
               {...register("weddingDate")}
-              className={`${cls(false)} [color-scheme:dark]`}
+              className={`${cls(false)} scheme-dark`}
             />
           </div>
 
@@ -250,7 +253,7 @@ const SignupPage = () => {
               id="signup-wedding-time"
               type="time"
               {...register("weddingTime")}
-              className={`${cls(false)} [color-scheme:dark]`}
+              className={`${cls(false)} scheme-dark`}
             />
             <p className="mt-1 text-xs text-white/30">
               Optional. You can update this later in settings.
@@ -272,7 +275,7 @@ const SignupPage = () => {
               type="date"
               {...register("rsvpDeadline")}
               max={weddingDate || undefined}
-              className={`${cls(false)} [color-scheme:dark]`}
+              className={`${cls(false)} scheme-dark`}
             />
             <p className="mt-1 text-xs text-white/30">
               Cut-off date for RSVPs. Optional.
