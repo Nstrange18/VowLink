@@ -18,7 +18,7 @@ router.get("/slug/:slug", async (req, res) => {
       slug: req.params.slug,
     }).populate(
       "userId",
-      "partner1Name partner2Name weddingDate rsvpDeadline venue dressCode weddingColors plusOnePolicy kidsAllowed",
+      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue dressCode weddingColors plusOnePolicy kidsAllowed",
     );
 
     if (!invitation) {
@@ -27,7 +27,9 @@ router.get("/slug/:slug", async (req, res) => {
 
     res.status(200).json(invitation);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch invitation", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch invitation", error: error.message });
   }
 });
 
@@ -36,7 +38,8 @@ router.get("/slug/:slug", async (req, res) => {
 // Create invitation
 router.post("/", protect, async (req, res) => {
   try {
-    const { guestName, greeting, customMessage, allowedGuests, category } = req.body;
+    const { guestName, greeting, customMessage, allowedGuests, category } =
+      req.body;
 
     if (!guestName || !greeting || !customMessage) {
       return res.status(400).json({
@@ -66,7 +69,9 @@ router.post("/", protect, async (req, res) => {
       link: `/invite/${invitation.slug}`,
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to create invitation", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to create invitation", error: error.message });
   }
 });
 
@@ -78,7 +83,9 @@ router.get("/", protect, async (req, res) => {
     });
     res.status(200).json(invitations);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch invitations", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch invitations", error: error.message });
   }
 });
 
@@ -94,13 +101,21 @@ router.put("/:id", protect, async (req, res) => {
       return res.status(404).json({ message: "Invitation not found" });
     }
 
-    const updated = await Invitation.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const updated = await Invitation.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+      },
+    );
 
-    res.status(200).json({ message: "Invitation updated successfully", data: updated });
+    res
+      .status(200)
+      .json({ message: "Invitation updated successfully", data: updated });
   } catch (error) {
-    res.status(500).json({ message: "Failed to update invitation", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to update invitation", error: error.message });
   }
 });
 
@@ -118,7 +133,9 @@ router.delete("/:id", protect, async (req, res) => {
 
     res.status(200).json({ message: "Invitation deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Failed to delete invitation", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to delete invitation", error: error.message });
   }
 });
 
