@@ -703,27 +703,27 @@ const InvitePage = () => {
             </p>
           </div>
 
-          {/* Plus-one policy */}
+          {/* Additional guest policy */}
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
             <span className="text-2xl text-[#D8B76A]">➕</span>
             <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
-              Plus One
+              Additional Guest
             </p>
             <p className="text-white text-sm leading-6">
               {plusOnePolicy === "plus_one_allowed"
-                ? "A plus one is welcome"
+                ? "Plus one allowed"
                 : "Strictly by invitation"}
             </p>
           </div>
 
-          {/* Kids policy */}
+          {/* Children policy */}
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
             <span className="text-2xl text-[#D8B76A]">🧒</span>
             <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
-              Kids
+              Children
             </p>
             <p className="text-white text-sm leading-6">
-              {kidsAllowed ? "Kids are welcome" : "Adults only"}
+              {kidsAllowed ? "Children are welcome" : "Adults only"}
             </p>
           </div>
         </div>

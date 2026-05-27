@@ -361,7 +361,7 @@ const SignupPage = () => {
 
             <div>
               <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">
-                Plus One
+                Additional Guest
               </label>
               <Controller
                 name="plusOnePolicy"
@@ -376,9 +376,8 @@ const SignupPage = () => {
                         value: "invitation_only",
                         label: "Strictly by invitation",
                       },
-                      {
-                        value: "plus_one_allowed",
-                        label: "A plus one is welcome",
+                      { value: "plus_one_allowed", 
+                        label: "Plus one allowed" 
                       },
                     ]}
                   />
@@ -394,7 +393,7 @@ const SignupPage = () => {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <label className="block text-xs uppercase tracking-widest text-white/50">
-                  Kids Allowed
+                  Children
                 </label>
                 <p className="mt-1 text-xs text-white/30">
                   Shown on invitations and in details.
