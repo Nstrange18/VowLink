@@ -18,7 +18,7 @@ router.get("/slug/:slug", async (req, res) => {
       slug: req.params.slug,
     }).populate(
       "userId",
-      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue dressCode weddingColors plusOnePolicy kidsAllowed",
+      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue receptionLocation dressCode weddingColors plusOnePolicy kidsAllowed",
     );
 
     if (!invitation) {
