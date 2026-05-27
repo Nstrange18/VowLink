@@ -77,7 +77,12 @@ const AdminSettingsPage = () => {
     ? new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString("en-GB", {
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
       })
+    : null;
+
+  const formattedTimeWithFormat = formattedTime
+    ? `${formattedTime} · 24-hour format`
     : null;
 
   return (
@@ -152,12 +157,11 @@ const AdminSettingsPage = () => {
             className={`${cls(false)} scheme-dark`}
           />
           <p className="mt-1 text-xs text-white/30">
-            Shown on all invitation cards. Leave blank to display "To be
-            announced".
+            Shown on all invitation cards in 24-hour format, e.g. 13:50. Leave blank to display "To be announced".
           </p>
           {weddingTime && (
             <p className="mt-2 text-xs text-[#D8B76A]">
-              Preview: {formattedTime}
+              Preview: {formattedTimeWithFormat}
             </p>
           )}
         </div>

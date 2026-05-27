@@ -121,7 +121,12 @@ const SignupPage = () => {
     ? new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString("en-GB", {
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
       })
+    : null;
+
+  const formattedTimeWithFormat = formattedTime
+    ? `${formattedTime} · 24-hour format`
     : null;
 
   return (
@@ -281,11 +286,11 @@ const SignupPage = () => {
               className={`${cls(false)} scheme-dark`}
             />
             <p className="mt-1 text-xs text-white/30">
-              Optional. You can update this later in settings.
+              Optional. Time is shown in 24-hour format, e.g. 13:50.
             </p>
             {weddingTime && (
               <p className="mt-2 text-xs text-[#D8B76A]">
-                Preview: {formattedTime}
+                Preview: {formattedTimeWithFormat}
               </p>
             )}
           </div>
@@ -428,7 +433,9 @@ const SignupPage = () => {
                 </p>
               )}
               {weddingTime && (
-                <p className="text-xs text-[#D8B76A]">⏰ {formattedTime}</p>
+                <p className="text-xs text-[#D8B76A]">
+                  ⏰ {formattedTimeWithFormat}
+                </p>
               )}
               {rsvpDeadline && (
                 <p className="text-xs text-amber-400/70">

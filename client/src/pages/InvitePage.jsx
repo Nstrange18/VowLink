@@ -228,7 +228,12 @@ const InvitePage = () => {
     ? new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString("en-GB", {
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
       })
+    : null;
+
+  const formattedTimeWithFormat = formattedTime
+    ? `${formattedTime} · 24-hour format`
     : null;
 
   return (
@@ -354,7 +359,7 @@ const InvitePage = () => {
                 style={{ ...serif, fontSize: "0.95rem", color: "#1A2E4A" }}
                 className="mb-2"
               >
-                Time : {formattedTime || "To be announced"}
+                Time : {formattedTimeWithFormat || "To be announced"}
               </p>
               {/* ── Venue (clickable → Google Maps) ── */}
               {venue && (
@@ -595,7 +600,7 @@ const InvitePage = () => {
               Time
             </p>
             <p className="text-white text-sm leading-6">
-              {formattedTime || "To be announced"}
+              {formattedTimeWithFormat || "To be announced"}
             </p>
           </div>
 
