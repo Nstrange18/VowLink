@@ -196,6 +196,7 @@ const InvitePage = () => {
     "w-full rounded-xl border border-[#1A2E4A]/15 bg-white px-4 py-3 text-sm text-[#1A2E4A] placeholder-[#1A2E4A]/30 outline-none focus:border-[#B8963A]/60 focus:ring-1 focus:ring-[#B8963A]/30 transition";
   const venue = invitation.userId?.venue;
   const weddingDate = invitation.userId?.weddingDate;
+  const weddingTime = invitation?.userId?.weddingTime;
   const dressCode = invitation.userId?.dressCode || "";
   const weddingColors = invitation.userId?.weddingColors || [];
   const plusOnePolicy = invitation.userId?.plusOnePolicy || "invitation_only";
@@ -216,6 +217,13 @@ const InvitePage = () => {
     : null;
   const mapsUrl = venue
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue)}`
+    : null;
+
+  const formattedTime = weddingTime
+    ? new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
     : null;
 
   return (
@@ -246,7 +254,6 @@ const InvitePage = () => {
               >
                 Wedding Invitation
               </h2>
-
               {/* gold divider */}
               <div className="flex items-center gap-2 mb-5">
                 <div
@@ -259,7 +266,6 @@ const InvitePage = () => {
                   style={{ background: "#B8963A", opacity: 0.6 }}
                 />
               </div>
-
               {/* ── Marriage between ── */}
               <p
                 style={{
@@ -272,7 +278,6 @@ const InvitePage = () => {
               >
                 Marriage between
               </p>
-
               {/* ── Couple names ── */}
               <h1
                 style={{
@@ -287,7 +292,6 @@ const InvitePage = () => {
                 <span style={{ color: "#B8963A" }}>and</span>{" "}
                 {invitation.userId?.partner2Name || "Partner 2"}
               </h1>
-
               {/* ornament */}
               <div className="flex items-center gap-2 my-4">
                 <div
@@ -300,7 +304,6 @@ const InvitePage = () => {
                   style={{ background: "#B8963A", opacity: 0.6 }}
                 />
               </div>
-
               {/* ── You are cordially invited ── */}
               <p
                 style={{ ...serif, fontSize: "1.05rem", color: "#1A2E4A" }}
@@ -308,7 +311,6 @@ const InvitePage = () => {
               >
                 You are cordially invited
               </p>
-
               {/* ── Dear [guestName] ── */}
               <p
                 style={{
@@ -321,7 +323,6 @@ const InvitePage = () => {
               >
                 Dear {invitation.guestName},
               </p>
-
               {/* ── Custom message ── */}
               <p
                 style={{
@@ -334,7 +335,6 @@ const InvitePage = () => {
               >
                 {invitation.customMessage}
               </p>
-
               {/* ── Date ── */}
               {formattedDate && (
                 <p
@@ -344,7 +344,13 @@ const InvitePage = () => {
                   Date : {formattedDate}
                 </p>
               )}
-
+              {/* ── Time ── */}
+              <p
+                style={{ ...serif, fontSize: "0.95rem", color: "#1A2E4A" }}
+                className="mb-2"
+              >
+                Time : {formattedTime || "To be announced"}
+              </p>
               {/* ── Venue (clickable → Google Maps) ── */}
               {venue && (
                 <a
@@ -364,7 +370,6 @@ const InvitePage = () => {
                   Location: {venue}
                 </a>
               )}
-
               {/* bottom ornament */}
               <div className="flex items-center gap-2 mb-4">
                 <div
@@ -377,7 +382,6 @@ const InvitePage = () => {
                   style={{ background: "#B8963A", opacity: 0.6 }}
                 />
               </div>
-
               {/* ── Wedding colour swatches (name-based) ── */}
               {weddingColors.length > 0 && (
                 <div className="mb-4">
@@ -427,7 +431,6 @@ const InvitePage = () => {
                   </div>
                 </div>
               )}
-
               {/* ── Category badge (VIP ACCESS style) ── */}
               <p
                 style={{
@@ -559,6 +562,17 @@ const InvitePage = () => {
                     year: "numeric",
                   })
                 : "To be announced"}
+            </p>
+          </div>
+
+          {/* Time */}
+          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+            <span className="text-2xl text-[#D8B76A]">⏰</span>
+            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
+              Time
+            </p>
+            <p className="text-white text-sm leading-6">
+              {formattedTime || "To be announced"}
             </p>
           </div>
 

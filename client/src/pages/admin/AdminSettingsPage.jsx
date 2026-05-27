@@ -25,6 +25,7 @@ const AdminSettingsPage = () => {
       partner1Name: storedUser.partner1Name || '',
       partner2Name: storedUser.partner2Name || '',
       weddingDate: toInputDate(storedUser.weddingDate),
+      weddingTime: storedUser.weddingTime || '',
       rsvpDeadline: toInputDate(storedUser.rsvpDeadline),
       venue: storedUser.venue || '',
       dressCode: storedUser.dressCode || '',
@@ -39,6 +40,7 @@ const AdminSettingsPage = () => {
   const rsvpDeadline = watch('rsvpDeadline')
   const venue = watch('venue')
   const dressCode = watch('dressCode')
+  const weddingTime = watch('weddingTime')
 
   const onSubmit = async (data) => {
     try {
@@ -50,6 +52,13 @@ const AdminSettingsPage = () => {
       toast.error(err.response?.data?.message || 'Update failed. Please try again.')
     }
   }
+
+  const formattedTime = weddingTime
+    ? new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null
 
   return (
     <div className="p-4 sm:p-8 max-w-xl">
@@ -76,6 +85,16 @@ const AdminSettingsPage = () => {
           <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Wedding Date</label>
           <input id="settings-wedding-date" type="date" {...register('weddingDate')} className={`${cls(false)} scheme-dark`} />
           <p className="mt-1 text-xs text-white/30">Appears on all invitation cards and countdown timer.</p>
+        </div>
+
+        {/* Wedding time */}
+        <div>
+          <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Wedding Time</label>
+          <input id="settings-wedding-time" type="time" {...register('weddingTime')} className={`${cls(false)} scheme-dark`} />
+          <p className="mt-1 text-xs text-white/30">Shown on all invitation cards. Leave blank to display "To be announced".</p>
+          {weddingTime && (
+            <p className="mt-2 text-xs text-[#D8B76A]">Preview: {formattedTime}</p>
+          )}
         </div>
 
         {/* RSVP Deadline */}
@@ -164,6 +183,11 @@ const AdminSettingsPage = () => {
             {weddingDate && (
               <p className="text-sm text-white/60">
                 {new Date(weddingDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
+            )}
+            {weddingTime && (
+              <p className="text-sm text-white/60">
+                ⏰ {formattedTime}
               </p>
             )}
             {rsvpDeadline && (
