@@ -249,6 +249,24 @@ const SignupPage = () => {
             />
           </div>
 
+
+          {/* RSVP Deadline */}
+          <div>
+            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">
+              RSVP Deadline
+            </label>
+            <input
+              id="signup-rsvp-deadline"
+              type="date"
+              {...register("rsvpDeadline")}
+              max={weddingDate || undefined}
+              className={`${cls(false)} scheme-dark`}
+            />
+            <p className="mt-1 text-xs text-white/30">
+              Cut-off date for RSVPs. Optional.
+            </p>
+          </div>
+          
           {/* Wedding time */}
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">
@@ -268,23 +286,6 @@ const SignupPage = () => {
                 Preview: {formattedTime}
               </p>
             )}
-          </div>
-
-          {/* RSVP Deadline */}
-          <div>
-            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">
-              RSVP Deadline
-            </label>
-            <input
-              id="signup-rsvp-deadline"
-              type="date"
-              {...register("rsvpDeadline")}
-              max={weddingDate || undefined}
-              className={`${cls(false)} scheme-dark`}
-            />
-            <p className="mt-1 text-xs text-white/30">
-              Cut-off date for RSVPs. Optional.
-            </p>
           </div>
 
           {/* Venue */}
