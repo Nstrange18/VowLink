@@ -16,7 +16,8 @@ const userSchema = new mongoose.Schema(
     weddingTime: { type: String, default: "18:00" }, // HH:MM format
     rsvpDeadline: { type: Date, default: null },
     venue: { type: String, trim: true, default: "" },
-    weddingColors: { type: [String], default: [] }, // e.g. ["#FFFFFF", "#D8B76A", "#1A2E4A"]
+    receptionLocation: { type: String, trim: true, default: "" },
+    weddingColors: { type: [String], default: [] },
     dressCode: { type: String, trim: true, default: "" }, // e.g. "Black Tie", "Smart Casual"
     plusOnePolicy: {
       type: String,

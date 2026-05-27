@@ -195,6 +195,7 @@ const InvitePage = () => {
   const inputClass =
     "w-full rounded-xl border border-[#1A2E4A]/15 bg-white px-4 py-3 text-sm text-[#1A2E4A] placeholder-[#1A2E4A]/30 outline-none focus:border-[#B8963A]/60 focus:ring-1 focus:ring-[#B8963A]/30 transition";
   const venue = invitation.userId?.venue;
+  const receptionLocation = invitation.userId?.receptionLocation || "";
   const weddingDate = invitation.userId?.weddingDate;
   const weddingTime = invitation?.userId?.weddingTime;
   const dressCode = invitation.userId?.dressCode || "";
@@ -217,6 +218,10 @@ const InvitePage = () => {
     : null;
   const mapsUrl = venue
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue)}`
+    : null;
+
+  const receptionMapsUrl = receptionLocation
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(receptionLocation)}`
     : null;
 
   const formattedTime = weddingTime
@@ -365,9 +370,27 @@ const InvitePage = () => {
                     textDecorationColor: "#B8963A55",
                     textUnderlineOffset: "3px",
                   }}
-                  className="mb-5 hover:text-[#B8963A] transition text-center block max-w-55"
+                  className="mb-2 hover:text-[#B8963A] transition text-center block max-w-55"
                 >
                   Location: {venue}
+                </a>
+              )}
+              {receptionLocation && (
+                <a
+                  href={receptionMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    ...serif,
+                    fontSize: "0.95rem",
+                    color: "#1A2E4A",
+                    textDecoration: "underline",
+                    textDecorationColor: "#B8963A55",
+                    textUnderlineOffset: "3px",
+                  }}
+                  className="mb-5 hover:text-[#B8963A] transition text-center block max-w-55"
+                >
+                  Reception at: {receptionLocation}
                 </a>
               )}
               {/* bottom ornament */}
@@ -598,6 +621,30 @@ const InvitePage = () => {
               {venue || "To be announced"}
             </a>
           </div>
+
+          {receptionLocation && (
+            <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+              <span className="text-2xl text-[#D8B76A]">🥂</span>
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
+                Reception at
+              </p>
+              <a
+                href={receptionMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  ...serif,
+                  fontSize: "0.95rem",
+                  color: "gainsboro",
+                  textDecoration: "underline",
+                  textDecorationColor: "#B8963A55",
+                  textUnderlineOffset: "3px",
+                }}
+              >
+                {receptionLocation}
+              </a>
+            </div>
+          )}
 
           {/* Dress Code */}
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">

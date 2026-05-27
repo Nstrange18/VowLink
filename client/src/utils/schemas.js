@@ -17,6 +17,7 @@ export const signupSchema = z
     weddingTime: z.string().optional(),
     rsvpDeadline: z.string().optional(),
     venue: z.string().optional(),
+    receptionLocation: z.string().optional().default(""),
     weddingColors: z.array(z.string()).optional().default([]),
     dressCode: z.string().optional().default(""),
     plusOnePolicy: z
@@ -74,6 +75,7 @@ export const settingsSchema = z
     weddingTime: z.string().optional(), 
     rsvpDeadline: z.string().optional(),
     venue: z.string().optional(),
+    receptionLocation: z.string().optional().default(""),
     weddingColors: z.array(z.string()).optional().default([]),
     dressCode: z.string().optional().default(""),
     plusOnePolicy: z

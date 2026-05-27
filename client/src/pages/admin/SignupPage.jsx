@@ -65,6 +65,7 @@ const SignupPage = () => {
       weddingTime: "",
       rsvpDeadline: "",
       venue: "",
+      receptionLocation: "",
       dressCode: "",
       plusOnePolicy: "invitation_only",
       kidsAllowed: true,
@@ -77,6 +78,7 @@ const SignupPage = () => {
   const weddingTime = watch("weddingTime");
   const rsvpDeadline = watch("rsvpDeadline");
   const venue = watch("venue");
+  const receptionLocation = watch("receptionLocation");
   const dressCode = watch("dressCode");
 
   const onSubmit = async (data) => {
@@ -91,6 +93,7 @@ const SignupPage = () => {
         weddingTime: data.weddingTime || "18:00",
         rsvpDeadline: data.rsvpDeadline || null,
         venue: data.venue || "",
+        receptionLocation: data.receptionLocation || "",
         weddingColors,
         dressCode: data.dressCode || "",
         plusOnePolicy: data.plusOnePolicy,
@@ -249,7 +252,6 @@ const SignupPage = () => {
             />
           </div>
 
-
           {/* RSVP Deadline */}
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">
@@ -266,7 +268,7 @@ const SignupPage = () => {
               Cut-off date for RSVPs. Optional.
             </p>
           </div>
-          
+
           {/* Wedding time */}
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">
@@ -299,6 +301,23 @@ const SignupPage = () => {
               {...register("venue")}
               className={cls(false)}
             />
+          </div>
+
+          {/* Reception location */}
+          <div>
+            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">
+              Add Reception location if Any
+            </label>
+            <input
+              id="signup-reception-location"
+              placeholder="e.g. Reception Hall, Victoria Island, Lagos"
+              {...register("receptionLocation")}
+              className={cls(false)}
+            />
+            <p className="mt-1 text-xs text-white/30">
+              Optional. If left blank, it will not appear on the invitation
+              card.
+            </p>
           </div>
 
           {/* Wedding Colours */}
@@ -422,6 +441,11 @@ const SignupPage = () => {
                 </p>
               )}
               {venue && <p className="text-xs text-white/40">📍 {venue}</p>}
+              {receptionLocation && (
+                <p className="text-xs text-white/40">
+                  🥂 Reception at {receptionLocation}
+                </p>
+              )}
               {dressCode && (
                 <p className="text-xs text-white/50">👔 {dressCode}</p>
               )}

@@ -21,6 +21,7 @@ const userPayload = (user) => ({
   weddingTime: user.weddingTime,
   rsvpDeadline: user.rsvpDeadline,
   venue: user.venue,
+  receptionLocation: user.receptionLocation || "",
   weddingColors: user.weddingColors || [],
   dressCode: user.dressCode || "",
   plusOnePolicy: user.plusOnePolicy || "invitation_only",
@@ -44,6 +45,7 @@ const userPublic = (user) => ({
   weddingTime: user.weddingTime,
   rsvpDeadline: user.rsvpDeadline,
   venue: user.venue,
+  receptionLocation: user.receptionLocation || "",
   weddingColors: user.weddingColors || [],
   dressCode: user.dressCode || "",
   plusOnePolicy: user.plusOnePolicy || "invitation_only",
@@ -96,6 +98,7 @@ router.post("/signup", async (req, res) => {
       weddingTime,
       rsvpDeadline,
       venue,
+      receptionLocation,
       weddingColors,
       dressCode,
       plusOnePolicy,
@@ -124,6 +127,7 @@ router.post("/signup", async (req, res) => {
       weddingTime: weddingTime || "18:00",
       rsvpDeadline: rsvpDeadline || null,
       venue: venue || "",
+      receptionLocation: receptionLocation || "",
       weddingColors: Array.isArray(weddingColors) ? weddingColors : [],
       dressCode: dressCode || "",
       plusOnePolicy:
@@ -147,7 +151,9 @@ router.post("/signup", async (req, res) => {
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
 router.post("/login", async (req, res) => {
   try {
-    const email = String(req.body?.email || "").trim().toLowerCase();
+    const email = String(req.body?.email || "")
+      .trim()
+      .toLowerCase();
     const { password } = req.body;
 
     if (!email || !password)
@@ -204,6 +210,7 @@ router.put("/me", protect, async (req, res) => {
       weddingTime,
       rsvpDeadline,
       venue,
+      receptionLocation,
       weddingColors,
       dressCode,
       plusOnePolicy,
@@ -218,6 +225,7 @@ router.put("/me", protect, async (req, res) => {
         weddingTime,
         rsvpDeadline,
         venue,
+        receptionLocation: receptionLocation || "",
         weddingColors: Array.isArray(weddingColors) ? weddingColors : [],
         dressCode: dressCode || "",
         plusOnePolicy:
