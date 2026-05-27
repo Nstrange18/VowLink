@@ -14,6 +14,7 @@ export const signupSchema = z
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
     weddingDate: z.string().optional(),
+    weddingTime: z.string().optional(),
     rsvpDeadline: z.string().optional(),
     venue: z.string().optional(),
     weddingColors: z.array(z.string()).optional().default([]),

@@ -11,7 +11,7 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// ── Auto-refresh on 401 ────────────────────────────────────────────────────
+// ── Auto-refresh on 401, but do NOT interfere with auth-page errors ─────────
 let isRefreshing = false
 let failedQueue = []
 
@@ -25,8 +25,21 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config
 
-    // If 401 and we haven't retried yet
-    if (error.response?.status === 401 && !original._retry) {
+    // If there is no request config, just return the error
+    if (!original) {
+      return Promise.reject(error)
+    }
+
+    // These routes should show their own toast errors.
+    // Example: login should show "Account does not exist" instead of being intercepted.
+    const isAuthPageRequest =
+      original?.url?.includes('/auth/login') ||
+      original?.url?.includes('/auth/signup') ||
+      original?.url?.includes('/auth/forgot-password') ||
+      original?.url?.includes('/auth/reset-password')
+
+    // If 401 and we haven't retried yet, refresh token ONLY for protected requests
+    if (error.response?.status === 401 && !original._retry && !isAuthPageRequest) {
       const refreshToken = localStorage.getItem('refreshToken')
 
       // No refresh token → force logout
@@ -58,19 +71,25 @@ api.interceptors.response.use(
           `${import.meta.env.VITE_API_URL || '/api'}/auth/refresh`,
           { refreshToken }
         )
+
         const newToken = res.data.accessToken
+
         localStorage.setItem('token', newToken)
         api.defaults.headers.common.Authorization = `Bearer ${newToken}`
+
         processQueue(null, newToken)
+
         original.headers.Authorization = `Bearer ${newToken}`
         return api(original)
       } catch (refreshError) {
         processQueue(refreshError, null)
+
         // Refresh token expired → force logout
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('user')
         window.location.href = '/admin/login'
+
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

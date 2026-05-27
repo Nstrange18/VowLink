@@ -72,9 +72,11 @@ const AdminLoginPage = () => {
     <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg2.png')] bg-cover bg-top bg-no-repeat px-6">
       <Link
         to="/"
-        className="absolute top-6 left-6 bg-[#070A13] rounded-full py-2 px-3 text-[#D8B76A] hover:text-[#D8B76A]/70 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] transition"
+        className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-1 bg-[#070A13] rounded-full py-1.5 sm:py-2 px-2 sm:px-3 text-xs sm:text-sm text-[#D8B76A] hover:text-[#D8B76A]/70 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] transition whitespace-nowrap"
       >
-        ← Back to Home
+        <span>←</span>
+        <span className="hidden sm:inline">Back to Home</span>
+        <span className="sm:hidden">Home</span>
       </Link>
       <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/40 bg-[#070A13]/85 px-8 py-12 shadow-2xl backdrop-blur-md">
         <p className="mb-2 text-center text-xs uppercase tracking-[0.35em] text-[#D8B76A]">

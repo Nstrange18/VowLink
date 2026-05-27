@@ -122,18 +122,23 @@ const SignupPage = () => {
     : null;
 
   return (
-    <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg2.png')] bg-cover bg-top bg-no-repeat px-6 py-10">
-      <Link to="/" className="absolute top-6 left-6 bg-[#070A13] rounded-full py-2 px-3 text-[#D8B76A] hover:text-[#D8B76A]/70 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] transition">
-        ← Back to Home
+    <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg2.png')] bg-cover bg-top bg-no-repeat px-4 sm:px-6 py-10">
+      <Link
+        to="/"
+        className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-1 bg-[#070A13] rounded-full py-1.5 sm:py-2 px-2 sm:px-3 text-xs sm:text-sm text-[#D8B76A] hover:text-[#D8B76A]/70 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] transition whitespace-nowrap"
+      >
+        <span>←</span>
+        <span className="hidden sm:inline">Back to Home</span>
+        <span className="sm:hidden">Home</span>
       </Link>
-      <div className="w-full max-w-md rounded-3xl border border-[#D8B76A]/40 bg-[#070A13]/85 px-8 py-12 shadow-2xl backdrop-blur-md max-h-[95vh] overflow-y-auto">
+      <div className="w-full max-w-md rounded-3xl border border-[#D8B76A]/40 bg-[#070A13]/85 px-6 sm:px-8 py-10 sm:py-12 shadow-2xl backdrop-blur-md max-h-[95vh] overflow-y-auto">
         <p className="mb-2 text-center text-xs uppercase tracking-[0.35em] text-[#D8B76A]">
           Create Your Account
         </p>
-        <h1 className="mb-2 text-center font-serif text-3xl text-white">
+        <h1 className="mb-2 text-center font-serif text-2xl sm:text-3xl text-white">
           Start Your Journey
         </h1>
-        <p className="mb-8 text-center text-sm text-white/40">
+        <p className="mb-8 text-center text-xs sm:text-sm text-white/40">
           Set up your wedding invitation portal
         </p>
 
@@ -449,7 +454,7 @@ const SignupPage = () => {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-white/40">
+        <p className="mt-6 text-center text-xs sm:text-sm text-white/40">
           Already have an account?{" "}
           <Link to="/admin/login" className="text-[#D8B76A] hover:underline">
             Sign in
