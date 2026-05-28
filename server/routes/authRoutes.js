@@ -2,11 +2,55 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const rateLimit = require("express-rate-limit");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 const sgMail = require("@sendgrid/mail");
 
 const router = express.Router();
+
+// ── Rate limiters ─────────────────────────────────────────────────────────────
+// These protect sensitive auth routes from spam, brute-force attempts, and abuse.
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 8, // 8 login attempts per IP every 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Too many login attempts. Please wait 15 minutes and try again.",
+  },
+});
+
+const signupLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 signup attempts per IP every hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Too many signup attempts. Please try again later.",
+  },
+});
+
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3, // 3 password reset requests per IP every 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Too many password reset requests. Please wait 15 minutes and try again.",
+  },
+});
+
+const resetPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 reset attempts per IP every 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Too many password reset attempts. Please wait 15 minutes and try again.",
+  },
+});
 
 // Set SendGrid API key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -87,7 +131,7 @@ const sendResetEmail = async (email, resetUrl) => {
 };
 
 // ── POST /api/auth/signup ─────────────────────────────────────────────────────
-router.post("/signup", async (req, res) => {
+router.post("/signup", signupLimiter, async (req, res) => {
   try {
     const {
       partner1Name,
@@ -149,7 +193,7 @@ router.post("/signup", async (req, res) => {
 });
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   try {
     const email = String(req.body?.email || "")
       .trim()
@@ -247,7 +291,7 @@ router.put("/me", protect, async (req, res) => {
 });
 
 // ── POST /api/auth/forgot-password ───────────────────────────────────────────
-router.post("/forgot-password", async (req, res) => {
+router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
   try {
     const email = String(req.body?.email || "")
       .trim()
@@ -309,7 +353,7 @@ router.post("/forgot-password", async (req, res) => {
 });
 
 // ── POST /api/auth/reset-password/:token ─────────────────────────────────────
-router.post("/reset-password/:token", async (req, res) => {
+router.post("/reset-password/:token", resetPasswordLimiter, async (req, res) => {
   try {
     const { password } = req.body;
     if (!password || password.length < 6)

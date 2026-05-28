@@ -2,8 +2,22 @@ const express = require("express");
 const RSVP = require("../models/RSVP");
 const Invitation = require("../models/Invitation");
 const { protect } = require("../middleware/auth");
+const rateLimit = require("express-rate-limit");
 
 const router = express.Router();
+
+// ── Rate limiter for RSVP submissions ────────────────────────────────────────
+// Protects the RSVP form from spam/bot submissions.
+
+const rsvpLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 5, // 5 RSVP attempts per IP every 10 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Too many RSVP attempts. Please wait 10 minutes and try again.",
+  },
+});
 
 const getInvitedGuestCount = (invitation, plusOnePolicy) => {
   const base = invitation.allowedGuests || 1;
@@ -14,7 +28,7 @@ const getInvitedGuestCount = (invitation, plusOnePolicy) => {
 };
 
 // PUBLIC: Submit RSVP (guests don't need to be logged in)
-router.post("/", async (req, res) => {
+router.post("/", rsvpLimiter, async (req, res) => {
   try {
     const { invitationId, guestName, phone, attending, mealPreference, message } = req.body;
 

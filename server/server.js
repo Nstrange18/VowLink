@@ -14,6 +14,7 @@ const rsvpRoutes = require("./routes/rsvpRoutes");
 dotenv.config();
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use(cors());
 app.use(express.json());
@@ -38,4 +39,4 @@ mongoose
   })
   .catch((error) => {
     console.log("MongoDB connection failed:", error.message);
-  });
+  });
