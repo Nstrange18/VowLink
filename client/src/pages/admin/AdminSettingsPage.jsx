@@ -683,49 +683,27 @@ const AdminSettingsPage = () => {
     };
   } else if (cardTheme === "minimalist") {
     cardStyles = {
-      background: selectedBgHex || "#FDFDFD",
+      background: "radial-gradient(circle, #FFFFFF 60%, #F5F7FA 100%)",
       border: `6px double ${secHex}33`,
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#2E3A59",
       fontFamily: activeFont,
     };
   } else if (cardTheme === "navy") {
-    let bg = "radial-gradient(circle, #0F1F38 0%, #060D18 100%)";
-    if (weddingColors.includes("Burgundy")) {
-      bg = "radial-gradient(circle, #4A0E17 0%, #1A0508 100%)";
-    } else if (weddingColors.includes("Emerald Green")) {
-      bg = "radial-gradient(circle, #0C2818 0%, #05120A 100%)";
-    } else if (weddingColors.includes("Midnight Black")) {
-      bg = "radial-gradient(circle, #1F1F1F 0%, #080808 100%)";
-    } else if (priHex && priHex !== "#1A2E4A") {
-      bg = `radial-gradient(circle, ${priHex}44 0%, #050912 100%)`;
-    }
     cardStyles = {
-      background: bg,
+      background: "radial-gradient(circle, #0F1F38 0%, #060D18 100%)",
       border: `2px solid ${secHex}`,
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : secHex,
       fontFamily: activeFont,
     };
   } else if (cardTheme === "stardust") {
-    let bg = "radial-gradient(circle, #120A24 0%, #06080F 100%)";
-    if (priHex && priHex !== "#1A2E4A") {
-      bg = `radial-gradient(circle, ${priHex}33 0%, #03050A 100%)`;
-    }
     cardStyles = {
-      background: bg,
+      background: "radial-gradient(circle, #0D0B1C 0%, #05040B 100%)",
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#FFFFFF",
       fontFamily: activeFont,
     };
   } else if (cardTheme === "forest") {
-    let bg = "radial-gradient(circle, #0F2C1B 0%, #07150C 100%)";
-    if (weddingColors.includes("Burgundy")) {
-      bg = "radial-gradient(circle, #380E14 0%, #140305 100%)";
-    } else if (weddingColors.includes("Midnight Black")) {
-      bg = "radial-gradient(circle, #1A1A1A 0%, #080808 100%)";
-    } else if (priHex && priHex !== "#1A2E4A") {
-      bg = `radial-gradient(circle, ${priHex}22 0%, #040A06 100%)`;
-    }
     cardStyles = {
-      background: bg,
+      background: "radial-gradient(circle, #071C11 0%, #030C07 100%)",
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : secHex,
       fontFamily: activeFont,
     };
@@ -1937,7 +1915,7 @@ const AdminSettingsPage = () => {
                 {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
 
                 <div
-                  className="relative z-10 px-5 sm:px-10 pt-12 pb-14 flex flex-col items-center justify-center text-center w-full min-h-[500px] transition-all"
+                  className="relative z-10 px-4 sm:px-6 pt-12 pb-14 flex flex-col items-center justify-center text-center w-full min-h-[500px] transition-all"
                   style={{
                     fontSize: `${customTextSize}em`,
                     paddingTop: `calc(4.5rem + ${customVerticalOffset}px)`,

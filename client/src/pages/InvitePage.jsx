@@ -494,49 +494,27 @@ const InvitePage = () => {
     };
   } else if (cardTheme === "minimalist") {
     cardStyles = {
-      background: selectedBgHex || "#FDFDFD",
+      background: "radial-gradient(circle, #FFFFFF 60%, #F5F7FA 100%)",
       border: `8px double ${secHex}33`,
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#2E3A59",
       fontFamily: activeFont,
     };
   } else if (cardTheme === "navy") {
-    let bg = "radial-gradient(circle, #0F1F38 0%, #060D18 100%)";
-    if (weddingColors.includes("Burgundy")) {
-      bg = "radial-gradient(circle, #4A0E17 0%, #1A0508 100%)";
-    } else if (weddingColors.includes("Emerald Green")) {
-      bg = "radial-gradient(circle, #0C2818 0%, #05120A 100%)";
-    } else if (weddingColors.includes("Midnight Black")) {
-      bg = "radial-gradient(circle, #1F1F1F 0%, #080808 100%)";
-    } else if (priHex && priHex !== "#1A2E4A") {
-      bg = `radial-gradient(circle, ${priHex}44 0%, #050912 100%)`;
-    }
     cardStyles = {
-      background: bg,
+      background: "radial-gradient(circle, #0F1F38 0%, #060D18 100%)",
       border: `3px solid ${secHex}`,
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : secHex,
       fontFamily: activeFont,
     };
   } else if (cardTheme === "stardust") {
-    let bg = "radial-gradient(circle, #120A24 0%, #06080F 100%)";
-    if (priHex && priHex !== "#1A2E4A") {
-      bg = `radial-gradient(circle, ${priHex}33 0%, #03050A 100%)`;
-    }
     cardStyles = {
-      background: bg,
+      background: "radial-gradient(circle, #0D0B1C 0%, #05040B 100%)",
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#FFFFFF",
       fontFamily: activeFont,
     };
   } else if (cardTheme === "forest") {
-    let bg = "radial-gradient(circle, #0F2C1B 0%, #07150C 100%)";
-    if (weddingColors.includes("Burgundy")) {
-      bg = "radial-gradient(circle, #380E14 0%, #140305 100%)";
-    } else if (weddingColors.includes("Midnight Black")) {
-      bg = "radial-gradient(circle, #1A1A1A 0%, #080808 100%)";
-    } else if (priHex && priHex !== "#1A2E4A") {
-      bg = `radial-gradient(circle, ${priHex}22 0%, #040A06 100%)`;
-    }
     cardStyles = {
-      background: bg,
+      background: "radial-gradient(circle, #071C11 0%, #030C07 100%)",
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : secHex,
       fontFamily: activeFont,
     };
@@ -754,7 +732,7 @@ const InvitePage = () => {
         {/* ═══ THE CARD (this gets downloaded) ═══ */}
         <div
           ref={cardRef}
-          className="w-full max-w-[23.7rem] sm:max-w-[26.2rem] rounded-2xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+          className="w-full max-w-[24.7rem] sm:max-w-[27.2rem] rounded-2xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
         >
           {/* Card background container */}
           <div
@@ -764,7 +742,7 @@ const InvitePage = () => {
             {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
             {/* Custom Spacing & Scaling wrapper */}
             <div
-              className="relative z-10 px-10 pt-14 pb-16 flex flex-col items-center justify-center text-center w-full min-h-[620px] transition-all"
+              className="relative z-10 px-6 pt-14 pb-16 flex flex-col items-center justify-center text-center w-full min-h-[620px] transition-all"
               style={{
                 fontSize: `${customTextSize}em`,
                 paddingTop: `calc(5rem + ${customVerticalOffset}px)`,
@@ -786,9 +764,9 @@ const InvitePage = () => {
 
               {/* ornament divider */}
               <div className="flex items-center gap-2 mb-5">
-                <div className="h-px w-12" style={{ background: accentColor, opacity: 0.6 }} />
-                <span style={{ color: accentColor, fontSize: "0.65rem" }}>❧</span>
-                <div className="h-px w-12" style={{ background: accentColor, opacity: 0.6 }} />
+                <div className="h-px w-12" style={{ background: primaryTextColor, opacity: 0.4 }} />
+                <span style={{ color: primaryTextColor, opacity: 0.6, fontSize: "0.65rem" }}>❧</span>
+                <div className="h-px w-12" style={{ background: primaryTextColor, opacity: 0.4 }} />
               </div>
 
               {/* ── Marriage between ── */}
@@ -821,9 +799,9 @@ const InvitePage = () => {
 
               {/* ornament */}
               <div className="flex items-center gap-2 my-4">
-                <div className="h-px w-10" style={{ background: accentColor, opacity: 0.6 }} />
-                <span style={{ color: accentColor, fontSize: "0.6rem" }}>✦</span>
-                <div className="h-px w-10" style={{ background: accentColor, opacity: 0.6 }} />
+                <div className="h-px w-10" style={{ background: primaryTextColor, opacity: 0.3 }} />
+                <span style={{ color: primaryTextColor, opacity: 0.5, fontSize: "0.6rem" }}>✦</span>
+                <div className="h-px w-10" style={{ background: primaryTextColor, opacity: 0.3 }} />
               </div>
 
               {/* ── You are cordially invited ── */}
@@ -931,9 +909,9 @@ const InvitePage = () => {
 
               {/* bottom ornament */}
               <div className="flex items-center gap-2 mb-4">
-                <div className="h-px w-8" style={{ background: accentColor, opacity: 0.6 }} />
-                <span style={{ color: accentColor, fontSize: "0.6rem" }}>◆</span>
-                <div className="h-px w-8" style={{ background: accentColor, opacity: 0.6 }} />
+                <div className="h-px w-8" style={{ background: primaryTextColor, opacity: 0.3 }} />
+                <span style={{ color: primaryTextColor, opacity: 0.5, fontSize: "0.6rem" }}>◆</span>
+                <div className="h-px w-8" style={{ background: primaryTextColor, opacity: 0.3 }} />
               </div>
 
               {/* Colors */}
@@ -1002,7 +980,7 @@ const InvitePage = () => {
 
         {/* ── Countdown (outside card, not downloaded) ── */}
         {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
-          <div className="w-full max-w-[23.7rem] sm:max-w-[26.2rem]">
+          <div className="w-full max-w-[24.7rem] sm:max-w-[27.2rem]">
             <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">
               Counting Down
             </p>
