@@ -5,6 +5,8 @@ const navLinks = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: '◈' },
   { to: '/admin/invitations', label: 'Invitations', icon: '✉' },
   { to: '/admin/rsvps', label: 'RSVPs', icon: '✓' },
+  { to: '/admin/venues', label: 'Suggested Venues', icon: '📍' },
+  { to: '/admin/billing', label: 'Billing & Tiers', icon: '💳' },
   { to: '/admin/settings', label: 'Settings', icon: '⚙' },
 ]
 
@@ -36,8 +38,19 @@ const AdminLayout = () => {
           <span className="font-serif text-lg tracking-wide text-white">Vowlink</span>
         </div>
         <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-2">Your Wedding</p>
-        <div className="mb-3 inline-flex items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-3 py-1">
-          <span className="text-xs font-medium text-[#D8B76A]">{initials}</span>
+        <div className="mb-3 flex items-center gap-2">
+          <div className="inline-flex items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-3 py-1">
+            <span className="text-xs font-medium text-[#D8B76A]">{initials}</span>
+          </div>
+          <span className={`text-[9px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full ${
+            user.tier === 'pro'
+              ? 'bg-linear-to-r from-amber-400 to-yellow-500 text-[#070A13] shadow-[0_0_12px_rgba(250,204,21,0.3)] animate-pulse'
+              : user.tier === 'plus'
+              ? 'bg-[#7FA6D9] text-[#070A13]'
+              : 'bg-white/10 text-white/60'
+          }`}>
+            {user.tier || 'free'}
+          </span>
         </div>
         <h2 className="font-serif text-xl leading-tight text-white">{coupleName}</h2>
         <p className="mt-1 text-xs text-white/30 truncate">{user.email}</p>
@@ -82,9 +95,9 @@ const AdminLayout = () => {
   )
 
   return (
-    <div className="flex min-h-screen bg-[#070A13]">
+    <div className="flex h-screen overflow-hidden bg-[#070A13]">
       {/* ── Desktop sidebar (lg+) ─────────────────────────────── */}
-      <aside className="hidden lg:flex w-64 flex-col border-r border-[#D8B76A]/20 bg-[#090D19]">
+      <aside className="hidden lg:flex w-64 flex-col border-r border-[#D8B76A]/20 bg-[#090D19] h-full shrink-0">
         <SidebarContent />
       </aside>
 
@@ -104,9 +117,9 @@ const AdminLayout = () => {
       </aside>
 
       {/* ── Main area ─────────────────────────────────────────── */}
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
         {/* Mobile topbar */}
-        <header className="flex items-center justify-between border-b border-[#D8B76A]/20 bg-[#090D19] px-4 py-3 lg:hidden">
+        <header className="flex items-center justify-between border-b border-[#D8B76A]/20 bg-[#090D19] px-4 py-3 lg:hidden shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
             className="flex flex-col gap-1.5 p-1 text-white/60 hover:text-white transition"
@@ -119,6 +132,15 @@ const AdminLayout = () => {
           <div className="flex items-center gap-2">
             <img src="/vowlink-icon.png" alt="" className="h-5 w-5 object-contain opacity-80" />
             <span className="font-serif text-base text-white">Vowlink</span>
+            <span className={`text-[8px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full ${
+              user.tier === 'pro'
+                ? 'bg-linear-to-r from-amber-400 to-yellow-500 text-[#070A13]'
+                : user.tier === 'plus'
+                ? 'bg-[#7FA6D9] text-[#070A13]'
+                : 'bg-white/10 text-white/60'
+            }`}>
+              {user.tier || 'free'}
+            </span>
           </div>
           <div className="flex items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-2 py-0.5">
             <span className="text-xs font-medium text-[#D8B76A]">{initials}</span>

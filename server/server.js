@@ -10,6 +10,7 @@ const dotenv = require("dotenv");
 const authRoutes = require("./routes/authRoutes");
 const invitationRoutes = require("./routes/invitationRoutes");
 const rsvpRoutes = require("./routes/rsvpRoutes");
+const venueRoutes = require("./routes/venueRoutes");
 
 dotenv.config();
 
@@ -17,7 +18,8 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.get("/", (req, res) => {
   res.send("Wedding invitation API is running");
@@ -26,6 +28,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/invitations", invitationRoutes);
 app.use("/api/rsvps", rsvpRoutes);
+app.use("/api/venues", venueRoutes);
 
 const PORT = process.env.PORT || 5000;
 

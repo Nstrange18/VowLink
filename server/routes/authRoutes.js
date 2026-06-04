@@ -6,6 +6,7 @@ const rateLimit = require("express-rate-limit");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 const sgMail = require("@sendgrid/mail");
+const axios = require("axios");
 
 const router = express.Router();
 
@@ -70,6 +71,15 @@ const userPayload = (user) => ({
   dressCode: user.dressCode || "",
   plusOnePolicy: user.plusOnePolicy || "invitation_only",
   kidsAllowed: typeof user.kidsAllowed === "boolean" ? user.kidsAllowed : true,
+  tier: user.tier || "free",
+  cardTheme: user.cardTheme || "floral",
+  customTextColor: user.customTextColor || "#1A2E4A",
+  customFontFamily: user.customFontFamily || "classic",
+  customVerticalOffset: typeof user.customVerticalOffset === "number" ? user.customVerticalOffset : 0,
+  customTextSize: typeof user.customTextSize === "number" ? user.customTextSize : 1.0,
+  coupleOverlayOpacity: typeof user.coupleOverlayOpacity === "number" ? user.coupleOverlayOpacity : 0.45,
+  musicUrl: user.musicUrl || "",
+  shortlistedVenues: user.shortlistedVenues || [],
 });
 
 const generateAccessToken = (user) =>
@@ -94,6 +104,19 @@ const userPublic = (user) => ({
   dressCode: user.dressCode || "",
   plusOnePolicy: user.plusOnePolicy || "invitation_only",
   kidsAllowed: typeof user.kidsAllowed === "boolean" ? user.kidsAllowed : true,
+  tier: user.tier || "free",
+  galleryPhotos: user.galleryPhotos || [],
+  cardTheme: user.cardTheme || "floral",
+  customCardBg: user.customCardBg || "",
+  customTextColor: user.customTextColor || "#1A2E4A",
+  customFontFamily: user.customFontFamily || "classic",
+  customVerticalOffset: typeof user.customVerticalOffset === "number" ? user.customVerticalOffset : 0,
+  customTextSize: typeof user.customTextSize === "number" ? user.customTextSize : 1.0,
+  couplePhotoUrl: user.couplePhotoUrl || "",
+  coupleOverlayOpacity: typeof user.coupleOverlayOpacity === "number" ? user.coupleOverlayOpacity : 0.45,
+  musicUrl: user.musicUrl || "",
+  shortlistedVenues: user.shortlistedVenues || [],
+  pageBgTemplate: user.pageBgTemplate || "",
 });
 
 // ── Email helper ──────────────────────────────────────────────────────────────
@@ -259,27 +282,118 @@ router.put("/me", protect, async (req, res) => {
       dressCode,
       plusOnePolicy,
       kidsAllowed,
+      cardTheme,
+      customCardBg,
+      pageBgTemplate,
+      customTextColor,
+      customFontFamily,
+      customVerticalOffset,
+      customTextSize,
+      musicUrl,
+      galleryPhotos,
+      couplePhotoUrl,
+      coupleOverlayOpacity,
     } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      {
-        partner1Name,
-        partner2Name,
-        weddingDate,
-        weddingTime,
-        rsvpDeadline,
-        venue,
-        receptionLocation: receptionLocation || "",
-        weddingColors: Array.isArray(weddingColors) ? weddingColors : [],
-        dressCode: dressCode || "",
-        plusOnePolicy:
-          plusOnePolicy === "plus_one_allowed"
-            ? "plus_one_allowed"
-            : "invitation_only",
-        kidsAllowed: typeof kidsAllowed === "boolean" ? kidsAllowed : true,
-      },
-      { new: true },
-    );
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Update basic settings
+    user.partner1Name = partner1Name;
+    user.partner2Name = partner2Name;
+    user.weddingDate = weddingDate || null;
+    user.weddingTime = weddingTime || "18:00";
+    user.rsvpDeadline = rsvpDeadline || null;
+    user.venue = venue || "";
+    user.receptionLocation = receptionLocation || "";
+    user.weddingColors = Array.isArray(weddingColors) ? weddingColors : [];
+    user.dressCode = dressCode || "";
+    user.plusOnePolicy = plusOnePolicy === "plus_one_allowed" ? "plus_one_allowed" : "invitation_only";
+    user.kidsAllowed = typeof kidsAllowed === "boolean" ? kidsAllowed : true;
+
+    // Plan-based validation for premium customizations
+    if (user.tier === "free") {
+      const allowedFreeBgs = [
+        "/templates/template_free_1.png",
+        "/templates/template_free_2.png",
+        "/templates/template_free_3.png"
+      ];
+      if (cardTheme === "custom" && allowedFreeBgs.includes(customCardBg)) {
+        user.cardTheme = "custom";
+        user.customCardBg = customCardBg;
+      } else {
+        user.cardTheme = "floral"; // Free tier locked to floral or free templates
+        user.customCardBg = "";
+      }
+      if (pageBgTemplate && allowedFreeBgs.includes(pageBgTemplate)) {
+        user.pageBgTemplate = pageBgTemplate;
+      } else {
+        user.pageBgTemplate = "";
+      }
+      user.galleryPhotos = [];   // Free tier locked to 0 photos
+      user.musicUrl = "";        // Free tier locked to silent
+      user.customFontFamily = "classic";
+      user.customTextColor = "#1A2E4A";
+      user.customVerticalOffset = 0;
+      user.customTextSize = 1.0;
+      user.couplePhotoUrl = "";
+      user.coupleOverlayOpacity = 0.45;
+    } else if (user.tier === "plus") {
+      // Plus tier unlocks all themes except custom (unless a free/plus pre-made template is used)
+      const allowedPlusBgs = [
+        "/templates/template_free_1.png",
+        "/templates/template_free_2.png",
+        "/templates/template_free_3.png",
+        "/templates/template_plus_1.png",
+        "/templates/template_plus_2.png",
+        "/templates/template_plus_3.png"
+      ];
+      if (cardTheme === "custom" && allowedPlusBgs.includes(customCardBg)) {
+        user.cardTheme = "custom";
+        user.customCardBg = customCardBg;
+      } else if (cardTheme && cardTheme !== "custom") {
+        user.cardTheme = cardTheme;
+        user.customCardBg = "";
+      } else {
+        user.cardTheme = "floral"; // Fallback if custom chosen without approved template
+        user.customCardBg = "";
+      }
+      if (pageBgTemplate && allowedPlusBgs.includes(pageBgTemplate)) {
+        user.pageBgTemplate = pageBgTemplate;
+      } else {
+        user.pageBgTemplate = "";
+      }
+      if (Array.isArray(galleryPhotos)) {
+        user.galleryPhotos = galleryPhotos.slice(0, 3);
+      }
+      if (musicUrl !== undefined) user.musicUrl = musicUrl;
+      if (customFontFamily !== undefined) user.customFontFamily = customFontFamily;
+      if (customTextColor !== undefined) user.customTextColor = customTextColor;
+      if (couplePhotoUrl !== undefined) user.couplePhotoUrl = couplePhotoUrl;
+      if (typeof coupleOverlayOpacity === "number") user.coupleOverlayOpacity = coupleOverlayOpacity;
+      
+      // Pro-only manual offsets are cleared/locked for Plus
+      user.customVerticalOffset = 0;
+      user.customTextSize = 1.0;
+    } else if (user.tier === "pro") {
+      // Pro tier unlocks everything
+      if (cardTheme) user.cardTheme = cardTheme;
+      if (Array.isArray(galleryPhotos)) {
+        user.galleryPhotos = galleryPhotos.slice(0, 6);
+      }
+      if (musicUrl !== undefined) user.musicUrl = musicUrl;
+      if (customFontFamily !== undefined) user.customFontFamily = customFontFamily;
+      if (customTextColor !== undefined) user.customTextColor = customTextColor;
+      if (customCardBg !== undefined) user.customCardBg = customCardBg;
+      if (typeof customVerticalOffset === "number") user.customVerticalOffset = customVerticalOffset;
+      if (typeof customTextSize === "number") user.customTextSize = customTextSize;
+      if (couplePhotoUrl !== undefined) user.couplePhotoUrl = couplePhotoUrl;
+      if (typeof coupleOverlayOpacity === "number") user.coupleOverlayOpacity = coupleOverlayOpacity;
+      if (pageBgTemplate !== undefined) user.pageBgTemplate = pageBgTemplate;
+    }
+
+    await user.save();
+
     res.status(200).json({
       message: "Profile updated",
       accessToken: generateAccessToken(user),
@@ -287,6 +401,30 @@ router.put("/me", protect, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Update failed", error: error.message });
+  }
+});
+
+// ── POST /api/auth/upgrade — mock tier upgrade ─────────────────────────────────
+router.post("/upgrade", protect, async (req, res) => {
+  try {
+    const { tier } = req.body;
+    if (!["free", "plus", "pro"].includes(tier)) {
+      return res.status(400).json({ message: "Invalid subscription tier." });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.tier = tier;
+    await user.save();
+
+    res.status(200).json({
+      message: `Successfully upgraded to ${tier.toUpperCase()} tier! 🚀`,
+      accessToken: generateAccessToken(user),
+      user: userPublic(user),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Upgrade failed", error: error.message });
   }
 });
 
@@ -381,6 +519,178 @@ router.post("/reset-password/:token", resetPasswordLimiter, async (req, res) => 
       .json({ message: "Password reset successfully. You can now log in." });
   } catch (error) {
     res.status(500).json({ message: "Reset failed.", error: error.message });
+  }
+});
+
+// ── PUT /api/auth/change-password ─────────────────────────────────────────────
+router.put("/change-password", protect, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Current and new password are required." });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "New password must be at least 6 characters." });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect current password." });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 12);
+    await user.save();
+
+    res.status(200).json({ message: "Password changed successfully! ✓" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to change password", error: error.message });
+  }
+});
+
+// ── DELETE /api/auth/delete-account ───────────────────────────────────────────
+router.delete("/delete-account", protect, async (req, res) => {
+  try {
+    const { confirmPassword } = req.body;
+    if (!confirmPassword) {
+      return res.status(400).json({ message: "Please enter your password to confirm account deletion." });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const isMatch = await bcrypt.compare(confirmPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect password. Account deletion canceled." });
+    }
+
+    // Cascade delete invitations and RSVPs
+    const Invitation = require("../models/Invitation");
+    const RSVP = require("../models/RSVP");
+
+    const invitations = await Invitation.find({ userId: user._id });
+    const invitationIds = invitations.map(i => i._id);
+
+    // Delete related RSVPs
+    await RSVP.deleteMany({ invitationId: { $in: invitationIds } });
+    // Delete related Invitations
+    await Invitation.deleteMany({ userId: user._id });
+    // Delete User
+    await User.findByIdAndDelete(user._id);
+
+    res.status(200).json({ message: "Your VowLink account has been successfully deleted." });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete account", error: error.message });
+  }
+});
+
+// ── POST /api/auth/upgrade/verify — actual Paystack verification ──────────────
+router.post("/upgrade/verify", protect, async (req, res) => {
+  try {
+    const { reference, tier } = req.body;
+    if (!reference || !tier) {
+      return res.status(400).json({ message: "Reference and tier are required." });
+    }
+
+    if (!["free", "plus", "pro"].includes(tier)) {
+      return res.status(400).json({ message: "Invalid tier." });
+    }
+
+    const secretKey = process.env.PAYSTACK_SECRET_KEY;
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+      },
+    });
+
+    if (response.data.status !== true || response.data.data.status !== "success") {
+      return res.status(400).json({ message: "Payment verification failed on Paystack." });
+    }
+
+    const paystackData = response.data.data;
+    const expectedAmount = tier === "plus" ? 29 * 1500 * 100 : 69 * 1500 * 100;
+    const paystackAmount = paystackData.amount;
+    const paystackCurrency = paystackData.currency;
+
+    let isValidAmount = false;
+    if (paystackCurrency === "NGN") {
+      isValidAmount = paystackAmount >= expectedAmount - 500 * 100;
+    } else if (paystackCurrency === "USD") {
+      isValidAmount = paystackAmount >= (tier === "plus" ? 29 * 100 : 69 * 100);
+    } else {
+      isValidAmount = paystackAmount > 0;
+    }
+
+    if (!isValidAmount) {
+      return res.status(400).json({ message: `Payment amount mismatch. Expected amount for ${tier.toUpperCase()}.` });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    user.tier = tier;
+    await user.save();
+
+    res.status(200).json({
+      message: `Successfully verified and upgraded to ${tier.toUpperCase()} tier! 🚀`,
+      accessToken: generateAccessToken(user),
+      user: userPublic(user),
+    });
+  } catch (error) {
+    console.error("Paystack verification error:", error.response?.data || error.message);
+    res.status(500).json({ message: "Verification failed", error: error.message });
+  }
+});
+
+// ── POST /api/auth/paystack/webhook — Paystack Webhook Listener ──────────────
+router.post("/paystack/webhook", async (req, res) => {
+  try {
+    const secretKey = process.env.PAYSTACK_SECRET_KEY;
+    const hash = crypto
+      .createHmac("sha512", secretKey)
+      .update(JSON.stringify(req.body))
+      .digest("hex");
+
+    if (hash !== req.headers["x-paystack-signature"]) {
+      return res.status(401).json({ message: "Invalid signature" });
+    }
+
+    const event = req.body;
+    if (event.event === "charge.success") {
+      const { reference, customer, metadata } = event.data;
+      const email = customer.email;
+      
+      const paymentType = metadata?.paymentType || (reference.startsWith("VOWLINK-VENUE") ? "venue_subscription" : "couple_upgrade");
+      const targetTier = metadata?.tier;
+      
+      if (paymentType === "couple_upgrade" && targetTier) {
+        const user = await User.findOne({ email: email.toLowerCase() });
+        if (user) {
+          user.tier = targetTier;
+          await user.save();
+          console.log(`[PAYSTACK WEBHOOK] Upgraded couple ${email} to ${targetTier}`);
+        }
+      } else if (paymentType === "venue_subscription" && targetTier) {
+        const Venue = require("../models/Venue");
+        const venue = await Venue.findOne({ ownerEmail: email.toLowerCase() });
+        if (venue) {
+          venue.subscriptionTier = targetTier;
+          venue.isFeatured = targetTier === "featured";
+          const expiry = new Date();
+          expiry.setDate(expiry.getDate() + 30);
+          venue.subscriptionExpiry = expiry;
+          await venue.save();
+          console.log(`[PAYSTACK WEBHOOK] Upgraded venue ${venue.name} to ${targetTier}`);
+        }
+      }
+    }
+
+    res.status(200).send("Webhook received");
+  } catch (error) {
+    console.error("Paystack webhook error:", error.message);
+    res.status(500).json({ message: "Webhook handler failed", error: error.message });
   }
 });
 

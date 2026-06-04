@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import api from '../../utils/api'
 
 const CATEGORIES = ['VIP', 'Family', 'Friend', 'Colleague', 'Guest']
@@ -64,7 +65,18 @@ const AdminDashboardPage = () => {
     <div className="p-4 sm:p-8 space-y-10">
       <div>
         <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Overview</p>
-        <h2 className="font-serif text-3xl sm:text-4xl text-white mb-6 sm:mb-8">Dashboard</h2>
+        <h2 className="font-serif text-3xl sm:text-4xl text-white mb-4">Dashboard</h2>
+
+        {/* Customization Tip Banner */}
+        <div className="mb-6 rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-5 py-4 flex items-start gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.15)] animate-fade-in">
+          <span className="text-xl mt-0.5">🎨</span>
+          <div className="flex-1 space-y-1">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#D8B76A]">Personalize Your Invitation</h4>
+            <p className="text-white/60 text-xs leading-relaxed">
+              Want to customize your card design, change theme templates, upload a couple photo overlay, pick background music, or fine-tune fonts? Head over to the <Link to="/admin/settings" className="text-[#D8B76A] font-semibold underline hover:text-[#D8B76A]/80 transition">Settings Page</Link> to customize your VowLink experience!
+            </p>
+          </div>
+        </div>
 
         {/* Stats row */}
         <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">

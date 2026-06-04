@@ -1,7 +1,15 @@
 import axios from 'axios'
 
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  return isLocal ? 'http://localhost:5000/api' : 'https://vow-link-dxj5.onrender.com/api'
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: getBaseURL(),
 })
 
 // ── Attach access token to every request ───────────────────────────────────
@@ -68,7 +76,7 @@ api.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          `${import.meta.env.VITE_API_URL || '/api'}/auth/refresh`,
+          `${getBaseURL()}/auth/refresh`,
           { refreshToken }
         )
 

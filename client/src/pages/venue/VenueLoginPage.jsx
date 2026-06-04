@@ -2,9 +2,14 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
-import { loginSchema } from "../../utils/schemas";
+
+const loginSchema = z.object({
+  ownerEmail: z.string().email("Please enter a valid email address"),
+  ownerPassword: z.string().min(6, "Password must be at least 6 characters"),
+});
 
 const EyeIcon = ({ open }) => (
   <svg
@@ -32,7 +37,7 @@ const EyeIcon = ({ open }) => (
   </svg>
 );
 
-const AdminLoginPage = () => {
+const VenueLoginPage = () => {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -48,15 +53,14 @@ const AdminLoginPage = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const res = await api.post("/auth/login", data);
-      localStorage.setItem("token", res.data.accessToken);
-      localStorage.setItem("refreshToken", res.data.refreshToken);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      toast.success("Welcome back! 🎉");
-      navigate("/admin/dashboard");
+      const res = await api.post("/venues/auth/login", data);
+      localStorage.setItem("venueToken", res.data.token);
+      localStorage.setItem("venue", JSON.stringify(res.data.venue));
+      toast.success(res.data.message || "Logged in successfully!");
+      navigate("/venue/dashboard");
     } catch (err) {
       toast.error(
-        err.response?.data?.message || "Login failed. Please try again.",
+        err.response?.data?.message || "Login failed. Please verify credentials."
       );
       setLoading(false);
     }
@@ -71,51 +75,48 @@ const AdminLoginPage = () => {
   return (
     <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg2.png')] bg-cover bg-top bg-no-repeat px-6">
       <Link
-        to="/"
+        to="/admin/login"
         className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-1 bg-[#070A13] rounded-full py-1.5 sm:py-2 px-2 sm:px-3 text-xs sm:text-sm text-[#D8B76A] hover:text-[#D8B76A]/70 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] transition whitespace-nowrap"
       >
         <span>←</span>
-        <span className="hidden sm:inline">Back to Home</span>
-        <span className="sm:hidden">Home</span>
+        <span>Back to Couple Login</span>
       </Link>
-      <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/40 bg-[#070A13]/85 px-8 py-12 shadow-2xl backdrop-blur-md">
-        <p className="mb-2 text-center text-xs uppercase tracking-[0.35em] text-[#D8B76A]">
-          Couple Portal
+      <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/40 bg-[#070A13]/85 px-8 py-12 shadow-2xl backdrop-blur-md animate-fade-in">
+        <p className="mb-2 text-center text-xs uppercase tracking-[0.35em] text-[#D8B76A] font-bold">
+          Venue Partner Portal
         </p>
         <h1 className="mb-8 text-center font-serif text-3xl text-white">
-          Welcome Back
+          Venue Sign In
         </h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">
-              Email
+            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50 font-semibold">
+              Owner Email
             </label>
             <input
-              id="login-email"
               type="email"
-              placeholder="your@email.com"
-              {...register("email")}
-              className={`${inputBase} ${errors.email ? inputErr : inputOk}`}
+              placeholder="owner@venue.com"
+              {...register("ownerEmail")}
+              className={`${inputBase} ${errors.ownerEmail ? inputErr : inputOk}`}
             />
-            {errors.email && (
+            {errors.ownerEmail && (
               <p className="mt-1 text-xs text-red-400">
-                {errors.email.message}
+                {errors.ownerEmail.message}
               </p>
             )}
           </div>
 
           <div>
-            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">
+            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50 font-semibold">
               Password
             </label>
             <div className="relative">
               <input
-                id="login-password"
                 type={showPw ? "text" : "password"}
                 placeholder="••••••••"
-                {...register("password")}
-                className={`${inputBase} ${errors.password ? inputErr : inputOk} pr-11`}
+                {...register("ownerPassword")}
+                className={`${inputBase} ${errors.ownerPassword ? inputErr : inputOk} pr-11`}
               />
               <button
                 type="button"
@@ -125,9 +126,9 @@ const AdminLoginPage = () => {
                 <EyeIcon open={showPw} />
               </button>
             </div>
-            {errors.password && (
+            {errors.ownerPassword && (
               <p className="mt-1 text-xs text-red-400">
-                {errors.password.message}
+                {errors.ownerPassword.message}
               </p>
             )}
           </div>
@@ -135,37 +136,21 @@ const AdminLoginPage = () => {
           <button
             type="submit"
             disabled={loading}
-            id="login-submit-btn"
-            className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-3 text-sm font-semibold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] disabled:opacity-60"
+            className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-3 text-sm font-semibold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] disabled:opacity-60 cursor-pointer"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <div className="mt-5 text-center">
-          <Link
-            to="/admin/forgot-password"
-            className="text-xs text-white/40 hover:text-[#D8B76A] transition"
-          >
-            Forgot password?
-          </Link>
-        </div>
-        <p className="mt-4 text-center text-sm text-white/40">
-          New couple?{" "}
-          <Link to="/signup" className="text-[#D8B76A] hover:underline">
-            Create your account
+        <p className="mt-6 text-center text-sm text-white/40">
+          Want to list your venue?{" "}
+          <Link to="/venue/register" className="text-[#D8B76A] hover:underline font-semibold">
+            Register now
           </Link>
         </p>
-
-        <div className="mt-6 pt-5 border-t border-white/5 text-center">
-          <p className="text-[11px] text-white/30">Are you a wedding venue owner?</p>
-          <Link to="/venue/login" className="text-[#D8B76A] hover:underline text-xs font-semibold mt-1 inline-block">
-            Access Venue Partner Portal →
-          </Link>
-        </div>
       </div>
     </section>
   );
 };
 
-export default AdminLoginPage;
+export default VenueLoginPage;

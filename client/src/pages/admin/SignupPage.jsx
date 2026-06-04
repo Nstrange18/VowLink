@@ -118,16 +118,14 @@ const SignupPage = () => {
     ) : null;
 
   const formattedTime = weddingTime
-    ? new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString("en-GB", {
-        hour: "2-digit",
+    ? new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString("en-US", {
+        hour: "numeric",
         minute: "2-digit",
-        hour12: false,
+        hour12: true,
       })
     : null;
 
-  const formattedTimeWithFormat = formattedTime
-    ? `${formattedTime} · 24-hour format`
-    : null;
+  const formattedTimeWithFormat = formattedTime;
 
   return (
     <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg2.png')] bg-cover bg-top bg-no-repeat px-4 sm:px-6 py-10">
@@ -286,7 +284,7 @@ const SignupPage = () => {
               className={`${cls(false)} scheme-dark`}
             />
             <p className="mt-1 text-xs text-white/30">
-              Optional. Time is shown in 24-hour format, e.g. 13:50.
+              Optional. e.g. 02:00 PM.
             </p>
             {weddingTime && (
               <p className="mt-2 text-xs text-[#D8B76A]">

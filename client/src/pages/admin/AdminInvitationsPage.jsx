@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import api from '../../utils/api'
 
 const AdminInvitationsPage = () => {
@@ -7,6 +8,7 @@ const AdminInvitationsPage = () => {
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(null)
   const navigate = useNavigate()
+  const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
 
   const fetchInvitations = async () => {
     try {
@@ -34,7 +36,7 @@ const AdminInvitationsPage = () => {
       await api.delete(`/invitations/${id}`)
       setInvitations((prev) => prev.filter((i) => i._id !== id))
     } catch {
-      alert('Failed to delete invitation.')
+      toast.error('Failed to delete invitation.')
     }
   }
 
@@ -42,19 +44,75 @@ const AdminInvitationsPage = () => {
     navigate(`/admin/invitations/edit/${invitation._id}`, { state: { invitation } })
   }
 
+  const tier = user.tier || 'free';
+  const limit = tier === 'free' ? 10 : tier === 'plus' ? 100 : Infinity;
+  const count = invitations.length;
+  const progressPercent = limit === Infinity ? 0 : Math.min((count / limit) * 100, 100);
+
   return (
     <div className="p-4 sm:p-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Manage</p>
           <h2 className="font-serif text-3xl sm:text-4xl text-white">Invitations</h2>
+          {/* Progress meter */}
+          <div className="mt-2 flex items-center gap-3">
+            <div className="h-1.5 w-32 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full bg-[#D8B76A] transition-all duration-300"
+                style={{ width: `${limit === Infinity ? 0 : progressPercent}%` }}
+              />
+            </div>
+            <span className="text-[10px] text-white/40 uppercase tracking-wider">
+              {count} / {limit === Infinity ? '∞' : limit} invitations
+            </span>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <Link
+            to="/admin/invitations/bulk"
+            className={`rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition duration-300 whitespace-nowrap ${
+              tier === 'free'
+                ? 'bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed'
+                : 'bg-white/10 text-white hover:bg-white/15'
+            }`}
+            onClick={(e) => {
+              if (tier === 'free') {
+                e.preventDefault();
+                toast.info('Bulk creation is a Plus and Pro plan feature! Upgrade to unlock.');
+                navigate('/admin/billing');
+              }
+            }}
+          >
+            + Bulk Import
+          </Link>
+          <Link
+            to="/admin/invitations/new"
+            id="new-invitation-btn"
+            className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] whitespace-nowrap"
+          >
+            + New Invitation
+          </Link>
+        </div>
+      </div>
+
+      {/* Settings customization note */}
+      <div className="mb-6 rounded-2xl border border-white/5 bg-white/3 px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <span className="text-lg">🎨</span>
+          <p className="text-xs text-white/60">
+            Want to customize card templates, colors, fonts, music, or couple photos? Customize everything on the{" "}
+            <Link to="/admin/settings" className="text-[#D8B76A] font-semibold underline hover:text-[#D8B76A]/80 transition">
+              Settings page
+            </Link>
+            .
+          </p>
         </div>
         <Link
-          to="/admin/invitations/new"
-          id="new-invitation-btn"
-          className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] whitespace-nowrap"
+          to="/admin/settings"
+          className="rounded-full bg-[#D8B76A]/10 border border-[#D8B76A]/30 px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] hover:bg-[#D8B76A]/20 transition shrink-0 text-center"
         >
-          + New Invitation
+          Go to Settings
         </Link>
       </div>
 

@@ -7,7 +7,7 @@ import RsvpSuccessPage from './pages/RsvpSuccessPage'
 import NotFoundPage from './pages/NotFoundPage'
 import LandingPage from './pages/LandingPage'
 import ScrollToTop from './components/ScrollToTop'
-
+import AdminResetPasswordPage from './pages/admin/AdminResetPasswordPage'
 import AdminLoginPage from './pages/admin/AdminLoginPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import AdminInvitationsPage from './pages/admin/AdminInvitationsPage'
@@ -16,11 +16,17 @@ import AdminEditInvitationPage from './pages/admin/AdminEditInvitationPage'
 import AdminRsvpsPage from './pages/admin/AdminRsvpsPage'
 import SignupPage from './pages/admin/SignupPage'
 import AdminSettingsPage from './pages/admin/AdminSettingsPage'
+import AdminBillingPage from './pages/admin/AdminBillingPage'
+import AdminVenuesPage from './pages/admin/AdminVenuesPage'
+import AdminBulkInvitationPage from './pages/admin/AdminBulkInvitationPage'
 import AdminForgotPasswordPage from './pages/admin/AdminForgotPasswordPage'
-import AdminResetPasswordPage from './pages/admin/AdminResetPasswordPage'
-
 import AdminLayout from './components/AdminLayout'
 import ProtectedRoute from './components/ProtectedRoute'
+
+// Venue Owner Portal Pages
+import VenueLoginPage from './pages/venue/VenueLoginPage'
+import VenueRegisterPage from './pages/venue/VenueRegisterPage'
+import VenueDashboardPage from './pages/venue/VenueDashboardPage'
 
 function App() {
   return (
@@ -56,6 +62,11 @@ function App() {
         <Route path="/admin/forgot-password" element={<AdminForgotPasswordPage />} />
         <Route path="/admin/reset-password/:token" element={<AdminResetPasswordPage />} />
 
+        {/* Venue Owner Portal */}
+        <Route path="/venue/login" element={<VenueLoginPage />} />
+        <Route path="/venue/register" element={<VenueRegisterPage />} />
+        <Route path="/venue/dashboard" element={<VenueDashboardPage />} />
+
         {/* Protected admin routes */}
         <Route
           path="/admin"
@@ -70,7 +81,10 @@ function App() {
           <Route path="invitations" element={<AdminInvitationsPage />} />
           <Route path="invitations/new" element={<AdminNewInvitationPage />} />
           <Route path="invitations/edit/:id" element={<AdminEditInvitationPage />} />
+          <Route path="invitations/bulk" element={<AdminBulkInvitationPage />} />
           <Route path="rsvps" element={<AdminRsvpsPage />} />
+          <Route path="billing" element={<AdminBillingPage />} />
+          <Route path="venues" element={<AdminVenuesPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
 

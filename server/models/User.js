@@ -26,6 +26,66 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     kidsAllowed: { type: Boolean, default: true },
+    tier: {
+      type: String,
+      enum: ["free", "plus", "pro"],
+      default: "free",
+      trim: true,
+    },
+    galleryPhotos: {
+      type: [String],
+      default: [],
+    },
+    cardTheme: {
+      type: String,
+      default: "floral",
+      trim: true,
+    },
+    customCardBg: {
+      type: String,
+      default: "",
+    },
+    pageBgTemplate: {
+      type: String,
+      default: "",
+    },
+    customTextColor: {
+      type: String,
+      default: "#1A2E4A",
+      trim: true,
+    },
+    customFontFamily: {
+      type: String,
+      default: "classic",
+      trim: true,
+    },
+    customVerticalOffset: {
+      type: Number,
+      default: 0,
+    },
+    customTextSize: {
+      type: Number,
+      default: 1.0,
+    },
+    couplePhotoUrl: {
+      type: String,
+      default: "",
+    },
+    coupleOverlayOpacity: {
+      type: Number,
+      default: 0.45,
+    },
+    musicUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    shortlistedVenues: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Venue",
+      },
+    ],
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
   },

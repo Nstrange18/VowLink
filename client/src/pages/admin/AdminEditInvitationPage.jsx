@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useNavigate, useLocation, useParams } from 'react-router-dom'
+import { useNavigate, useLocation, useParams, Link } from 'react-router-dom'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
@@ -25,10 +25,12 @@ const AdminEditInvitationPage = () => {
   const { state } = useLocation()
   const navigate = useNavigate()
 
-  const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, control, reset, watch, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(invitationSchema),
     defaultValues: { guestName: '', greeting: '', customMessage: '', allowedGuests: 1, category: 'Guest' },
   })
+
+  const customMessageVal = watch('customMessage') || '';
 
   useEffect(() => {
     const loadInvitation = async () => {
@@ -69,6 +71,18 @@ const AdminEditInvitationPage = () => {
       <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Admin</p>
       <h2 className="font-serif text-3xl sm:text-4xl text-white mb-6 sm:mb-8">Edit Invitation</h2>
 
+      {/* Global personalization settings reminder */}
+      <div className="mb-6 rounded-xl border border-white/5 bg-white/3 px-4 py-3 flex items-start gap-2.5 text-xs text-white/50 leading-relaxed">
+        <span className="text-sm mt-0.5">💡</span>
+        <span>
+          Designs, background templates, custom fonts, colors, and music are applied globally. Visit the{" "}
+          <Link to="/admin/settings" className="text-[#D8B76A] font-semibold underline hover:text-[#D8B76A]/80 transition">
+            Settings Page
+          </Link>{" "}
+          to customize them.
+        </span>
+      </div>
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
           <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Guest Name *</label>
@@ -83,8 +97,13 @@ const AdminEditInvitationPage = () => {
         </div>
 
         <div>
-          <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Personal Message *</label>
-          <textarea rows={4} {...register('customMessage')} className={`${cls(errors.customMessage)} resize-none`} />
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-xs uppercase tracking-widest text-white/50">Personal Message *</label>
+            <span className={`text-[10px] ${customMessageVal.length > 70 ? 'text-red-400 font-bold' : 'text-white/30'}`}>
+              {customMessageVal.length}/70
+            </span>
+          </div>
+          <textarea rows={4} {...register('customMessage')} maxLength={70} className={`${cls(errors.customMessage)} resize-none`} />
           {errors.customMessage && <p className="mt-1 text-xs text-red-400">{errors.customMessage.message}</p>}
         </div>
 

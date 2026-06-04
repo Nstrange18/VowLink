@@ -61,7 +61,7 @@ export const resetPasswordSchema = z
 export const invitationSchema = z.object({
   guestName: z.string().min(1, "Guest name is required"),
   greeting: z.string().min(1, "Greeting is required"),
-  customMessage: z.string().min(1, "A personal message is required"),
+  customMessage: z.string().min(1, "A personal message is required").max(70, "Personal message cannot be more than 70 characters"),
   allowedGuests: z.coerce.number().min(1).max(10),
   category: z.string().min(1, "Category is required"),
 });
