@@ -2,17 +2,18 @@
 const dns = require("dns");
 dns.setDefaultResultOrder("ipv4first");
 
+// ── Load environment variables FIRST before any other requires ────────────────
+const dotenv = require("dotenv");
+dotenv.config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const dotenv = require("dotenv");
 
 const authRoutes = require("./routes/authRoutes");
 const invitationRoutes = require("./routes/invitationRoutes");
 const rsvpRoutes = require("./routes/rsvpRoutes");
 const venueRoutes = require("./routes/venueRoutes");
-
-dotenv.config();
 
 const app = express();
 app.set("trust proxy", 1);
@@ -32,14 +33,21 @@ app.use("/api/venues", venueRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB connected successfully");
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.log("MongoDB connection failed:", error.message);
-  });
+app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+  
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("MongoDB connected successfully (Atlas/Configured)");
+  } catch (error) {
+    console.log("MongoDB Atlas connection failed:", error.message);
+    try {
+      console.log("Attempting local MongoDB fallback...");
+      await mongoose.connect("mongodb://127.0.0.1:27017/vowlink");
+      console.log("MongoDB connected successfully (Local Fallback)");
+    } catch (localError) {
+      console.log("Local MongoDB fallback failed:", localError.message);
+      console.log("⚠️ Server is running but database connection is offline!");
+    }
+  }
+});

@@ -28,7 +28,13 @@ const resolveWeddingColors = (colors, defaultColorsList) => {
   const hexList = (colors || []).map(name => colorMap[name.toLowerCase()]).filter(Boolean);
 
   const primary = hexList[0] || "#1A2E4A"; // Default Navy
-  const secondary = hexList[1] || hexList[0] || "#C9A84C"; // Default Gold
+  
+  const isDarkColor = (hex) => {
+    const darkHexes = ["#1a2e4a", "#1c1c1c", "#800020", "#2d6a4f", "#008080", "#2b4d9c"];
+    return darkHexes.includes(hex.toLowerCase());
+  };
+
+  const secondary = hexList[1] || (hexList[0] && !isDarkColor(hexList[0]) ? hexList[0] : "#C9A84C");
   const tertiary = hexList[2] || secondary;
 
   const lightColors = ["ivory", "white", "cream", "nude", "blush pink", "peach", "mint green", "champagne gold"];
@@ -535,9 +541,18 @@ const InvitePage = () => {
       fontFamily: activeFont,
     };
   } else if (cardTheme === "custom" && customCardBg) {
+    const darkTemplates = [
+      "/templates/template_plus_1.png",
+      "/templates/template_plus_2.png",
+      "/templates/template_plus_3.png",
+      "/templates/template_pro_1.png",
+      "/templates/template_pro_2.png",
+    ];
+    const isDarkBg = darkTemplates.includes(customCardBg);
+    const fallbackColor = isDarkBg ? "#F5EBD6" : "#1A2E4A";
     cardStyles = {
       background: `url('${customCardBg}') center/cover no-repeat`,
-      color: customTextColor,
+      color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : fallbackColor,
       fontFamily: activeFont,
     };
   }
@@ -546,6 +561,15 @@ const InvitePage = () => {
   const primaryTextColor = cardStyles.color;
   const accentColor = cardTheme === "navy" || cardTheme === "forest" || cardTheme === "stardust" ? secHex : (isFreeUser ? "#B8963A" : priHex);
 
+  const isEnvelopeDark = ["navy", "stardust", "forest", "custom"].includes(cardTheme);
+  const envelopeBg = cardTheme === "custom"
+    ? "linear-gradient(to bottom, #0F172A, #070A13)"
+    : cardStyles.background;
+  const envelopeTextColor = isEnvelopeDark
+    ? (customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6")
+    : (customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A");
+  const envelopeAccentColor = isEnvelopeDark ? secHex : (isFreeUser ? "#B8963A" : priHex);
+
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: "#070A13" }}>
       {/* Premium page background: deep dark with radial gold bokeh */}
@@ -553,16 +577,16 @@ const InvitePage = () => {
         {/* Dark base */}
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)" }} />
         
-        {/* Page Background Image (Couple Photo or Pre-made Template) */}
-        {(couplePhotoUrl || pageBgTemplate) && (
+        {/* Page Background Image (Couple Photo) */}
+        {couplePhotoUrl && (
           <>
             <div 
               className="absolute inset-0 bg-cover bg-center transition-all duration-500"
-              style={{ backgroundImage: `url(${couplePhotoUrl || pageBgTemplate})` }}
+              style={{ backgroundImage: `url(${couplePhotoUrl})` }}
             />
             <div 
               className="absolute inset-0 transition-all duration-300"
-              style={{ backgroundColor: `rgba(0, 0, 0, ${couplePhotoUrl ? coupleOverlayOpacity : 0.35})` }}
+              style={{ backgroundColor: `rgba(0, 0, 0, ${coupleOverlayOpacity})` }}
             />
           </>
         )}
@@ -591,7 +615,7 @@ const InvitePage = () => {
       )}
 
       {/* Fullscreen Envelope Welcome Overlay */}
-      {!hiddenOverlay && isDirectAudio && (
+      {!hiddenOverlay && (
         <div
           className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out select-none ${
             isOpen
@@ -599,7 +623,7 @@ const InvitePage = () => {
               : "translate-y-0 opacity-100"
           }`}
           style={{
-            background: cardTheme === "custom" && customCardBg ? `linear-gradient(to bottom, #0F172A, #070A13)` : cardStyles.background,
+            background: envelopeBg,
             fontFamily: cardStyles.fontFamily
           }}
         >
@@ -608,26 +632,26 @@ const InvitePage = () => {
           <div className="max-w-md w-full px-8 text-center flex flex-col items-center justify-center z-10">
             <p
               className="text-xs uppercase tracking-[0.4em] mb-3 opacity-60 font-semibold"
-              style={{ color: primaryTextColor }}
+              style={{ color: envelopeTextColor }}
             >
               VowLink Invitation
             </p>
             
-            <div className="my-6 h-px w-24" style={{ background: accentColor, opacity: 0.6 }} />
+            <div className="my-6 h-px w-24" style={{ background: envelopeAccentColor, opacity: 0.6 }} />
             
             <p
               className="italic mb-2"
-              style={{ color: primaryTextColor, ...script, fontSize: "1.8rem" }}
+              style={{ color: envelopeTextColor, ...script, fontSize: "1.8rem" }}
             >
               You are cordially invited to the wedding of
             </p>
             
             <h1
               className="mb-8"
-              style={{ color: primaryTextColor, ...script, fontSize: "3.2rem", lineHeight: 1.1 }}
+              style={{ color: envelopeTextColor, ...script, fontSize: "3.2rem", lineHeight: 1.1 }}
             >
               {invitation.userId?.partner1Name || "Partner 1"}
-              <span className="block my-1 text-2xl font-serif not-italic opacity-80" style={{ color: accentColor }}>&</span>
+              <span className="block my-1 text-2xl font-serif not-italic opacity-80" style={{ color: envelopeTextColor }}>&</span>
               {invitation.userId?.partner2Name || "Partner 2"}
             </h1>
             
@@ -635,23 +659,24 @@ const InvitePage = () => {
               onClick={handleOpenInvitation}
               className="relative group h-28 w-28 rounded-full flex flex-col items-center justify-center shadow-[0_15px_35px_rgba(0,0,0,0.4)] border transition-all duration-500 hover:scale-105 active:scale-95"
               style={{
-                backgroundColor: accentColor,
-                borderColor: `${primaryTextColor}22`,
-                color: cardTheme === "floral" || cardTheme === "minimalist" ? "#FFFFFF" : "#070A13"
+                backgroundColor: envelopeAccentColor,
+                borderColor: `${envelopeTextColor}22`,
+                color: isEnvelopeDark ? "#070A13" : "#FFFFFF"
               }}
             >
               <span className="absolute inset-0 rounded-full bg-white/20 animate-ping opacity-75 group-hover:animate-none" />
-              <div className="absolute inset-2 rounded-full border border-dashed opacity-40" style={{ borderColor: cardTheme === "floral" || cardTheme === "minimalist" ? "#FFFFFF" : "#070A13" }} />
+              <div className="absolute inset-2 rounded-full border border-dashed opacity-40" style={{ borderColor: isEnvelopeDark ? "#FFFFFF" : "#070A13" }} />
               <span className="text-2xl mb-1 z-10">✉</span>
               <span className="text-[10px] uppercase font-bold tracking-widest z-10">Open</span>
             </button>
             
-            <p className="mt-8 text-[10px] uppercase tracking-[0.2em] opacity-40" style={{ color: primaryTextColor }}>
-              Click to unveil details & play music
+            <p className="mt-8 text-[10px] uppercase tracking-[0.2em] opacity-40" style={{ color: envelopeTextColor }}>
+              {musicUrl ? "Click to unveil details & play music" : "Click to unveil details"}
             </p>
           </div>
         </div>
       )}
+
 
       {/* Background Animated Stardust Effect (Pro) */}
       {cardTheme === "stardust" && (
@@ -729,7 +754,7 @@ const InvitePage = () => {
         {/* ═══ THE CARD (this gets downloaded) ═══ */}
         <div
           ref={cardRef}
-          className="w-full max-w-90 sm:max-w-100 rounded-2xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+          className="w-full max-w-[23.7rem] sm:max-w-[26.2rem] rounded-2xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
         >
           {/* Card background container */}
           <div
@@ -790,7 +815,7 @@ const InvitePage = () => {
                 className="mb-1"
               >
                 {invitation.userId?.partner1Name || "Partner 1"}{" "}
-                <span style={{ color: accentColor }}>and</span>{" "}
+                <span style={{ color: primaryTextColor, opacity: 0.9 }}>and</span>{" "}
                 {invitation.userId?.partner2Name || "Partner 2"}
               </h1>
 
@@ -919,7 +944,8 @@ const InvitePage = () => {
                       fontFamily: cardStyles.fontFamily,
                       fontSize: "0.7em",
                       letterSpacing: "0.12em",
-                      color: accentColor,
+                      color: primaryTextColor,
+                      opacity: 0.8,
                     }}
                     className="uppercase mb-2"
                   >
@@ -940,12 +966,12 @@ const InvitePage = () => {
                           <span
                             style={{
                               fontFamily: cardStyles.fontFamily,
-                              fontSize: "0.75em",
-                              fontWeight: 600,
+                              fontSize: "0.9em",
+                              fontWeight: 700,
                               color: primaryTextColor,
                               lineHeight: 1.3,
                             }}
-                            className="text-center max-w-14 opacity-75"
+                            className="text-center max-w-16 font-bold"
                           >
                             {name}
                           </span>
@@ -976,7 +1002,7 @@ const InvitePage = () => {
 
         {/* ── Countdown (outside card, not downloaded) ── */}
         {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
-          <div className="w-full max-w-90 sm:max-w-100">
+          <div className="w-full max-w-[23.7rem] sm:max-w-[26.2rem]">
             <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">
               Counting Down
             </p>
@@ -1201,10 +1227,10 @@ const InvitePage = () => {
                   return (
                     <div
                       key={i}
-                      className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1"
+                      className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 shadow-sm"
                     >
-                      <div className="h-3 w-3 rounded-full shrink-0" style={{ background: hex }} />
-                      <span className="text-sm text-white">{name}</span>
+                      <div className="h-4 w-4 rounded-full shrink-0 shadow-inner" style={{ background: hex }} />
+                      <span className="text-base font-bold text-white tracking-wide">{name}</span>
                     </div>
                   );
                 })}

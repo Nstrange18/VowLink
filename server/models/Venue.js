@@ -53,6 +53,14 @@ const venueSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    views: {
+      type: Number,
+      default: 0,
+    },
+    inquiries: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

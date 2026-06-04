@@ -7,6 +7,13 @@ const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 const sgMail = require("@sendgrid/mail");
 const axios = require("axios");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const router = express.Router();
 
@@ -105,14 +112,14 @@ const userPublic = (user) => ({
   plusOnePolicy: user.plusOnePolicy || "invitation_only",
   kidsAllowed: typeof user.kidsAllowed === "boolean" ? user.kidsAllowed : true,
   tier: user.tier || "free",
-  galleryPhotos: user.galleryPhotos || [],
+  // NOTE: galleryPhotos, customCardBg, couplePhotoUrl are intentionally excluded here.
+  // They can be large base64 strings (MBs) that crash localStorage.setItem() with QuotaExceededError.
+  // These are fetched separately by the settings page via GET /api/auth/me.
   cardTheme: user.cardTheme || "floral",
-  customCardBg: user.customCardBg || "",
   customTextColor: user.customTextColor || "#1A2E4A",
   customFontFamily: user.customFontFamily || "classic",
   customVerticalOffset: typeof user.customVerticalOffset === "number" ? user.customVerticalOffset : 0,
   customTextSize: typeof user.customTextSize === "number" ? user.customTextSize : 1.0,
-  couplePhotoUrl: user.couplePhotoUrl || "",
   coupleOverlayOpacity: typeof user.coupleOverlayOpacity === "number" ? user.coupleOverlayOpacity : 0.45,
   musicUrl: user.musicUrl || "",
   shortlistedVenues: user.shortlistedVenues || [],
@@ -264,6 +271,17 @@ router.post("/refresh", async (req, res) => {
     return res.status(401).json({
       message: "Invalid or expired refresh token. Please log in again.",
     });
+  }
+});
+
+// ── GET /api/auth/me — fetch full profile (including media fields) ────────────
+router.get("/me", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password -resetPasswordToken -resetPasswordExpires");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch profile", error: error.message });
   }
 });
 
@@ -598,8 +616,22 @@ router.post("/upgrade/verify", protect, async (req, res) => {
       return res.status(400).json({ message: "Invalid tier." });
     }
 
+    // Dev bypass for local testing
+    if (reference && reference.startsWith("MOCK-")) {
+      const user = await User.findById(req.user.id);
+      if (!user) return res.status(404).json({ message: "User not found." });
+      user.tier = tier;
+      await user.save();
+      return res.status(200).json({
+        message: `[DEV BYPASS] Successfully verified and upgraded to ${tier.toUpperCase()} tier! 🚀`,
+        accessToken: generateAccessToken(user),
+        user: userPublic(user),
+      });
+    }
+
     const secretKey = process.env.PAYSTACK_SECRET_KEY;
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+
       headers: {
         Authorization: `Bearer ${secretKey}`,
       },
@@ -691,6 +723,26 @@ router.post("/paystack/webhook", async (req, res) => {
   } catch (error) {
     console.error("Paystack webhook error:", error.message);
     res.status(500).json({ message: "Webhook handler failed", error: error.message });
+  }
+});
+
+// ── POST /api/auth/upload (Pro/Plus/Free: Cloudinary upload helper) ─────────
+router.post("/upload", protect, async (req, res) => {
+  try {
+    const { file } = req.body;
+    if (!file) {
+      return res.status(400).json({ message: "No file provided for upload." });
+    }
+
+    const result = await cloudinary.uploader.upload(file, {
+      resource_type: "auto",
+      folder: "vowlink/couples",
+    });
+
+    res.status(200).json({ url: result.secure_url });
+  } catch (error) {
+    console.error("❌ Cloudinary upload error:", error);
+    res.status(500).json({ message: "Upload to Cloudinary failed", error: error.message });
   }
 });
 

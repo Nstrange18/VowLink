@@ -235,9 +235,13 @@ const AdminVenuesPage = () => {
                 {/* Photo */}
                 <div className="h-48 overflow-hidden bg-white/5 relative">
                   <img
-                    src={venue.photos[0]}
+                    src={venue.photos && venue.photos.length > 0 && venue.photos[0] ? venue.photos[0] : "/default_venue.svg"}
                     alt={venue.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/default_venue.svg";
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0D1220] to-transparent opacity-80" />
                   <div className="absolute bottom-4 left-5 right-5 flex justify-between items-baseline">

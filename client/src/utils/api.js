@@ -15,7 +15,9 @@ const api = axios.create({
 // ── Attach access token to every request ───────────────────────────────────
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  if (token && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
   return config
 })
 
@@ -46,14 +48,17 @@ api.interceptors.response.use(
       original?.url?.includes('/auth/forgot-password') ||
       original?.url?.includes('/auth/reset-password')
 
-    // If 401 and we haven't retried yet, refresh token ONLY for protected requests
-    if (error.response?.status === 401 && !original._retry && !isAuthPageRequest) {
+    const isVenueRequest = original?.url?.includes('/venues')
+
+    // If 401 and we haven't retried yet, refresh token ONLY for protected non-venue requests
+    if (error.response?.status === 401 && !original._retry && !isAuthPageRequest && !isVenueRequest) {
       const refreshToken = localStorage.getItem('refreshToken')
 
       // No refresh token → force logout
       if (!refreshToken) {
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
+
         localStorage.removeItem('user')
         window.location.href = '/admin/login'
         return Promise.reject(error)

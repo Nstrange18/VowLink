@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
@@ -37,7 +37,7 @@ const FONTS = [
 const PREMADE_TEMPLATES = [
   {
     tier: "free",
-    name: "Classic Ivory & Gold",
+    name: "Classic Navy, Gold & Cream",
     url: "/templates/template_free_1.png",
     preview: "/templates/template_free_1.png",
   },
@@ -105,7 +105,13 @@ const resolveWeddingColors = (colors, defaultColorsList) => {
   const hexList = (colors || []).map(name => colorMap[name.toLowerCase()]).filter(Boolean);
 
   const primary = hexList[0] || "#1A2E4A"; // Default Navy
-  const secondary = hexList[1] || hexList[0] || "#C9A84C"; // Default Gold
+  
+  const isDarkColor = (hex) => {
+    const darkHexes = ["#1a2e4a", "#1c1c1c", "#800020", "#2d6a4f", "#008080", "#2b4d9c"];
+    return darkHexes.includes(hex.toLowerCase());
+  };
+
+  const secondary = hexList[1] || (hexList[0] && !isDarkColor(hexList[0]) ? hexList[0] : "#C9A84C");
   const tertiary = hexList[2] || secondary;
 
   const lightColors = ["ivory", "white", "cream", "nude", "blush pink", "peach", "mint green", "champagne gold"];
@@ -264,6 +270,7 @@ const AdminSettingsPage = () => {
 
   // Tabs & password visibility states
   const [activeTab, setActiveTab] = useState("details");
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
@@ -299,6 +306,32 @@ const AdminSettingsPage = () => {
   const receptionLocation = watch("receptionLocation");
   const dressCode = watch("dressCode");
   const weddingTime = watch("weddingTime");
+
+  // Fetch full profile on mount to hydrate media fields not included in login response
+  useEffect(() => {
+    const fetchFullProfile = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        const freshUser = res.data;
+        // Hydrate media fields from DB (they were stripped from login response to avoid localStorage overflow)
+        if (freshUser.galleryPhotos?.length) setGalleryPhotos(freshUser.galleryPhotos);
+        if (freshUser.customCardBg) setCustomCardBg(freshUser.customCardBg);
+        if (freshUser.couplePhotoUrl) setCouplePhotoUrl(freshUser.couplePhotoUrl);
+        if (freshUser.pageBgTemplate) setPageBgTemplate(freshUser.pageBgTemplate);
+        if (freshUser.musicUrl) setMusicUrl(freshUser.musicUrl);
+        if (freshUser.cardTheme) setCardTheme(freshUser.cardTheme);
+        if (freshUser.customTextColor) setCustomTextColor(freshUser.customTextColor);
+        if (freshUser.customFontFamily) setCustomFontFamily(freshUser.customFontFamily);
+        if (typeof freshUser.coupleOverlayOpacity === "number") setCoupleOverlayOpacity(freshUser.coupleOverlayOpacity);
+        if (typeof freshUser.customVerticalOffset === "number") setCustomVerticalOffset(freshUser.customVerticalOffset);
+        if (typeof freshUser.customTextSize === "number") setCustomTextSize(freshUser.customTextSize);
+        if (Array.isArray(freshUser.weddingColors) && freshUser.weddingColors.length) setWeddingColors(freshUser.weddingColors);
+      } catch {
+        // Silently fail — state remains populated from localStorage fallbacks above
+      }
+    };
+    fetchFullProfile();
+  }, []);
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmNewPassword) {
@@ -361,7 +394,7 @@ const AdminSettingsPage = () => {
         weddingColors,
         cardTheme,
         customCardBg,
-        pageBgTemplate,
+        pageBgTemplate: "",
         couplePhotoUrl,
         coupleOverlayOpacity,
         customTextColor,
@@ -378,6 +411,29 @@ const AdminSettingsPage = () => {
       window.location.reload(); // Refresh token details globally
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed. Please try again.");
+    }
+  };
+
+  // Helper to upload media assets to Cloudinary
+  const uploadToCloudinary = async (base64Str) => {
+    const toastId = toast.loading("Uploading file to Cloudinary...");
+    try {
+      const res = await api.post("/auth/upload", { file: base64Str });
+      toast.update(toastId, {
+        render: "Upload complete! 🎉",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000
+      });
+      return res.data.url;
+    } catch (err) {
+      toast.update(toastId, {
+        render: "Upload failed: " + (err.response?.data?.message || err.message),
+        type: "error",
+        isLoading: false,
+        autoClose: 3000
+      });
+      throw err;
     }
   };
 
@@ -398,8 +454,11 @@ const AdminSettingsPage = () => {
 
     files.forEach((file) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setGalleryPhotos((prev) => [...prev, reader.result]);
+      reader.onloadend = async () => {
+        try {
+          const url = await uploadToCloudinary(reader.result);
+          setGalleryPhotos((prev) => [...prev, url]);
+        } catch (err) {}
       };
       reader.readAsDataURL(file);
     });
@@ -421,8 +480,12 @@ const AdminSettingsPage = () => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setCustomCardBg(reader.result);
+      reader.onloadend = async () => {
+        try {
+          const url = await uploadToCloudinary(reader.result);
+          setCustomCardBg(url);
+          setCustomTextColor("#FFFFFF"); // Auto-switch to readable white text for custom uploads
+        } catch (err) {}
       };
       reader.readAsDataURL(file);
     }
@@ -437,9 +500,13 @@ const AdminSettingsPage = () => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setCouplePhotoUrl(reader.result);
-        toast.success("Couple photo uploaded! 💑 It will appear as the card background.");
+      reader.onloadend = async () => {
+        try {
+          const url = await uploadToCloudinary(reader.result);
+          setCouplePhotoUrl(url);
+          setPageBgTemplate(""); // Clear template background when photo is uploaded
+          toast.success("Couple photo uploaded! 💑 It will appear as the page background.");
+        } catch (err) {}
       };
       reader.readAsDataURL(file);
     }
@@ -459,20 +526,19 @@ const AdminSettingsPage = () => {
       return;
     }
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const dataUrl = reader.result;
+    reader.onloadend = async () => {
       try {
-        localStorage.setItem(`vowlink_local_audio_url_${storedUser._id}`, dataUrl);
+        const url = await uploadToCloudinary(reader.result);
+        
+        // Save the Cloudinary URL to localStorage for continuity, and update states
+        localStorage.setItem(`vowlink_local_audio_url_${storedUser._id}`, url);
         localStorage.setItem(`vowlink_local_audio_name_${storedUser._id}`, file.name);
-      } catch (storageErr) {
-        // LocalStorage quota exceeded — file is too large for storage
-        toast.error("Audio file is too large to store locally. Try a smaller file (under 10MB).");
-        return;
-      }
-      setLocalAudioUrl(dataUrl);
-      setLocalAudioName(file.name);
-      setMusicUrl(dataUrl); // Also set as musicUrl so it goes into the preview player
-      toast.success(`🎵 "${file.name}" uploaded! Music will autoplay on your device when guests open the invitation.`);
+        
+        setLocalAudioUrl(url);
+        setLocalAudioName(file.name);
+        setMusicUrl(url); // Host it directly in database musicUrl
+        toast.success(`🎵 "${file.name}" uploaded and hosted successfully! Guests can now play this soundtrack.`);
+      } catch (err) {}
     };
     reader.readAsDataURL(file);
   };
@@ -487,6 +553,34 @@ const AdminSettingsPage = () => {
     if (musicUrl === localAudioUrl) setMusicUrl("");
     if (localAudioInputRef.current) localAudioInputRef.current.value = "";
     toast.info("Local audio cleared.");
+  };
+
+  const handleResetAll = () => {
+    setShowResetConfirm(true);
+  };
+
+  const handleResetConfirm = () => {
+    setCardTheme("floral");
+    setPageBgTemplate("");
+    setCustomCardBg("");
+    setCustomTextColor("#1A2E4A");
+    setCustomFontFamily("classic");
+    setCustomVerticalOffset(0);
+    setCustomTextSize(1.0);
+    setCouplePhotoUrl("");
+    setCoupleOverlayOpacity(0.45);
+    setMusicUrl("");
+    setGalleryPhotos([]);
+    setWeddingColors([]);
+    
+    // Clear refs too
+    if (customBgInputRef.current) customBgInputRef.current.value = "";
+    if (couplePhotoInputRef.current) couplePhotoInputRef.current.value = "";
+    if (galleryInputRef.current) galleryInputRef.current.value = "";
+    if (localAudioInputRef.current) localAudioInputRef.current.value = "";
+    
+    setShowResetConfirm(false);
+    toast.success("Settings reset to defaults! Click 'Save Customizations' to persist.");
   };
 
   // Simulated AI Vibe matcher
@@ -526,6 +620,34 @@ const AdminSettingsPage = () => {
         toast.success("🪄 AI Matcher applied 'Emerald Garden': Deep green forest backdrop with gold accents.");
       }
     }, 1500);
+  };
+
+  // ── Smart Text Color: auto-picks the best readable color for each theme/template ──
+  const getSmartTextColor = (theme, cardBg) => {
+    // Dark built-in themes → warm cream/white text
+    if (["navy", "stardust", "forest"].includes(theme)) return "#F5EBD6";
+    // Light built-in themes → dark navy text
+    if (["floral", "minimalist"].includes(theme)) return "#1A2E4A";
+    // Custom (template or uploaded)
+    if (theme === "custom" && cardBg) {
+      const darkTemplates = [
+        "/templates/template_plus_1.png",  // Emerald Eucalyptus — dark green
+        "/templates/template_plus_2.png",  // Royal Navy Lace — dark navy
+        "/templates/template_plus_3.png",  // Midnight Black — dark
+        "/templates/template_pro_1.png",   // Dark Black Gold Marble — dark
+        "/templates/template_pro_2.png",   // Burgundy Velvet — dark
+      ];
+      const lightTemplates = [
+        "/templates/template_free_1.png",  // Classic Navy, Gold & Cream — light
+        "/templates/template_free_2.png",  // Blush Pink Watercolor — light
+        "/templates/template_free_3.png",  // Cream Floral Elegance — light
+      ];
+      if (darkTemplates.includes(cardBg)) return "#F5EBD6";
+      if (lightTemplates.includes(cardBg)) return "#1A2E4A";
+      // Uploaded custom bg — default to white for safety
+      return "#FFFFFF";
+    }
+    return "#1A2E4A"; // safe default
   };
 
   const formattedTime = weddingTime
@@ -608,9 +730,18 @@ const AdminSettingsPage = () => {
       fontFamily: activeFont,
     };
   } else if (cardTheme === "custom" && customCardBg) {
+    const darkTemplates = [
+      "/templates/template_plus_1.png",
+      "/templates/template_plus_2.png",
+      "/templates/template_plus_3.png",
+      "/templates/template_pro_1.png",
+      "/templates/template_pro_2.png",
+    ];
+    const isDarkBg = darkTemplates.includes(customCardBg);
+    const fallbackColor = isDarkBg ? "#F5EBD6" : "#1A2E4A";
     cardStyles = {
       background: `url('${customCardBg}') center/cover no-repeat`,
-      color: customTextColor,
+      color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : fallbackColor,
       fontFamily: activeFont,
     };
   }
@@ -664,6 +795,25 @@ const AdminSettingsPage = () => {
           </button>
         ))}
       </div>
+
+      {/* Mobile Live Preview Indicator */}
+      {activeTab !== "security" && (
+        <div className="lg:hidden flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 mb-6 text-xs text-white/80 animate-pulse">
+          <div className="flex items-center gap-2">
+            <span className="text-[#D8B76A] text-sm">👁️</span>
+            <span>Live changes are updating on the card below</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              document.getElementById("live-card-preview")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="text-[10px] uppercase font-bold text-[#D8B76A] hover:underline shrink-0 flex items-center gap-1"
+          >
+            Scroll to Preview ↓
+          </button>
+        </div>
+      )}
 
       {/* Hidden file input for quick custom card design triggers from the preview */}
       <input
@@ -837,6 +987,7 @@ const AdminSettingsPage = () => {
                             return;
                           }
                           setCardTheme(val);
+                          setCustomTextColor(getSmartTextColor(val, customCardBg));
                         }}
                       >
                         {THEMES.map((theme) => (
@@ -906,6 +1057,7 @@ const AdminSettingsPage = () => {
                                   return;
                                 }
                                 setCardTheme(theme.value);
+                                setCustomTextColor(getSmartTextColor(theme.value, customCardBg));
                               }}
                               className={`relative h-20 rounded-xl overflow-hidden flex flex-col justify-between p-2.5 transition-all duration-300 ${borderClass} ${isSelected
                                 ? "ring-2 ring-[#D8B76A] ring-offset-2 ring-offset-[#070A13] scale-98"
@@ -1010,9 +1162,13 @@ const AdminSettingsPage = () => {
                         <div className="flex justify-start">
                           <button
                             type="button"
-                            onClick={() => setPageBgTemplate("")}
+                            onClick={() => {
+                              setCustomCardBg("");
+                              setCardTheme("floral");
+                              setCustomTextColor(getSmartTextColor("floral", ""));
+                            }}
                             className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${
-                              !pageBgTemplate
+                              cardTheme !== "custom" || !customCardBg
                                 ? "bg-[#D8B76A] text-[#070A13] border-[#D8B76A]"
                                 : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
                             }`}
@@ -1026,13 +1182,15 @@ const AdminSettingsPage = () => {
                           <p className="text-[9px] uppercase tracking-wider text-white/40 font-bold">Free Tier Templates (Unlocked)</p>
                           <div className="grid grid-cols-2 gap-3">
                             {PREMADE_TEMPLATES.filter(t => t.tier === "free").map(t => {
-                              const isSelected = pageBgTemplate === t.url;
+                              const isSelected = cardTheme === "custom" && customCardBg === t.url;
                               return (
                                 <button
                                   key={t.name}
                                   type="button"
                                   onClick={() => {
-                                    setPageBgTemplate(t.url);
+                                    setCustomCardBg(t.url);
+                                    setCardTheme("custom");
+                                    setCustomTextColor(getSmartTextColor("custom", t.url));
                                   }}
                                   className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                                     }`}
@@ -1060,7 +1218,7 @@ const AdminSettingsPage = () => {
                           <div className="grid grid-cols-2 gap-3">
                             {PREMADE_TEMPLATES.filter(t => t.tier === "plus").map(t => {
                               const isLocked = isFree;
-                              const isSelected = pageBgTemplate === t.url;
+                              const isSelected = cardTheme === "custom" && customCardBg === t.url;
                               return (
                                 <button
                                   key={t.name}
@@ -1071,7 +1229,9 @@ const AdminSettingsPage = () => {
                                       navigate("/admin/billing");
                                       return;
                                     }
-                                    setPageBgTemplate(t.url);
+                                    setCustomCardBg(t.url);
+                                    setCardTheme("custom");
+                                    setCustomTextColor(getSmartTextColor("custom", t.url));
                                   }}
                                   className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                                     }`}
@@ -1109,7 +1269,7 @@ const AdminSettingsPage = () => {
                           <div className="grid grid-cols-2 gap-3">
                             {PREMADE_TEMPLATES.filter(t => t.tier === "pro").map(t => {
                               const isLocked = isFree || isPlus;
-                              const isSelected = pageBgTemplate === t.url;
+                              const isSelected = cardTheme === "custom" && customCardBg === t.url;
                               return (
                                 <button
                                   key={t.name}
@@ -1120,7 +1280,9 @@ const AdminSettingsPage = () => {
                                       navigate("/admin/billing");
                                       return;
                                     }
-                                    setPageBgTemplate(t.url);
+                                    setCustomCardBg(t.url);
+                                    setCardTheme("custom");
+                                    setCustomTextColor(getSmartTextColor("custom", t.url));
                                   }}
                                   className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                                     }`}
@@ -1162,7 +1324,10 @@ const AdminSettingsPage = () => {
                           {cardTheme !== "custom" && (
                             <button
                               type="button"
-                              onClick={() => setCardTheme("custom")}
+                              onClick={() => {
+                                setCardTheme("custom");
+                                setCustomTextColor(getSmartTextColor("custom", customCardBg));
+                              }}
                               className="text-[9px] uppercase tracking-wider text-[#D8B76A] hover:underline"
                             >
                               Select Custom Theme
@@ -1181,6 +1346,7 @@ const AdminSettingsPage = () => {
                             onChange={(e) => {
                               handleCustomCardBgUpload(e);
                               setCardTheme("custom");
+                              setCustomTextColor("#FFFFFF"); // Auto-switch to readable white text for custom uploads
                             }}
                             className="w-full text-xs text-white/50 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#D8B76A]/10 file:text-[#D8B76A] hover:file:bg-[#D8B76A]/20"
                           />
@@ -1472,38 +1638,7 @@ const AdminSettingsPage = () => {
                         </div>
                       </div>
 
-                      {/* Curated Spotify Playlists */}
-                      <div>
-                        <label className="block text-[10px] text-white/50 uppercase mb-2">Curated Spotify Playlists (Floating Widget)</label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {[
-                            { name: "Acoustic Love", url: "https://open.spotify.com/playlist/37i9dQZF1DX1s9knjP51xh", emoji: "🎸" },
-                            { name: "Modern Wedding Hits", url: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGC2m8jH", emoji: "🎶" },
-                            { name: "Classical Wedding", url: "https://open.spotify.com/playlist/37i9dQZF1DX2419n24N13N", emoji: "🎻" },
-                            { name: "First Dance Classics", url: "https://open.spotify.com/playlist/37i9dQZF1DX7gPfB5X117A", emoji: "💃" }
-                          ].map((p) => {
-                            const isSelected = musicUrl === p.url;
-                            return (
-                              <button
-                                key={p.name}
-                                type="button"
-                                disabled={isFree}
-                                onClick={() => setMusicUrl(p.url)}
-                                className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2 ${isSelected
-                                  ? "border-[#D8B76A] bg-[#D8B76A]/10 text-white"
-                                  : "border-white/10 bg-white/3 text-white/70 hover:border-white/20"
-                                  } disabled:opacity-30 disabled:cursor-not-allowed`}
-                              >
-                                <span className="text-lg">{p.emoji}</span>
-                                <div className="truncate">
-                                  <p className="text-xs font-semibold truncate">{p.name}</p>
-                                  <p className="text-[8px] text-white/40 truncate">Spotify Playlist</p>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+
 
                       {/* Upload from Device */}
                       <div className="rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 p-3 space-y-2">
@@ -1524,9 +1659,9 @@ const AdminSettingsPage = () => {
                         {localAudioName && (
                           <p className="text-[9px] text-[#D8B76A]/80 font-semibold truncate">🎵 {localAudioName}</p>
                         )}
-                        <div className="bg-amber-900/20 border border-amber-500/20 rounded-lg p-2">
-                          <p className="text-[8px] text-amber-200/70 leading-relaxed">
-                            ⚠️ <strong>Device-local only:</strong> Your uploaded song plays only on this device/browser. For guests to hear music, use a Spotify playlist link or hosted MP3 URL above.
+                        <div className="bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2">
+                          <p className="text-[8px] text-emerald-200/70 leading-relaxed">
+                            🚀 <strong>Cloudinary Cloud Hosting:</strong> Your uploaded song is securely saved in the cloud. Unlike Spotify widgets, uploaded soundtracks **will automatically play** for guests as soon as they open the welcome envelope!
                           </p>
                         </div>
                       </div>
@@ -1557,6 +1692,18 @@ const AdminSettingsPage = () => {
                         <p className="text-[8px] text-white/30 mt-1">
                           Supports Spotify URLs or direct audio file URLs ending in .mp3, .m4a.
                         </p>
+                        {musicUrl && musicUrl.includes("res.cloudinary.com") && (
+                          <div className="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-500/20 px-2 py-1 rounded-lg w-fit">
+                            <span>☁️</span>
+                            <span>Securely hosted on Cloudinary (Enables guest autoplay!)</span>
+                          </div>
+                        )}
+                        {musicUrl && getSpotifyEmbedUrl(musicUrl) && (
+                          <div className="mt-2 flex items-center gap-1.5 text-[9px] font-semibold text-amber-300 bg-amber-950/30 border border-amber-500/20 px-2 py-1 rounded-lg w-fit">
+                            <span>⚠️</span>
+                            <span>Spotify Widget: Autoplay blocked by browsers. Guests must manually tap Play. Upload an MP3 above for automated playback.</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Real-time Music Preview */}
@@ -1595,7 +1742,14 @@ const AdminSettingsPage = () => {
               )}
 
               {/* BOTTOM SAVE BAR */}
-              <div className="pt-4 border-t border-white/10 flex justify-end">
+              <div className="pt-4 border-t border-white/10 flex justify-between items-center gap-4">
+                <button
+                  type="button"
+                  onClick={handleResetAll}
+                  className="rounded-full bg-red-600/10 border border-red-500/30 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-red-200 hover:bg-red-600/20 transition"
+                >
+                  ↺ Reset Defaults
+                </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -1751,19 +1905,20 @@ const AdminSettingsPage = () => {
             <p className="text-xs uppercase tracking-[0.25em] text-[#D8B76A] font-bold">Live Invitation Card Preview</p>
 
             <div 
+              id="live-card-preview"
               className="w-full rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 p-4 sm:p-6 relative flex items-center justify-center min-h-[580px]"
               style={{ background: "#070A13" }}
             >
-              {/* Page Background (Couple Photo or Pre-made Template) */}
-              {couplePhotoUrl || pageBgTemplate ? (
+              {/* Page Background (Couple Photo) */}
+              {couplePhotoUrl ? (
                 <>
                   <div 
                     className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500 animate-fade-in"
-                    style={{ backgroundImage: `url(${couplePhotoUrl || pageBgTemplate})` }}
+                    style={{ backgroundImage: `url(${couplePhotoUrl})` }}
                   />
                   <div 
                     className="absolute inset-0 z-0 transition-all duration-300"
-                    style={{ backgroundColor: `rgba(0, 0, 0, ${couplePhotoUrl ? coupleOverlayOpacity : 0.3})` }}
+                    style={{ backgroundColor: `rgba(0, 0, 0, ${coupleOverlayOpacity})` }}
                   />
                 </>
               ) : (
@@ -1804,7 +1959,7 @@ const AdminSettingsPage = () => {
                   </p>
 
                   <h1 className="font-bold my-1 leading-tight" style={{ fontFamily: activeFont, color: primaryTextColor, fontSize: "1.8em" }}>
-                    {p1 || "Partner 1"} <span style={{ color: accentColor }}>and</span> {p2 || "Partner 2"}
+                    {p1 || "Partner 1"} <span style={{ color: primaryTextColor, opacity: 0.9 }}>and</span> {p2 || "Partner 2"}
                   </h1>
 
                   <div className="flex items-center gap-1.5 my-3 text-[0.5em]" style={{ color: primaryTextColor }}>
@@ -1847,7 +2002,7 @@ const AdminSettingsPage = () => {
 
                   {weddingColors.length > 0 && (
                     <div className="mt-3">
-                      <p className="uppercase tracking-widest mb-1.5" style={{ color: accentColor, fontSize: "0.55em" }}>
+                      <p className="uppercase tracking-widest mb-1.5" style={{ color: primaryTextColor, opacity: 0.8, fontSize: "0.55em" }}>
                         Colour of the Day
                       </p>
                       <div className="flex gap-2 justify-center">
@@ -1856,7 +2011,7 @@ const AdminSettingsPage = () => {
                           return (
                             <div key={i} className="flex flex-col items-center gap-0.5">
                               <div className="h-5 w-5 rounded-full border border-black/20" style={{ backgroundColor: hex }} />
-                              <span className="opacity-75" style={{ color: primaryTextColor, fontSize: "0.5em" }}>{name}</span>
+                              <span className="font-bold" style={{ color: primaryTextColor, fontSize: "0.65em" }}>{name}</span>
                             </div>
                           );
                         })}
@@ -1889,6 +2044,44 @@ const AdminSettingsPage = () => {
           </div>
         )}
       </div>
+
+      {/* Reset Confirmation Modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0D1220] p-6 shadow-2xl space-y-6">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <h3 className="text-lg font-semibold text-white">Reset Customizations?</h3>
+                <p className="text-white/60 text-xs">
+                  Are you sure you want to reset all design customizations to default? This will clear your custom background, couple photo, colors, fonts, and music selections.
+                </p>
+              </div>
+            </div>
+            
+            <p className="text-[10px] text-[#D8B76A]/80 bg-[#D8B76A]/5 p-3 rounded-lg border border-[#D8B76A]/10">
+              💡 Note: Make sure to click "Save Customizations" after resetting to apply these changes to your live cards.
+            </p>
+            
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-white/5 text-white hover:bg-white/10 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleResetConfirm}
+                className="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/35 transition"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -50,10 +50,27 @@ const VenueDashboardPage = () => {
   const [venue, setVenue] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState("listing"); // listing, photos, billing
-  
+  const [activeTab, setActiveTab] = useState("listing"); // listing, photos, billing, security
+
+  // Live performance stats (polled every 30s)
+  const [stats, setStats] = useState({ views: null, inquiries: null });
+
   // Photo management state
   const [photos, setPhotos] = useState([]);
+
+  // Change password state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [submittingPassword, setSubmittingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+
+  // Delete account state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [submittingDelete, setSubmittingDelete] = useState(false);
   
   // Billing subscription modal state
   const [checkoutModal, setCheckoutModal] = useState({
@@ -63,6 +80,96 @@ const VenueDashboardPage = () => {
     reference: "",
     submitting: false,
   });
+
+  const uploadToCloudinary = async (base64Str) => {
+    const toastId = toast.loading("Uploading image to Cloudinary...");
+    const token = localStorage.getItem("venueToken");
+    try {
+      const res = await api.post(
+        "/venues/auth/upload",
+        { file: base64Str },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.update(toastId, {
+        render: "Upload complete! 🎉",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000
+      });
+      return res.data.url;
+    } catch (err) {
+      toast.update(toastId, {
+        render: "Upload failed: " + (err.response?.data?.message || err.message),
+        type: "error",
+        isLoading: false,
+        autoClose: 3000
+      });
+      throw err;
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      toast.warning("Please fill in all password fields.");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters.");
+      return;
+    }
+
+    const token = localStorage.getItem("venueToken");
+    try {
+      setSubmittingPassword(true);
+      await api.put(
+        "/venues/auth/change-password",
+        { currentPassword, newPassword },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Password changed successfully! ✓");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to change password.");
+    } finally {
+      setSubmittingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      toast.warning("Please enter your password to confirm.");
+      return;
+    }
+
+    const token = localStorage.getItem("venueToken");
+    try {
+      setSubmittingDelete(true);
+      await api.delete(
+        "/venues/auth/delete-account",
+        {
+          data: { confirmPassword: deletePassword },
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      toast.success("Your venue account has been deleted. Goodbye!");
+
+      localStorage.removeItem("venueToken");
+      localStorage.removeItem("venue");
+
+      navigate("/");
+      window.location.reload();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Deletion failed. Check password.");
+    } finally {
+      setSubmittingDelete(false);
+    }
+  };
 
   const fetchProfile = async () => {
     const token = localStorage.getItem("venueToken");
@@ -98,9 +205,35 @@ const VenueDashboardPage = () => {
     resolver: zodResolver(detailsSchema),
   });
 
+  // ── Fetch live stats (views + inquiries) from server ─────────────────────
+  const fetchStats = async () => {
+    const token = localStorage.getItem("venueToken");
+    if (!token) return;
+    try {
+      const res = await api.get("/venues/auth/stats", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStats({ views: res.data.views, inquiries: res.data.inquiries });
+    } catch {
+      // Silently ignore; stale values remain visible
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  // Poll stats every 30 seconds for live updates
+  useEffect(() => {
+    // Initial fetch once venue is loaded
+    if (venue) {
+      fetchStats();
+    }
+    const interval = setInterval(() => {
+      if (localStorage.getItem("venueToken")) fetchStats();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [venue?._id]);
 
   const onUpdateDetails = async (data) => {
     setSaving(true);
@@ -149,12 +282,14 @@ const VenueDashboardPage = () => {
 
     files.forEach((file) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotos((prev) => [...prev, reader.result]);
+      reader.onloadend = async () => {
+        try {
+          const url = await uploadToCloudinary(reader.result);
+          setPhotos((prev) => [...prev, url]);
+        } catch (err) {}
       };
       reader.readAsDataURL(file);
     });
-    toast.info(`${files.length} photo(s) staged. Click Save Changes to publish.`);
   };
 
   const removePhoto = (index) => {
@@ -329,22 +464,45 @@ const VenueDashboardPage = () => {
             >
               💳 Subscriptions
             </button>
+            <button
+              onClick={() => setActiveTab("security")}
+              className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition ${
+                activeTab === "security"
+                  ? "bg-[#D8B76A] text-[#070A13]"
+                  : "text-white/60 hover:bg-white/5"
+              }`}
+            >
+              🔒 Security & Danger Zone
+            </button>
           </div>
 
-          {/* Quick Stats Card */}
+          {/* Quick Stats Card — live-polled every 30s */}
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-5 space-y-4">
-            <h3 className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A]">Performance Stats</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A]">Performance Stats</h3>
+              <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-emerald-400 font-semibold">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                Live
+              </span>
+            </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-white/3 rounded-xl">
+              <div className="p-3 bg-white/3 rounded-xl transition-all">
                 <span className="text-[9px] uppercase tracking-wider text-white/40 block">Total Views</span>
-                <span className="text-xl font-bold font-mono">148</span>
+                <span className="text-xl font-bold font-mono">
+                  {stats.views !== null ? stats.views : (venue?.views ?? 0)}
+                </span>
               </div>
-              <div className="p-3 bg-white/3 rounded-xl">
+              <div className="p-3 bg-white/3 rounded-xl transition-all">
                 <span className="text-[9px] uppercase tracking-wider text-white/40 block">Inquiries</span>
-                <span className="text-xl font-bold font-mono text-[#D8B76A]">12</span>
+                <span className="text-xl font-bold font-mono text-[#D8B76A]">
+                  {stats.inquiries !== null ? stats.inquiries : (venue?.inquiries ?? 0)}
+                </span>
               </div>
             </div>
-            <p className="text-[9px] text-white/30 italic">Views and inquiries are mock analytics updated daily.</p>
+            <p className="text-[9px] text-white/30 italic">Auto-refreshes every 30 seconds.</p>
           </div>
         </div>
 
@@ -720,6 +878,153 @@ const VenueDashboardPage = () => {
                     {isFeatured ? "Current Plan" : "Go Premium"}
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: SECURITY & DANGER ZONE */}
+          {activeTab === "security" && (
+            <div className="space-y-6 animate-fade-in">
+              {/* Change Password Block */}
+              <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 sm:p-8 space-y-6">
+                <div>
+                  <h3 className="font-serif text-xl">Change Password</h3>
+                  <p className="text-xs text-white/40 mt-1">Update your password to keep your venue listing secure.</p>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Current Password */}
+                  <div>
+                    <label className={labelClass}>Current Password</label>
+                    <div className="relative">
+                      <input
+                        type={showCurrentPassword ? "text" : "password"}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className={inputBase}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 text-xs"
+                      >
+                        {showCurrentPassword ? "🙈" : "👁️"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* New Password */}
+                  <div>
+                    <label className={labelClass}>New Password</label>
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className={inputBase}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 text-xs"
+                      >
+                        {showNewPassword ? "🙈" : "👁️"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm New Password */}
+                  <div>
+                    <label className={labelClass}>Confirm New Password</label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmNewPassword ? "text" : "password"}
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className={inputBase}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 text-xs"
+                      >
+                        {showConfirmNewPassword ? "🙈" : "👁️"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={handleChangePassword}
+                    disabled={submittingPassword}
+                    className="px-6 py-2 rounded-xl bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-xs font-bold uppercase tracking-wider text-[#070A13] transition disabled:opacity-50"
+                  >
+                    {submittingPassword ? "Updating..." : "Update Password"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Danger Zone Block */}
+              <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-6 sm:p-8 space-y-6">
+                <div>
+                  <h3 className="font-serif text-xl text-red-400">Danger Zone</h3>
+                  <p className="text-xs text-white/40 mt-1">Permanently delete your VowLink Venue partner account and listings.</p>
+                </div>
+
+                {!showDeleteConfirm ? (
+                  <div className="flex justify-between items-center gap-4 flex-wrap">
+                    <p className="text-xs text-white/60">
+                      Deleting your account will remove your venue details, photos, and listing reviews forever.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="px-6 py-2 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/35 text-xs font-bold uppercase tracking-wider transition"
+                    >
+                      Delete Account
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 animate-fade-in max-w-md">
+                    <p className="text-xs text-red-400 font-semibold">
+                      ⚠️ Are you absolutely sure? This action is irreversible. Enter your password to proceed:
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input
+                        type="password"
+                        value={deletePassword}
+                        onChange={(e) => setDeletePassword(e.target.value)}
+                        placeholder="Enter your password to delete"
+                        className={`${inputBase} flex-1`}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDeleteConfirm(false);
+                            setDeletePassword("");
+                          }}
+                          className="px-4 py-2 rounded-xl bg-white/5 text-white hover:bg-white/10 text-xs font-bold uppercase transition"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleDeleteAccount}
+                          disabled={submittingDelete}
+                          className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-xs font-bold uppercase text-white transition disabled:opacity-50"
+                        >
+                          {submittingDelete ? "Deleting..." : "Confirm Delete"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

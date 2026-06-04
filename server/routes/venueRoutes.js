@@ -1,10 +1,22 @@
 const express = require("express");
 const axios = require("axios");
+const sgMail = require("@sendgrid/mail");
+const cloudinary = require("cloudinary").v2;
 const Venue = require("../models/Venue");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 
 const router = express.Router();
+
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Helper base64 SVGs for placeholder venue photos
 const PLACEHOLDER_PHOTOS = {
@@ -37,6 +49,8 @@ const seedVenues = async () => {
           isFeatured: true,
           style: "Classic",
           isApproved: true,
+          views: 148,
+          inquiries: 12,
         },
         {
           name: "Royal Gardens & Pavilions",
@@ -53,6 +67,8 @@ const seedVenues = async () => {
           isFeatured: true,
           style: "Garden",
           isApproved: true,
+          views: 95,
+          inquiries: 8,
         },
         {
           name: "Whimsical Woodland Retreat",
@@ -69,6 +85,8 @@ const seedVenues = async () => {
           isFeatured: false,
           style: "Rustic",
           isApproved: true,
+          views: 45,
+          inquiries: 3,
         },
         {
           name: "Coastal Breeze Resort",
@@ -85,6 +103,8 @@ const seedVenues = async () => {
           isFeatured: false,
           style: "Beach",
           isApproved: true,
+          views: 32,
+          inquiries: 2,
         },
         {
           name: "Monochrome Modern Gallery",
@@ -101,6 +121,8 @@ const seedVenues = async () => {
           isFeatured: false,
           style: "Modern",
           isApproved: true,
+          views: 64,
+          inquiries: 5,
         },
       ]);
       console.log("✅ Database: Default venues seeded successfully.");
@@ -119,6 +141,13 @@ router.get("/", protect, async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Increment views for all approved venues by 1
+    try {
+      await Venue.updateMany({ isApproved: true }, { $inc: { views: 1 } });
+    } catch (e) {
+      console.error("Failed to increment views:", e.message);
     }
 
     const venues = await Venue.find({ isApproved: true }).sort({ isFeatured: -1, createdAt: -1 });
@@ -185,7 +214,7 @@ router.post("/shortlist/:id", protect, async (req, res) => {
   }
 });
 
-// ── POST /api/venues/inquire (Pro: Submit Mock Direct Inquiry) ─────────────
+// ── POST /api/venues/inquire (Pro: Submit Direct Inquiry) ─────────────────────
 router.post("/inquire", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -203,8 +232,54 @@ router.post("/inquire", protect, async (req, res) => {
     const venue = await Venue.findById(venueId);
     if (!venue) return res.status(404).json({ message: "Venue not found" });
 
-    // In a real app, this would send an email/notification to the venue manager.
-    // For this mockup, we return a successful response instantly.
+    // Increment inquiries count
+    try {
+      venue.inquiries = (venue.inquiries || 0) + 1;
+      await venue.save();
+    } catch (e) {
+      console.error("Failed to increment inquiries:", e.message);
+    }
+
+    const targetEmail = venue.ownerEmail || venue.email;
+    if (targetEmail && process.env.SENDGRID_API_KEY) {
+      const emailContent = `
+        <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:32px;background:#fdf8f0;border-radius:16px;border:1px solid #e2d1b9">
+          <h2 style="color:#1A2E4A;font-size:22px;margin-bottom:16px;border-bottom:2px solid #D8B76A;padding-bottom:8px">New Venue Inquiry from VowLink</h2>
+          <p style="color:#444;line-height:1.6;font-size:16px">You have received a new inquiry for <strong>${venue.name}</strong>.</p>
+          
+          <div style="background:#fff;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #D8B76A">
+            <h3 style="color:#1A2E4A;margin-top:0;margin-bottom:12px">Couple Details</h3>
+            <p style="margin:6px 0;color:#555"><strong>Names:</strong> ${user.partner1Name} & ${user.partner2Name}</p>
+            <p style="margin:6px 0;color:#555"><strong>Email:</strong> <a href="mailto:${user.email}" style="color:#1A2E4A">${user.email}</a></p>
+            <p style="margin:6px 0;color:#555"><strong>Wedding Date:</strong> ${user.weddingDate ? new Date(user.weddingDate).toLocaleDateString() : "Not set"}</p>
+          </div>
+
+          <div style="background:#fff;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #1A2E4A">
+            <h3 style="color:#1A2E4A;margin-top:0;margin-bottom:12px">Message</h3>
+            <p style="margin:0;color:#444;line-height:1.6;white-space:pre-wrap">${message}</p>
+          </div>
+
+          <p style="color:#777;font-size:12px;margin-top:32px;text-align:center;border-top:1px solid #eee;padding-top:16px">
+            This inquiry was sent automatically via VowLink. Please reply directly to the couple's email.
+          </p>
+        </div>
+      `;
+
+      try {
+        await sgMail.send({
+          to: targetEmail,
+          from: "noreplybiru556@gmail.com",
+          subject: `VowLink Venue Inquiry: ${user.partner1Name} & ${user.partner2Name}`,
+          html: emailContent,
+        });
+        console.log(`📧 Direct inquiry email sent successfully to ${targetEmail}`);
+      } catch (err) {
+        console.error("❌ SendGrid error sending inquiry:", err.response ? err.response.body : err);
+      }
+    } else {
+      console.warn("⚠️ SendGrid not configured or target email missing for venue inquiry");
+    }
+
     res.status(200).json({
       message: `Inquiry successfully sent to ${venue.name}! The venue manager will review it and contact you via email (${user.email}) or phone.`,
     });
@@ -361,6 +436,18 @@ router.get("/auth/me", protectVenue, async (req, res) => {
   res.status(200).json(req.venue);
 });
 
+// ── VENUE OWNER: Get Live Stats (views + inquiries only) ──────────────────
+router.get("/auth/stats", protectVenue, async (req, res) => {
+  try {
+    // Re-fetch directly from DB so we get the latest counts (not stale req.venue snapshot)
+    const fresh = await Venue.findById(req.venue._id).select("views inquiries");
+    if (!fresh) return res.status(404).json({ message: "Venue not found" });
+    res.status(200).json({ views: fresh.views, inquiries: fresh.inquiries });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch stats", error: error.message });
+  }
+});
+
 // ── VENUE OWNER: Update Listing & Photos ────────────────────────────────────
 router.put("/auth/me", protectVenue, async (req, res) => {
   try {
@@ -418,6 +505,48 @@ router.put("/auth/me", protectVenue, async (req, res) => {
   }
 });
 
+// ── VENUE OWNER: Change Password ───────────────────────────────────────────
+router.put("/auth/change-password", protectVenue, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Current and new password are required." });
+    }
+    const venue = req.venue;
+    const isMatch = await venue.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect current password." });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "New password must be at least 6 characters." });
+    }
+    venue.ownerPassword = newPassword;
+    await venue.save();
+    res.status(200).json({ message: "Password updated successfully! ✓" });
+  } catch (error) {
+    res.status(500).json({ message: "Password change failed", error: error.message });
+  }
+});
+
+// ── VENUE OWNER: Delete Account ──────────────────────────────────────────────
+router.delete("/auth/delete-account", protectVenue, async (req, res) => {
+  try {
+    const { confirmPassword } = req.body;
+    if (!confirmPassword) {
+      return res.status(400).json({ message: "Please enter your password to confirm deletion." });
+    }
+    const venue = req.venue;
+    const isMatch = await venue.comparePassword(confirmPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect password." });
+    }
+    await Venue.findByIdAndDelete(venue._id);
+    res.status(200).json({ message: "Venue account deleted successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Account deletion failed", error: error.message });
+  }
+});
+
 // ── VENUE OWNER: Mock Subscribe Payment ─────────────────────────────────────
 router.post("/subscribe", protectVenue, async (req, res) => {
   try {
@@ -458,8 +587,24 @@ router.post("/subscribe/verify", protectVenue, async (req, res) => {
       return res.status(400).json({ message: "Invalid subscription tier." });
     }
 
+    // Dev bypass for local testing
+    if (reference && reference.startsWith("MOCK-")) {
+      const venue = req.venue;
+      venue.subscriptionTier = tier;
+      venue.isFeatured = tier === "featured";
+      const expiry = new Date();
+      expiry.setDate(expiry.getDate() + 30);
+      venue.subscriptionExpiry = expiry;
+      await venue.save();
+      return res.status(200).json({
+        message: `[DEV BYPASS] Payment verified! Subscription upgraded to ${tier.toUpperCase()} successfully! 🚀`,
+        venue,
+      });
+    }
+
     const secretKey = process.env.PAYSTACK_SECRET_KEY;
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+
       headers: {
         Authorization: `Bearer ${secretKey}`,
       },
@@ -566,6 +711,26 @@ router.post("/approve/:id", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Approval failed", error: error.message });
+  }
+});
+
+// ── POST /api/venues/auth/upload (Cloudinary upload helper for venues) ────────
+router.post("/auth/upload", protectVenue, async (req, res) => {
+  try {
+    const { file } = req.body;
+    if (!file) {
+      return res.status(400).json({ message: "No file provided for upload." });
+    }
+
+    const result = await cloudinary.uploader.upload(file, {
+      resource_type: "auto",
+      folder: "vowlink/venues",
+    });
+
+    res.status(200).json({ url: result.secure_url });
+  } catch (error) {
+    console.error("❌ Cloudinary venue upload error:", error);
+    res.status(500).json({ message: "Upload to Cloudinary failed", error: error.message });
   }
 });
 
