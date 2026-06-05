@@ -4,6 +4,7 @@ const sgMail = require("@sendgrid/mail");
 const cloudinary = require("cloudinary").v2;
 const Venue = require("../models/Venue");
 const User = require("../models/User");
+const Inquiry = require("../models/Inquiry");
 const { protect } = require("../middleware/auth");
 
 const router = express.Router();
@@ -278,6 +279,18 @@ router.post("/inquire", protect, async (req, res) => {
       }
     } else {
       console.warn("⚠️ SendGrid not configured or target email missing for venue inquiry");
+    }
+
+    // Save inquiry to database log
+    try {
+      const inquiry = new Inquiry({
+        user: req.user.id,
+        venue: venueId,
+        message,
+      });
+      await inquiry.save();
+    } catch (e) {
+      console.error("Failed to save inquiry to database:", e.message);
     }
 
     res.status(200).json({
@@ -615,13 +628,13 @@ router.post("/subscribe/verify", protectVenue, async (req, res) => {
     }
 
     const paystackData = response.data.data;
-    const expectedAmount = tier === "listed" ? 5000 * 100 : 15000 * 100;
+    const expectedAmount = tier === "listed" ? 2000 * 100 : 5000 * 100;
     const paystackAmount = paystackData.amount;
     const paystackCurrency = paystackData.currency;
 
     let isValidAmount = false;
     if (paystackCurrency === "NGN") {
-      isValidAmount = paystackAmount >= expectedAmount - 100 * 100;
+      isValidAmount = paystackAmount >= expectedAmount - 50 * 100; // Small tolerance allowance
     } else {
       isValidAmount = paystackAmount > 0;
     }

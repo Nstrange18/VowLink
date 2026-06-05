@@ -406,7 +406,9 @@ const InvitePage = () => {
   const customTextColor = invitation.userId?.customTextColor || "#1A2E4A";
   const customFontFamily = invitation.userId?.customFontFamily || "classic";
   const customVerticalOffset = invitation.userId?.customVerticalOffset || 0;
+  const customHorizontalOffset = invitation.userId?.customHorizontalOffset || 0;
   const customTextSize = invitation.userId?.customTextSize || 1.0;
+  const customTextAlign = invitation.userId?.customTextAlign || "center";
   const couplePhotoUrl = invitation.userId?.couplePhotoUrl || "";
   const pageBgTemplate = invitation.userId?.pageBgTemplate || "";
   const coupleOverlayOpacity = invitation.userId?.coupleOverlayOpacity ?? 0.45;
@@ -742,11 +744,18 @@ const InvitePage = () => {
             {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
             {/* Custom Spacing & Scaling wrapper */}
             <div
-              className="relative z-10 px-6 pt-14 pb-16 flex flex-col items-center justify-center text-center w-full min-h-[620px] transition-all"
+              className={`relative z-10 px-6 pt-14 pb-16 flex flex-col justify-center w-full min-h-[620px] transition-all ${
+                customTextAlign === "left"
+                  ? "items-start text-left"
+                  : customTextAlign === "right"
+                  ? "items-end text-right"
+                  : "items-center text-center"
+              }`}
               style={{
                 fontSize: `${customTextSize}em`,
                 paddingTop: `calc(5rem + ${customVerticalOffset}px)`,
                 paddingBottom: `calc(5.5rem - ${customVerticalOffset}px)`,
+                transform: `translateX(${customHorizontalOffset || 0}px)`,
               }}
             >
               {/* ── Wedding Invitation title ── */}
@@ -882,7 +891,7 @@ const InvitePage = () => {
                     textDecorationColor: `${accentColor}55`,
                     textUnderlineOffset: "3px",
                   }}
-                  className="mb-2 hover:opacity-80 transition text-center block max-w-55"
+                  className="mb-2 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2"
                 >
                   Location: {venue}
                 </a>
@@ -901,7 +910,7 @@ const InvitePage = () => {
                     textDecorationColor: `${accentColor}55`,
                     textUnderlineOffset: "3px",
                   }}
-                  className="mb-5 hover:opacity-80 transition text-center block max-w-55"
+                  className="mb-5 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2"
                 >
                   Reception at: {receptionLocation}
                 </a>

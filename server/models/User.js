@@ -86,6 +86,24 @@ const userSchema = new mongoose.Schema(
         ref: "Venue",
       },
     ],
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    customTextAlign: {
+      type: String,
+      enum: ["left", "center", "right"],
+      default: "center",
+    },
+    customHorizontalOffset: {
+      type: Number,
+      default: 0,
+    },
+    smartLayoutEnabled: {
+      type: Boolean,
+      default: true,
+    },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
   },

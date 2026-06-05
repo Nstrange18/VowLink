@@ -1,0 +1,107 @@
+import React from "react";
+
+const VenueSidebar = ({
+  activeTab,
+  setActiveTab,
+  photosLength,
+  stats,
+  venue,
+  setSidebarOpen,
+  handleLogout,
+  isFeatured,
+  isListed,
+}) => {
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Navigation Card */}
+      <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-4 flex flex-col gap-2">
+        <button
+          onClick={() => {
+            setActiveTab("listing");
+            if (setSidebarOpen) setSidebarOpen(false);
+          }}
+          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition ${
+            activeTab === "listing"
+              ? "bg-[#D8B76A] text-[#070A13]"
+              : "text-white/60 hover:bg-white/5"
+          }`}
+        >
+          🏢 Listing Details
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab("photos");
+            if (setSidebarOpen) setSidebarOpen(false);
+          }}
+          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition flex justify-between items-center ${
+            activeTab === "photos"
+              ? "bg-[#D8B76A] text-[#070A13]"
+              : "text-white/60 hover:bg-white/5"
+          }`}
+        >
+          <span>📷 Gallery Photos</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white font-mono">
+            {photosLength}
+          </span>
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab("billing");
+            if (setSidebarOpen) setSidebarOpen(false);
+          }}
+          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition ${
+            activeTab === "billing"
+              ? "bg-[#D8B76A] text-[#070A13]"
+              : "text-white/60 hover:bg-white/5"
+          }`}
+        >
+          💳 Subscriptions
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab("security");
+            if (setSidebarOpen) setSidebarOpen(false);
+          }}
+          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition ${
+            activeTab === "security"
+              ? "bg-[#D8B76A] text-[#070A13]"
+              : "text-white/60 hover:bg-white/5"
+          }`}
+        >
+          🔒 Security & Danger Zone
+        </button>
+      </div>
+
+      {/* Quick Stats Card — live-polled every 30s */}
+      <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A]">Performance Stats</h3>
+          <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-emerald-400 font-semibold">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            Live
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-3 bg-white/3 rounded-xl transition-all">
+            <span className="text-[9px] uppercase tracking-wider text-white/40 block">Total Views</span>
+            <span className="text-xl font-bold font-mono">
+              {stats.views !== null ? stats.views : (venue?.views ?? 0)}
+            </span>
+          </div>
+          <div className="p-3 bg-white/3 rounded-xl transition-all">
+            <span className="text-[9px] uppercase tracking-wider text-white/40 block">Inquiries</span>
+            <span className="text-xl font-bold font-mono text-[#D8B76A]">
+              {stats.inquiries !== null ? stats.inquiries : (venue?.inquiries ?? 0)}
+            </span>
+          </div>
+        </div>
+        <p className="text-[9px] text-white/30 italic">Auto-refreshes every 30 seconds.</p>
+      </div>
+    </div>
+  );
+};
+
+export default VenueSidebar;

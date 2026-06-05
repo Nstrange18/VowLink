@@ -53,7 +53,11 @@ const AdminLoginPage = () => {
       localStorage.setItem("refreshToken", res.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       toast.success("Welcome back! 🎉");
-      navigate("/admin/dashboard");
+      if (res.data.user?.role === "admin") {
+        navigate("/super-admin/dashboard");
+      } else {
+        navigate("/admin/dashboard");
+      }
     } catch (err) {
       toast.error(
         err.response?.data?.message || "Login failed. Please try again.",

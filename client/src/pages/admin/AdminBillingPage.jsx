@@ -25,6 +25,7 @@ const PLANS = [
     id: "plus",
     name: "Plus Plan",
     priceInUsd: 29,
+    priceInNgn: 2000,
     period: "one-time",
     description: "Unlock multiple design choices and contact vendors directly.",
     color: "border-[#7FA6D9]/30 bg-[#7FA6D9]/5 hover:border-[#7FA6D9]/60",
@@ -44,6 +45,7 @@ const PLANS = [
     id: "pro",
     name: "Pro Plan",
     priceInUsd: 69,
+    priceInNgn: 5000,
     period: "one-time",
     description: "Ultimate wedding invitation and planning experience.",
     color: "border-[#D8B76A]/40 bg-[#D8B76A]/5 hover:border-[#D8B76A] shadow-[0_0_25px_rgba(216,183,106,0.15)]",
@@ -103,13 +105,20 @@ const AdminBillingPage = () => {
 
   const currentTier = user.tier || "free";
 
-  const getFormattedPrice = (priceInUsd) => {
-    if (priceInUsd === 0) {
+  const getFormattedPrice = (plan) => {
+    if (plan.priceInNgn === 0 || plan.priceInUsd === 0) {
       return CURRENCIES[currency].symbol + "0";
     }
+    const baseNgn = plan.priceInNgn;
+    const ngnRate = CURRENCIES["NGN"].rate;
+    const priceInUsd = baseNgn / ngnRate;
+
     const conf = CURRENCIES[currency];
-    const converted = Math.round(priceInUsd * conf.rate);
-    return `${conf.symbol}${converted.toLocaleString()}`;
+    const converted = priceInUsd * conf.rate;
+    if (currency === "NGN") {
+      return `₦${baseNgn.toLocaleString()}`;
+    }
+    return `${conf.symbol}${converted.toFixed(2)}`;
   };
 
   const handleOpenCheckout = async (plan) => {
@@ -127,17 +136,21 @@ const AdminBillingPage = () => {
       return;
     }
 
-    // Convert plan price (USD) to NGN (rate: 1500)
-    const priceInUsd = plan.priceInUsd;
-    const priceInNgn = priceInUsd * 1500;
-    const amountInKobo = priceInNgn * 100;
+    // Paystack natively supports NGN, USD, GHS, KES, ZAR. Others will fall back to USD.
+    const paystackCurrency = ["NGN", "USD", "GHS", "KES", "ZAR"].includes(currency) ? currency : "USD";
+    const baseNgn = plan.priceInNgn;
+    const priceInUsd = baseNgn / 1500;
+    
+    const conf = CURRENCIES[paystackCurrency];
+    const convertedAmount = priceInUsd * conf.rate;
+    const amountInMinor = Math.round(convertedAmount * 100);
 
     const paystack = new window.PaystackPop();
     paystack.newTransaction({
       key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
       email: user.email,
-      amount: amountInKobo,
-      currency: "NGN",
+      amount: amountInMinor,
+      currency: paystackCurrency,
       metadata: {
         paymentType: "couple_upgrade",
         tier: plan.id,
@@ -223,7 +236,7 @@ const AdminBillingPage = () => {
                 <p className="text-white/40 text-xs mb-4">{plan.description}</p>
                 <div className="flex items-baseline gap-1 mb-6">
                   <span className="text-3xl font-bold text-white tracking-tight">
-                    {getFormattedPrice(plan.priceInUsd)}
+                    {getFormattedPrice(plan)}
                   </span>
                   <span className="text-white/40 text-xs">/ {plan.period}</span>
                 </div>

@@ -14,6 +14,7 @@ const authRoutes = require("./routes/authRoutes");
 const invitationRoutes = require("./routes/invitationRoutes");
 const rsvpRoutes = require("./routes/rsvpRoutes");
 const venueRoutes = require("./routes/venueRoutes");
+const superAdminRoutes = require("./routes/superAdminRoutes");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -30,6 +31,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/invitations", invitationRoutes);
 app.use("/api/rsvps", rsvpRoutes);
 app.use("/api/venues", venueRoutes);
+app.use("/api/super-admin", superAdminRoutes);
 
 const PORT = process.env.PORT || 5000;
 

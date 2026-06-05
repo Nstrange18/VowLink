@@ -233,30 +233,34 @@ const AdminVenuesPage = () => {
                 </button>
 
                 {/* Photo */}
-                <div className="h-48 overflow-hidden bg-white/5 relative">
+                <Link to={`/admin/venues/${venue._id}`} className="h-48 overflow-hidden bg-white/5 relative block group">
                   <img
                     src={venue.photos && venue.photos.length > 0 && venue.photos[0] ? venue.photos[0] : "/default_venue.svg"}
                     alt={venue.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = "/default_venue.svg";
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0D1220] to-transparent opacity-80" />
-                  <div className="absolute bottom-4 left-5 right-5 flex justify-between items-baseline">
+                  <div className="absolute bottom-4 left-5 right-5 flex justify-between items-baseline z-10">
                     <span className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] bg-[#D8B76A]/10 border border-[#D8B76A]/20 px-2 py-0.5 rounded-full">
                       {venue.style}
                     </span>
                     <span className="text-white/50 text-[11px] font-medium">{venue.city}</span>
                   </div>
-                </div>
+                </Link>
 
                 {/* Details Body */}
                 <div className="p-5 flex-1 flex flex-col justify-between">
                   <div className="space-y-3 mb-6">
                     <div>
-                      <h3 className="font-serif text-xl text-white leading-tight">{venue.name}</h3>
+                      <h3 className="font-serif text-xl text-white leading-tight">
+                        <Link to={`/admin/venues/${venue._id}`} className="hover:text-[#D8B76A] transition">
+                          {venue.name}
+                        </Link>
+                      </h3>
                       <p className="text-xs text-white/40 mt-1">Capacity: {venue.capacity}</p>
                       {venue.tags && venue.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
@@ -313,24 +317,30 @@ const AdminVenuesPage = () => {
 
                   {/* Action buttons based on tiers */}
                   {isFree ? (
-                    <Link
-                      to="/admin/billing"
-                      className="w-full text-center bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-[#D8B76A]/20 transition"
-                    >
-                      🔒 Unlock Venue Details
-                    </Link>
+                    <div className="space-y-2">
+                      <Link
+                        to={`/admin/venues/${venue._id}`}
+                        className="w-full text-center bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-[#D8B76A]/20 transition block"
+                      >
+                        🔍 Preview Venue Details
+                      </Link>
+                      <Link
+                        to="/admin/billing"
+                        className="w-full text-center bg-linear-to-r from-[#D8B76A] to-[#F2D894] text-[#070A13] py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider hover:shadow-[0_4px_12px_rgba(216,183,106,0.15)] transition block"
+                      >
+                        🔒 Unlock Venue Details
+                      </Link>
+                    </div>
                   ) : (
                     <div className="space-y-2">
                       <div className="grid grid-cols-2 gap-2">
-                        {/* Maps Link */}
-                        <a
-                          href={venue.mapLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-center bg-white/5 hover:bg-white/10 text-white border border-white/10 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5"
+                        {/* Details Link */}
+                        <Link
+                          to={`/admin/venues/${venue._id}`}
+                          className="text-center bg-[#D8B76A]/10 hover:bg-[#D8B76A]/20 text-[#D8B76A] border border-[#D8B76A]/30 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1"
                         >
-                          🗺 Maps
-                        </a>
+                          🔍 Details
+                        </Link>
                         {/* WhatsApp Contact */}
                         <a
                           href={`https://wa.me/${venue.whatsapp}?text=${encodeURIComponent(

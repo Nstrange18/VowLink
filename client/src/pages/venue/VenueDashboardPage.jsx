@@ -5,6 +5,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
+import VenueSidebar from "../../components/venue/VenueSidebar";
+import VenueListingForm from "../../components/venue/VenueListingForm";
+import VenuePhotosGallery from "../../components/venue/VenuePhotosGallery";
+import VenueSubscriptions from "../../components/venue/VenueSubscriptions";
 
 const detailsSchema = z.object({
   name: z.string().min(3, "Venue name must be at least 3 characters"),
@@ -396,114 +400,126 @@ const VenueDashboardPage = () => {
   const labelClass = "mb-1.5 block text-[10px] uppercase tracking-wider text-white/50 font-semibold";
 
   return (
-    <div className="min-h-screen bg-[#070A13] text-white flex flex-col">
+    <div className="min-h-screen bg-[#070A13] text-white flex flex-col overflow-x-hidden">
       {/* Header Bar */}
-      <header className="border-b border-white/10 bg-[#0D1220] py-4 px-6 sm:px-8 flex justify-between items-center">
+      <header className="border-b border-white/10 bg-[#0D1220] py-3 px-3 sm:py-4 sm:px-8 flex justify-between items-center animate-fade-in">
         <div className="flex items-center gap-3">
+          {/* Mobile Sidebar Toggle */}
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden flex flex-col gap-1.5 p-2 text-white/60 hover:text-white transition mr-1"
+            aria-label="Open menu"
+          >
+            <span className="block h-0.5 w-6 rounded bg-current" />
+            <span className="block h-0.5 w-5 rounded bg-current" />
+            <span className="block h-0.5 w-6 rounded bg-current" />
+          </button>
           <Link to="/" className="font-serif text-xl tracking-wider font-bold text-[#D8B76A] hover:opacity-90">
-            VowLink <span className="font-sans text-xs uppercase tracking-widest text-white/40 font-normal">Venues</span>
+            VowLink <span className="hidden sm:inline font-sans text-xs uppercase tracking-widest text-white/40 font-normal">Venues</span>
           </Link>
           {isFeatured && (
-            <span className="rounded-full bg-linear-to-r from-amber-400 to-yellow-500 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-[#070A13] shadow-md flex items-center gap-1">
+            <span className="hidden sm:inline-block rounded-full bg-linear-to-r from-amber-400 to-yellow-500 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-[#070A13] shadow-md">
               ⭐ Featured
             </span>
           )}
           {isListed && (
-            <span className="rounded-full bg-white/10 border border-white/20 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-white/80">
+            <span className="hidden sm:inline-block rounded-full bg-white/10 border border-white/20 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-white/80">
               ✓ Listed
             </span>
           )}
         </div>
         <div className="flex items-center gap-4">
-          <span className="hidden sm:inline text-xs text-white/55">Owner: <span className="text-[#D8B76A] font-semibold">{venue?.ownerEmail}</span></span>
+          <span className="hidden sm:inline text-xs text-white/55 font-sans">Owner: <span className="text-[#D8B76A] font-semibold">{venue?.ownerEmail}</span></span>
           <button
             onClick={handleLogout}
-            className="px-4 py-1.5 rounded-full border border-white/15 bg-white/5 text-[10px] uppercase tracking-wider font-bold hover:bg-white/10 hover:text-red-400 transition"
+            className="hidden sm:inline-block px-4 py-1.5 rounded-full border border-white/15 bg-white/5 text-[10px] uppercase tracking-wider font-bold hover:bg-white/10 hover:text-red-400 transition"
           >
             Logout
           </button>
         </div>
       </header>
 
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar drawer */}
+      <aside
+        className={`fixed top-0 left-0 z-50 flex h-full w-72 flex-col border-r border-white/10 bg-[#0D1220] p-5 transition-transform duration-300 md:hidden overflow-y-auto ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Brand Header */}
+        <div className="flex items-center justify-between pb-4 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="font-serif text-lg font-bold text-[#D8B76A]">VowLink</span>
+            <span className="text-[10px] text-white/40 uppercase font-sans font-normal">Venues</span>
+            {isFeatured && (
+              <span className="rounded-full bg-linear-to-r from-amber-400 to-yellow-500 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-widest text-[#070A13] shadow-md">
+                ⭐ Featured
+              </span>
+            )}
+            {isListed && (
+              <span className="rounded-full bg-white/10 border border-white/20 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-widest text-white/80">
+                ✓ Listed
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="text-white/40 hover:text-white text-lg p-1"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Sidebar Content (Navigation Links + Quick Stats) */}
+        <div className="flex-1 py-4">
+          <VenueSidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            photosLength={photos.length}
+            stats={stats}
+            venue={venue}
+            setSidebarOpen={setSidebarOpen}
+            isFeatured={isFeatured}
+            isListed={isListed}
+          />
+        </div>
+
+        {/* Footer / Account Details */}
+        <div className="border-t border-white/10 pt-4 text-xs text-white/55 space-y-3">
+          <div className="truncate">
+            <span className="block text-[9px] uppercase text-white/30">Owner Email</span>
+            <span className="font-semibold text-white/80">{venue?.ownerEmail}</span>
+          </div>
+          <button
+            onClick={() => { handleLogout(); setSidebarOpen(false); }}
+            className="w-full py-2 rounded-xl border border-white/10 bg-white/5 text-[10px] uppercase font-bold text-center hover:bg-white/10 hover:text-red-400 transition"
+          >
+            Logout
+          </button>
+        </div>
+      </aside>
+
       {/* Main Body */}
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-8 grid grid-cols-12 gap-8">
         {/* Left Column: Navigation / Quick Stats */}
-        <div className="col-span-12 md:col-span-3 space-y-6">
-          {/* Navigation Card */}
-          <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-4 flex flex-col gap-2">
-            <button
-              onClick={() => setActiveTab("listing")}
-              className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition ${
-                activeTab === "listing"
-                  ? "bg-[#D8B76A] text-[#070A13]"
-                  : "text-white/60 hover:bg-white/5"
-              }`}
-            >
-              🏢 Listing Details
-            </button>
-            <button
-              onClick={() => setActiveTab("photos")}
-              className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition flex justify-between items-center ${
-                activeTab === "photos"
-                  ? "bg-[#D8B76A] text-[#070A13]"
-                  : "text-white/60 hover:bg-white/5"
-              }`}
-            >
-              <span>📷 Gallery Photos</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white font-mono">
-                {photos.length}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab("billing")}
-              className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition ${
-                activeTab === "billing"
-                  ? "bg-[#D8B76A] text-[#070A13]"
-                  : "text-white/60 hover:bg-white/5"
-              }`}
-            >
-              💳 Subscriptions
-            </button>
-            <button
-              onClick={() => setActiveTab("security")}
-              className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition ${
-                activeTab === "security"
-                  ? "bg-[#D8B76A] text-[#070A13]"
-                  : "text-white/60 hover:bg-white/5"
-              }`}
-            >
-              🔒 Security & Danger Zone
-            </button>
-          </div>
-
-          {/* Quick Stats Card — live-polled every 30s */}
-          <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A]">Performance Stats</h3>
-              <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-emerald-400 font-semibold">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                Live
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-white/3 rounded-xl transition-all">
-                <span className="text-[9px] uppercase tracking-wider text-white/40 block">Total Views</span>
-                <span className="text-xl font-bold font-mono">
-                  {stats.views !== null ? stats.views : (venue?.views ?? 0)}
-                </span>
-              </div>
-              <div className="p-3 bg-white/3 rounded-xl transition-all">
-                <span className="text-[9px] uppercase tracking-wider text-white/40 block">Inquiries</span>
-                <span className="text-xl font-bold font-mono text-[#D8B76A]">
-                  {stats.inquiries !== null ? stats.inquiries : (venue?.inquiries ?? 0)}
-                </span>
-              </div>
-            </div>
-            <p className="text-[9px] text-white/30 italic">Auto-refreshes every 30 seconds.</p>
-          </div>
+        <div className="hidden md:flex flex-col col-span-12 md:col-span-3 space-y-6">
+          <VenueSidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            photosLength={photos.length}
+            stats={stats}
+            venue={venue}
+            isFeatured={isFeatured}
+            isListed={isListed}
+          />
         </div>
 
         {/* Right Column: Tab Content */}
@@ -514,7 +530,7 @@ const VenueDashboardPage = () => {
               <div className="flex items-start gap-3">
                 <span className="text-2xl">⚠️</span>
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-red-400">Pending Admin Approval</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-red-400 font-sans">Pending Admin Approval</h3>
                   <p className="text-white/60 text-xs mt-1">
                     Your venue is currently undergoing verification by VowLink Admins. It will not appear in the "Suggested Venues" couple directory until it is approved.
                   </p>
@@ -535,351 +551,42 @@ const VenueDashboardPage = () => {
 
           {/* TAB 1: LISTING DETAILS */}
           {activeTab === "listing" && (
-            <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 sm:p-8 space-y-6">
-              <div>
-                <h2 className="font-serif text-2xl">Manage Listing</h2>
-                <p className="text-xs text-white/40 mt-1">Keep your wedding venue specifications accurate and up to date.</p>
-              </div>
-
-              <form onSubmit={handleSubmit(onUpdateDetails)} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Name */}
-                  <div>
-                    <label className={labelClass}>Venue Name *</label>
-                    <input
-                      type="text"
-                      {...register("name")}
-                      className={`${inputBase} ${errors.name ? inputErr : inputOk}`}
-                    />
-                    {errors.name && <p className="mt-1 text-[10px] text-red-400">{errors.name.message}</p>}
-                  </div>
-
-                  {/* Style */}
-                  <div>
-                    <label className={labelClass}>Style Category *</label>
-                    <select
-                      {...register("style")}
-                      className="w-full rounded-xl border bg-[#070A13] border-white/10 px-4 py-2.5 text-xs text-white outline-none focus:border-[#D8B76A]/60"
-                    >
-                      <option value="Classic">Classic Elegance</option>
-                      <option value="Modern">Sleek Modern</option>
-                      <option value="Beach">Waterfront / Beach</option>
-                      <option value="Rustic">Cozy Rustic Wood</option>
-                      <option value="Garden">Outdoor Garden</option>
-                    </select>
-                    {errors.style && <p className="mt-1 text-[10px] text-red-400">{errors.style.message}</p>}
-                  </div>
-
-                  {/* City */}
-                  <div>
-                    <label className={labelClass}>City *</label>
-                    <input
-                      type="text"
-                      {...register("city")}
-                      className={`${inputBase} ${errors.city ? inputErr : inputOk}`}
-                    />
-                    {errors.city && <p className="mt-1 text-[10px] text-red-400">{errors.city.message}</p>}
-                  </div>
-
-                  {/* General Location */}
-                  <div>
-                    <label className={labelClass}>General Location *</label>
-                    <input
-                      type="text"
-                      {...register("generalLocation")}
-                      className={`${inputBase} ${errors.generalLocation ? inputErr : inputOk}`}
-                    />
-                    {errors.generalLocation && <p className="mt-1 text-[10px] text-red-400">{errors.generalLocation.message}</p>}
-                  </div>
-
-                  {/* Capacity */}
-                  <div>
-                    <label className={labelClass}>Guest Capacity *</label>
-                    <input
-                      type="text"
-                      {...register("capacity")}
-                      className={`${inputBase} ${errors.capacity ? inputErr : inputOk}`}
-                    />
-                    {errors.capacity && <p className="mt-1 text-[10px] text-red-400">{errors.capacity.message}</p>}
-                  </div>
-
-                  {/* Price Range */}
-                  <div>
-                    <label className={labelClass}>Price Range / Cost *</label>
-                    <input
-                      type="text"
-                      {...register("priceRange")}
-                      className={`${inputBase} ${errors.priceRange ? inputErr : inputOk}`}
-                    />
-                    {errors.priceRange && <p className="mt-1 text-[10px] text-red-400">{errors.priceRange.message}</p>}
-                  </div>
-
-                  {/* Phone */}
-                  <div>
-                    <label className={labelClass}>Phone Contact *</label>
-                    <input
-                      type="text"
-                      {...register("phone")}
-                      className={`${inputBase} ${errors.phone ? inputErr : inputOk}`}
-                    />
-                    {errors.phone && <p className="mt-1 text-[10px] text-red-400">{errors.phone.message}</p>}
-                  </div>
-
-                  {/* WhatsApp */}
-                  <div>
-                    <label className={labelClass}>WhatsApp Contact (intl format, no +)*</label>
-                    <input
-                      type="text"
-                      {...register("whatsapp")}
-                      className={`${inputBase} ${errors.whatsapp ? inputErr : inputOk}`}
-                    />
-                    {errors.whatsapp && <p className="mt-1 text-[10px] text-red-400">{errors.whatsapp.message}</p>}
-                  </div>
-
-                  {/* Email */}
-                  <div>
-                    <label className={labelClass}>Public Email *</label>
-                    <input
-                      type="email"
-                      {...register("email")}
-                      className={`${inputBase} ${errors.email ? inputErr : inputOk}`}
-                    />
-                    {errors.email && <p className="mt-1 text-[10px] text-red-400">{errors.email.message}</p>}
-                  </div>
-
-                  {/* Website */}
-                  <div>
-                    <label className={labelClass}>Website Link (Optional)</label>
-                    <input
-                      type="text"
-                      {...register("website")}
-                      className={`${inputBase} ${errors.website ? inputErr : inputOk}`}
-                    />
-                    {errors.website && <p className="mt-1 text-[10px] text-red-400">{errors.website.message}</p>}
-                  </div>
-                </div>
-
-                {/* Address */}
-                <div>
-                  <label className={labelClass}>Full Address *</label>
-                  <input
-                    type="text"
-                    {...register("fullAddress")}
-                    className={`${inputBase} ${errors.fullAddress ? inputErr : inputOk}`}
-                  />
-                  {errors.fullAddress && <p className="mt-1 text-[10px] text-red-400">{errors.fullAddress.message}</p>}
-                </div>
-
-                {/* Map Link */}
-                <div>
-                  <label className={labelClass}>Google Maps URL *</label>
-                  <input
-                    type="text"
-                    {...register("mapLink")}
-                    className={`${inputBase} ${errors.mapLink ? inputErr : inputOk}`}
-                  />
-                  {errors.mapLink && <p className="mt-1 text-[10px] text-red-400">{errors.mapLink.message}</p>}
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className={labelClass}>Description *</label>
-                  <textarea
-                    rows={4}
-                    {...register("description")}
-                    className="w-full rounded-xl border bg-white/5 px-4 py-3 text-xs text-white placeholder-white/30 outline-none resize-none focus:border-[#D8B76A]/60 transition"
-                  />
-                  {errors.description && <p className="mt-1 text-[10px] text-red-400">{errors.description.message}</p>}
-                </div>
-
-                <div className="flex justify-end pt-4">
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="px-8 py-3 rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] text-xs font-bold uppercase tracking-widest text-[#070A13] hover:-translate-y-0.5 transition hover:shadow-lg disabled:opacity-60 cursor-pointer"
-                  >
-                    {saving ? "Saving..." : "Save Changes"}
-                  </button>
-                </div>
-              </form>
-            </div>
+            <VenueListingForm
+              register={register}
+              errors={errors}
+              handleSubmit={handleSubmit}
+              onUpdateDetails={onUpdateDetails}
+              saving={saving}
+            />
           )}
 
           {/* TAB 2: GALLERY PHOTOS */}
           {activeTab === "photos" && (
-            <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 sm:p-8 space-y-6">
-              <div className="flex justify-between items-start flex-wrap gap-4">
-                <div>
-                  <h2 className="font-serif text-2xl">Venue Image Gallery</h2>
-                  <p className="text-xs text-white/40 mt-1">Upload high-resolution shots to display to prospective couples.</p>
-                </div>
-                <div className="bg-white/5 border border-white/10 px-4 py-2 rounded-xl text-center">
-                  <span className="text-[10px] text-white/40 block">Staged Slots</span>
-                  <span className="text-lg font-bold font-mono text-[#D8B76A]">{photos.length} / {isBasic ? 3 : isListed ? 8 : 15}</span>
-                </div>
-              </div>
-
-              {/* Upload Controls */}
-              <div className="p-6 rounded-2xl border border-dashed border-white/10 bg-white/3 text-center space-y-3">
-                <span className="text-3xl block">📁</span>
-                <p className="text-xs text-white/60">Upload venue cover and hall details photos</p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-6 py-2 rounded-xl bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] hover:bg-[#D8B76A]/20 text-xs font-semibold uppercase tracking-wider transition cursor-pointer"
-                >
-                  Browse Device Photos
-                </button>
-                <p className="text-[9px] text-white/30">Select image files (.jpg, .png). Up to 5MB.</p>
-              </div>
-
-              {/* Photo Grid */}
-              {photos.length === 0 ? (
-                <p className="text-center text-xs text-white/30 py-8">No photos uploaded yet. Staged photos will be listed here.</p>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {photos.map((photo, index) => (
-                    <div key={index} className="h-32 rounded-xl overflow-hidden border border-white/10 relative group bg-white/5">
-                      <img src={photo} alt={`Venue ${index + 1}`} className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(index)}
-                        className="absolute inset-0 bg-black/75 flex items-center justify-center text-[10px] text-red-400 font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Save changes wrapper */}
-              <div className="flex justify-end pt-4 border-t border-white/5">
-                <button
-                  type="button"
-                  onClick={handleSubmit(onUpdateDetails)}
-                  disabled={saving}
-                  className="px-8 py-3 rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] text-xs font-bold uppercase tracking-widest text-[#070A13] hover:-translate-y-0.5 transition hover:shadow-lg disabled:opacity-60 cursor-pointer"
-                >
-                  {saving ? "Saving..." : "Save Staged Photos"}
-                </button>
-              </div>
-            </div>
+            <VenuePhotosGallery
+              photos={photos}
+              setPhotos={setPhotos}
+              venue={venue}
+              isBasic={isBasic}
+              isListed={isListed}
+              fileInputRef={fileInputRef}
+              handlePhotoUpload={handlePhotoUpload}
+              removePhoto={removePhoto}
+              handleSubmit={handleSubmit}
+              onUpdateDetails={onUpdateDetails}
+              saving={saving}
+            />
           )}
 
           {/* TAB 3: SUBSCRIPTIONS & CHECKOUT */}
           {activeTab === "billing" && (
-            <div className="space-y-6">
-              {/* Current Subscription Card */}
-              <div className="rounded-3xl border border-[#D8B76A]/30 bg-linear-to-b from-[#121829] to-[#0D1220] p-6 sm:p-8">
-                <div className="flex justify-between items-start flex-wrap gap-4">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-[#D8B76A] tracking-[0.2em]">Partner Status</span>
-                    <h2 className="font-serif text-3xl text-white mt-1 capitalize">{tier} Plan</h2>
-                    <p className="text-xs text-white/50 mt-2">
-                      {isBasic && "Your venue is listed in VowLink with base features. Photos are capped at 3."}
-                      {isListed && "Priority listed. Enhanced visibility, WhatsApp direct contacts enabled."}
-                      {isFeatured && "Premium top placement. Golden Sponsored badge, up to 15 photos."}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-[#D8B76A] text-[#070A13] px-4 py-1.5 text-xs font-bold uppercase tracking-wider">
-                    {isBasic ? "Free Directory" : "Active Subscription"}
-                  </div>
-                </div>
-
-                {/* Subscription metadata */}
-                {!isBasic && venue?.subscriptionExpiry && (
-                  <div className="mt-6 pt-4 border-t border-white/10 flex justify-between items-center text-xs text-white/55">
-                    <span>Next Renewal / Expiry:</span>
-                    <span className="font-mono text-white font-semibold">{new Date(venue.subscriptionExpiry).toLocaleDateString()}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Upgrade Tiers Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                {/* Basic (Free) */}
-                <div className={`rounded-2xl border p-5 bg-[#0D1220] flex flex-col justify-between ${isBasic ? "border-[#D8B76A]/30" : "border-white/10 opacity-70"}`}>
-                  <div className="space-y-3">
-                    <p className="text-[9px] uppercase font-bold tracking-widest text-white/40">Tier 1</p>
-                    <h3 className="font-serif text-lg text-white font-semibold">Basic Free</h3>
-                    <p className="text-2xl font-serif font-bold text-white">₦0 <span className="text-xs font-normal text-white/40">/ month</span></p>
-                    <ul className="space-y-2 text-[10px] text-white/60">
-                      <li>• Listed in suggested venues</li>
-                      <li>• 3 Photo uploads</li>
-                      <li>• Contact details redacted for free couples</li>
-                    </ul>
-                  </div>
-                  <button
-                    disabled
-                    className="w-full mt-6 py-2 rounded-xl bg-white/5 text-white/30 text-xs font-semibold uppercase border border-dashed border-white/15"
-                  >
-                    {isBasic ? "Current Plan" : "Base Account"}
-                  </button>
-                </div>
-
-                {/* Listed */}
-                <div className={`rounded-2xl border p-5 bg-[#0D1220] flex flex-col justify-between ${isListed ? "border-[#D8B76A]/30" : "border-white/10"}`}>
-                  <div className="space-y-3">
-                    <p className="text-[9px] uppercase font-bold tracking-widest text-[#D8B76A]">Tier 2 (Recommended)</p>
-                    <h3 className="font-serif text-lg text-white font-semibold">Priority Listed</h3>
-                    <p className="text-2xl font-serif font-bold text-[#D8B76A]">₦5,000 <span className="text-xs font-normal text-white/40">/ month</span></p>
-                    <ul className="space-y-2 text-[10px] text-white/60">
-                      <li>• Priority listing in directory</li>
-                      <li>• 8 Photo uploads</li>
-                      <li>• Direct WhatsApp chat integration</li>
-                      <li>• Full address and cost public to all</li>
-                    </ul>
-                  </div>
-                  <button
-                    onClick={() => handleInitiateUpgrade("listed")}
-                    disabled={isListed}
-                    className={`w-full mt-6 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition ${
-                      isListed
-                        ? "bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A]"
-                        : "bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13] cursor-pointer"
-                    }`}
-                  >
-                    {isListed ? "Current Plan" : isFeatured ? "Downgrade (Basic)" : "Upgrade Account"}
-                  </button>
-                </div>
-
-                {/* Featured */}
-                <div className={`rounded-2xl border p-5 bg-[#0D1220] flex flex-col justify-between ${isFeatured ? "border-[#D8B76A]/30" : "border-white/10"}`}>
-                  <div className="space-y-3">
-                    <p className="text-[9px] uppercase font-bold tracking-widest text-amber-400">Tier 3 (Exclusive)</p>
-                    <h3 className="font-serif text-lg text-white font-semibold">Top Featured</h3>
-                    <p className="text-2xl font-serif font-bold text-amber-400">₦15,000 <span className="text-xs font-normal text-white/40">/ month</span></p>
-                    <ul className="space-y-2 text-[10px] text-white/60">
-                      <li>• Sticky placement at the top</li>
-                      <li>• 15 Photo uploads</li>
-                      <li>• Direct WhatsApp + Direct Inquiries</li>
-                      <li>• Golden "Sponsored" badge</li>
-                      <li>• Custom Tags & Website linkage</li>
-                    </ul>
-                  </div>
-                  <button
-                    onClick={() => handleInitiateUpgrade("featured")}
-                    disabled={isFeatured}
-                    className={`w-full mt-6 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition ${
-                      isFeatured
-                        ? "bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A]"
-                        : "bg-linear-to-r from-amber-400 to-yellow-500 text-[#070A13] hover:opacity-95 cursor-pointer"
-                    }`}
-                  >
-                    {isFeatured ? "Current Plan" : "Go Premium"}
-                  </button>
-                </div>
-              </div>
-            </div>
+            <VenueSubscriptions
+              venue={venue}
+              tier={tier}
+              isBasic={isBasic}
+              isListed={isListed}
+              isFeatured={isFeatured}
+              handleInitiateUpgrade={handleInitiateUpgrade}
+            />
           )}
 
           {/* TAB 4: SECURITY & DANGER ZONE */}
@@ -1033,8 +740,8 @@ const VenueDashboardPage = () => {
 
       {/* Subscription Paystack Checkout Modal */}
       {checkoutModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/30 bg-[#0D1220] p-6 text-white shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/30 bg-[#0D1220] p-6 text-white shadow-2xl relative">
             <button
               onClick={() => setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false })}
               className="absolute top-5 right-5 text-white/40 hover:text-white transition text-lg"

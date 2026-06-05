@@ -61,6 +61,12 @@ const venueSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    safetyFireExits: { type: Boolean, default: false },
+    safetyCctv: { type: Boolean, default: false },
+    safetySecurity: { type: Boolean, default: false },
+    safetyStructural: { type: Boolean, default: false },
+    safetyInsurance: { type: Boolean, default: false },
+    trustScore: { type: Number, default: 9.0 },
   },
   { timestamps: true }
 );

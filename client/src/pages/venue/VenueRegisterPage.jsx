@@ -233,6 +233,13 @@ const VenueRegisterPage = () => {
             {errors.mapLink && <p className="mt-1 text-[10px] text-red-400">{errors.mapLink.message}</p>}
           </div>
 
+          <div className="bg-[#D8B76A]/5 border border-[#D8B76A]/20 p-3 rounded-xl flex items-start gap-2">
+            <span className="text-xs mt-0.5">⚠️</span>
+            <p className="text-[10px] text-white/70 leading-relaxed">
+              <strong className="text-[#D8B76A]">Location Precision:</strong> Please make sure your address and Google Maps links are as precise and accurate as possible. Couples and their guests rely heavily on this information to reach your venue without navigation errors.
+            </p>
+          </div>
+
           {/* Description */}
           <div>
             <label className={labelClass}>Description *</label>

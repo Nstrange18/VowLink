@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom'
 
 const navLinks = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: '◈' },
@@ -82,6 +82,19 @@ const AdminLayout = () => {
         ))}
       </nav>
 
+      {/* Super Admin Switch — only visible to admins */}
+      {user.role === 'admin' && (
+        <div className="px-4 pb-2">
+          <Link
+            to="/super-admin/dashboard"
+            className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-amber-400 bg-amber-400/10 border border-amber-400/20 hover:bg-amber-400/20 transition-all duration-200"
+          >
+            <span className="text-base">⚡</span>
+            Super Admin Panel
+          </Link>
+        </div>
+      )}
+
       {/* Logout */}
       <div className="border-t border-[#D8B76A]/20 px-4 py-4">
         <button
@@ -95,12 +108,7 @@ const AdminLayout = () => {
   )
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#070A13]">
-      {/* ── Desktop sidebar (lg+) ─────────────────────────────── */}
-      <aside className="hidden lg:flex w-64 flex-col border-r border-[#D8B76A]/20 bg-[#090D19] h-full shrink-0">
-        <SidebarContent />
-      </aside>
-
+    <div className="relative h-screen w-screen overflow-hidden bg-[#070A13]">
       {/* ── Mobile sidebar overlay ────────────────────────────── */}
       {sidebarOpen && (
         <div
@@ -108,6 +116,7 @@ const AdminLayout = () => {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+      {/* ── Mobile sidebar drawer ── */}
       <aside
         className={`fixed top-0 left-0 z-50 flex h-full w-72 flex-col border-r border-[#D8B76A]/20 bg-[#090D19] transition-transform duration-300 lg:hidden ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -116,40 +125,48 @@ const AdminLayout = () => {
         <SidebarContent />
       </aside>
 
-      {/* ── Main area ─────────────────────────────────────────── */}
-      <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
-        {/* Mobile topbar */}
-        <header className="flex items-center justify-between border-b border-[#D8B76A]/20 bg-[#090D19] px-4 py-3 lg:hidden shrink-0">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="flex flex-col gap-1.5 p-1 text-white/60 hover:text-white transition"
-            aria-label="Open menu"
-          >
-            <span className="block h-0.5 w-6 rounded bg-current" />
-            <span className="block h-0.5 w-5 rounded bg-current" />
-            <span className="block h-0.5 w-6 rounded bg-current" />
-          </button>
-          <div className="flex items-center gap-2">
-            <img src="/vowlink-icon.png" alt="" className="h-5 w-5 object-contain opacity-80" />
-            <span className="font-serif text-base text-white">Vowlink</span>
-            <span className={`text-[8px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full ${
-              user.tier === 'pro'
-                ? 'bg-linear-to-r from-amber-400 to-yellow-500 text-[#070A13]'
-                : user.tier === 'plus'
-                ? 'bg-[#7FA6D9] text-[#070A13]'
-                : 'bg-white/10 text-white/60'
-            }`}>
-              {user.tier || 'free'}
-            </span>
-          </div>
-          <div className="flex items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-2 py-0.5">
-            <span className="text-xs font-medium text-[#D8B76A]">{initials}</span>
-          </div>
-        </header>
+      {/* ── Main layout flex flow ── */}
+      <div className="flex h-full w-full overflow-hidden">
+        {/* ── Desktop sidebar (lg+) ─────────────────────────────── */}
+        <aside className="hidden lg:flex w-64 flex-col border-r border-[#D8B76A]/20 bg-[#090D19] h-full shrink-0">
+          <SidebarContent />
+        </aside>
 
-        <main className="flex-1 overflow-y-auto">
-          <Outlet />
-        </main>
+        {/* ── Main area ─────────────────────────────────────────── */}
+        <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
+          {/* Mobile topbar */}
+          <header className="flex items-center justify-between border-b border-[#D8B76A]/20 bg-[#090D19] px-2 sm:px-4 py-3 lg:hidden shrink-0">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="flex flex-col gap-1.5 p-1 text-white/60 hover:text-white transition"
+              aria-label="Open menu"
+            >
+              <span className="block h-0.5 w-6 rounded bg-current" />
+              <span className="block h-0.5 w-5 rounded bg-current" />
+              <span className="block h-0.5 w-6 rounded bg-current" />
+            </button>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <img src="/vowlink-icon.png" alt="" className="h-5 w-5 object-contain opacity-80" />
+              <span className="font-serif text-sm sm:text-base text-white">Vowlink</span>
+              <span className={`text-[7px] sm:text-[8px] uppercase font-bold tracking-widest px-1.5 sm:px-2 py-0.5 rounded-full ${
+                user.tier === 'pro'
+                  ? 'bg-linear-to-r from-amber-400 to-yellow-500 text-[#070A13]'
+                  : user.tier === 'plus'
+                  ? 'bg-[#7FA6D9] text-[#070A13]'
+                  : 'bg-white/10 text-white/60'
+              }`}>
+                {user.tier || 'free'}
+              </span>
+            </div>
+            <div className="flex items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-1.5 sm:px-2 py-0.5">
+              <span className="text-[10px] sm:text-xs font-medium text-[#D8B76A]">{initials}</span>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-y-auto overflow-x-hidden">
+            <Outlet />
+          </main>
+        </div>
       </div>
     </div>
   )

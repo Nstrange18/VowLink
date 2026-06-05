@@ -87,6 +87,10 @@ const userPayload = (user) => ({
   coupleOverlayOpacity: typeof user.coupleOverlayOpacity === "number" ? user.coupleOverlayOpacity : 0.45,
   musicUrl: user.musicUrl || "",
   shortlistedVenues: user.shortlistedVenues || [],
+  role: user.role || "user",
+  customTextAlign: user.customTextAlign || "center",
+  customHorizontalOffset: typeof user.customHorizontalOffset === "number" ? user.customHorizontalOffset : 0,
+  smartLayoutEnabled: typeof user.smartLayoutEnabled === "boolean" ? user.smartLayoutEnabled : true,
 });
 
 const generateAccessToken = (user) =>
@@ -124,6 +128,10 @@ const userPublic = (user) => ({
   musicUrl: user.musicUrl || "",
   shortlistedVenues: user.shortlistedVenues || [],
   pageBgTemplate: user.pageBgTemplate || "",
+  role: user.role || "user",
+  customTextAlign: user.customTextAlign || "center",
+  customHorizontalOffset: typeof user.customHorizontalOffset === "number" ? user.customHorizontalOffset : 0,
+  smartLayoutEnabled: typeof user.smartLayoutEnabled === "boolean" ? user.smartLayoutEnabled : true,
 });
 
 // ── Email helper ──────────────────────────────────────────────────────────────
@@ -311,6 +319,9 @@ router.put("/me", protect, async (req, res) => {
       galleryPhotos,
       couplePhotoUrl,
       coupleOverlayOpacity,
+      customTextAlign,
+      customHorizontalOffset,
+      smartLayoutEnabled,
     } = req.body;
 
     const user = await User.findById(req.user.id);
@@ -354,6 +365,7 @@ router.put("/me", protect, async (req, res) => {
       user.customTextColor = "#1A2E4A";
       user.customVerticalOffset = 0;
       user.customTextSize = 1.0;
+      user.customHorizontalOffset = 0;
       user.couplePhotoUrl = "";
       user.coupleOverlayOpacity = 0.45;
     } else if (user.tier === "plus") {
@@ -393,6 +405,7 @@ router.put("/me", protect, async (req, res) => {
       // Pro-only manual offsets are cleared/locked for Plus
       user.customVerticalOffset = 0;
       user.customTextSize = 1.0;
+      user.customHorizontalOffset = 0;
     } else if (user.tier === "pro") {
       // Pro tier unlocks everything
       if (cardTheme) user.cardTheme = cardTheme;
@@ -404,10 +417,19 @@ router.put("/me", protect, async (req, res) => {
       if (customTextColor !== undefined) user.customTextColor = customTextColor;
       if (customCardBg !== undefined) user.customCardBg = customCardBg;
       if (typeof customVerticalOffset === "number") user.customVerticalOffset = customVerticalOffset;
+      if (typeof customHorizontalOffset === "number") user.customHorizontalOffset = customHorizontalOffset;
       if (typeof customTextSize === "number") user.customTextSize = customTextSize;
       if (couplePhotoUrl !== undefined) user.couplePhotoUrl = couplePhotoUrl;
       if (typeof coupleOverlayOpacity === "number") user.coupleOverlayOpacity = coupleOverlayOpacity;
       if (pageBgTemplate !== undefined) user.pageBgTemplate = pageBgTemplate;
+    }
+
+    if (customTextAlign && ["left", "center", "right"].includes(customTextAlign)) {
+      user.customTextAlign = customTextAlign;
+    }
+
+    if (typeof smartLayoutEnabled === "boolean") {
+      user.smartLayoutEnabled = smartLayoutEnabled;
     }
 
     await user.save();
@@ -445,6 +467,23 @@ router.post("/upgrade", protect, async (req, res) => {
     res.status(500).json({ message: "Upgrade failed", error: error.message });
   }
 });
+
+// ── POST /api/auth/make-admin-dev — Dev local admin seeding ──────────────────────
+router.post("/make-admin-dev", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required." });
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: "User not found." });
+    
+    user.role = "admin";
+    await user.save();
+    res.status(200).json({ message: `${email} is now a Super Admin! ✓`, user });
+  } catch (error) {
+    res.status(500).json({ message: "Seeding failed", error: error.message });
+  }
+});
+
 
 // ── POST /api/auth/forgot-password ───────────────────────────────────────────
 router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
@@ -642,15 +681,38 @@ router.post("/upgrade/verify", protect, async (req, res) => {
     }
 
     const paystackData = response.data.data;
-    const expectedAmount = tier === "plus" ? 29 * 1500 * 100 : 69 * 1500 * 100;
     const paystackAmount = paystackData.amount;
     const paystackCurrency = paystackData.currency;
 
-    let isValidAmount = false;
+    const baseNgn = tier === "plus" ? 2000 : 5000;
+    const priceInUsd = baseNgn / 1500;
+
+    let expectedAmount = 0;
     if (paystackCurrency === "NGN") {
-      isValidAmount = paystackAmount >= expectedAmount - 500 * 100;
+      expectedAmount = baseNgn * 100;
     } else if (paystackCurrency === "USD") {
-      isValidAmount = paystackAmount >= (tier === "plus" ? 29 * 100 : 69 * 100);
+      expectedAmount = priceInUsd * 1.0 * 100;
+    } else if (paystackCurrency === "GHS") {
+      expectedAmount = priceInUsd * 14.5 * 100;
+    } else if (paystackCurrency === "KES") {
+      expectedAmount = priceInUsd * 130 * 100;
+    } else if (paystackCurrency === "ZAR") {
+      expectedAmount = priceInUsd * 18.5 * 100;
+    } else if (paystackCurrency === "EUR") {
+      expectedAmount = priceInUsd * 0.92 * 100;
+    } else if (paystackCurrency === "GBP") {
+      expectedAmount = priceInUsd * 0.79 * 100;
+    } else if (paystackCurrency === "CAD") {
+      expectedAmount = priceInUsd * 1.36 * 100;
+    } else if (paystackCurrency === "AUD") {
+      expectedAmount = priceInUsd * 1.5 * 100;
+    }
+
+    let isValidAmount = false;
+    if (expectedAmount > 0) {
+      const minAllowed = expectedAmount * 0.95;
+      const maxAllowed = expectedAmount * 1.05;
+      isValidAmount = paystackAmount >= minAllowed && paystackAmount <= maxAllowed;
     } else {
       isValidAmount = paystackAmount > 0;
     }

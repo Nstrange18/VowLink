@@ -70,7 +70,7 @@ const ColorPicker = ({ value = [], onChange }) => {
       )}
 
       {/* Colour palette grid */}
-      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
         {WEDDING_COLORS.map(({ name, hex }) => {
           const selected = value.includes(name)
           const disabled = !selected && value.length >= 5
