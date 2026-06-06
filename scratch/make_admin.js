@@ -1,8 +1,12 @@
 const path = require('path');
-module.paths.push('c:/Users/USER/Desktop/Projects/VowLink/server/node_modules');
+const dotenv = require('dotenv');
+
+// Load environment variables from server/.env
+dotenv.config({ path: path.join(__dirname, '../server/.env') });
+
 const mongoose = require('mongoose');
 
-const mongoUri = "mongodb+srv://nwubachukwuemelie_db_user:Nwubaallen%2D12@cluster0.xv3bptq.mongodb.net/VowLink?retryWrites=true&w=majority&appName=Cluster0";
+const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/vowlink";
 
 const emailToMakeAdmin = process.argv[2];
 

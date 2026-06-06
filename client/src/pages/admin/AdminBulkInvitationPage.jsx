@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 
 const AdminBulkInvitationPage = () => {
   const navigate = useNavigate();
+  const csvInputRef = useRef(null);
   const [inputText, setInputText] = useState("");
   const [defaultGreeting, setDefaultGreeting] = useState("Dear {name},");
   const [defaultMessage, setDefaultMessage] = useState(
@@ -90,6 +91,25 @@ const AdminBulkInvitationPage = () => {
     setInputText(samples.join("\n"));
   };
 
+  const handleCsvUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith(".csv") && !file.name.endsWith(".txt")) {
+      toast.error("Please upload a .csv or .txt file.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target.result;
+      setInputText(text.trim());
+      toast.success(`✓ ${file.name} loaded — ${text.trim().split("\n").filter(Boolean).length} rows detected.`);
+    };
+    reader.onerror = () => toast.error("Failed to read the file.");
+    reader.readAsText(file);
+    // Reset the input so the same file can be re-selected
+    e.target.value = "";
+  };
+
   return (
     <div className="p-4 sm:p-8 max-w-5xl mx-auto text-white">
       <div className="mb-6">
@@ -105,13 +125,30 @@ const AdminBulkInvitationPage = () => {
         <div className="space-y-5 rounded-2xl border border-white/10 bg-[#0D1220] p-5 sm:p-6">
           <div className="flex justify-between items-center">
             <label className="block text-xs uppercase tracking-widest text-[#D8B76A]">Guest List Input</label>
-            <button
-              type="button"
-              onClick={loadSampleData}
-              className="text-[10px] uppercase font-semibold text-[#D8B76A] hover:underline"
-            >
-              ⚡ Load Sample Format
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Hidden CSV file input */}
+              <input
+                ref={csvInputRef}
+                type="file"
+                accept=".csv,.txt"
+                onChange={handleCsvUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => csvInputRef.current?.click()}
+                className="text-[10px] uppercase font-semibold text-[#7FA6D9] hover:underline flex items-center gap-1"
+              >
+                📂 Upload CSV
+              </button>
+              <button
+                type="button"
+                onClick={loadSampleData}
+                className="text-[10px] uppercase font-semibold text-[#D8B76A] hover:underline"
+              >
+                ⚡ Load Sample
+              </button>
+            </div>
           </div>
 
           <textarea

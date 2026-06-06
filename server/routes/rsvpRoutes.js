@@ -1,8 +1,10 @@
 const express = require("express");
 const RSVP = require("../models/RSVP");
 const Invitation = require("../models/Invitation");
+const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 const rateLimit = require("express-rate-limit");
+const { sendRsvpCoupleAlert, sendRsvpGuestConfirmation } = require("../utils/email");
 
 const router = express.Router();
 
@@ -30,7 +32,7 @@ const getInvitedGuestCount = (invitation, plusOnePolicy) => {
 // PUBLIC: Submit RSVP (guests don't need to be logged in)
 router.post("/", rsvpLimiter, async (req, res) => {
   try {
-    const { invitationId, guestName, phone, attending, mealPreference, message } = req.body;
+    const { invitationId, guestName, guestEmail, phone, attending, mealPreference, message } = req.body;
 
     if (!invitationId || !guestName || !phone || !attending) {
       return res.status(400).json({
@@ -38,7 +40,7 @@ router.post("/", rsvpLimiter, async (req, res) => {
       });
     }
 
-    const invitation = await Invitation.findById(invitationId).populate("userId", "plusOnePolicy");
+    const invitation = await Invitation.findById(invitationId).populate("userId", "plusOnePolicy email partner1Name partner2Name weddingDate venue");
     if (!invitation) {
       return res.status(404).json({ message: "Invitation not found." });
     }
@@ -50,6 +52,7 @@ router.post("/", rsvpLimiter, async (req, res) => {
     const rsvp = await RSVP.create({
       invitationId,
       guestName,
+      guestEmail: guestEmail || "",
       phone,
       attending,
       numberOfGuests,
@@ -59,6 +62,34 @@ router.post("/", rsvpLimiter, async (req, res) => {
 
     invitation.hasRSVPed = true;
     await invitation.save();
+
+    // ── Fire emails async (don't block response) ──────────────────────────
+    const couple = invitation.userId;
+    if (couple) {
+      const coupleName = `${couple.partner1Name} & ${couple.partner2Name}`;
+
+      // Alert the couple
+      sendRsvpCoupleAlert({
+        coupleEmail: couple.email,
+        coupleName,
+        guestName,
+        attending,
+        guestCount: numberOfGuests,
+        weddingDate: couple.weddingDate,
+      }).catch(() => {});
+
+      // Confirm to guest if they provided an email
+      if (guestEmail) {
+        sendRsvpGuestConfirmation({
+          guestEmail,
+          guestName,
+          coupleName,
+          attending,
+          weddingDate: couple.weddingDate,
+          venue: couple.venue,
+        }).catch(() => {});
+      }
+    }
 
     res.status(201).json({ message: "RSVP submitted successfully", data: rsvp });
   } catch (error) {

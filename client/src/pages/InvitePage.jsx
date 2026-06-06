@@ -311,6 +311,7 @@ const InvitePage = () => {
       await api.post("/rsvps", {
         invitationId: invitation._id,
         guestName: data.guestName,
+        guestEmail: data.guestEmail || "",
         phone: data.phone,
         attending: data.attending,
         mealPreference: data.mealPreference,
@@ -1294,6 +1295,21 @@ const InvitePage = () => {
                   className={`${inputClass} ${errors.phone ? "border-red-400/50" : ""}`}
                 />
                 {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>}
+              </div>
+
+              {/* Optional Email for confirmation */}
+              <div>
+                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
+                  Email <span className="text-[#1A2E4A]/30 normal-case">(optional — for confirmation)</span>
+                </label>
+                <input
+                  id="rsvp-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  {...register("guestEmail")}
+                  className={`${inputClass} ${errors.guestEmail ? "border-red-400/50" : ""}`}
+                />
+                {errors.guestEmail && <p className="mt-1 text-xs text-red-500">{errors.guestEmail.message}</p>}
               </div>
 
               {/* Attending toggle */}

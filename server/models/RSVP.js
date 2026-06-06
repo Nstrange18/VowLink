@@ -8,6 +8,7 @@ const rsvpSchema = new mongoose.Schema(
       required: true,
     },
     guestName: { type: String, required: true, trim: true },
+    guestEmail: { type: String, trim: true, lowercase: true, default: "" },
     phone: { type: String, required: true, trim: true },
     attending: { type: String, enum: ["Yes", "No"], required: true },
     numberOfGuests: { type: Number, default: 1, min: 0 },

@@ -64,12 +64,14 @@ const VenueDashboardPage = () => {
 
   // Change password state
   const [currentPassword, setCurrentPassword] = useState("");
+  
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [submittingPassword, setSubmittingPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Delete account state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -400,7 +402,7 @@ const VenueDashboardPage = () => {
   const labelClass = "mb-1.5 block text-[10px] uppercase tracking-wider text-white/50 font-semibold";
 
   return (
-    <div className="min-h-screen bg-[#070A13] text-white flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-[#070A13] text-white flex flex-col overflow-x-auto">
       {/* Header Bar */}
       <header className="border-b border-white/10 bg-[#0D1220] py-3 px-3 sm:py-4 sm:px-8 flex justify-between items-center animate-fade-in">
         <div className="flex items-center gap-3">

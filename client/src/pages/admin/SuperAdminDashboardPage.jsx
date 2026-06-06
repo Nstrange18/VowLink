@@ -318,10 +318,10 @@ const SuperAdminDashboardPage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-white/15 gap-4 overflow-x-auto scrollbar-none">
+      <div className="flex border-b border-white/15 gap-4 overflow-x-auto scrollbar-none pb-0.5">
         <button
           onClick={() => setActiveTab("analytics")}
-          className={`pb-4 text-xs font-semibold uppercase tracking-wider transition ${
+          className={`pb-4 text-xs font-semibold uppercase tracking-wider transition shrink-0 whitespace-nowrap ${
             activeTab === "analytics" ? "text-[#D8B76A] border-b-2 border-[#D8B76A]" : "text-white/40 hover:text-white"
           }`}
         >
@@ -329,7 +329,7 @@ const SuperAdminDashboardPage = () => {
         </button>
         <button
           onClick={() => setActiveTab("venues")}
-          className={`pb-4 text-xs font-semibold uppercase tracking-wider transition ${
+          className={`pb-4 text-xs font-semibold uppercase tracking-wider transition shrink-0 whitespace-nowrap ${
             activeTab === "venues" ? "text-[#D8B76A] border-b-2 border-[#D8B76A]" : "text-white/40 hover:text-white"
           }`}
         >
@@ -337,7 +337,7 @@ const SuperAdminDashboardPage = () => {
         </button>
         <button
           onClick={() => setActiveTab("couples")}
-          className={`pb-4 text-xs font-semibold uppercase tracking-wider transition ${
+          className={`pb-4 text-xs font-semibold uppercase tracking-wider transition shrink-0 whitespace-nowrap ${
             activeTab === "couples" ? "text-[#D8B76A] border-b-2 border-[#D8B76A]" : "text-white/40 hover:text-white"
           }`}
         >
@@ -345,7 +345,7 @@ const SuperAdminDashboardPage = () => {
         </button>
         <button
           onClick={() => setActiveTab("inquiries")}
-          className={`pb-4 text-xs font-semibold uppercase tracking-wider transition ${
+          className={`pb-4 text-xs font-semibold uppercase tracking-wider transition shrink-0 whitespace-nowrap ${
             activeTab === "inquiries" ? "text-[#D8B76A] border-b-2 border-[#D8B76A]" : "text-white/40 hover:text-white"
           }`}
         >

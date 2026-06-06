@@ -20,13 +20,134 @@ const StatCard = ({ label, value, color, sub }) => (
   </div>
 )
 
+// ── Wedding Countdown Widget ──────────────────────────────────────────────────
+const CountdownWidget = ({ weddingDate }) => {
+  const [daysLeft, setDaysLeft] = useState(null)
+
+  useEffect(() => {
+    if (!weddingDate) return
+    const update = () => {
+      const now = new Date()
+      const target = new Date(weddingDate)
+      target.setHours(0, 0, 0, 0)
+      now.setHours(0, 0, 0, 0)
+      const diff = Math.round((target - now) / (1000 * 60 * 60 * 24))
+      setDaysLeft(diff)
+    }
+    update()
+    const id = setInterval(update, 60000)
+    return () => clearInterval(id)
+  }, [weddingDate])
+
+  if (!weddingDate) {
+    return (
+      <div className="rounded-2xl border border-dashed border-[#D8B76A]/20 bg-[#D8B76A]/5 px-6 py-8 text-center">
+        <p className="text-3xl mb-3">💍</p>
+        <p className="text-white/60 text-sm mb-3">Your wedding date isn't set yet.</p>
+        <Link
+          to="/admin/settings"
+          className="inline-block rounded-full bg-[#D8B76A]/20 border border-[#D8B76A]/30 px-5 py-2 text-xs font-semibold uppercase tracking-wider text-[#D8B76A] hover:bg-[#D8B76A]/30 transition"
+        >
+          Set Your Date →
+        </Link>
+      </div>
+    )
+  }
+
+  if (daysLeft === null) return null
+
+  const formattedDate = new Date(weddingDate).toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  })
+
+  if (daysLeft < 0) {
+    return (
+      <div className="rounded-2xl border border-[#D8B76A]/30 bg-gradient-to-br from-[#D8B76A]/15 to-[#D8B76A]/5 px-6 py-8 text-center relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none opacity-10" style={{ background: 'radial-gradient(circle at 50% 0%, #D8B76A, transparent 70%)' }} />
+        <p className="text-4xl mb-3">🎊</p>
+        <h3 className="font-serif text-2xl text-white mb-1">You're Married!</h3>
+        <p className="text-white/50 text-sm">Congratulations on your special day — {formattedDate}</p>
+      </div>
+    )
+  }
+
+  if (daysLeft === 0) {
+    return (
+      <div className="rounded-2xl border border-[#D8B76A]/30 bg-gradient-to-br from-[#D8B76A]/15 to-[#D8B76A]/5 px-6 py-8 text-center relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none opacity-10" style={{ background: 'radial-gradient(circle at 50% 0%, #D8B76A, transparent 70%)' }} />
+        <p className="text-4xl mb-3 animate-bounce">🎉</p>
+        <h3 className="font-serif text-3xl text-[#D8B76A] mb-1">Today's the Day!</h3>
+        <p className="text-white/60 text-sm">{formattedDate}</p>
+      </div>
+    )
+  }
+
+  const weeks = Math.floor(daysLeft / 7)
+  const months = Math.floor(daysLeft / 30)
+
+  return (
+    <div className="rounded-2xl border border-[#D8B76A]/25 bg-gradient-to-br from-[#0D1220] to-[#111827] px-6 py-7 relative overflow-hidden">
+      {/* Gold glow top */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D8B76A]/40 to-transparent" />
+      <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-32 rounded-full opacity-8 blur-2xl" style={{ background: '#D8B76A' }} />
+
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A]/70 mb-1">Wedding Countdown</p>
+          <div className="flex items-baseline gap-3">
+            <span className="font-serif text-7xl font-light text-white leading-none">{daysLeft}</span>
+            <span className="text-white/40 text-lg">days to go</span>
+          </div>
+          <p className="mt-2 text-xs text-white/40">{formattedDate}</p>
+        </div>
+
+        {/* Sub-metrics */}
+        <div className="flex gap-4 sm:flex-col sm:gap-2 sm:items-end">
+          {months > 0 && (
+            <div className="text-right">
+              <p className="text-[#D8B76A] font-serif text-2xl font-light">{months}</p>
+              <p className="text-[10px] uppercase tracking-widest text-white/30">months</p>
+            </div>
+          )}
+          {weeks > 0 && (
+            <div className="text-right">
+              <p className="text-[#7FA6D9] font-serif text-2xl font-light">{weeks}</p>
+              <p className="text-[10px] uppercase tracking-widest text-white/30">weeks</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Progress bar towards the big day */}
+      {daysLeft <= 365 && (
+        <div className="mt-5 relative z-10">
+          <div className="flex justify-between text-[10px] text-white/30 uppercase tracking-wider mb-1.5">
+            <span>Today</span>
+            <span>{Math.round(((365 - daysLeft) / 365) * 100)}% of the year gone</span>
+          </div>
+          <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#D8B76A] to-[#F2D894] rounded-full transition-all duration-1000"
+              style={{ width: `${Math.min(((365 - daysLeft) / 365) * 100, 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+
 const AdminDashboardPage = () => {
   const [invitations, setInvitations] = useState([])
   const [rsvps, setRsvps] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [weddingDate, setWeddingDate] = useState(null)
 
   useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+    if (storedUser?.weddingDate) setWeddingDate(storedUser.weddingDate)
     const load = async () => {
       try {
         const [invRes, rsvpRes] = await Promise.all([
@@ -76,6 +197,11 @@ const AdminDashboardPage = () => {
               Want to customize your card design, change theme templates, upload a couple photo overlay, pick background music, or fine-tune fonts? Head over to the <Link to="/admin/settings" className="text-[#D8B76A] font-semibold underline hover:text-[#D8B76A]/80 transition">Settings Page</Link> to customize your VowLink experience!
             </p>
           </div>
+        </div>
+
+        {/* Wedding Countdown */}
+        <div className="mb-6">
+          <CountdownWidget weddingDate={weddingDate} />
         </div>
 
         {/* Stats row */}
