@@ -3,7 +3,7 @@ import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 import InvitePage from './pages/InvitePage'
-import RsvpSuccessPage from './pages/RsvpSuccessPage'
+import RsvpResponsePage from './pages/RsvpResponsePage'
 import NotFoundPage from './pages/NotFoundPage'
 import LandingPage from './pages/LandingPage'
 import ScrollToTop from './components/ScrollToTop'
@@ -56,7 +56,7 @@ function App() {
 
         {/* Guest routes */}
         <Route path="/invite/:slug" element={<InvitePage />} />
-        <Route path="/rsvp-success" element={<RsvpSuccessPage />} />
+        <Route path="/rsvp-response" element={<RsvpResponsePage />} />
 
         {/* Auth */}
         <Route path="/admin/login" element={<AdminLoginPage />} />

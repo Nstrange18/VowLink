@@ -13,16 +13,22 @@ const categoryColors = {
 }
 
 const StatCard = ({ label, value, color, sub }) => (
-  <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-6">
-    <p className="text-xs uppercase tracking-widest text-white/40 mb-2">{label}</p>
-    <p className={`font-serif text-5xl font-light ${color}`}>{value}</p>
-    {sub && <p className="mt-2 text-xs text-white/30">{sub}</p>}
+  <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-4 sm:p-6">
+    <p className="text-[10px] sm:text-xs uppercase tracking-widest text-white/40 mb-2 leading-tight">{label}</p>
+    <p className={`font-serif text-4xl sm:text-5xl font-light ${color}`}>{value}</p>
+    {sub && <p className="mt-2 text-[10px] sm:text-xs text-white/30">{sub}</p>}
   </div>
 )
 
 // ── Wedding Countdown Widget ──────────────────────────────────────────────────
 const CountdownWidget = ({ weddingDate }) => {
   const [daysLeft, setDaysLeft] = useState(null)
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+    setUser(storedUser)
+  }, [])
 
   useEffect(() => {
     if (!weddingDate) return
@@ -61,23 +67,136 @@ const CountdownWidget = ({ weddingDate }) => {
   })
 
   if (daysLeft < 0) {
+    const coupleNames = user?.partner1Name && user?.partner2Name
+      ? `${user.partner1Name} & ${user.partner2Name}`
+      : "Allen & Justina"
     return (
-      <div className="rounded-2xl border border-[#D8B76A]/30 bg-gradient-to-br from-[#D8B76A]/15 to-[#D8B76A]/5 px-6 py-8 text-center relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none opacity-10" style={{ background: 'radial-gradient(circle at 50% 0%, #D8B76A, transparent 70%)' }} />
-        <p className="text-4xl mb-3">🎊</p>
-        <h3 className="font-serif text-2xl text-white mb-1">You're Married!</h3>
-        <p className="text-white/50 text-sm">Congratulations on your special day — {formattedDate}</p>
+      <div className="rounded-3xl border border-white/10 bg-[#0A0D16] p-8 text-center relative overflow-hidden shadow-[0_15px_50px_rgba(0,0,0,0.3)] min-h-[220px] flex flex-col justify-center items-center">
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes textShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          .gold-text-gradient {
+            background: linear-gradient(to right, #FFF4D4, #D8B76A, #FFF4D4, #E5C07B);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShimmer 5s linear infinite;
+          }
+        `}} />
+        
+        {/* Soft gold glow overlay */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ background: '#D8B76A' }} />
+
+        <div className="relative z-10 mb-3 text-5xl">🎉</div>
+        <div className="relative z-10 space-y-1">
+          <h3 className="font-serif text-2xl text-white font-light">You're Married!</h3>
+          <p className="text-[#D8B76A] font-serif text-lg font-light">{coupleNames}</p>
+          <p className="text-white/40 text-xs mt-2">Congratulations on your beautiful journey — {formattedDate}</p>
+        </div>
       </div>
     )
   }
 
   if (daysLeft === 0) {
+    const coupleNames = user?.partner1Name && user?.partner2Name
+      ? `${user.partner1Name} & ${user.partner2Name}`
+      : "Allen & Justina"
     return (
-      <div className="rounded-2xl border border-[#D8B76A]/30 bg-gradient-to-br from-[#D8B76A]/15 to-[#D8B76A]/5 px-6 py-8 text-center relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none opacity-10" style={{ background: 'radial-gradient(circle at 50% 0%, #D8B76A, transparent 70%)' }} />
-        <p className="text-4xl mb-3 animate-bounce">🎉</p>
-        <h3 className="font-serif text-3xl text-[#D8B76A] mb-1">Today's the Day!</h3>
-        <p className="text-white/60 text-sm">{formattedDate}</p>
+      <div className="rounded-3xl border border-[#D8B76A]/40 bg-[#0B0F19] p-8 text-center relative overflow-hidden shadow-[0_15px_50px_rgba(216,183,106,0.15)] min-h-[240px] flex flex-col justify-center items-center">
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes floatUp {
+            0% {
+              transform: translateY(100px) rotate(0deg) translateX(0);
+              opacity: 0;
+            }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% {
+              transform: translateY(-260px) rotate(360deg) translateX(var(--drift));
+              opacity: 0;
+            }
+          }
+          @keyframes pulseGlow {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.28; }
+          }
+          @keyframes textShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            20% { transform: scale(1.15); }
+            40% { transform: scale(1.05); }
+            60% { transform: scale(1.2); }
+            80% { transform: scale(1.1); }
+          }
+          .gold-sparkle {
+            position: absolute;
+            bottom: 0;
+            background: radial-gradient(circle, #FFF4D4 10%, #D8B76A 60%, transparent 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: floatUp var(--duration) ease-in-out infinite;
+            animation-delay: var(--delay);
+            filter: drop-shadow(0 0 4px #D8B76A);
+          }
+          .gold-text-gradient {
+            background: linear-gradient(to right, #FFF4D4, #D8B76A, #FFF4D4, #E5C07B);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShimmer 5s linear infinite;
+          }
+        `}} />
+        
+        {/* Glow overlay */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full blur-3xl pointer-events-none animate-[pulseGlow_6s_ease-in-out_infinite]" style={{ background: '#D8B76A' }} />
+
+        {/* Floating sparkles */}
+        {Array.from({ length: 20 }).map((_, i) => {
+          const left = `${Math.random() * 100}%`
+          const size = `${Math.random() * 8 + 4}px`
+          const delay = `${Math.random() * 8}s`
+          const duration = `${Math.random() * 6 + 6}s`
+          const drift = `${Math.random() * 100 - 50}px`
+          return (
+            <div
+              key={i}
+              className="gold-sparkle"
+              style={{
+                left,
+                width: size,
+                height: size,
+                '--delay': delay,
+                '--duration': duration,
+                '--drift': drift,
+              }}
+            />
+          )
+        })}
+
+        {/* Floating Heart / Ring */}
+        <div className="relative z-10 mb-4 animate-[heartBeat_2.5s_infinite_ease-in-out]">
+          <span className="text-6xl filter drop-shadow-[0_0_12px_rgba(216,183,106,0.5)]">💍</span>
+        </div>
+
+        <div className="relative z-10 space-y-2">
+          <span className="text-[10px] uppercase tracking-[0.4em] text-[#D8B76A] font-bold block mb-1">Happy Wedding Day!</span>
+          <h3 className="font-serif text-3xl sm:text-4xl gold-text-gradient font-light leading-tight">
+            Today's the Big Day
+          </h3>
+          <p className="text-white/80 font-serif text-lg sm:text-xl font-light">
+            {coupleNames}
+          </p>
+          <p className="text-white/40 text-xs font-mono uppercase tracking-wider mt-2">
+            ✨ {formattedDate} ✨
+          </p>
+        </div>
       </div>
     )
   }
@@ -123,7 +242,7 @@ const CountdownWidget = ({ weddingDate }) => {
         <div className="mt-5 relative z-10">
           <div className="flex justify-between text-[10px] text-white/30 uppercase tracking-wider mb-1.5">
             <span>Today</span>
-            <span>{Math.round(((365 - daysLeft) / 365) * 100)}% of the year gone</span>
+            <span>{Math.round(((365 - daysLeft) / 365) * 100)}% to the big day</span>
           </div>
           <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
             <div

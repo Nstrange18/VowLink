@@ -6,6 +6,7 @@ import api from "../../utils/api";
 const SuperAdminDashboardPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("analytics");
+  const [venueFilter, setVenueFilter] = useState("all"); // "all" | "pending" | "approved" | "featured"
   const [venues, setVenues] = useState([]);
   const [couples, setCouples] = useState([]);
   const [inquiries, setInquiries] = useState([]);
@@ -34,7 +35,7 @@ const SuperAdminDashboardPage = () => {
       safetySecurity: !!venue.safetySecurity,
       safetyStructural: !!venue.safetyStructural,
       safetyInsurance: !!venue.safetyInsurance,
-      trustScore: venue.trustScore !== undefined ? venue.trustScore : (venue.isFeatured ? 9.6 : 9.2),
+      trustScore: venue.trustScore !== undefined ? venue.trustScore : 0,
     });
   };
 
@@ -271,48 +272,48 @@ const SuperAdminDashboardPage = () => {
       </div>
 
       {/* Analytics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
         {/* Total Couples */}
-        <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-5 sm:p-6 backdrop-blur-md">
-          <div className="flex justify-between items-start">
+        <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-4 sm:p-6 backdrop-blur-md">
+          <div className="flex flex-col xs:flex-row justify-between items-start gap-2">
             <span className="text-2xl">💍</span>
-            <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Active</span>
+            <span className="text-[9px] sm:text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">Active</span>
           </div>
-          <p className="text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalCouples}</p>
-          <h3 className="text-xs text-white/50 font-medium mt-1">Total Couple Workspaces</h3>
+          <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalCouples}</p>
+          <h3 className="text-[10px] sm:text-xs text-white/50 font-medium mt-1 leading-tight">Total Couple Workspaces</h3>
           <p className="text-[10px] text-white/35 mt-2">Plus: {stats.plusCouples} | Pro: {stats.proCouples}</p>
         </div>
 
         {/* Total Venues */}
-        <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-5 sm:p-6 backdrop-blur-md">
-          <div className="flex justify-between items-start">
+        <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-4 sm:p-6 backdrop-blur-md">
+          <div className="flex flex-col xs:flex-row justify-between items-start gap-2">
             <span className="text-2xl">🏰</span>
-            <span className="text-[10px] bg-[#D8B76A]/10 border border-[#D8B76A]/20 text-[#D8B76A] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Marketplace</span>
+            <span className="text-[9px] sm:text-[10px] bg-[#D8B76A]/10 border border-[#D8B76A]/20 text-[#D8B76A] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">Marketplace</span>
           </div>
-          <p className="text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalVenues}</p>
-          <h3 className="text-xs text-white/50 font-medium mt-1">Total Venues Registered</h3>
+          <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalVenues}</p>
+          <h3 className="text-[10px] sm:text-xs text-white/50 font-medium mt-1 leading-tight">Total Venues Registered</h3>
           <p className="text-[10px] text-white/35 mt-2">Approved: {stats.approvedVenues} | Pending: {stats.pendingVenues}</p>
         </div>
 
         {/* Sponsored / Featured Listings */}
-        <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-5 sm:p-6 backdrop-blur-md">
-          <div className="flex justify-between items-start">
+        <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-4 sm:p-6 backdrop-blur-md">
+          <div className="flex flex-col xs:flex-row justify-between items-start gap-2">
             <span className="text-2xl">✨</span>
-            <span className="text-[10px] bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Featured</span>
+            <span className="text-[9px] sm:text-[10px] bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">Featured</span>
           </div>
-          <p className="text-3xl font-bold font-mono tracking-tight mt-4">{stats.featuredVenues}</p>
-          <h3 className="text-xs text-white/50 font-medium mt-1">Sponsored / Featured</h3>
+          <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.featuredVenues}</p>
+          <h3 className="text-[10px] sm:text-xs text-white/50 font-medium mt-1 leading-tight">Sponsored / Featured</h3>
           <p className="text-[10px] text-white/35 mt-2">Active top-placements in couple search</p>
         </div>
 
         {/* Direct leads inquiries */}
-        <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-5 sm:p-6 backdrop-blur-md">
-          <div className="flex justify-between items-start">
+        <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-4 sm:p-6 backdrop-blur-md">
+          <div className="flex flex-col xs:flex-row justify-between items-start gap-2">
             <span className="text-2xl">✉️</span>
-            <span className="text-[10px] bg-[#7FA6D9]/10 border border-[#7FA6D9]/20 text-[#7FA6D9] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Leads</span>
+            <span className="text-[9px] sm:text-[10px] bg-[#7FA6D9]/10 border border-[#7FA6D9]/20 text-[#7FA6D9] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">Leads</span>
           </div>
-          <p className="text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalInquiries}</p>
-          <h3 className="text-xs text-white/50 font-medium mt-1">Direct inquiries generated</h3>
+          <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalInquiries}</p>
+          <h3 className="text-[10px] sm:text-xs text-white/50 font-medium mt-1 leading-tight">Direct inquiries generated</h3>
           <p className="text-[10px] text-white/35 mt-2">Couples communicating with venues</p>
         </div>
       </div>
@@ -409,11 +410,55 @@ const SuperAdminDashboardPage = () => {
           {/* TAB 2: VENUES MANAGEMENT */}
           {activeTab === "venues" && (
             <div className="space-y-4 animate-fade-in">
-              {venues.length === 0 ? (
-                <p className="text-center text-xs text-white/40 py-10 bg-[#0D1220] rounded-3xl border border-white/10">No venues registered yet.</p>
+              {/* Filter Bar */}
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { key: "all",      label: "All",      count: venues.length },
+                  { key: "approved", label: "Approved", count: venues.filter(v => v.isApproved).length },
+                  { key: "featured", label: "★ Featured", count: venues.filter(v => v.isFeatured).length },
+                  { key: "pending",  label: "Pending",  count: venues.filter(v => !v.isApproved).length },
+                ].map(({ key, label, count }) => (
+                  <button
+                    key={key}
+                    onClick={() => setVenueFilter(key)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition ${
+                      venueFilter === key
+                        ? key === "pending"
+                          ? "bg-red-500/20 border-red-500/40 text-red-400"
+                          : key === "featured"
+                          ? "bg-[#D8B76A]/20 border-[#D8B76A]/40 text-[#D8B76A]"
+                          : "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
+                        : "bg-white/5 border-white/10 text-white/40 hover:text-white hover:border-white/20"
+                    }`}
+                  >
+                    {label}
+                    <span className="bg-white/10 rounded-full px-1.5 py-0.5 font-mono text-[9px]">{count}</span>
+                  </button>
+                ))}
+              </div>
+
+              {[
+                ...venues.filter(v => v.isApproved),
+                ...venues.filter(v => !v.isApproved),
+              ].filter((v) => {
+                if (venueFilter === "pending") return !v.isApproved;
+                if (venueFilter === "approved") return v.isApproved && !v.isFeatured;
+                if (venueFilter === "featured") return v.isFeatured;
+                return true;
+              }).length === 0 ? (
+                <p className="text-center text-xs text-white/40 py-10 bg-[#0D1220] rounded-3xl border border-white/10">No venues match this filter.</p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {venues.map((venue) => (
+                  {[
+                    ...venues.filter(v => v.isApproved),
+                    ...venues.filter(v => !v.isApproved),
+                  ].filter((v) => {
+                    if (venueFilter === "pending") return !v.isApproved;
+                    if (venueFilter === "approved") return v.isApproved;
+                    if (venueFilter === "featured") return v.isFeatured;
+                    return true;
+                  }).map((venue) => (
+
                     <div
                       key={venue._id}
                       className={`rounded-3xl border p-5 bg-[#0D1220] flex flex-col justify-between transition relative ${
@@ -462,7 +507,7 @@ const SuperAdminDashboardPage = () => {
                                 venue.safetyCctv && "CCTV"
                               ].filter(Boolean).join(", ") || "None Verified"
                             }</p>
-                            <p>⭐ Trust Score: {venue.trustScore !== undefined ? venue.trustScore : (venue.isFeatured ? 9.6 : 9.2)}/10</p>
+                            <p>⭐ Trust Score: {venue.trustScore !== undefined && venue.trustScore > 0 ? `${venue.trustScore}/10` : "— (not verified yet)"}</p>
                           </div>
                         </div>
                       </div>

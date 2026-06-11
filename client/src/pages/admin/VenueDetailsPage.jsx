@@ -95,7 +95,8 @@ const VenueDetailsPage = () => {
     { name: "Full CCTV Coverage in Public/Parking Areas", checked: !!venue.safetyCctv },
   ];
 
-  const trustScore = venue.trustScore !== undefined ? venue.trustScore : (venue.isFeatured ? 9.6 : 9.2);
+  const trustScore = (venue.trustScore !== undefined && venue.trustScore > 0) ? venue.trustScore : null;
+  const trustVerified = trustScore !== null;
 
   // Determine active photos list
   const photosList = venue.photos && venue.photos.length > 0 ? venue.photos : ["/default_venue.svg"];
@@ -241,9 +242,15 @@ const VenueDetailsPage = () => {
           <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="font-serif text-lg text-white">Trust & Safety</h3>
-              <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full text-emerald-400">
+              <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full ${
+                trustVerified
+                  ? trustScore >= 7
+                    ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
+                    : "bg-amber-500/10 border border-amber-500/30 text-amber-400"
+                  : "bg-white/5 border border-white/15 text-white/40"
+              }`}>
                 <span className="text-[10px] uppercase font-bold tracking-wider">Score</span>
-                <span className="text-xs font-bold font-mono">{trustScore}/10</span>
+                <span className="text-xs font-bold font-mono">{trustVerified ? `${trustScore}/10` : "—"}</span>
               </div>
             </div>
 

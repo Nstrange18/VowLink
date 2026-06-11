@@ -283,14 +283,15 @@ router.post("/inquire", protect, async (req, res) => {
 
     // Save inquiry to database log
     try {
+      const mongoose = require("mongoose");
       const inquiry = new Inquiry({
-        user: req.user.id,
-        venue: venueId,
+        user: new mongoose.Types.ObjectId(req.user.id),
+        venue: new mongoose.Types.ObjectId(venueId),
         message,
       });
       await inquiry.save();
     } catch (e) {
-      console.error("Failed to save inquiry to database:", e.message);
+      console.error("Failed to save inquiry to database:", e);
     }
 
     res.status(200).json({

@@ -317,11 +317,12 @@ const InvitePage = () => {
         mealPreference: data.mealPreference,
         message: data.message,
       });
-      navigate("/rsvp-success", {
+      navigate("/rsvp-response", {
         state: {
           partner1Name: invitation.userId?.partner1Name,
           partner2Name: invitation.userId?.partner2Name,
           weddingDate: invitation.userId?.weddingDate,
+          attending: data.attending,
         },
       });
     } catch (err) {
