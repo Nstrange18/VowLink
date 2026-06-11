@@ -66,10 +66,29 @@ const venueSchema = new mongoose.Schema(
     safetySecurity: { type: Boolean, default: false },
     safetyStructural: { type: Boolean, default: false },
     safetyInsurance: { type: Boolean, default: false },
-    trustScore: { type: Number, default: 9.0 },
+    claimedFireExits: { type: Boolean, default: false },
+    claimedCctv: { type: Boolean, default: false },
+    claimedSecurity: { type: Boolean, default: false },
+    claimedStructural: { type: Boolean, default: false },
+    claimedInsurance: { type: Boolean, default: false },
+    trustScore: { type: Number, default: 0.0 },
+    verificationProofUrl: { type: String, default: "" }, // legacy single URL field
+    verificationProofUrls: { type: [String], default: [] }, // new multi-proof array (max 5)
+    verificationNotes: { type: String, default: "" },
   },
   { timestamps: true }
 );
+
+// Calculate trustScore dynamically before saving
+venueSchema.pre("save", function () {
+  let score = 0;
+  if (this.safetyFireExits) score += 2;
+  if (this.safetyCctv) score += 2;
+  if (this.safetySecurity) score += 2;
+  if (this.safetyStructural) score += 2;
+  if (this.safetyInsurance) score += 2;
+  this.trustScore = score;
+});
 
 // Encrypt ownerPassword before saving
 venueSchema.pre("save", async function () {

@@ -610,6 +610,7 @@ const InvitePage = () => {
     ? (customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6")
     : (customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A");
   const envelopeAccentColor = isEnvelopeDark ? secHex : (isFreeUser ? "#B8963A" : priHex);
+  const pulseColor = isEnvelopeDark ? envelopeAccentColor : envelopeTextColor;
 
   const isTodayWeddingDay = weddingDate && (new Date(weddingDate).toDateString() === new Date().toDateString());
 
@@ -708,14 +709,30 @@ const InvitePage = () => {
             
             <button
               onClick={handleOpenInvitation}
-              className="relative group h-28 w-28 rounded-full flex flex-col items-center justify-center shadow-[0_15px_35px_rgba(0,0,0,0.4)] border transition-all duration-500 hover:scale-105 active:scale-95"
+              className="relative group h-28 w-28 rounded-full flex flex-col items-center justify-center shadow-[0_15px_35px_rgba(0,0,0,0.3)] border transition-all duration-500 hover:scale-105 active:scale-95"
               style={{
                 backgroundColor: envelopeAccentColor,
                 borderColor: `${envelopeTextColor}22`,
                 color: isEnvelopeDark ? "#070A13" : "#FFFFFF"
               }}
             >
-              <span className="absolute inset-0 rounded-full bg-white/20 animate-ping opacity-75 group-hover:animate-none" />
+              {/* Outer pulsing ring for high-contrast visibility on light/dark themes */}
+              <span 
+                className="absolute -inset-2 rounded-full animate-pulse pointer-events-none" 
+                style={{ 
+                  border: `2px solid ${pulseColor}`,
+                  boxShadow: `0 0 20px ${pulseColor}${isEnvelopeDark ? "55" : "33"}`,
+                  opacity: isEnvelopeDark ? 0.4 : 0.6
+                }} 
+              />
+              {/* Inner expanding ping ring */}
+              <span 
+                className="absolute inset-0 rounded-full animate-ping pointer-events-none" 
+                style={{ 
+                  backgroundColor: pulseColor,
+                  opacity: isEnvelopeDark ? 0.6 : 0.25
+                }} 
+              />
               <div className="absolute inset-2 rounded-full border border-dashed opacity-40" style={{ borderColor: isEnvelopeDark ? "#FFFFFF" : "#070A13" }} />
               <span className="text-2xl mb-1 z-10">✉</span>
               <span className="text-[10px] uppercase font-bold tracking-widest z-10">Open</span>
@@ -1520,15 +1537,28 @@ const InvitePage = () => {
                     <p className="text-xs text-white/40 font-normal">Help us create memories of a lifetime.</p>
                   </div>
                   <span className="text-base font-serif text-[#D8B76A] font-semibold">
-                    {Math.min(Math.round((invitation.userId.honeymoonFundCurrent / invitation.userId.honeymoonFundTarget) * 100), 100)}% Reached
+                    {invitation.userId.honeymoonFundCurrent >= invitation.userId.honeymoonFundTarget ? (
+                      <span className="text-[#3EC58E] flex items-center gap-1 font-bold animate-pulse">🎉 Goal Reached!</span>
+                    ) : (
+                      `${Math.min(Math.round((invitation.userId.honeymoonFundCurrent / invitation.userId.honeymoonFundTarget) * 100), 100)}% Reached`
+                    )}
                   </span>
                 </div>
                 <div className="h-4 w-full rounded-full bg-white/5 overflow-hidden relative border border-white/10 p-0.5">
                   <div
-                    className="h-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] transition-all duration-1000 shadow-[0_0_10px_rgba(216,183,106,0.4)]"
+                    className={`h-full rounded-full transition-all duration-1000 ${
+                      invitation.userId.honeymoonFundCurrent >= invitation.userId.honeymoonFundTarget
+                        ? "bg-linear-to-r from-[#3EC58E] to-[#34D399] animate-pulse shadow-[0_0_15px_rgba(62,197,142,0.6)]"
+                        : "bg-linear-to-r from-[#D8B76A] to-[#F2D894] shadow-[0_0_10px_rgba(216,183,106,0.4)]"
+                    }`}
                     style={{ width: `${Math.min(Math.round((invitation.userId.honeymoonFundCurrent / invitation.userId.honeymoonFundTarget) * 100), 100)}%` }}
                   />
                 </div>
+                {invitation.userId.honeymoonFundCurrent >= invitation.userId.honeymoonFundTarget && (
+                  <p className="text-[10px] text-[#3EC58E] font-medium text-center italic mt-1 animate-fade-in">
+                    Target goal fully funded! Thank you so much for your immense generosity! ❤️
+                  </p>
+                )}
               </div>
             )}
 

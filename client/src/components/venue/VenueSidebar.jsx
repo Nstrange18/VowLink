@@ -84,15 +84,15 @@ const VenueSidebar = ({
             Live
           </span>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-3 bg-white/3 rounded-xl transition-all">
-            <span className="text-[9px] uppercase tracking-wider text-white/40 block">Total Views</span>
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-1 lg:grid-cols-2 lg:gap-4">
+          <div className="p-3 bg-white/3 rounded-xl transition-all flex flex-col md:flex-row md:items-center md:justify-between lg:flex-col lg:items-start">
+            <span className="text-[9px] uppercase tracking-wider text-[#A1B0CB]">Total Views</span>
             <span className="text-xl font-bold font-mono">
               {stats.views !== null ? stats.views : (venue?.views ?? 0)}
             </span>
           </div>
-          <div className="p-3 bg-white/3 rounded-xl transition-all">
-            <span className="text-[9px] uppercase tracking-wider text-white/40 block">Inquiries</span>
+          <div className="p-3 bg-white/3 rounded-xl transition-all flex flex-col md:flex-row md:items-center md:justify-between lg:flex-col lg:items-start">
+            <span className="text-[9px] uppercase tracking-wider text-[#A1B0CB]">Inquiries</span>
             <span className="text-xl font-bold font-mono text-[#D8B76A]">
               {stats.inquiries !== null ? stats.inquiries : (venue?.inquiries ?? 0)}
             </span>

@@ -6,6 +6,7 @@ const rateLimit = require("express-rate-limit");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 const sgMail = require("@sendgrid/mail");
+const { sendHoneymoonGoalReachedNotification } = require("../utils/email");
 const axios = require("axios");
 const cloudinary = require("cloudinary").v2;
 
@@ -348,9 +349,23 @@ router.put("/me", protect, async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    // Validate honeymoon fund target vs current
+    const targetVal = honeymoonFundTarget !== undefined ? Number(honeymoonFundTarget) : user.honeymoonFundTarget;
+    const currentVal = honeymoonFundCurrent !== undefined ? Number(honeymoonFundCurrent) : user.honeymoonFundCurrent;
+
+    if (currentVal > targetVal && targetVal > 0) {
+      return res.status(400).json({ message: "Current contribution cannot exceed the target goal." });
+    }
+
     // Update basic settings
     user.partner1Name = partner1Name;
     user.partner2Name = partner2Name;
+    // If the wedding date changed, reset the email sent tracker
+    const oldDateStr = user.weddingDate ? new Date(user.weddingDate).toDateString() : "";
+    const newDateStr = weddingDate ? new Date(weddingDate).toDateString() : "";
+    if (newDateStr !== oldDateStr) {
+      user.weddingEmailSent = false;
+    }
     user.weddingDate = weddingDate || null;
     user.weddingTime = weddingTime || "18:00";
     user.rsvpDeadline = rsvpDeadline || null;
@@ -367,8 +382,22 @@ router.put("/me", protect, async (req, res) => {
     if (registryAccountName !== undefined) user.registryAccountName = registryAccountName;
     if (registryAccountNumber !== undefined) user.registryAccountNumber = registryAccountNumber;
     if (registryNotes !== undefined) user.registryNotes = registryNotes;
+
+    const previouslyReached = user.honeymoonFundTarget > 0 && user.honeymoonFundCurrent >= user.honeymoonFundTarget;
+
     if (typeof honeymoonFundTarget === "number") user.honeymoonFundTarget = honeymoonFundTarget;
     if (typeof honeymoonFundCurrent === "number") user.honeymoonFundCurrent = honeymoonFundCurrent;
+
+    const newlyReached = user.honeymoonFundTarget > 0 && user.honeymoonFundCurrent >= user.honeymoonFundTarget;
+
+    if (!previouslyReached && newlyReached) {
+      sendHoneymoonGoalReachedNotification({
+        coupleEmail: user.email,
+        coupleName: `${user.partner1Name} & ${user.partner2Name}`,
+        targetAmount: user.honeymoonFundTarget,
+        currentAmount: user.honeymoonFundCurrent,
+      });
+    }
 
     // Plan-based validation for premium customizations
     if (user.tier === "free") {

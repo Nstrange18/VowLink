@@ -118,4 +118,134 @@ const sendRsvpGuestConfirmation = async ({ guestEmail, guestName, coupleName, at
   }
 };
 
-module.exports = { sendRsvpCoupleAlert, sendRsvpGuestConfirmation };
+// ── 3. Honeymoon Target Reached Alert ──────────────────────────────────────────
+const sendHoneymoonGoalReachedNotification = async ({ coupleEmail, coupleName, targetAmount, currentAmount }) => {
+  if (!process.env.SENDGRID_API_KEY || !coupleEmail) return;
+
+  const formattedTarget = targetAmount.toLocaleString();
+  const formattedCurrent = currentAmount.toLocaleString();
+
+  const body = `
+    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:22px;font-weight:400;">Honeymoon Fund Target Reached! 🎉</h2>
+    <p style="margin:0 0 24px 0;color:rgba(255,255,255,0.5);font-size:14px;font-family:sans-serif;">Congratulations, ${coupleName}!</p>
+
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;">
+      <p style="margin:0 0 12px 0;color:rgba(255,255,255,0.9);font-size:18px;font-family:sans-serif;">
+        Your Honeymoon Cash Fund has hit its target goal!
+      </p>
+      <div style="font-size:36px;color:#34D399;font-weight:700;margin:16px 0;font-family:sans-serif;">
+        ${formattedCurrent} / ${formattedTarget}
+      </div>
+      <p style="margin:0;color:rgba(255,255,255,0.6);font-size:14px;line-height:1.6;font-family:sans-serif;">
+        Amazing news! Your total honeymoon cash fund contributions have reached or exceeded your target of <strong style="color:#D8B76A;">${formattedTarget}</strong>.
+      </p>
+    </div>
+
+    <p style="color:rgba(255,255,255,0.4);font-size:12px;font-family:sans-serif;margin:0;">Log in to your VowLink settings page to manage registry preferences.</p>
+  `;
+
+  try {
+    await sgMail.send({
+      to: coupleEmail,
+      from: FROM_EMAIL,
+      subject: `🎉 VowLink Alert: Your Honeymoon Fund Target has been reached!`,
+      html: wrapEmail(body),
+    });
+    console.log(`📧 Honeymoon fund target alert sent to ${coupleEmail}`);
+  } catch (err) {
+    console.error("❌ SendGrid honeymoon target alert error:", err.response?.body || err.message);
+  }
+};
+
+// ── 4. Wedding Day Congratulations Email ──────────────────────────────────────
+const sendWeddingDayCongratulationsEmail = async ({ coupleEmail, coupleName }) => {
+  if (!process.env.SENDGRID_API_KEY || !coupleEmail) return;
+
+  const body = `
+    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:24px;font-weight:400;text-align:center;">Happy Wedding Day! 💍🎉</h2>
+    <p style="margin:0 0 24px 0;color:rgba(255,255,255,0.5);font-size:14px;font-family:sans-serif;text-align:center;">${coupleName}</p>
+
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:30px;margin-bottom:20px;text-align:center;line-height:1.6;">
+      <p style="margin:0 0 16px 0;color:#fff;font-size:18px;font-family:sans-serif;font-weight:300;">
+        Today is the big day you've been planning for!
+      </p>
+      <p style="margin:0 0 20px 0;color:rgba(255,255,255,0.7);font-size:14px;font-family:sans-serif;">
+        On behalf of the VowLink team, we wish you a gorgeous, magical wedding day filled with love, laughter, and unforgettable moments. May your marriage be a lifetime of happiness, understanding, and shared dreams.
+      </p>
+      <div style="font-size:48px;margin:20px 0;">✨ 🥂 🤵‍♂️ ❤️ 👰‍♀️ ✨</div>
+    </div>
+
+    <p style="color:rgba(255,255,255,0.4);font-size:12px;font-family:sans-serif;margin:0;text-align:center;">
+      Thank you for letting VowLink be a part of your love story.
+    </p>
+  `;
+
+  try {
+    await sgMail.send({
+      to: coupleEmail,
+      from: FROM_EMAIL,
+      subject: `💍 Happy Wedding Day, ${coupleName}! 🎉`,
+      html: wrapEmail(body),
+    });
+    console.log(`📧 Wedding day congratulations email sent to ${coupleEmail}`);
+  } catch (err) {
+    console.error("❌ SendGrid wedding day congratulations email error:", err.response?.body || err.message);
+  }
+};
+
+// ── 5. New Venue Registration Alert to Admin ───────────────────────────────
+const sendNewVenueRegistrationAdminAlert = async (venue) => {
+  const adminEmail = "nwubachukwuemelie@gmail.com";
+  if (!process.env.SENDGRID_API_KEY) return;
+
+  const formatBool = (val) => (val ? "✔️ Yes" : "❌ No");
+
+  const body = `
+    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:22px;font-weight:400;text-align:center;">New Venue Registration Alert 🏛️</h2>
+    <p style="margin:0 0 24px 0;color:rgba(255,255,255,0.5);font-size:14px;font-family:sans-serif;text-align:center;">VowLink Administrator Notification</p>
+
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:20px;line-height:1.6;color:rgba(255,255,255,0.9);font-family:sans-serif;font-size:14px;">
+      <h3 style="margin:0 0 12px 0;color:#D8B76A;font-size:16px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:6px;">🏛️ General Specifications</h3>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Venue Name:</strong> ${venue.name}</p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Style Category:</strong> ${venue.style}</p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Owner Email:</strong> ${venue.ownerEmail}</p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Contact Phone:</strong> ${venue.phone}</p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">WhatsApp:</strong> ${venue.whatsapp}</p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">City:</strong> ${venue.city}</p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">General Location:</strong> ${venue.generalLocation}</p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Full Address:</strong> ${venue.fullAddress}</p>
+      <p style="margin:0 0 16px 0;"><strong style="color:#fff;">Price Range:</strong> ${venue.priceRange}</p>
+
+      <h3 style="margin:0 0 12px 0;color:#D8B76A;font-size:16px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:6px;">🛡️ Declared Trust & Safety Items</h3>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Fire Exits & Signage:</strong> ${formatBool(venue.claimedFireExits)}</p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Full CCTV Coverage:</strong> ${formatBool(venue.claimedCctv)}</p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Guard Security Personnel:</strong> ${formatBool(venue.claimedSecurity)}</p>
+      <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Structural Integrity:</strong> ${formatBool(venue.claimedStructural)}</p>
+      <p style="margin:0;"><strong style="color:#fff;">Venue Liability Insurance:</strong> ${formatBool(venue.claimedInsurance)}</p>
+    </div>
+
+    <p style="color:rgba(255,255,255,0.4);font-size:12px;font-family:sans-serif;margin:0;text-align:center;">
+      This venue is currently set as pending approval. Please review and verify their details in the Super Admin panel.
+    </p>
+  `;
+
+  try {
+    await sgMail.send({
+      to: adminEmail,
+      from: FROM_EMAIL,
+      subject: `🏛️ VowLink Alerts: New Venue Account Created — ${venue.name}`,
+      html: wrapEmail(body),
+    });
+    console.log(`📧 Admin venue registration alert sent to ${adminEmail}`);
+  } catch (err) {
+    console.error("❌ SendGrid admin venue registration alert error:", err.response?.body || err.message);
+  }
+};
+
+module.exports = {
+  sendRsvpCoupleAlert,
+  sendRsvpGuestConfirmation,
+  sendHoneymoonGoalReachedNotification,
+  sendWeddingDayCongratulationsEmail,
+  sendNewVenueRegistrationAdminAlert
+};

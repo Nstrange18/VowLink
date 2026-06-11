@@ -136,14 +136,10 @@ const AdminBillingPage = () => {
       return;
     }
 
-    // Paystack natively supports NGN, USD, GHS, KES, ZAR. Others will fall back to USD.
-    const paystackCurrency = ["NGN", "USD", "GHS", "KES", "ZAR"].includes(currency) ? currency : "USD";
-    const baseNgn = plan.priceInNgn;
-    const priceInUsd = baseNgn / 1500;
-    
-    const conf = CURRENCIES[paystackCurrency];
-    const convertedAmount = priceInUsd * conf.rate;
-    const amountInMinor = Math.round(convertedAmount * 100);
+    // Paystack account is registered in Nigeria; we must transact in NGN to ensure checkout success.
+    // International cards will still pay the NGN equivalent automatically converted by their bank.
+    const paystackCurrency = "NGN";
+    const amountInMinor = plan.priceInNgn * 100; // Native NGN amount in kobo
 
     const paystackOptions = {
       key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",

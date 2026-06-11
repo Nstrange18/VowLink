@@ -289,7 +289,11 @@ const AdminDashboardPage = () => {
 
   const attending = rsvps.filter((r) => r.attending === 'Yes').length
   const notAttending = rsvps.filter((r) => r.attending === 'No').length
-  const pending = invitations.filter((i) => !i.hasRSVPed).length
+  
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isDeadlinePassed = storedUser?.rsvpDeadline && new Date() > new Date(storedUser.rsvpDeadline);
+  const pending = !isDeadlinePassed ? invitations.filter((i) => !i.hasRSVPed).length : 0;
+  const noResponse = isDeadlinePassed ? invitations.filter((i) => !i.hasRSVPed).length : 0;
 
   // Group invitations by category
   const byCategory = CATEGORIES.reduce((acc, cat) => {
@@ -329,7 +333,11 @@ const AdminDashboardPage = () => {
           <StatCard label="RSVPs" value={rsvps.length} color="text-[#7FA6D9]" />
           <StatCard label="Attending" value={attending} color="text-emerald-400" />
           <StatCard label="Not Attending" value={notAttending} color="text-red-400" />
-          <StatCard label="Pending" value={pending} color="text-[#D8B76A]" sub="awaiting response" />
+          {isDeadlinePassed ? (
+            <StatCard label="No Response" value={noResponse} color="text-rose-400" sub="deadline passed" />
+          ) : (
+            <StatCard label="Pending" value={pending} color="text-[#D8B76A]" sub="awaiting response" />
+          )}
         </div>
       </div>
 

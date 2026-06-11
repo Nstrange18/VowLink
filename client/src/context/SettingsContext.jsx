@@ -260,6 +260,15 @@ export const SettingsProvider = ({ children }) => {
   };
 
   const onSubmit = async (data) => {
+    if (registryEnabled) {
+      const targetVal = Number(honeymoonFundTarget) || 0;
+      const currentVal = Number(honeymoonFundCurrent) || 0;
+      if (targetVal > 0 && currentVal > targetVal) {
+        toast.error("Current contribution cannot exceed the target goal amount.");
+        return;
+      }
+    }
+
     try {
       const musicUrlToSave = musicUrl && musicUrl.startsWith('data:') ? '' : musicUrl;
       const res = await api.put("/auth/me", {

@@ -305,8 +305,24 @@ const VenueDetailsPage = () => {
                 <div className="space-y-3">
                   <div>
                     <span className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] block mb-1">Full Address</span>
-                    <p className="text-xs text-white/80 leading-relaxed">{venue.fullAddress}</p>
+                    {/* Guard: if fullAddress looks like an email, the owner likely entered it in the wrong field */}
+                    {venue.fullAddress && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(venue.fullAddress.trim()) ? (
+                      <p className="text-xs text-amber-400/80 italic leading-relaxed">
+                        ⚠️ Address not set yet — please contact the venue directly for directions.
+                      </p>
+                    ) : (
+                      <p className="text-xs text-white/80 leading-relaxed">
+                        {venue.fullAddress || "Address not provided"}
+                      </p>
+                    )}
                   </div>
+
+                  {venue.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(venue.fullAddress?.trim()) && (
+                    <div>
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] block mb-1">Contact Email</span>
+                      <a href={`mailto:${venue.email}`} className="text-xs text-[#D8B76A] hover:underline">{venue.email}</a>
+                    </div>
+                  )}
 
                   {venue.phone && (
                     <div>

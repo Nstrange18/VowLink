@@ -136,6 +136,10 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    weddingEmailSent: {
+      type: Boolean,
+      default: false,
+    },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
   },

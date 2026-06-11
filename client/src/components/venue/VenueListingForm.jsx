@@ -13,6 +13,12 @@ const VenueListingForm = ({
   handleSubmit,
   onUpdateDetails,
   saving,
+  setValue,
+  watch,
+  uploadingProof,
+  handleProofUpload,
+  proofUrls = [],
+  removeProofUrl,
 }) => {
   return (
     <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 sm:p-8 space-y-6">
@@ -118,12 +124,14 @@ const VenueListingForm = ({
 
           {/* Email */}
           <div>
-            <label className={labelClass}>Public Email *</label>
+            <label className={labelClass}>Public Contact Email (Optional)</label>
             <input
               type="email"
               {...register("email")}
+              placeholder="venue@email.com (shown to couples, not your login email)"
               className={`${inputBase} ${errors.email ? inputErr : inputOk}`}
             />
+            <p className="mt-1 text-[9px] text-white/30">This is the email couples see on your listing. Leave blank to hide it.</p>
             {errors.email && <p className="mt-1 text-[10px] text-red-400">{errors.email.message}</p>}
           </div>
 
@@ -141,12 +149,14 @@ const VenueListingForm = ({
 
         {/* Address */}
         <div>
-          <label className={labelClass}>Full Address *</label>
+          <label className={labelClass}>Full Address * <span className="text-white/30 font-normal normal-case">(physical street address)</span></label>
           <input
             type="text"
             {...register("fullAddress")}
+            placeholder="Plot 12, Block 4, Admiralty Way, Lekki Phase 1, Lagos"
             className={`${inputBase} ${errors.fullAddress ? inputErr : inputOk}`}
           />
+          <p className="mt-1 text-[9px] text-white/30">Enter the physical street address — not an email address or website.</p>
           {errors.fullAddress && <p className="mt-1 text-[10px] text-red-400">{errors.fullAddress.message}</p>}
         </div>
 
@@ -167,6 +177,178 @@ const VenueListingForm = ({
           <p className="text-[10px] text-white/70 leading-relaxed">
             <strong className="text-[#D8B76A]">Location Precision:</strong> Please make sure your address and Google Maps links are as precise and accurate as possible. Couples and their guests rely heavily on this information to reach your venue without navigation errors.
           </p>
+        </div>
+
+        {/* Trust & Safety Checklist */}
+        <div className="border-t border-white/10 pt-6 mt-6 space-y-4">
+          <div>
+            <h3 className="text-xs font-semibold text-[#D8B76A] uppercase tracking-wider">🛡️ Trust & Safety Verification Checklist</h3>
+            <p className="text-[10px] text-white/40 mt-1">
+              Select all safety standards that your venue currently holds. You will need to present proof of these declarations to the site administrator for verification before they are published to couples.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-white/5 border border-white/10 p-4 rounded-2xl">
+            <label className="flex items-start gap-2.5 cursor-pointer py-1">
+              <input
+                type="checkbox"
+                {...register("claimedFireExits")}
+                className="accent-[#D8B76A] mt-0.5"
+              />
+              <div>
+                <span className="font-semibold block text-white/80">Certified Fire Extinguishers & Exit Signage</span>
+                <span className="text-[9px] text-white/40">We have fully functional certified fire extinguishers and clear exit signs in all halls.</span>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-2.5 cursor-pointer py-1">
+              <input
+                type="checkbox"
+                {...register("claimedSecurity")}
+                className="accent-[#D8B76A] mt-0.5"
+              />
+              <div>
+                <span className="font-semibold block text-white/80">24/7 Professional Guard Security Personnel</span>
+                <span className="text-[9px] text-white/40">Our premises are guarded 24/7 by trained, professional security guards.</span>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-2.5 cursor-pointer py-1">
+              <input
+                type="checkbox"
+                {...register("claimedStructural")}
+                className="accent-[#D8B76A] mt-0.5"
+              />
+              <div>
+                <span className="font-semibold block text-white/80">Structural Integrity and Safety Certification</span>
+                <span className="text-[9px] text-white/40">Our buildings have undergone professional structural integrity tests and have active certifications.</span>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-2.5 cursor-pointer py-1">
+              <input
+                type="checkbox"
+                {...register("claimedInsurance")}
+                className="accent-[#D8B76A] mt-0.5"
+              />
+              <div>
+                <span className="font-semibold block text-white/80">Public Liability and Venue Insurance Coverage</span>
+                <span className="text-[9px] text-white/40">We hold active public liability insurance coverage for any accidents/damages on site.</span>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-2.5 cursor-pointer py-1 sm:col-span-2">
+              <input
+                type="checkbox"
+                {...register("claimedCctv")}
+                className="accent-[#D8B76A] mt-0.5"
+              />
+              <div>
+                <span className="font-semibold block text-white/80">Full CCTV Coverage in Public/Parking Areas</span>
+                <span className="text-[9px] text-white/40">All common areas, entry points, and vehicle parking zones are covered by 24/7 active CCTV recording.</span>
+              </div>
+            </label>
+          </div>
+
+          {/* Verification Proof Upload — Multi-File (Max 5) */}
+          <div className="border-t border-white/10 pt-4 mt-4 space-y-3">
+            <div>
+              <h4 className="text-[10px] font-semibold text-[#D8B76A] uppercase tracking-wider">
+                📁 Verification Proof Documents <span className="text-white/40 normal-case font-normal">(PDF or Image, max 5 files · 5MB each)</span>
+              </h4>
+              <p className="text-[9px] text-white/40 mt-0.5">
+                Upload certificates, structural test results, or insurance policy documents as proof for the Super Admin to review.
+              </p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 p-4 rounded-xl space-y-3">
+              {/* Uploaded proofs list */}
+              {proofUrls.length > 0 ? (
+                <div className="space-y-2">
+                  {proofUrls.map((url, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 px-3 py-2 rounded-xl"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-base shrink-0">📄</span>
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-[#D8B76A] hover:underline truncate"
+                        >
+                          Document {idx + 1} — Open / View →
+                        </a>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeProofUrl(idx)}
+                        className="shrink-0 text-[10px] text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/50 px-2 py-1 rounded-lg transition"
+                      >
+                        ✕ Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[10px] text-white/40 italic text-center py-1">
+                  No proof documents uploaded yet.
+                </p>
+              )}
+
+              {/* Upload button — only show if under limit */}
+              {proofUrls.length < 5 && (
+                <div className="flex items-center justify-between flex-wrap gap-3 pt-2 border-t border-white/5">
+                  <span className="text-[10px] text-white/50">
+                    {proofUrls.length}/5 documents uploaded
+                  </span>
+                  <label
+                    htmlFor="verification-proof-upload"
+                    className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition cursor-pointer ${
+                      uploadingProof
+                        ? "opacity-50 cursor-not-allowed bg-white/5 text-white/40"
+                        : "bg-[#D8B76A] hover:opacity-90 text-[#070A13]"
+                    }`}
+                  >
+                    {uploadingProof ? "Uploading..." : proofUrls.length > 0 ? "Add More Documents" : "Upload Proof Documents"}
+                  </label>
+                </div>
+              )}
+
+              {proofUrls.length >= 5 && (
+                <p className="text-[10px] text-amber-400 italic text-center pt-2 border-t border-white/5">
+                  ✓ Maximum of 5 proof documents reached.
+                </p>
+              )}
+            </div>
+
+            {/* Hidden multi-file input */}
+            <input
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              multiple
+              onChange={handleProofUpload}
+              className="hidden"
+              id="verification-proof-upload"
+              disabled={uploadingProof}
+            />
+
+            {uploadingProof && (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin h-3.5 w-3.5 border-2 border-[#D8B76A] border-t-transparent rounded-full" />
+                <span className="text-[10px] text-white/50">Uploading documents to Cloudinary...</span>
+              </div>
+            )}
+
+            {/* Admin Verification Notes view for Venue Owners */}
+            {watch("verificationNotes") && (
+              <div className="bg-[#D8B76A]/5 border border-[#D8B76A]/20 p-3.5 rounded-xl space-y-1 text-xs">
+                <span className="font-bold text-[#D8B76A] block text-[9px] uppercase tracking-wider">Message from Super Admin:</span>
+                <p className="text-white/80 text-[11px] leading-relaxed italic">"{watch("verificationNotes")}"</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Description */}

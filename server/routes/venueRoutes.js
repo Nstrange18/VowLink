@@ -6,6 +6,7 @@ const Venue = require("../models/Venue");
 const User = require("../models/User");
 const Inquiry = require("../models/Inquiry");
 const { protect } = require("../middleware/auth");
+const { sendNewVenueRegistrationAdminAlert } = require("../utils/email");
 
 const router = express.Router();
 
@@ -358,11 +359,22 @@ router.post("/auth/register", async (req, res) => {
       style,
       email,
       website,
-      tags
+      tags,
+      claimedFireExits,
+      claimedCctv,
+      claimedSecurity,
+      claimedStructural,
+      claimedInsurance
     } = req.body;
 
     if (!name || !city || !generalLocation || !fullAddress || !capacity || !priceRange || !description || !phone || !whatsapp || !mapLink || !ownerEmail || !ownerPassword) {
       return res.status(400).json({ message: "All fields are required to register your venue." });
+    }
+
+    // Guard: reject email addresses entered in the fullAddress field
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailRegex.test(fullAddress.trim())) {
+      return res.status(400).json({ message: "Full Address cannot be an email address. Please enter your venue's physical street address." });
     }
 
     // Check if email already registered
@@ -385,18 +397,28 @@ router.post("/auth/register", async (req, res) => {
       ownerEmail: ownerEmail.toLowerCase().trim(),
       ownerPassword,
       style: style || "Classic",
-      email: email || ownerEmail,
+      email: email || "", // Public contact email — left empty until owner sets it explicitly
       website: website || "",
       tags: tags || [],
       subscriptionTier: "basic",
-      isApproved: true,
+      claimedFireExits: !!claimedFireExits,
+      claimedCctv: !!claimedCctv,
+      claimedSecurity: !!claimedSecurity,
+      claimedStructural: !!claimedStructural,
+      claimedInsurance: !!claimedInsurance,
+      isApproved: false, // Must be verified and approved by admin
       isActive: true,
     });
 
     await newVenue.save();
+
+    // Notify administrator about the new venue registration
+    sendNewVenueRegistrationAdminAlert(newVenue).catch((err) => {
+      console.error("[MAIL] Failed to send admin venue registration alert:", err.message);
+    });
     
     res.status(201).json({
-      message: "Venue registered successfully! 🎉 Welcome to VowLink Venues.",
+      message: "Venue registered successfully! 🎉 Welcome to VowLink Venues. Your listing is pending admin review.",
       token: generateVenueToken(newVenue),
       venue: {
         id: newVenue._id,
@@ -480,7 +502,14 @@ router.put("/auth/me", protectVenue, async (req, res) => {
       style,
       email,
       website,
-      tags
+      tags,
+      claimedFireExits,
+      claimedCctv,
+      claimedSecurity,
+      claimedStructural,
+      claimedInsurance,
+      verificationProofUrl,
+      verificationProofUrls
     } = req.body;
 
     const venue = req.venue;
@@ -488,7 +517,13 @@ router.put("/auth/me", protectVenue, async (req, res) => {
     if (name) venue.name = name;
     if (city) venue.city = city;
     if (generalLocation) venue.generalLocation = generalLocation;
-    if (fullAddress) venue.fullAddress = fullAddress;
+    if (fullAddress) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailRegex.test(fullAddress.trim())) {
+        return res.status(400).json({ message: "Full Address cannot be an email address. Please enter your venue's physical street address." });
+      }
+      venue.fullAddress = fullAddress;
+    }
     if (capacity) venue.capacity = capacity;
     if (priceRange) venue.priceRange = priceRange;
     if (description) venue.description = description;
@@ -499,6 +534,17 @@ router.put("/auth/me", protectVenue, async (req, res) => {
     if (email) venue.email = email;
     if (website) venue.website = website;
     if (Array.isArray(tags)) venue.tags = tags;
+
+    if (claimedFireExits !== undefined) venue.claimedFireExits = claimedFireExits;
+    if (claimedCctv !== undefined) venue.claimedCctv = claimedCctv;
+    if (claimedSecurity !== undefined) venue.claimedSecurity = claimedSecurity;
+    if (claimedStructural !== undefined) venue.claimedStructural = claimedStructural;
+    if (claimedInsurance !== undefined) venue.claimedInsurance = claimedInsurance;
+    if (verificationProofUrl !== undefined) venue.verificationProofUrl = verificationProofUrl;
+    if (Array.isArray(verificationProofUrls)) {
+      // Enforce max 5 proof documents
+      venue.verificationProofUrls = verificationProofUrls.slice(0, 5);
+    }
 
     // Enforce photo counts based on subscription tiers
     if (Array.isArray(photos)) {

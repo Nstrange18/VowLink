@@ -22,6 +22,11 @@ const registerSchema = z.object({
   }),
   ownerEmail: z.string().email("Please enter a valid email address"),
   ownerPassword: z.string().min(6, "Password must be at least 6 characters"),
+  claimedFireExits: z.boolean().default(false),
+  claimedCctv: z.boolean().default(false),
+  claimedSecurity: z.boolean().default(false),
+  claimedStructural: z.boolean().default(false),
+  claimedInsurance: z.boolean().default(false),
 });
 
 const EyeIcon = ({ open }) => (
@@ -211,13 +216,14 @@ const VenueRegisterPage = () => {
 
           {/* Full Address */}
           <div>
-            <label className={labelClass}>Full Address *</label>
+            <label className={labelClass}>Full Address * <span className="text-white/30 font-normal normal-case">(physical street address)</span></label>
             <input
               type="text"
               placeholder="Plot 12, Block 4, Admiralty Way, Lekki Phase 1, Lagos, Nigeria"
               {...register("fullAddress")}
               className={`${inputBase} ${errors.fullAddress ? inputErr : inputOk}`}
             />
+            <p className="mt-1 text-[9px] text-white/30">Enter the physical street address — not an email address or website.</p>
             {errors.fullAddress && <p className="mt-1 text-[10px] text-red-400">{errors.fullAddress.message}</p>}
           </div>
 
@@ -250,6 +256,77 @@ const VenueRegisterPage = () => {
               className="w-full rounded-xl border bg-white/5 px-4 py-2.5 text-xs text-white placeholder-white/30 outline-none resize-none focus:border-[#D8B76A]/60 transition"
             />
             {errors.description && <p className="mt-1 text-[10px] text-red-400">{errors.description.message}</p>}
+          </div>
+
+          {/* Trust & Safety Checklist */}
+          <div className="border-t border-white/10 pt-4 mt-2 space-y-3">
+            <div>
+              <h3 className="text-xs font-semibold text-[#D8B76A] uppercase tracking-wider">🛡️ Trust & Safety Verification Declaration</h3>
+              <p className="text-[10px] text-white/50">
+                Please declare the safety standards your venue holds. You will need to present proof of these declarations to the site administrator for verification before they are published to couples.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs bg-white/5 border border-white/10 p-4 rounded-2xl">
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...register("claimedFireExits")}
+                  className="accent-[#D8B76A] mt-0.5"
+                />
+                <div>
+                  <span className="font-semibold block text-white/80">Certified Fire Extinguishers & Exit Signage</span>
+                  <span className="text-[9px] text-white/40">We have fully functional certified fire extinguishers and clear exit signs in all halls.</span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...register("claimedSecurity")}
+                  className="accent-[#D8B76A] mt-0.5"
+                />
+                <div>
+                  <span className="font-semibold block text-white/80">24/7 Professional Guard Security Personnel</span>
+                  <span className="text-[9px] text-white/40">Our premises are guarded 24/7 by trained, professional security guards.</span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...register("claimedStructural")}
+                  className="accent-[#D8B76A] mt-0.5"
+                />
+                <div>
+                  <span className="font-semibold block text-white/80">Structural Integrity and Safety Certification</span>
+                  <span className="text-[9px] text-white/40">Our buildings have undergone professional structural integrity tests and have active certifications.</span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...register("claimedInsurance")}
+                  className="accent-[#D8B76A] mt-0.5"
+                />
+                <div>
+                  <span className="font-semibold block text-white/80">Public Liability and Venue Insurance Coverage</span>
+                  <span className="text-[9px] text-white/40">We hold active public liability insurance coverage for any accidents/damages on site.</span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 cursor-pointer md:col-span-2">
+                <input
+                  type="checkbox"
+                  {...register("claimedCctv")}
+                  className="accent-[#D8B76A] mt-0.5"
+                />
+                <div>
+                  <span className="font-semibold block text-white/80">Full CCTV Coverage in Public/Parking Areas</span>
+                  <span className="text-[9px] text-white/40">All common areas, entry points, and vehicle parking zones are covered by 24/7 active CCTV recording.</span>
+                </div>
+              </label>
+            </div>
           </div>
 
           <div className="border-t border-white/10 pt-4 mt-2">

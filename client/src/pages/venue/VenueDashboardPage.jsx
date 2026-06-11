@@ -22,8 +22,15 @@ const detailsSchema = z.object({
   whatsapp: z.string().min(7, "WhatsApp is required"),
   mapLink: z.string().url("Please enter a valid Google Maps URL"),
   style: z.enum(["Classic", "Modern", "Beach", "Rustic", "Garden"]),
-  email: z.string().email("Please enter a valid public contact email"),
+  email: z.union([z.string().email("Please enter a valid public contact email"), z.literal("")]).optional(),
   website: z.string().optional(),
+  claimedFireExits: z.boolean().optional(),
+  claimedCctv: z.boolean().optional(),
+  claimedSecurity: z.boolean().optional(),
+  claimedStructural: z.boolean().optional(),
+  claimedInsurance: z.boolean().optional(),
+  verificationProofUrls: z.array(z.string()).optional(),
+  verificationNotes: z.string().optional(),
 });
 
 const loadPaystackScript = () => {
@@ -61,6 +68,84 @@ const VenueDashboardPage = () => {
 
   // Photo management state
   const [photos, setPhotos] = useState([]);
+
+  // Verification proofs state (max 5 documents)
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const [proofUrls, setProofUrls] = useState([]);
+
+  const handleProofUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const currentCount = proofUrls.length;
+    if (currentCount >= 5) {
+      toast.warning("You have already uploaded the maximum of 5 proof documents.");
+      e.target.value = "";
+      return;
+    }
+
+    const remainingSlots = 5 - currentCount;
+    const filesToUpload = files.slice(0, remainingSlots);
+
+    if (files.length > remainingSlots) {
+      toast.warning(`You can only add ${remainingSlots} more document(s). Only the first ${remainingSlots} file(s) will be uploaded.`);
+    }
+
+    const validTypes = ["application/pdf", "image/png", "image/jpeg", "image/jpg"];
+    const invalidFile = filesToUpload.find((f) => !validTypes.includes(f.type));
+    if (invalidFile) {
+      toast.error("Invalid file format. Please upload PDFs or Images (PNG, JPG) only.");
+      e.target.value = "";
+      return;
+    }
+
+    const oversizedFile = filesToUpload.find((f) => f.size > 5 * 1024 * 1024);
+    if (oversizedFile) {
+      toast.error("Each file must be under 5MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setUploadingProof(true);
+    e.target.value = "";
+
+    const uploadPromises = filesToUpload.map(
+      (file) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            try {
+              const url = await uploadToCloudinary(reader.result);
+              resolve(url);
+            } catch (err) {
+              reject(err);
+            }
+          };
+          reader.readAsDataURL(file);
+        })
+    );
+
+    try {
+      const newUrls = await Promise.all(uploadPromises);
+      const updatedUrls = [...proofUrls, ...newUrls].slice(0, 5);
+      setProofUrls(updatedUrls);
+      setValue("verificationProofUrls", updatedUrls, { shouldDirty: true });
+      toast.success(
+        `${newUrls.length} proof document(s) uploaded! Click 'Save Changes' to update your listing.`
+      );
+    } catch (err) {
+      console.error("Proof upload error:", err);
+    } finally {
+      setUploadingProof(false);
+    }
+  };
+
+  const removeProofUrl = (index) => {
+    const updated = proofUrls.filter((_, i) => i !== index);
+    setProofUrls(updated);
+    setValue("verificationProofUrls", updated, { shouldDirty: true });
+    toast.info("Proof document removed. Click 'Save Changes' to update.");
+  };
 
   // Change password state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -191,7 +276,14 @@ const VenueDashboardPage = () => {
       });
       setVenue(res.data);
       setPhotos(res.data.photos || []);
-      reset(res.data);
+      // Migrate legacy single URL to array if needed
+      const existingUrls = res.data.verificationProofUrls?.length
+        ? res.data.verificationProofUrls
+        : res.data.verificationProofUrl
+        ? [res.data.verificationProofUrl]
+        : [];
+      setProofUrls(existingUrls);
+      reset({ ...res.data, verificationProofUrls: existingUrls });
     } catch (err) {
       toast.error("Failed to load profile. Please log in again.");
       localStorage.removeItem("venueToken");
@@ -206,6 +298,8 @@ const VenueDashboardPage = () => {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(detailsSchema),
@@ -250,6 +344,7 @@ const VenueDashboardPage = () => {
         {
           ...data,
           photos,
+          verificationProofUrls: proofUrls,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -580,6 +675,12 @@ const VenueDashboardPage = () => {
               handleSubmit={handleSubmit}
               onUpdateDetails={onUpdateDetails}
               saving={saving}
+              setValue={setValue}
+              watch={watch}
+              uploadingProof={uploadingProof}
+              handleProofUpload={handleProofUpload}
+              proofUrls={proofUrls}
+              removeProofUrl={removeProofUrl}
             />
           )}
 

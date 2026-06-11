@@ -106,6 +106,7 @@ router.put("/venues/verify/:id", async (req, res) => {
       safetyStructural,
       safetyInsurance,
       trustScore,
+      verificationNotes,
     } = req.body;
 
     const venue = await Venue.findById(req.params.id);
@@ -117,6 +118,7 @@ router.put("/venues/verify/:id", async (req, res) => {
     if (safetyStructural !== undefined) venue.safetyStructural = safetyStructural;
     if (safetyInsurance !== undefined) venue.safetyInsurance = safetyInsurance;
     if (trustScore !== undefined) venue.trustScore = trustScore;
+    if (verificationNotes !== undefined) venue.verificationNotes = verificationNotes;
 
     await venue.save();
     res.status(200).json({ message: "Venue verification checklist updated successfully.", venue });

@@ -24,8 +24,23 @@ const SuperAdminDashboardPage = () => {
     safetySecurity: false,
     safetyStructural: false,
     safetyInsurance: false,
-    trustScore: 9.0,
+    trustScore: 0,
+    verificationNotes: "",
   });
+
+  const handleCheckboxChange = (field, checked) => {
+    setVerificationForm((prev) => {
+      const next = { ...prev, [field]: checked };
+      let score = 0;
+      if (next.safetyFireExits) score += 2;
+      if (next.safetyCctv) score += 2;
+      if (next.safetySecurity) score += 2;
+      if (next.safetyStructural) score += 2;
+      if (next.safetyInsurance) score += 2;
+      next.trustScore = score;
+      return next;
+    });
+  };
 
   const startVerificationEdit = (venue) => {
     setVerifyingVenueId(venue._id);
@@ -36,6 +51,7 @@ const SuperAdminDashboardPage = () => {
       safetyStructural: !!venue.safetyStructural,
       safetyInsurance: !!venue.safetyInsurance,
       trustScore: venue.trustScore !== undefined ? venue.trustScore : 0,
+      verificationNotes: venue.verificationNotes || "",
     });
   };
 
@@ -54,6 +70,7 @@ const SuperAdminDashboardPage = () => {
                 safetyStructural: res.data.venue.safetyStructural,
                 safetyInsurance: res.data.venue.safetyInsurance,
                 trustScore: res.data.venue.trustScore,
+                verificationNotes: res.data.venue.verificationNotes,
               }
             : v
         )
@@ -448,7 +465,7 @@ const SuperAdminDashboardPage = () => {
               }).length === 0 ? (
                 <p className="text-center text-xs text-white/40 py-10 bg-[#0D1220] rounded-3xl border border-white/10">No venues match this filter.</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                   {[
                     ...venues.filter(v => v.isApproved),
                     ...venues.filter(v => !v.isApproved),
@@ -508,6 +525,9 @@ const SuperAdminDashboardPage = () => {
                               ].filter(Boolean).join(", ") || "None Verified"
                             }</p>
                             <p>⭐ Trust Score: {venue.trustScore !== undefined && venue.trustScore > 0 ? `${venue.trustScore}/10` : "— (not verified yet)"}</p>
+                            {venue.verificationNotes && (
+                              <p className="text-[#D8B76A] italic">📝 Admin Notes: {venue.verificationNotes}</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -517,12 +537,52 @@ const SuperAdminDashboardPage = () => {
                         <div className="mt-4 p-4 rounded-2xl bg-white/5 border border-[#D8B76A]/20 space-y-3 animate-fade-in">
                           <h4 className="text-xs uppercase tracking-wider text-[#D8B76A] font-bold">Edit Trust & Safety Verification</h4>
                           
+                          {/* Submitted Proof Links (supports both old single URL and new array) */}
+                          {(() => {
+                            const allProofs = [
+                              ...(venue.verificationProofUrls || []),
+                              ...(venue.verificationProofUrl && !venue.verificationProofUrls?.includes(venue.verificationProofUrl) ? [venue.verificationProofUrl] : []),
+                            ];
+                            return allProofs.length > 0 ? (
+                              <div className="space-y-1.5">
+                                <span className="text-[9px] uppercase tracking-wider font-bold text-[#D8B76A] block">📂 Submitted Proof Documents ({allProofs.length})</span>
+                                {allProofs.map((url, idx) => (
+                                  <a
+                                    key={idx}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-0.5 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#D8B76A]/10 text-[#D8B76A] hover:bg-[#D8B76A]/20 border border-[#D8B76A]/20 text-[10px] font-bold uppercase tracking-wider transition w-full justify-center"
+                                  >
+                                    📄 Document {idx + 1} — Open / View →
+                                  </a>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="mt-1 text-[10px] text-white/40 italic text-center p-2.5 border border-dashed border-white/10 rounded-xl">
+                                No verification proof documents uploaded by owner.
+                              </div>
+                            );
+                          })()}
+
+                          {/* Declarations by the Venue Owner */}
+                          <div className="bg-white/5 border border-white/10 p-3 rounded-xl space-y-1.5 text-[11px] text-white/70">
+                            <span className="font-bold text-[#D8B76A] block uppercase text-[9px] tracking-wider mb-0.5">Declared by Venue Owner:</span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                              <div>🔥 Fire Exits: <span className={venue.claimedFireExits ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedFireExits ? "Yes" : "No"}</span></div>
+                              <div>📹 CCTV: <span className={venue.claimedCctv ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedCctv ? "Yes" : "No"}</span></div>
+                              <div>🛡️ Security: <span className={venue.claimedSecurity ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedSecurity ? "Yes" : "No"}</span></div>
+                              <div>🏗️ Structural: <span className={venue.claimedStructural ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedStructural ? "Yes" : "No"}</span></div>
+                              <div className="sm:col-span-2">💼 Insurance: <span className={venue.claimedInsurance ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedInsurance ? "Yes" : "No"}</span></div>
+                            </div>
+                          </div>
+
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                             <label className="flex items-center gap-2 cursor-pointer">
                               <input
                                 type="checkbox"
                                 checked={verificationForm.safetyFireExits}
-                                onChange={(e) => setVerificationForm({ ...verificationForm, safetyFireExits: e.target.checked })}
+                                onChange={(e) => handleCheckboxChange("safetyFireExits", e.target.checked)}
                                 className="accent-[#D8B76A]"
                               />
                               Fire Exits & Signage
@@ -532,7 +592,7 @@ const SuperAdminDashboardPage = () => {
                               <input
                                 type="checkbox"
                                 checked={verificationForm.safetyCctv}
-                                onChange={(e) => setVerificationForm({ ...verificationForm, safetyCctv: e.target.checked })}
+                                onChange={(e) => handleCheckboxChange("safetyCctv", e.target.checked)}
                                 className="accent-[#D8B76A]"
                               />
                               Full CCTV Coverage
@@ -542,7 +602,7 @@ const SuperAdminDashboardPage = () => {
                               <input
                                 type="checkbox"
                                 checked={verificationForm.safetySecurity}
-                                onChange={(e) => setVerificationForm({ ...verificationForm, safetySecurity: e.target.checked })}
+                                onChange={(e) => handleCheckboxChange("safetySecurity", e.target.checked)}
                                 className="accent-[#D8B76A]"
                               />
                               Guard Security Personnel
@@ -552,7 +612,7 @@ const SuperAdminDashboardPage = () => {
                               <input
                                 type="checkbox"
                                 checked={verificationForm.safetyStructural}
-                                onChange={(e) => setVerificationForm({ ...verificationForm, safetyStructural: e.target.checked })}
+                                onChange={(e) => handleCheckboxChange("safetyStructural", e.target.checked)}
                                 className="accent-[#D8B76A]"
                               />
                               Structural Integrity
@@ -562,7 +622,7 @@ const SuperAdminDashboardPage = () => {
                               <input
                                 type="checkbox"
                                 checked={verificationForm.safetyInsurance}
-                                onChange={(e) => setVerificationForm({ ...verificationForm, safetyInsurance: e.target.checked })}
+                                onChange={(e) => handleCheckboxChange("safetyInsurance", e.target.checked)}
                                 className="accent-[#D8B76A]"
                               />
                               Venue Liability Insurance
@@ -573,12 +633,20 @@ const SuperAdminDashboardPage = () => {
                             <label className="text-[10px] uppercase font-bold tracking-wider text-white/50">Trust Score (0-10):</label>
                             <input
                               type="number"
-                              min="0"
-                              max="10"
-                              step="0.1"
+                              disabled
                               value={verificationForm.trustScore}
-                              onChange={(e) => setVerificationForm({ ...verificationForm, trustScore: parseFloat(e.target.value) || 0 })}
-                              className="w-20 rounded bg-[#070A13] border border-white/15 px-2 py-1 text-xs text-white"
+                              className="w-20 rounded bg-[#070A13]/50 border border-white/10 px-2 py-1 text-xs text-white/50 cursor-not-allowed font-mono font-bold"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1.5 pt-2">
+                            <label className="text-[10px] uppercase font-bold tracking-wider text-white/50">Verification Audit Notes / Feedback:</label>
+                            <textarea
+                              value={verificationForm.verificationNotes}
+                              onChange={(e) => setVerificationForm((prev) => ({ ...prev, verificationNotes: e.target.value }))}
+                              placeholder="Record verification review logs (e.g. document validity, expiry dates, or request details)..."
+                              rows={3}
+                              className="w-full rounded-xl border bg-[#070A13]/50 border-white/10 px-3 py-2 text-xs text-white placeholder-white/30 outline-none resize-none focus:border-[#D8B76A]/60"
                             />
                           </div>
 

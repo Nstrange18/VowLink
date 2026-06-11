@@ -149,15 +149,28 @@ const RsvpResponsePage = () => {
                 <div className="flex justify-between text-xs font-semibold">
                   <span className="text-white/60">🍯 Honeymoon Fund</span>
                   <span className="text-[#D8B76A]">
-                    {Math.min(Math.round((state.honeymoonFundCurrent / state.honeymoonFundTarget) * 100), 100)}% Reached
+                    {state.honeymoonFundCurrent >= state.honeymoonFundTarget ? (
+                      <span className="text-[#3EC58E] font-bold animate-pulse">🎉 Goal Reached!</span>
+                    ) : (
+                      `${Math.min(Math.round((state.honeymoonFundCurrent / state.honeymoonFundTarget) * 100), 100)}% Reached`
+                    )}
                   </span>
                 </div>
                 <div className="h-2.5 w-full rounded-full bg-white/10 overflow-hidden relative border border-white/5">
                   <div
-                    className="h-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] transition-all duration-500 shadow-[0_0_8px_rgba(216,183,106,0.5)]"
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      state.honeymoonFundCurrent >= state.honeymoonFundTarget
+                        ? "bg-linear-to-r from-[#3EC58E] to-[#34D399] animate-pulse shadow-[0_0_12px_rgba(62,197,142,0.6)]"
+                        : "bg-linear-to-r from-[#D8B76A] to-[#F2D894] shadow-[0_0_8px_rgba(216,183,106,0.5)]"
+                    }`}
                     style={{ width: `${Math.min(Math.round((state.honeymoonFundCurrent / state.honeymoonFundTarget) * 100), 100)}%` }}
                   />
                 </div>
+                {state.honeymoonFundCurrent >= state.honeymoonFundTarget && (
+                  <p className="text-[10px] text-[#3EC58E] font-medium text-center italic mt-1 leading-tight">
+                    Honeymoon goal reached! Thank you so much!
+                  </p>
+                )}
               </div>
             )}
 
