@@ -91,6 +91,13 @@ const userPayload = (user) => ({
   customTextAlign: user.customTextAlign || "center",
   customHorizontalOffset: typeof user.customHorizontalOffset === "number" ? user.customHorizontalOffset : 0,
   smartLayoutEnabled: typeof user.smartLayoutEnabled === "boolean" ? user.smartLayoutEnabled : true,
+  registryEnabled: typeof user.registryEnabled === "boolean" ? user.registryEnabled : false,
+  registryBankName: user.registryBankName || "",
+  registryAccountName: user.registryAccountName || "",
+  registryAccountNumber: user.registryAccountNumber || "",
+  registryNotes: user.registryNotes || "",
+  honeymoonFundTarget: typeof user.honeymoonFundTarget === "number" ? user.honeymoonFundTarget : 0,
+  honeymoonFundCurrent: typeof user.honeymoonFundCurrent === "number" ? user.honeymoonFundCurrent : 0,
 });
 
 const generateAccessToken = (user) =>
@@ -132,6 +139,13 @@ const userPublic = (user) => ({
   customTextAlign: user.customTextAlign || "center",
   customHorizontalOffset: typeof user.customHorizontalOffset === "number" ? user.customHorizontalOffset : 0,
   smartLayoutEnabled: typeof user.smartLayoutEnabled === "boolean" ? user.smartLayoutEnabled : true,
+  registryEnabled: typeof user.registryEnabled === "boolean" ? user.registryEnabled : false,
+  registryBankName: user.registryBankName || "",
+  registryAccountName: user.registryAccountName || "",
+  registryAccountNumber: user.registryAccountNumber || "",
+  registryNotes: user.registryNotes || "",
+  honeymoonFundTarget: typeof user.honeymoonFundTarget === "number" ? user.honeymoonFundTarget : 0,
+  honeymoonFundCurrent: typeof user.honeymoonFundCurrent === "number" ? user.honeymoonFundCurrent : 0,
 });
 
 // ── Email helper ──────────────────────────────────────────────────────────────
@@ -322,6 +336,13 @@ router.put("/me", protect, async (req, res) => {
       customTextAlign,
       customHorizontalOffset,
       smartLayoutEnabled,
+      registryEnabled,
+      registryBankName,
+      registryAccountName,
+      registryAccountNumber,
+      registryNotes,
+      honeymoonFundTarget,
+      honeymoonFundCurrent,
     } = req.body;
 
     const user = await User.findById(req.user.id);
@@ -339,6 +360,15 @@ router.put("/me", protect, async (req, res) => {
     user.dressCode = dressCode || "";
     user.plusOnePolicy = plusOnePolicy === "plus_one_allowed" ? "plus_one_allowed" : "invitation_only";
     user.kidsAllowed = typeof kidsAllowed === "boolean" ? kidsAllowed : true;
+
+    // Update registry settings
+    if (typeof registryEnabled === "boolean") user.registryEnabled = registryEnabled;
+    if (registryBankName !== undefined) user.registryBankName = registryBankName;
+    if (registryAccountName !== undefined) user.registryAccountName = registryAccountName;
+    if (registryAccountNumber !== undefined) user.registryAccountNumber = registryAccountNumber;
+    if (registryNotes !== undefined) user.registryNotes = registryNotes;
+    if (typeof honeymoonFundTarget === "number") user.honeymoonFundTarget = honeymoonFundTarget;
+    if (typeof honeymoonFundCurrent === "number") user.honeymoonFundCurrent = honeymoonFundCurrent;
 
     // Plan-based validation for premium customizations
     if (user.tier === "free") {

@@ -33,7 +33,7 @@ const loadPaystackScript = () => {
       return;
     }
     const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
+    script.src = "https://js.paystack.co/v2/inline.js";
     script.async = true;
     script.onload = () => {
       resolve(true);
@@ -324,8 +324,7 @@ const VenueDashboardPage = () => {
       return;
     }
 
-    const paystack = new window.PaystackPop();
-    paystack.newTransaction({
+    const paystackOptions = {
       key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
       email: venue.ownerEmail,
       amount: (tier === "listed" ? 5000 : 15000) * 100, // Price in kobo
@@ -365,7 +364,29 @@ const VenueDashboardPage = () => {
         toast.info("Subscription payment cancelled.");
         setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false });
       },
-    });
+    };
+
+    // Version-resilient wrapper to handle both v1 (setup) and v2 (new constructor)
+    if (typeof window.PaystackPop === "function") {
+      try {
+        const paystack = new window.PaystackPop();
+        paystack.newTransaction(paystackOptions);
+        return;
+      } catch (e) {
+        console.warn("Paystack Pop V2 instantiation failed, falling back to V1 setup", e);
+      }
+    }
+
+    if (window.PaystackPop && typeof window.PaystackPop.setup === "function") {
+      const handler = window.PaystackPop.setup({
+        ...paystackOptions,
+        callback: paystackOptions.onSuccess,
+        onClose: paystackOptions.onCancel
+      });
+      handler.openIframe();
+    } else {
+      toast.error("Paystack payment SDK is not initialized. Please refresh the page.");
+    }
   };
 
   const handleDemoApprove = async () => {

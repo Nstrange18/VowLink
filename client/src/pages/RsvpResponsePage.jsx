@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const formatDate = (dateStr) => {
   if (!dateStr) return null;
@@ -131,6 +132,69 @@ const RsvpResponsePage = () => {
         </p>
 
         <p className="mt-6 text-sm text-white/40">{coupleName}</p>
+
+        {/* Cash Gifting panel */}
+        {isAttending && state?.registryEnabled && (
+          <div className="mt-8 pt-6 border-t border-white/10 text-left space-y-4">
+            <h3 className="font-serif text-lg text-white text-center tracking-wide">🎁 Gift Registry & Honeymoon Fund</h3>
+            {state?.registryNotes && (
+              <p className="text-xs text-white/60 text-center leading-relaxed italic">
+                "{state.registryNotes}"
+              </p>
+            )}
+
+            {/* Honeymoon Fund progress */}
+            {state?.honeymoonFundTarget > 0 && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-white/60">🍯 Honeymoon Fund</span>
+                  <span className="text-[#D8B76A]">
+                    {Math.min(Math.round((state.honeymoonFundCurrent / state.honeymoonFundTarget) * 100), 100)}% Reached
+                  </span>
+                </div>
+                <div className="h-2.5 w-full rounded-full bg-white/10 overflow-hidden relative border border-white/5">
+                  <div
+                    className="h-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] transition-all duration-500 shadow-[0_0_8px_rgba(216,183,106,0.5)]"
+                    style={{ width: `${Math.min(Math.round((state.honeymoonFundCurrent / state.honeymoonFundTarget) * 100), 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Bank details card */}
+            {state?.registryAccountNumber && (
+              <div className="rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 p-4 space-y-3 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-2 opacity-10 pointer-events-none text-5xl select-none">🏦</div>
+                <p className="text-[10px] uppercase tracking-wider text-[#D8B76A] font-bold">Bank Transfer Info</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-white/40 block text-[9px] uppercase tracking-wider">Bank</span>
+                    <span className="text-white font-medium">{state.registryBankName || "Not Specified"}</span>
+                  </div>
+                  <div>
+                    <span className="text-white/40 block text-[9px] uppercase tracking-wider">Account Name</span>
+                    <span className="text-white font-medium">{state.registryAccountName || "Not Specified"}</span>
+                  </div>
+                  <div className="col-span-2 flex items-center justify-between bg-white/5 rounded-lg p-2.5 mt-1 border border-white/5">
+                    <div>
+                      <span className="text-white/40 block text-[9px] uppercase tracking-wider">Account Number</span>
+                      <span className="text-white font-mono text-sm tracking-wide font-bold">{state.registryAccountNumber}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(state.registryAccountNumber);
+                        toast.success("Account number copied! 📋");
+                      }}
+                      className="px-2.5 py-1.5 rounded-md bg-[#D8B76A] text-[#070A13] text-[10px] font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

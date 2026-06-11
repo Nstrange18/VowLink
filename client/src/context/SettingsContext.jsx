@@ -96,6 +96,16 @@ export const SettingsProvider = ({ children }) => {
   const [musicUrl, setMusicUrl] = useState(storedUser.musicUrl || "");
   const [galleryPhotos, setGalleryPhotos] = useState(storedUser.galleryPhotos || []);
 
+  // Registry & Honeymoon Fund states
+  const [registryEnabled, setRegistryEnabled] = useState(storedUser.registryEnabled || false);
+  const [registryBankName, setRegistryBankName] = useState(storedUser.registryBankName || "");
+  const [registryAccountName, setRegistryAccountName] = useState(storedUser.registryAccountName || "");
+  const [registryAccountNumber, setRegistryAccountNumber] = useState(storedUser.registryAccountNumber || "");
+  const [registryNotes, setRegistryNotes] = useState(storedUser.registryNotes || "");
+  const [honeymoonFundTarget, setHoneymoonFundTarget] = useState(storedUser.honeymoonFundTarget || 0);
+  const [musicUrlToSaveDummy, setMusicUrlToSaveDummy] = useState(""); // Dummy to assist grouping
+  const [honeymoonFundCurrent, setHoneymoonFundCurrent] = useState(storedUser.honeymoonFundCurrent || 0);
+
   // AI Matcher state
   const [aiVibe, setAiVibe] = useState("Royal Velvet");
   const [aiGenerating, setAiGenerating] = useState(false);
@@ -170,6 +180,13 @@ export const SettingsProvider = ({ children }) => {
         if (typeof freshUser.smartLayoutEnabled === "boolean") setSmartLayoutEnabled(freshUser.smartLayoutEnabled);
         if (typeof freshUser.customTextSize === "number") setCustomTextSize(freshUser.customTextSize);
         if (freshUser.customTextAlign) setCustomTextAlign(freshUser.customTextAlign);
+        if (typeof freshUser.registryEnabled === "boolean") setRegistryEnabled(freshUser.registryEnabled);
+        if (freshUser.registryBankName) setRegistryBankName(freshUser.registryBankName);
+        if (freshUser.registryAccountName) setRegistryAccountName(freshUser.registryAccountName);
+        if (freshUser.registryAccountNumber) setRegistryAccountNumber(freshUser.registryAccountNumber);
+        if (freshUser.registryNotes) setRegistryNotes(freshUser.registryNotes);
+        if (typeof freshUser.honeymoonFundTarget === "number") setHoneymoonFundTarget(freshUser.honeymoonFundTarget);
+        if (typeof freshUser.honeymoonFundCurrent === "number") setHoneymoonFundCurrent(freshUser.honeymoonFundCurrent);
         if (Array.isArray(freshUser.weddingColors) && freshUser.weddingColors.length) setWeddingColors(freshUser.weddingColors);
         
         reset({
@@ -262,6 +279,13 @@ export const SettingsProvider = ({ children }) => {
         customTextAlign,
         musicUrl: musicUrlToSave,
         galleryPhotos,
+        registryEnabled: Boolean(registryEnabled),
+        registryBankName,
+        registryAccountName,
+        registryAccountNumber,
+        registryNotes,
+        honeymoonFundTarget: Number(honeymoonFundTarget),
+        honeymoonFundCurrent: Number(honeymoonFundCurrent),
       });
 
       localStorage.setItem("token", res.data.accessToken);
@@ -426,6 +450,14 @@ export const SettingsProvider = ({ children }) => {
     setMusicUrl("");
     setGalleryPhotos([]);
     setWeddingColors([]);
+
+    setRegistryEnabled(false);
+    setRegistryBankName("");
+    setRegistryAccountName("");
+    setRegistryAccountNumber("");
+    setRegistryNotes("");
+    setHoneymoonFundTarget(0);
+    setHoneymoonFundCurrent(0);
 
     if (customBgInputRef.current) customBgInputRef.current.value = "";
     if (couplePhotoInputRef.current) couplePhotoInputRef.current.value = "";
@@ -665,6 +697,13 @@ export const SettingsProvider = ({ children }) => {
         galleryPhotos, setGalleryPhotos,
         localAudioUrl, setLocalAudioUrl,
         localAudioName, setLocalAudioName,
+        registryEnabled, setRegistryEnabled,
+        registryBankName, setRegistryBankName,
+        registryAccountName, setRegistryAccountName,
+        registryAccountNumber, setRegistryAccountNumber,
+        registryNotes, setRegistryNotes,
+        honeymoonFundTarget, setHoneymoonFundTarget,
+        honeymoonFundCurrent, setHoneymoonFundCurrent,
 
         aiVibe, setAiVibe,
         aiGenerating, setAiGenerating,

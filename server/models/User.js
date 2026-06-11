@@ -104,6 +104,38 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    registryEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    registryBankName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    registryAccountName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    registryAccountNumber: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    registryNotes: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    honeymoonFundTarget: {
+      type: Number,
+      default: 0,
+    },
+    honeymoonFundCurrent: {
+      type: Number,
+      default: 0,
+    },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
   },

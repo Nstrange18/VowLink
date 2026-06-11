@@ -222,6 +222,49 @@ const getInvitedGuestCount = (invitation, plusOnePolicy) => {
   return base;
 };
 
+const WeddingDayParticles = () => {
+  const pieces = Array.from({ length: 40 }).map((_, i) => {
+    const left = `${Math.random() * 100}vw`;
+    const size = `${Math.random() * 15 + 10}px`;
+    const delay = `${Math.random() * 5}s`;
+    const duration = `${Math.random() * 4 + 4}s`;
+    const emoji = ["💖", "✨", "💍", "🌸", "🥂"][Math.floor(Math.random() * 5)];
+    return {
+      id: i,
+      emoji,
+      style: {
+        left,
+        fontSize: size,
+        animationDelay: delay,
+        animationDuration: duration,
+        position: "absolute",
+        top: "-50px",
+        pointerEvents: "none",
+        animation: "floatDown 8s linear infinite",
+        opacity: Math.random() * 0.7 + 0.3,
+      }
+    };
+  });
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes floatDown {
+          0% {
+            transform: translateY(0) rotate(0deg);
+          }
+          100% {
+            transform: translateY(105vh) rotate(360deg);
+          }
+        }
+      `}} />
+      {pieces.map((p) => (
+        <div key={p.id} style={p.style}>{p.emoji}</div>
+      ))}
+    </div>
+  );
+};
+
 const InvitePage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -238,6 +281,8 @@ const InvitePage = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [hiddenOverlay, setHiddenOverlay] = useState(false);
+  const [mapSelectAddress, setMapSelectAddress] = useState(null);
+  const [wishes, setWishes] = useState([]);
   const audioRef = useRef(null);
 
   const countdown = useCountdown(invitation?.userId?.weddingDate);
@@ -302,6 +347,13 @@ const InvitePage = () => {
         if (err.response?.status === 404) setNotFound(true);
       })
       .finally(() => setLoading(false));
+
+    api
+      .get(`/invitations/slug/${slug}/wishes`)
+      .then((res) => {
+        setWishes(res.data);
+      })
+      .catch(() => {});
   }, [slug, setValue]);
 
   // Component lifecycle hooks
@@ -323,6 +375,13 @@ const InvitePage = () => {
           partner2Name: invitation.userId?.partner2Name,
           weddingDate: invitation.userId?.weddingDate,
           attending: data.attending,
+          registryEnabled: invitation.userId?.registryEnabled,
+          registryBankName: invitation.userId?.registryBankName,
+          registryAccountName: invitation.userId?.registryAccountName,
+          registryAccountNumber: invitation.userId?.registryAccountNumber,
+          registryNotes: invitation.userId?.registryNotes,
+          honeymoonFundTarget: invitation.userId?.honeymoonFundTarget,
+          honeymoonFundCurrent: invitation.userId?.honeymoonFundCurrent,
         },
       });
     } catch (err) {
@@ -552,8 +611,18 @@ const InvitePage = () => {
     : (customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A");
   const envelopeAccentColor = isEnvelopeDark ? secHex : (isFreeUser ? "#B8963A" : priHex);
 
+  const isTodayWeddingDay = weddingDate && (new Date(weddingDate).toDateString() === new Date().toDateString());
+
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: "#070A13" }}>
+      {isTodayWeddingDay && <WeddingDayParticles />}
+      {isTodayWeddingDay && (
+        <div className="bg-linear-to-r from-[#D8B76A] via-[#F2D894] to-[#D8B76A] text-[#070A13] px-4 py-3 text-center text-xs font-bold uppercase tracking-widest relative z-35 shadow-lg flex items-center justify-center gap-2">
+          <span>💍</span>
+          <span>Happy Wedding Day! Today is the Big Day for {invitation.userId?.partner1Name} & {invitation.userId?.partner2Name}!</span>
+          <span>✨</span>
+        </div>
+      )}
       {/* Premium page background: deep dark with radial gold bokeh */}
       <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
         {/* Dark base */}
@@ -879,12 +948,13 @@ const InvitePage = () => {
                 Time : {formattedTimeWithFormat || "To be announced"}
               </p>
 
-              {/* ── Venue (clickable → Google Maps) ── */}
+              {/* ── Venue (clickable → Maps Selector Modal) ── */}
               {venue && (
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setMapSelectAddress(venue);
+                  }}
                   style={{
                     fontFamily: cardStyles.fontFamily,
                     fontSize: "0.95em",
@@ -893,17 +963,18 @@ const InvitePage = () => {
                     textDecorationColor: `${accentColor}55`,
                     textUnderlineOffset: "3px",
                   }}
-                  className="mb-2 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2"
+                  className="mb-2 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2 text-center mx-auto"
                 >
                   Location: {venue}
-                </a>
+                </button>
               )}
 
               {receptionLocation && (
-                <a
-                  href={receptionMapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setMapSelectAddress(receptionLocation);
+                  }}
                   style={{
                     fontFamily: cardStyles.fontFamily,
                     fontSize: "0.95em",
@@ -912,10 +983,10 @@ const InvitePage = () => {
                     textDecorationColor: `${accentColor}55`,
                     textUnderlineOffset: "3px",
                   }}
-                  className="mb-5 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2"
+                  className="mb-5 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2 text-center mx-auto"
                 >
                   Reception at: {receptionLocation}
-                </a>
+                </button>
               )}
 
               {/* bottom ornament */}
@@ -1159,31 +1230,12 @@ const InvitePage = () => {
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
             <span className="text-2xl text-[#D8B76A]">📍</span>
             <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Venue</p>
-            <a
-              href={mapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                ...serif,
-                fontSize: "0.95rem",
-                color: "gainsboro",
-                textDecoration: "underline",
-                textDecorationColor: "#B8963A55",
-                textUnderlineOffset: "3px",
-              }}
-            >
-              {venue || "To be announced"}
-            </a>
-          </div>
-
-          {receptionLocation && (
-            <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-              <span className="text-2xl text-[#D8B76A]">🥂</span>
-              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Reception at</p>
-              <a
-                href={receptionMapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+            {venue ? (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMapSelectAddress(venue);
+                }}
                 style={{
                   ...serif,
                   fontSize: "0.95rem",
@@ -1192,9 +1244,36 @@ const InvitePage = () => {
                   textDecorationColor: "#B8963A55",
                   textUnderlineOffset: "3px",
                 }}
+                className="hover:opacity-80 transition block w-full text-center"
+              >
+                {venue}
+              </button>
+            ) : (
+              <p className="text-white text-sm leading-6">To be announced</p>
+            )}
+          </div>
+
+          {receptionLocation && (
+            <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+              <span className="text-2xl text-[#D8B76A]">🥂</span>
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Reception at</p>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMapSelectAddress(receptionLocation);
+                }}
+                style={{
+                  ...serif,
+                  fontSize: "0.95rem",
+                  color: "gainsboro",
+                  textDecoration: "underline",
+                  textDecorationColor: "#B8963A55",
+                  textUnderlineOffset: "3px",
+                }}
+                className="hover:opacity-80 transition block w-full text-center"
               >
                 {receptionLocation}
-              </a>
+              </button>
             </div>
           )}
 
@@ -1413,6 +1492,174 @@ const InvitePage = () => {
                 {isSubmitting ? "Sending..." : "Submit RSVP"}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Gift Registry Section */}
+      {invitation.userId?.registryEnabled && (
+        <section className="px-4 sm:px-6 py-16 text-center bg-[#090D19] relative z-10 border-t border-white/5 flex flex-col items-center">
+          <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Gifting</p>
+          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Gift Registry & Honeymoon Fund</h2>
+          
+          <div className="w-full max-w-xl rounded-3xl border border-[#D8B76A]/30 bg-[#070A13]/90 p-6 sm:p-8 shadow-2xl space-y-8 text-left relative overflow-hidden backdrop-blur-md">
+            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-9xl">🎁</div>
+            
+            {invitation.userId?.registryNotes && (
+              <p className="text-sm text-white/70 text-center leading-relaxed italic border-b border-white/5 pb-6">
+                "{invitation.userId.registryNotes}"
+              </p>
+            )}
+
+            {/* Honeymoon Fund progress bar */}
+            {invitation.userId?.honeymoonFundTarget > 0 && (
+              <div className="space-y-3">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-white/50">🍯 Honeymoon Fund Tracker</h4>
+                    <p className="text-xs text-white/40 font-normal">Help us create memories of a lifetime.</p>
+                  </div>
+                  <span className="text-base font-serif text-[#D8B76A] font-semibold">
+                    {Math.min(Math.round((invitation.userId.honeymoonFundCurrent / invitation.userId.honeymoonFundTarget) * 100), 100)}% Reached
+                  </span>
+                </div>
+                <div className="h-4 w-full rounded-full bg-white/5 overflow-hidden relative border border-white/10 p-0.5">
+                  <div
+                    className="h-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] transition-all duration-1000 shadow-[0_0_10px_rgba(216,183,106,0.4)]"
+                    style={{ width: `${Math.min(Math.round((invitation.userId.honeymoonFundCurrent / invitation.userId.honeymoonFundTarget) * 100), 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Bank details info */}
+            {invitation.userId?.registryAccountNumber && (
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-white/50">🏦 Bank Transfer Details</h4>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
+                    <div>
+                      <span className="text-white/40 block text-[9px] uppercase tracking-wider">Bank Name</span>
+                      <span className="text-white font-medium">{invitation.userId.registryBankName || "Not Specified"}</span>
+                    </div>
+                    <div>
+                      <span className="text-white/40 block text-[9px] uppercase tracking-wider">Account Name</span>
+                      <span className="text-white font-medium">{invitation.userId.registryAccountName || "Not Specified"}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between bg-black/40 rounded-xl p-3 sm:p-4 border border-white/5">
+                    <div>
+                      <span className="text-white/40 block text-[9px] uppercase tracking-wider">Account Number</span>
+                      <span className="text-white font-mono text-base tracking-wide font-bold">{invitation.userId.registryAccountNumber}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(invitation.userId.registryAccountNumber);
+                        toast.success("Account number copied! 📋");
+                      }}
+                      className="px-4 py-2 rounded-lg bg-[#D8B76A] text-[#070A13] text-xs font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition"
+                    >
+                      Copy Number
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Wish Wall / Guestbook Section */}
+      {wishes.length > 0 && (
+        <section className="px-4 sm:px-6 py-16 text-center bg-[#070A13] relative z-10 border-t border-white/5 flex flex-col items-center">
+          <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Congratulations</p>
+          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">The Wish Wall</h2>
+          <p className="text-white/40 text-xs max-w-sm mb-10 -mt-4 leading-relaxed font-normal">
+            Beautiful wishes and congratulations from our dear guests who are attending.
+          </p>
+          
+          <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {wishes.map((w, index) => (
+              <div
+                key={index}
+                className="p-5 rounded-2xl border border-white/10 bg-[#0D1220] text-left relative overflow-hidden flex flex-col justify-between min-h-36 hover:border-[#D8B76A]/40 transition duration-300 shadow-lg"
+              >
+                <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none text-4xl font-serif">“</div>
+                <p className="text-white/80 text-sm leading-relaxed italic mb-4 font-normal">
+                  "{w.message}"
+                </p>
+                <div className="flex items-center justify-between border-t border-white/5 pt-3 mt-auto">
+                  <span className="text-xs font-bold text-[#D8B76A] uppercase tracking-wider truncate max-w-28 font-semibold">
+                    {w.guestName}
+                  </span>
+                  <span className="text-[9px] text-white/30">
+                    {new Date(w.createdAt).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short"
+                    })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Map Selector Modal */}
+      {mapSelectAddress && (
+        <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-fade-in">
+          <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/30 bg-[#0D1220] p-6 shadow-2xl space-y-6 text-center">
+            <div>
+              <span className="text-3xl">🧭</span>
+              <h3 className="font-serif text-xl text-white mt-2">Open in Maps</h3>
+              <p className="text-white/40 text-xs mt-1 leading-relaxed max-w-xs mx-auto">
+                Choose your preferred navigation app to open routes for:<br />
+                <span className="text-white/80 font-medium block mt-1 break-words">{mapSelectAddress}</span>
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              {/* Google Maps */}
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSelectAddress)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMapSelectAddress(null)}
+                className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
+              >
+                <span>🗺️</span> Google Maps
+              </a>
+              
+              {/* Apple Maps */}
+              <a
+                href={`https://maps.apple.com/?q=${encodeURIComponent(mapSelectAddress)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMapSelectAddress(null)}
+                className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
+              >
+                <span>🍎</span> Apple Maps
+              </a>
+              
+              {/* Waze */}
+              <a
+                href={`https://waze.com/ul?q=${encodeURIComponent(mapSelectAddress)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMapSelectAddress(null)}
+                className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
+              >
+                <span>🚗</span> Waze
+              </a>
+            </div>
+            
+            <button
+              onClick={() => setMapSelectAddress(null)}
+              className="w-full text-xs font-bold uppercase tracking-widest text-[#D8B76A] hover:underline"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}

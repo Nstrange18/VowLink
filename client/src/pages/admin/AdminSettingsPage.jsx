@@ -45,6 +45,13 @@ const AdminSettingsPageContent = () => {
     galleryPhotos, setGalleryPhotos,
     localAudioUrl, setLocalAudioUrl,
     localAudioName, setLocalAudioName,
+    registryEnabled, setRegistryEnabled,
+    registryBankName, setRegistryBankName,
+    registryAccountName, setRegistryAccountName,
+    registryAccountNumber, setRegistryAccountNumber,
+    registryNotes, setRegistryNotes,
+    honeymoonFundTarget, setHoneymoonFundTarget,
+    honeymoonFundCurrent, setHoneymoonFundCurrent,
 
     aiVibe, setAiVibe,
     aiGenerating, setAiGenerating,
@@ -113,6 +120,7 @@ const AdminSettingsPageContent = () => {
           { id: "details", label: "💍 Details", fullLabel: "💍 Wedding Details" },
           { id: "design", label: "🎨 Design", fullLabel: "🎨 Design & Theme" },
           { id: "media", label: "🎵 Music", fullLabel: "🎵 Media & Music" },
+          { id: "registry", label: "🎁 Registry", fullLabel: "🎁 Gift Registry & Fund" },
           { id: "security", label: "🔒 Security", fullLabel: "🔒 Security & Danger Zone" }
         ].map(tab => (
           <button
@@ -167,8 +175,8 @@ const AdminSettingsPageContent = () => {
         {/* LEFT COLUMN: Tabs/Forms container */}
         <div className={`col-span-12 ${activeTab === "security" ? "lg:col-span-12" : "lg:col-span-7"} space-y-6`}>
 
-          {/* Main Form for Details, Design, and Media settings */}
-          {(activeTab === "details" || activeTab === "design" || activeTab === "media") && (
+          {/* Main Form for Details, Design, Media, and Registry settings */}
+          {(activeTab === "details" || activeTab === "design" || activeTab === "media" || activeTab === "registry") && (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 animate-fade-in">
 
               {/* TAB 1: Wedding Details */}
@@ -427,6 +435,125 @@ const AdminSettingsPageContent = () => {
               {/* TAB 3: Music & Photos */}
               {activeTab === "media" && (
                 <MusicSelector />
+              )}
+
+              {/* TAB 4: Gift Registry & Cash Fund */}
+              {activeTab === "registry" && (
+                <div className="w-full">
+                  <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6 animate-fade-in">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                      <div>
+                        <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">🎁 Gift Registry & Cash Fund</h3>
+                        <p className="text-white/40 text-xs mt-1">
+                          Share bank details and honeymoon goals directly on your invitation and RSVP confirmation pages.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-[10px] uppercase tracking-widest text-white/50">Status</label>
+                        <button
+                          type="button"
+                          onClick={() => setRegistryEnabled(!registryEnabled)}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            registryEnabled ? "bg-[#D8B76A]" : "bg-white/10"
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-slate-900 shadow-md ring-0 transition duration-200 ease-in-out ${
+                              registryEnabled ? "translate-x-5 bg-white" : "translate-x-0"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    {registryEnabled && (
+                      <div className="space-y-6">
+                        {/* Bank Details Card */}
+                        <div className="space-y-4">
+                          <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60">🏦 Bank Transfer Details</h4>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Bank Name</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. GTBank / Chase"
+                                value={registryBankName || ""}
+                                onChange={(e) => setRegistryBankName(e.target.value)}
+                                className={cls(false)}
+                              />
+                            </div>
+                            <div>
+                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Account Name</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. John & Jane Wedding"
+                                value={registryAccountName || ""}
+                                onChange={(e) => setRegistryAccountName(e.target.value)}
+                                className={cls(false)}
+                              />
+                            </div>
+                            <div>
+                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Account Number</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. 0123456789"
+                                value={registryAccountNumber || ""}
+                                onChange={(e) => setRegistryAccountNumber(e.target.value)}
+                                className={cls(false)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Honeymoon Fund Card */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                          <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60">🍯 Honeymoon Fund Tracker</h4>
+                          <p className="text-[10px] text-white/40">
+                            Show a progress bar so guests can see how close you are to reaching your target.
+                          </p>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Target Goal (Amount)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                placeholder="e.g. 5000"
+                                value={honeymoonFundTarget || ""}
+                                onChange={(e) => setHoneymoonFundTarget(Number(e.target.value))}
+                                className={cls(false)}
+                              />
+                            </div>
+                            <div>
+                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Current Contribution (Amount)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                placeholder="e.g. 1500"
+                                value={honeymoonFundCurrent || ""}
+                                onChange={(e) => setHoneymoonFundCurrent(Number(e.target.value))}
+                                className={cls(false)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Registry Notes */}
+                        <div className="space-y-2 pt-4 border-t border-white/5">
+                          <label className="block text-[10px] uppercase tracking-widest text-white/50">Custom Gifting Message / Notes</label>
+                          <textarea
+                            rows={3}
+                            placeholder="e.g. Your presence is gift enough, but if you wish to contribute to our new beginning or honeymoon, here are our details. Thank you!"
+                            value={registryNotes || ""}
+                            onChange={(e) => setRegistryNotes(e.target.value)}
+                            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30 resize-none transition"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* BOTTOM SAVE BAR */}

@@ -12,14 +12,13 @@ const createSlug = (name) =>
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-");
 
-// ─── PUBLIC: Get invitation by slug (for guests) ────────────────────────────
 router.get("/slug/:slug", async (req, res) => {
   try {
     const invitation = await Invitation.findOne({
       slug: req.params.slug,
     }).populate(
       "userId",
-      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue receptionLocation dressCode weddingColors plusOnePolicy kidsAllowed cardTheme customCardBg pageBgTemplate customTextColor customFontFamily customVerticalOffset customTextSize couplePhotoUrl coupleOverlayOpacity musicUrl galleryPhotos tier",
+      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue receptionLocation dressCode weddingColors plusOnePolicy kidsAllowed cardTheme customCardBg pageBgTemplate customTextColor customFontFamily customVerticalOffset customTextSize couplePhotoUrl coupleOverlayOpacity musicUrl galleryPhotos tier registryEnabled registryBankName registryAccountName registryAccountNumber registryNotes honeymoonFundTarget honeymoonFundCurrent",
     );
 
     if (!invitation) {
@@ -31,6 +30,32 @@ router.get("/slug/:slug", async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to fetch invitation", error: error.message });
+  }
+});
+
+// GET /api/invitations/slug/:slug/wishes — public endpoint to fetch wedding guest wishes
+router.get("/slug/:slug/wishes", async (req, res) => {
+  try {
+    const invitation = await Invitation.findOne({ slug: req.params.slug });
+    if (!invitation) {
+      return res.status(404).json({ message: "Invitation not found" });
+    }
+
+    // Find all invitations belonging to the same couple
+    const coupleInvitations = await Invitation.find({ userId: invitation.userId });
+    const invitationIds = coupleInvitations.map(i => i._id);
+
+    // Find all RSVPs for these invitations with messages and attending 'Yes'
+    const RSVP = require("../models/RSVP");
+    const wishes = await RSVP.find({
+      invitationId: { $in: invitationIds },
+      attending: "Yes",
+      message: { $ne: "", $exists: true }
+    }).select("guestName message createdAt").sort({ createdAt: -1 });
+
+    res.status(200).json(wishes);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch wishes", error: error.message });
   }
 });
 

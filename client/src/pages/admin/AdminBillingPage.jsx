@@ -82,7 +82,7 @@ const loadPaystackScript = () => {
       return;
     }
     const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
+    script.src = "https://js.paystack.co/v2/inline.js";
     script.async = true;
     script.onload = () => {
       resolve(true);
@@ -145,8 +145,7 @@ const AdminBillingPage = () => {
     const convertedAmount = priceInUsd * conf.rate;
     const amountInMinor = Math.round(convertedAmount * 100);
 
-    const paystack = new window.PaystackPop();
-    paystack.newTransaction({
+    const paystackOptions = {
       key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
       email: user.email,
       amount: amountInMinor,
@@ -175,7 +174,29 @@ const AdminBillingPage = () => {
       onCancel: () => {
         toast.info("Payment cancelled.");
       },
-    });
+    };
+
+    // Version-resilient wrapper to handle both v1 (setup) and v2 (new constructor)
+    if (typeof window.PaystackPop === "function") {
+      try {
+        const paystack = new window.PaystackPop();
+        paystack.newTransaction(paystackOptions);
+        return;
+      } catch (e) {
+        console.warn("Paystack Pop V2 instantiation failed, falling back to V1 setup", e);
+      }
+    }
+
+    if (window.PaystackPop && typeof window.PaystackPop.setup === "function") {
+      const handler = window.PaystackPop.setup({
+        ...paystackOptions,
+        callback: paystackOptions.onSuccess,
+        onClose: paystackOptions.onCancel
+      });
+      handler.openIframe();
+    } else {
+      toast.error("Paystack payment SDK is not initialized. Please refresh the page.");
+    }
   };
 
   return (
