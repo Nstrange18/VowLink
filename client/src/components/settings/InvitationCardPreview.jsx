@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { WEDDING_COLORS } from "../ColorPicker";
 import { useSettings } from "../../context/SettingsContext";
 
@@ -109,6 +109,7 @@ const InvitationCardPreview = () => {
     isFreeUser,
     customTextAlign,
     customTextSize,
+    customTextBoldness,
     customVerticalOffset,
     customHorizontalOffset,
     activeFont,
@@ -118,51 +119,79 @@ const InvitationCardPreview = () => {
     formattedDate,
     formattedTime,
     venue,
+    venueName,
     receptionLocation,
+    receptionName,
     weddingColors,
     isPro,
     customCardBg,
     customBgInputRef,
     setCardTheme,
   } = useSettings();
+
+  const baseWeight = customTextBoldness === "bold" ? "700" : (customTextBoldness === "medium" ? "500" : "400");
+  const headingWeight = customTextBoldness === "bold" ? "950" : (customTextBoldness === "medium" ? "750" : "600");
+
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        if (entry.contentRect) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const shouldHideBg = containerWidth > 0 && containerWidth < 380;
+
+  const previewContainerClass = shouldHideBg
+    ? "w-full bg-transparent rounded-none overflow-hidden shadow-none border-none p-0 relative flex items-center justify-center min-h-0"
+    : "w-full bg-[#070A13] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 p-4 sm:p-6 relative flex items-center justify-center min-h-[580px]";
+
   return (
-    <div className="col-span-12 lg:col-span-5 lg:sticky lg:top-8 space-y-4 animate-fade-in">
+    <div className="col-span-12 lg:col-span-6 lg:sticky lg:top-8 space-y-4 animate-fade-in">
       <p className="text-xs uppercase tracking-[0.25em] text-[#D8B76A] font-bold">Live Invitation Card Preview</p>
 
       <div 
+        ref={containerRef}
         id="live-card-preview"
-        className="w-full rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 p-4 sm:p-6 relative flex items-center justify-center min-h-[580px]"
-        style={{ background: "#070A13" }}
+        className={previewContainerClass}
       >
         {/* Page Background (Couple Photo) */}
-        {couplePhotoUrl ? (
+        {!shouldHideBg && couplePhotoUrl ? (
           <>
             <div 
-              className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500 animate-fade-in"
+              className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500 animate-fade-in hidden md:block lg:hidden"
               style={{ backgroundImage: `url(${couplePhotoUrl})` }}
             />
             <div 
-              className="absolute inset-0 z-0 transition-all duration-300"
+              className="absolute inset-0 z-0 transition-all duration-300 hidden md:block lg:hidden"
               style={{ backgroundColor: `rgba(0, 0, 0, ${coupleOverlayOpacity})` }}
             />
           </>
-        ) : (
+        ) : !shouldHideBg ? (
           /* Gold shimmer / dark gradient fallback background */
           <div 
-            className="absolute inset-0 z-0 opacity-40" 
+            className="absolute inset-0 z-0 opacity-40 hidden md:block lg:hidden" 
             style={{ background: "radial-gradient(circle at 50% 30%, #1A2E4A 0%, #070A13 80%)" }}
           />
-        )}
+        ) : null}
 
         {/* The Invitation Card */}
         <div
-          className="relative z-10 w-full max-w-[24.7rem] sm:max-w-[27.2rem] overflow-hidden rounded-xl shadow-2xl border border-white/5"
+          className="relative z-10 w-full max-w-[28rem] sm:max-w-[32rem] overflow-hidden rounded-xl shadow-2xl border border-white/5"
           style={cardStyles}
         >
           {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
 
           <div
-            className={`relative z-10 px-6 pt-12 pb-14 flex flex-col justify-center w-full min-h-[500px] transition-all ${
+            className={`relative z-10 px-6 pt-14 pb-16 flex flex-col justify-center w-full min-h-[580px] transition-all ${
               customTextAlign === "left"
                 ? "items-start text-left"
                 : customTextAlign === "right"
@@ -171,12 +200,13 @@ const InvitationCardPreview = () => {
             }`}
             style={{
               fontSize: `${customTextSize}em`,
-              paddingTop: `calc(4.5rem + ${customVerticalOffset}px)`,
-              paddingBottom: `calc(5rem - ${customVerticalOffset}px)`,
+              fontWeight: baseWeight,
+              paddingTop: `calc(5rem + ${customVerticalOffset}px)`,
+              paddingBottom: `calc(5.5rem - ${customVerticalOffset}px)`,
               transform: `translateX(${customHorizontalOffset || 0}px)`,
             }}
           >
-            <h2 className="mt-2" style={{ fontFamily: activeFont, color: primaryTextColor, fontSize: "1.25em" }}>
+            <h2 className="mt-2" style={{ fontFamily: activeFont, color: primaryTextColor, fontSize: "1.25em", fontWeight: headingWeight }}>
               Wedding Invitation
             </h2>
 
@@ -190,7 +220,7 @@ const InvitationCardPreview = () => {
               Marriage between
             </p>
 
-            <h1 className="font-bold my-1 leading-tight" style={{ fontFamily: activeFont, color: primaryTextColor, fontSize: "1.8em" }}>
+            <h1 className="my-1 leading-tight" style={{ fontFamily: activeFont, color: primaryTextColor, fontSize: "1.8em", fontWeight: headingWeight }}>
               {p1 || "Partner 1"} <span style={{ color: primaryTextColor, opacity: 0.9 }}>and</span> {p2 || "Partner 2"}
             </h1>
 
@@ -222,28 +252,35 @@ const InvitationCardPreview = () => {
 
             {venue && (
               <p className="mb-1 max-w-[240px] break-words whitespace-normal px-2" style={{ color: primaryTextColor, fontSize: "0.75em" }}>
-                Location: {venue}
+                Location: {venueName || venue}
               </p>
             )}
 
             {receptionLocation && (
               <p className="mb-3 max-w-[240px] break-words whitespace-normal px-2" style={{ color: primaryTextColor, fontSize: "0.75em" }}>
-                Reception: {receptionLocation}
+                Reception: {receptionName || receptionLocation}
               </p>
             )}
 
             {weddingColors.length > 0 && (
               <div className="mt-3">
-                <p className="uppercase tracking-widest mb-1.5" style={{ color: primaryTextColor, opacity: 0.8, fontSize: "0.55em" }}>
+                <p className="uppercase tracking-widest mb-2" style={{ color: primaryTextColor, opacity: 0.8, fontSize: "0.55em" }}>
                   Colour of the Day
                 </p>
-                <div className="flex gap-2 justify-center">
+                <div className="flex flex-wrap gap-1.5 justify-center">
                   {weddingColors.map((name, i) => {
                     const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || "#999";
                     return (
-                      <div key={i} className="flex flex-col items-center gap-0.5">
-                        <div className="h-5 w-5 rounded-full border border-black/20" style={{ backgroundColor: hex }} />
-                        <span className="font-bold" style={{ color: primaryTextColor, fontSize: "0.65em" }}>{name}</span>
+                      <div
+                        key={i}
+                        className="flex items-center gap-1 rounded-full px-2 py-0.5 border text-[0.45em] font-bold shadow-xs whitespace-nowrap"
+                        style={{
+                          borderColor: `${hex}44`,
+                          backgroundColor: `${hex}11`,
+                        }}
+                      >
+                        <div className="h-2 w-2 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: hex }} />
+                        <span style={{ color: primaryTextColor }}>{name}</span>
                       </div>
                     );
                   })}

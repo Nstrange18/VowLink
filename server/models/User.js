@@ -16,7 +16,9 @@ const userSchema = new mongoose.Schema(
     weddingTime: { type: String, default: "18:00" }, // HH:MM format
     rsvpDeadline: { type: Date, default: null },
     venue: { type: String, trim: true, default: "" },
+    venueName: { type: String, trim: true, default: "" },
     receptionLocation: { type: String, trim: true, default: "" },
+    receptionName: { type: String, trim: true, default: "" },
     weddingColors: { type: [String], default: [] },
     dressCode: { type: String, trim: true, default: "" }, // e.g. "Black Tie", "Smart Casual"
     plusOnePolicy: {
@@ -66,6 +68,11 @@ const userSchema = new mongoose.Schema(
     customTextSize: {
       type: Number,
       default: 1.0,
+    },
+    customTextBoldness: {
+      type: String,
+      default: "normal",
+      enum: ["normal", "medium", "bold"],
     },
     couplePhotoUrl: {
       type: String,
@@ -140,6 +147,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    timeline: [
+      {
+        time: { type: String, required: true },
+        title: { type: String, required: true },
+        description: { type: String, default: "" },
+        icon: { type: String, default: "ring" },
+      }
+    ],
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
   },

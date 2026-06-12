@@ -20,6 +20,7 @@ import AdminBillingPage from './pages/admin/AdminBillingPage'
 import AdminVenuesPage from './pages/admin/AdminVenuesPage'
 import VenueDetailsPage from './pages/admin/VenueDetailsPage'
 import AdminBulkInvitationPage from './pages/admin/AdminBulkInvitationPage'
+import AdminSeatingPage from './pages/admin/AdminSeatingPage'
 import AdminForgotPasswordPage from './pages/admin/AdminForgotPasswordPage'
 import AdminLayout from './components/AdminLayout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -88,6 +89,7 @@ function App() {
           <Route path="billing" element={<AdminBillingPage />} />
           <Route path="venues" element={<AdminVenuesPage />} />
           <Route path="venues/:id" element={<VenueDetailsPage />} />
+          <Route path="seating" element={<AdminSeatingPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
 

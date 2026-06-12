@@ -50,6 +50,11 @@ const invitationSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    phoneNumber: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
   { timestamps: true }
 );

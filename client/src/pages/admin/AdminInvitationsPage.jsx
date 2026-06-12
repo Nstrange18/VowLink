@@ -273,11 +273,14 @@ const AdminInvitationsPage = () => {
                           <button
                             onClick={() => {
                               const url = `${window.location.origin}/invite/${inv.slug}`
-                              const msg = encodeURIComponent(`You're invited! Open your personal invitation here:\n${url}`)
-                              window.open(`https://wa.me/?text=${msg}`, '_blank')
+                              const msg = encodeURIComponent(`Hello ${inv.guestName}! We are so excited to celebrate our wedding with you. Please view your personal invitation and RSVP here:\n${url}`)
+                              const targetUrl = inv.phoneNumber 
+                                ? `https://wa.me/${inv.phoneNumber.trim().replace(/\+/g, '')}?text=${msg}`
+                                : `https://wa.me/?text=${msg}`;
+                              window.open(targetUrl, '_blank')
                             }}
-                            className="text-xs text-[#25D366] hover:text-white transition"
-                            title="Share via WhatsApp"
+                            className="text-xs text-[#25D366] hover:text-white transition font-medium"
+                            title={inv.phoneNumber ? `Send direct RSVP reminder to WhatsApp (${inv.phoneNumber})` : "Share via WhatsApp"}
                           >
                             📲 WhatsApp
                           </button>
@@ -311,9 +314,23 @@ const AdminInvitationsPage = () => {
                     </span>
                   </div>
                   <p className="text-xs text-white/30 mb-3">/invite/{inv.slug}</p>
-                  <div className="flex items-center gap-4 border-t border-white/5 pt-3">
+                  <div className="flex items-center gap-4 border-t border-white/5 pt-3 flex-wrap">
                     <button onClick={() => handleCopy(inv.slug)} className="text-xs text-[#7FA6D9] hover:text-white transition">
                       {copied === inv.slug ? '✓ Copied' : 'Copy Link'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const url = `${window.location.origin}/invite/${inv.slug}`
+                        const msg = encodeURIComponent(`Hello ${inv.guestName}! We are so excited to celebrate our wedding with you. Please view your personal invitation and RSVP here:\n${url}`)
+                        const targetUrl = inv.phoneNumber 
+                          ? `https://wa.me/${inv.phoneNumber.trim().replace(/\+/g, '')}?text=${msg}`
+                          : `https://wa.me/?text=${msg}`;
+                        window.open(targetUrl, '_blank')
+                      }}
+                      className="text-xs text-[#25D366] hover:text-white transition font-medium"
+                      title={inv.phoneNumber ? `Send direct RSVP reminder to WhatsApp (${inv.phoneNumber})` : "Share via WhatsApp"}
+                    >
+                      📲 WhatsApp
                     </button>
                     <button onClick={() => handleEdit(inv)} className="text-xs text-white/50 hover:text-white transition">Edit</button>
                     <button onClick={() => handleDeleteClick(inv._id)} className="text-xs text-red-400/70 hover:text-red-400 transition">Delete</button>

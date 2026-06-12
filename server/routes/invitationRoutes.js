@@ -18,7 +18,7 @@ router.get("/slug/:slug", async (req, res) => {
       slug: req.params.slug,
     }).populate(
       "userId",
-      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue receptionLocation dressCode weddingColors plusOnePolicy kidsAllowed cardTheme customCardBg pageBgTemplate customTextColor customFontFamily customVerticalOffset customTextSize couplePhotoUrl coupleOverlayOpacity musicUrl galleryPhotos tier registryEnabled registryBankName registryAccountName registryAccountNumber registryNotes honeymoonFundTarget honeymoonFundCurrent",
+      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue venueName receptionLocation receptionName dressCode weddingColors plusOnePolicy kidsAllowed cardTheme customCardBg pageBgTemplate customTextColor customFontFamily customVerticalOffset customTextSize customTextBoldness couplePhotoUrl coupleOverlayOpacity musicUrl galleryPhotos tier registryEnabled registryBankName registryAccountName registryAccountNumber registryNotes honeymoonFundTarget honeymoonFundCurrent timeline",
     );
 
     if (!invitation) {
@@ -64,7 +64,7 @@ router.get("/slug/:slug/wishes", async (req, res) => {
 // Create invitation
 router.post("/", protect, async (req, res) => {
   try {
-    const { guestName, greeting, customMessage, allowedGuests, category } =
+    const { guestName, greeting, customMessage, allowedGuests, category, phoneNumber } =
       req.body;
 
     if (!guestName || !greeting || !customMessage) {
@@ -111,6 +111,7 @@ router.post("/", protect, async (req, res) => {
       customMessage,
       allowedGuests,
       category,
+      phoneNumber: phoneNumber || "",
     });
 
     res.status(201).json({

@@ -7,6 +7,140 @@ import InvitationCardPreview from "../../components/settings/InvitationCardPrevi
 import ThemeSelector from "../../components/settings/ThemeSelector";
 import MusicSelector from "../../components/settings/MusicSelector";
 
+const TIMELINE_ICONS = [
+  { char: "⛪", label: "Church/Ceremony" },
+  { char: "💍", label: "Exchange of Rings" },
+  { char: "📸", label: "Photoshoot" },
+  { char: "🥂", label: "Cocktail / Toast" },
+  { char: "🍽️", label: "Dinner / Buffet" },
+  { char: "🍰", label: "Cake Cutting" },
+  { char: "💃", label: "Dance Floor" },
+  { char: "🚗", label: "Send Off" },
+];
+
+const TimelineBuilder = ({ timeline, setTimeline }) => {
+  const [time, setTime] = React.useState("");
+  const [title, setTitle] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [icon, setIcon] = React.useState("💍");
+
+  const handleAddEvent = () => {
+    if (!time || !title) {
+      toast.warning("Time and Event Title are required.");
+      return;
+    }
+    const newItem = { time, title, description, icon };
+    const newTimeline = [...timeline, newItem].sort((a, b) => a.time.localeCompare(b.time));
+    setTimeline(newTimeline);
+    setTime("");
+    setTitle("");
+    setDescription("");
+    setIcon("💍");
+    toast.success("Event added to timeline! Remember to save customizations.");
+  };
+
+  const handleRemoveEvent = (index) => {
+    const newTimeline = timeline.filter((_, idx) => idx !== index);
+    setTimeline(newTimeline);
+    toast.info("Event removed from timeline.");
+  };
+
+  return (
+    <div className="space-y-4">
+      {timeline.length > 0 && (
+        <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+          {timeline.map((item, index) => (
+            <div key={index} className="flex justify-between items-center bg-white/5 border border-white/10 rounded-xl p-3">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">{item.icon}</span>
+                <div>
+                  <p className="text-xs font-semibold text-white">
+                    {item.time} — {item.title}
+                  </p>
+                  {item.description && <p className="text-[10px] text-white/40 mt-0.5">{item.description}</p>}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleRemoveEvent(index)}
+                className="text-white/30 hover:text-red-400 text-xs px-2 py-1 rounded hover:bg-white/5 transition"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="bg-white/3 border border-white/5 p-4 rounded-xl space-y-4">
+        <p className="text-[10px] uppercase tracking-wider text-[#D8B76A] font-bold">+ Add Timeline Event</p>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-1">Time</label>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-[#070A13] px-3 py-2 text-xs text-white outline-none focus:border-[#D8B76A]/60"
+            />
+          </div>
+          <div>
+            <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-1">Title</label>
+            <input
+              type="text"
+              placeholder="e.g. Toast & Reception"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-[#070A13] px-3 py-2 text-xs text-white outline-none focus:border-[#D8B76A]/60"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-1">Description / Location (Optional)</label>
+          <input
+            type="text"
+            placeholder="e.g. Garden Reception / Ballroom"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-[#070A13] px-3 py-2 text-xs text-white outline-none focus:border-[#D8B76A]/60"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-2">Select Icon</label>
+          <div className="flex flex-wrap gap-2">
+            {TIMELINE_ICONS.map((i) => (
+              <button
+                key={i.char}
+                type="button"
+                onClick={() => setIcon(i.char)}
+                className={`h-8 w-8 rounded-lg text-lg flex items-center justify-center border transition-all ${
+                  icon === i.char
+                    ? "bg-[#D8B76A]/20 border-[#D8B76A] text-white"
+                    : "bg-[#070A13] border-white/10 text-white/60 hover:border-white/30"
+                }`}
+                title={i.label}
+              >
+                {i.char}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleAddEvent}
+          className="w-full py-2 rounded-xl bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] hover:bg-[#D8B76A]/20 text-xs font-semibold uppercase tracking-wider transition"
+        >
+          Add Event to List
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const inputBase =
   "w-full rounded-xl border bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition";
 const inputOk =
@@ -52,6 +186,8 @@ const AdminSettingsPageContent = () => {
     registryNotes, setRegistryNotes,
     honeymoonFundTarget, setHoneymoonFundTarget,
     honeymoonFundCurrent, setHoneymoonFundCurrent,
+    timeline, setTimeline,
+    gifts,
 
     aiVibe, setAiVibe,
     aiGenerating, setAiGenerating,
@@ -81,6 +217,7 @@ const AdminSettingsPageContent = () => {
     errors,
     isSubmitting,
     onSubmit,
+    onInvalid,
 
     handlePhotoUpload,
     removePhoto,
@@ -94,7 +231,7 @@ const AdminSettingsPageContent = () => {
     checkSmartAlignment,
     uploadToCloudinary,
 
-    p1, p2, weddingDate, rsvpDeadline, venue, receptionLocation, dressCode, weddingTime,
+    p1, p2, weddingDate, rsvpDeadline, venue, venueName, receptionLocation, receptionName, dressCode, weddingTime,
     formattedTime,
     activeFont,
     priHex, secHex, terHex, selectedBgHex,
@@ -173,11 +310,11 @@ const AdminSettingsPageContent = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* LEFT COLUMN: Tabs/Forms container */}
-        <div className={`col-span-12 ${activeTab === "security" ? "lg:col-span-12" : "lg:col-span-7"} space-y-6`}>
+        <div className={`col-span-12 ${activeTab === "security" ? "lg:col-span-12" : "lg:col-span-6"} space-y-6`}>
 
           {/* Main Form for Details, Design, Media, and Registry settings */}
           {(activeTab === "details" || activeTab === "design" || activeTab === "media" || activeTab === "registry") && (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 animate-fade-in">
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8 animate-fade-in">
 
               {/* TAB 1: Wedding Details */}
               {activeTab === "details" && (
@@ -243,21 +380,48 @@ const AdminSettingsPageContent = () => {
                       />
                     </div>
 
-                    {/* Venue Location */}
-                    <div>
-                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Ceremony Venue</label>
-                      <input id="settings-venue" placeholder="e.g. The Grand Ballroom, Lekki" {...register("venue")} className={cls(false)} />
+                    {/* Ceremony Venue */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Ceremony Name</label>
+                        <input
+                          id="settings-venue-name"
+                          placeholder="e.g. The Grand Ballroom"
+                          {...register("venueName")}
+                          className={cls(false)}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Ceremony Address (Linked to Maps)</label>
+                        <input
+                          id="settings-venue"
+                          placeholder="e.g. 123 Lekki Ave, Lagos"
+                          {...register("venue")}
+                          className={cls(false)}
+                        />
+                      </div>
                     </div>
 
-                    {/* Reception Location */}
-                    <div>
-                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Reception Venue</label>
-                      <input
-                        id="settings-reception-location"
-                        placeholder="e.g. Reception Gardens, Lekki"
-                        {...register("receptionLocation")}
-                        className={cls(false)}
-                      />
+                    {/* Reception Venue */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Reception Name</label>
+                        <input
+                          id="settings-reception-name"
+                          placeholder="e.g. Reception Gardens"
+                          {...register("receptionName")}
+                          className={cls(false)}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Reception Address (Linked to Maps)</label>
+                        <input
+                          id="settings-reception-location"
+                          placeholder="e.g. Victoria Island, Lagos"
+                          {...register("receptionLocation")}
+                          className={cls(false)}
+                        />
+                      </div>
                     </div>
 
                     <div className="sm:col-span-2 bg-[#D8B76A]/5 border border-[#D8B76A]/20 p-3 rounded-xl flex items-start gap-2">
@@ -311,6 +475,17 @@ const AdminSettingsPageContent = () => {
                           className="h-4 w-4 rounded border-white/20 bg-white/10"
                         />
                       </div>
+                    </div>
+
+                    {/* Wedding Timeline Builder */}
+                    <div className="space-y-4 pt-6 border-t border-white/5">
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-[#D8B76A]">⏳ Wedding Day Timeline</h4>
+                        <p className="text-[10px] text-white/40 mt-1">
+                          Build a schedule of events for your wedding day. This will render as a beautiful, animated timeline stepper on your invitation.
+                        </p>
+                      </div>
+                      <TimelineBuilder timeline={timeline} setTimeline={setTimeline} />
                     </div>
                   </div>
                 </div>
@@ -550,6 +725,47 @@ const AdminSettingsPageContent = () => {
                             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30 resize-none transition"
                           />
                         </div>
+                      </div>
+                    )}
+
+                    {/* Recent Cash Gifts History */}
+                    {registryEnabled && (
+                      <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220]/60 space-y-4 mt-6">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-[#D8B76A]">🎁 Recent Cash Gifts</h4>
+                        <p className="text-[10px] text-white/40 leading-relaxed">
+                          Here are the contributions sent by your guests via Paystack to your Honeymoon Fund.
+                        </p>
+
+                        {gifts.length === 0 ? (
+                          <div className="py-6 text-center border border-dashed border-white/10 rounded-xl text-white/30 text-xs">
+                            No contributions received yet.
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto border border-white/10 rounded-xl bg-black/20">
+                            <table className="w-full text-left text-xs">
+                              <thead>
+                                <tr className="border-b border-white/10 text-white/40 text-[9px] uppercase tracking-wider">
+                                  <th className="px-4 py-2">Guest</th>
+                                  <th className="px-4 py-2">Amount</th>
+                                  <th className="px-4 py-2">Message</th>
+                                  <th className="px-4 py-2">Date</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {gifts.map((g) => (
+                                  <tr key={g._id} className="border-b border-white/5 last:border-0">
+                                    <td className="px-4 py-2.5 font-semibold text-white">{g.guestName}</td>
+                                    <td className="px-4 py-2.5 text-[#34D399] font-bold">₦{Number(g.amount).toLocaleString()}</td>
+                                    <td className="px-4 py-2.5 text-white/60 italic max-w-xs truncate">{g.message || "—"}</td>
+                                    <td className="px-4 py-2.5 text-white/30">
+                                      {new Date(g.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

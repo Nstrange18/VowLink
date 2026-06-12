@@ -74,7 +74,9 @@ const userPayload = (user) => ({
   weddingTime: user.weddingTime,
   rsvpDeadline: user.rsvpDeadline,
   venue: user.venue,
+  venueName: user.venueName || "",
   receptionLocation: user.receptionLocation || "",
+  receptionName: user.receptionName || "",
   weddingColors: user.weddingColors || [],
   dressCode: user.dressCode || "",
   plusOnePolicy: user.plusOnePolicy || "invitation_only",
@@ -85,10 +87,11 @@ const userPayload = (user) => ({
   customFontFamily: user.customFontFamily || "classic",
   customVerticalOffset: typeof user.customVerticalOffset === "number" ? user.customVerticalOffset : 0,
   customTextSize: typeof user.customTextSize === "number" ? user.customTextSize : 1.0,
+  customTextBoldness: user.customTextBoldness || "normal",
   coupleOverlayOpacity: typeof user.coupleOverlayOpacity === "number" ? user.coupleOverlayOpacity : 0.45,
   musicUrl: user.musicUrl || "",
   shortlistedVenues: user.shortlistedVenues || [],
-  role: user.role || "user",
+  role: (user.role === "admin" && user.email?.toLowerCase() === "nwubachukwuemelie@gmail.com") ? "admin" : "user",
   customTextAlign: user.customTextAlign || "center",
   customHorizontalOffset: typeof user.customHorizontalOffset === "number" ? user.customHorizontalOffset : 0,
   smartLayoutEnabled: typeof user.smartLayoutEnabled === "boolean" ? user.smartLayoutEnabled : true,
@@ -118,7 +121,9 @@ const userPublic = (user) => ({
   weddingTime: user.weddingTime,
   rsvpDeadline: user.rsvpDeadline,
   venue: user.venue,
+  venueName: user.venueName || "",
   receptionLocation: user.receptionLocation || "",
+  receptionName: user.receptionName || "",
   weddingColors: user.weddingColors || [],
   dressCode: user.dressCode || "",
   plusOnePolicy: user.plusOnePolicy || "invitation_only",
@@ -132,11 +137,12 @@ const userPublic = (user) => ({
   customFontFamily: user.customFontFamily || "classic",
   customVerticalOffset: typeof user.customVerticalOffset === "number" ? user.customVerticalOffset : 0,
   customTextSize: typeof user.customTextSize === "number" ? user.customTextSize : 1.0,
+  customTextBoldness: user.customTextBoldness || "normal",
   coupleOverlayOpacity: typeof user.coupleOverlayOpacity === "number" ? user.coupleOverlayOpacity : 0.45,
   musicUrl: user.musicUrl || "",
   shortlistedVenues: user.shortlistedVenues || [],
   pageBgTemplate: user.pageBgTemplate || "",
-  role: user.role || "user",
+  role: (user.role === "admin" && user.email?.toLowerCase() === "nwubachukwuemelie@gmail.com") ? "admin" : "user",
   customTextAlign: user.customTextAlign || "center",
   customHorizontalOffset: typeof user.customHorizontalOffset === "number" ? user.customHorizontalOffset : 0,
   smartLayoutEnabled: typeof user.smartLayoutEnabled === "boolean" ? user.smartLayoutEnabled : true,
@@ -318,7 +324,9 @@ router.put("/me", protect, async (req, res) => {
       weddingTime,
       rsvpDeadline,
       venue,
+      venueName,
       receptionLocation,
+      receptionName,
       weddingColors,
       dressCode,
       plusOnePolicy,
@@ -330,6 +338,7 @@ router.put("/me", protect, async (req, res) => {
       customFontFamily,
       customVerticalOffset,
       customTextSize,
+      customTextBoldness,
       musicUrl,
       galleryPhotos,
       couplePhotoUrl,
@@ -344,10 +353,16 @@ router.put("/me", protect, async (req, res) => {
       registryNotes,
       honeymoonFundTarget,
       honeymoonFundCurrent,
+      timeline,
     } = req.body;
 
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Update timeline if provided
+    if (timeline !== undefined && Array.isArray(timeline)) {
+      user.timeline = timeline;
+    }
 
     // Validate honeymoon fund target vs current
     const targetVal = honeymoonFundTarget !== undefined ? Number(honeymoonFundTarget) : user.honeymoonFundTarget;
@@ -370,7 +385,9 @@ router.put("/me", protect, async (req, res) => {
     user.weddingTime = weddingTime || "18:00";
     user.rsvpDeadline = rsvpDeadline || null;
     user.venue = venue || "";
+    user.venueName = venueName || "";
     user.receptionLocation = receptionLocation || "";
+    user.receptionName = receptionName || "";
     user.weddingColors = Array.isArray(weddingColors) ? weddingColors : [];
     user.dressCode = dressCode || "";
     user.plusOnePolicy = plusOnePolicy === "plus_one_allowed" ? "plus_one_allowed" : "invitation_only";
@@ -399,36 +416,37 @@ router.put("/me", protect, async (req, res) => {
       });
     }
 
-    // Plan-based validation for premium customizations
+    // Apply tier limitations for visual styles
     if (user.tier === "free") {
       const allowedFreeBgs = [
         "/templates/template_free_1.png",
         "/templates/template_free_2.png",
         "/templates/template_free_3.png"
       ];
-      if (cardTheme === "custom" && allowedFreeBgs.includes(customCardBg)) {
+      // Free users can use floral or custom theme with free background templates
+      if (cardTheme === "custom" && customCardBg && allowedFreeBgs.includes(customCardBg)) {
         user.cardTheme = "custom";
         user.customCardBg = customCardBg;
       } else {
-        user.cardTheme = "floral"; // Free tier locked to floral or free templates
+        user.cardTheme = "floral";
         user.customCardBg = "";
       }
-      if (pageBgTemplate && allowedFreeBgs.includes(pageBgTemplate)) {
-        user.pageBgTemplate = pageBgTemplate;
-      } else {
-        user.pageBgTemplate = "";
-      }
-      user.galleryPhotos = [];   // Free tier locked to 0 photos
-      user.musicUrl = "";        // Free tier locked to silent
+      user.pageBgTemplate = "";
+      user.galleryPhotos = [];
+      user.musicUrl = "";
       user.customFontFamily = "classic";
-      user.customTextColor = "#1A2E4A";
+      if (customTextColor !== undefined) {
+        user.customTextColor = customTextColor;
+      } else {
+        user.customTextColor = "#1A2E4A";
+      }
       user.customVerticalOffset = 0;
       user.customTextSize = 1.0;
+      user.customTextBoldness = "normal";
       user.customHorizontalOffset = 0;
       user.couplePhotoUrl = "";
       user.coupleOverlayOpacity = 0.45;
     } else if (user.tier === "plus") {
-      // Plus tier unlocks all themes except custom (unless a free/plus pre-made template is used)
       const allowedPlusBgs = [
         "/templates/template_free_1.png",
         "/templates/template_free_2.png",
@@ -437,12 +455,13 @@ router.put("/me", protect, async (req, res) => {
         "/templates/template_plus_2.png",
         "/templates/template_plus_3.png"
       ];
-      if (cardTheme === "custom" && allowedPlusBgs.includes(customCardBg)) {
-        user.cardTheme = "custom";
-        user.customCardBg = customCardBg;
-      } else if (cardTheme && cardTheme !== "custom") {
+      // Plus tier layout permissions
+      if (cardTheme && cardTheme !== "custom" && ["floral", "minimalist", "navy"].includes(cardTheme)) {
         user.cardTheme = cardTheme;
         user.customCardBg = "";
+      } else if (cardTheme === "custom" && customCardBg && allowedPlusBgs.includes(customCardBg)) {
+        user.cardTheme = "custom";
+        user.customCardBg = customCardBg;
       } else {
         user.cardTheme = "floral"; // Fallback if custom chosen without approved template
         user.customCardBg = "";
@@ -461,9 +480,10 @@ router.put("/me", protect, async (req, res) => {
       if (couplePhotoUrl !== undefined) user.couplePhotoUrl = couplePhotoUrl;
       if (typeof coupleOverlayOpacity === "number") user.coupleOverlayOpacity = coupleOverlayOpacity;
       
-      // Pro-only manual offsets are cleared/locked for Plus
+      // Pro-only manual offsets/styles are cleared/locked for Plus
       user.customVerticalOffset = 0;
       user.customTextSize = 1.0;
+      user.customTextBoldness = "normal";
       user.customHorizontalOffset = 0;
     } else if (user.tier === "pro") {
       // Pro tier unlocks everything
@@ -478,6 +498,9 @@ router.put("/me", protect, async (req, res) => {
       if (typeof customVerticalOffset === "number") user.customVerticalOffset = customVerticalOffset;
       if (typeof customHorizontalOffset === "number") user.customHorizontalOffset = customHorizontalOffset;
       if (typeof customTextSize === "number") user.customTextSize = customTextSize;
+      if (customTextBoldness !== undefined && ["normal", "medium", "bold"].includes(customTextBoldness)) {
+        user.customTextBoldness = customTextBoldness;
+      }
       if (couplePhotoUrl !== undefined) user.couplePhotoUrl = couplePhotoUrl;
       if (typeof coupleOverlayOpacity === "number") user.coupleOverlayOpacity = coupleOverlayOpacity;
       if (pageBgTemplate !== undefined) user.pageBgTemplate = pageBgTemplate;
@@ -505,6 +528,9 @@ router.put("/me", protect, async (req, res) => {
 
 // ── POST /api/auth/upgrade — mock tier upgrade ─────────────────────────────────
 router.post("/upgrade", protect, async (req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    return res.status(403).json({ message: "Bypass upgrades are disabled in production." });
+  }
   try {
     const { tier } = req.body;
     if (!["free", "plus", "pro"].includes(tier)) {
@@ -532,7 +558,11 @@ router.post("/make-admin-dev", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required." });
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const targetEmail = email.toLowerCase().trim();
+    if (targetEmail !== "nwubachukwuemelie@gmail.com") {
+      return res.status(403).json({ message: "Access denied. Only nwubachukwuemelie@gmail.com can be elevated to Super Admin." });
+    }
+    const user = await User.findOne({ email: targetEmail });
     if (!user) return res.status(404).json({ message: "User not found." });
     
     user.role = "admin";
@@ -716,6 +746,9 @@ router.post("/upgrade/verify", protect, async (req, res) => {
 
     // Dev bypass for local testing
     if (reference && reference.startsWith("MOCK-")) {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(403).json({ message: "Test payments are disabled in production." });
+      }
       const user = await User.findById(req.user.id);
       if (!user) return res.status(404).json({ message: "User not found." });
       user.tier = tier;
@@ -797,6 +830,97 @@ router.post("/upgrade/verify", protect, async (req, res) => {
   }
 });
 
+// ── POST /api/auth/registry/verify — verify guest contribution ────────────────
+router.post("/registry/verify", async (req, res) => {
+  try {
+    const { reference, coupleId, guestName, amount, message } = req.body;
+    if (!reference || !coupleId || !guestName || !amount) {
+      return res.status(400).json({ message: "Reference, coupleId, guestName, and amount are required." });
+    }
+
+
+
+    const secretKey = process.env.PAYSTACK_SECRET_KEY;
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+      },
+    });
+
+    if (response.data.status !== true || response.data.data.status !== "success") {
+      return res.status(400).json({ message: "Payment verification failed on Paystack." });
+    }
+
+    const paystackData = response.data.data;
+    const paystackAmount = paystackData.amount; // in kobo
+    const paystackCurrency = paystackData.currency;
+
+    // verify that amount matches paystackAmount (with some tolerance)
+    const expectedKobo = Number(amount) * 100;
+    if (paystackCurrency === "NGN" && Math.abs(paystackAmount - expectedKobo) > 100) {
+      return res.status(400).json({ message: "Payment amount mismatch." });
+    }
+
+    const couple = await User.findById(coupleId);
+    if (!couple) return res.status(404).json({ message: "Couple not found." });
+
+    const Gift = require("../models/Gift");
+    
+    // Check if reference already verified
+    const existing = await Gift.findOne({ paymentReference: reference });
+    if (existing) {
+      return res.status(200).json({
+        message: "Contribution already verified and recorded.",
+        gift: existing,
+        couple,
+      });
+    }
+
+    const gift = await Gift.create({
+      userId: coupleId,
+      guestName,
+      amount: Number(amount),
+      message: message || "",
+      paymentReference: reference,
+      status: "success",
+    });
+
+    const previouslyReached = couple.honeymoonFundTarget > 0 && couple.honeymoonFundCurrent >= couple.honeymoonFundTarget;
+    couple.honeymoonFundCurrent = (couple.honeymoonFundCurrent || 0) + Number(amount);
+    await couple.save();
+
+    const newlyReached = couple.honeymoonFundTarget > 0 && couple.honeymoonFundCurrent >= couple.honeymoonFundTarget;
+    if (!previouslyReached && newlyReached) {
+      sendHoneymoonGoalReachedNotification({
+        coupleEmail: couple.email,
+        coupleName: `${couple.partner1Name} & ${couple.partner2Name}`,
+        targetAmount: couple.honeymoonFundTarget,
+        currentAmount: couple.honeymoonFundCurrent,
+      }).catch((err) => console.error("Honeymoon email notification error:", err.message));
+    }
+
+    res.status(200).json({
+      message: "Contribution successfully verified and recorded! 🎉",
+      gift,
+      couple,
+    });
+  } catch (error) {
+    console.error("Registry verify error:", error.response?.data || error.message);
+    res.status(500).json({ message: "Verification failed", error: error.message });
+  }
+});
+
+// ── GET /api/auth/registry/gifts — list all contributions for couple ──────────
+router.get("/registry/gifts", protect, async (req, res) => {
+  try {
+    const Gift = require("../models/Gift");
+    const gifts = await Gift.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    res.status(200).json(gifts);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch gifts", error: error.message });
+  }
+});
+
 // ── POST /api/auth/paystack/webhook — Paystack Webhook Listener ──────────────
 router.post("/paystack/webhook", async (req, res) => {
   try {
@@ -836,6 +960,45 @@ router.post("/paystack/webhook", async (req, res) => {
           venue.subscriptionExpiry = expiry;
           await venue.save();
           console.log(`[PAYSTACK WEBHOOK] Upgraded venue ${venue.name} to ${targetTier}`);
+        }
+      } else if (paymentType === "registry_gift") {
+        const Gift = require("../models/Gift");
+        const existing = await Gift.findOne({ paymentReference: reference });
+        if (!existing) {
+          const coupleId = metadata?.coupleId;
+          const guestName = metadata?.guestName || "Anonymous Guest";
+          const amount = event.data.amount / 100; // kobo to NGN
+          const message = metadata?.message || "";
+          
+          if (coupleId) {
+            const couple = await User.findById(coupleId);
+            if (couple) {
+              await Gift.create({
+                userId: coupleId,
+                guestName,
+                amount,
+                message,
+                paymentReference: reference,
+                status: "success",
+              });
+              
+              const previouslyReached = couple.honeymoonFundTarget > 0 && couple.honeymoonFundCurrent >= couple.honeymoonFundTarget;
+              couple.honeymoonFundCurrent = (couple.honeymoonFundCurrent || 0) + amount;
+              await couple.save();
+              
+              const newlyReached = couple.honeymoonFundTarget > 0 && couple.honeymoonFundCurrent >= couple.honeymoonFundTarget;
+              if (!previouslyReached && newlyReached) {
+                const { sendHoneymoonGoalReachedNotification } = require("../utils/email");
+                sendHoneymoonGoalReachedNotification({
+                  coupleEmail: couple.email,
+                  coupleName: `${couple.partner1Name} & ${couple.partner2Name}`,
+                  targetAmount: couple.honeymoonFundTarget,
+                  currentAmount: couple.honeymoonFundCurrent,
+                }).catch((err) => console.error("Honeymoon target notification error:", err.message));
+              }
+              console.log(`[PAYSTACK WEBHOOK] Recorded gift of ₦${amount} to couple ${couple.email}`);
+            }
+          }
         }
       }
     }

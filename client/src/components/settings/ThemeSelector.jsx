@@ -68,6 +68,36 @@ export const PREMADE_TEMPLATES = [
     url: "/templates/template_pro_2.png",
     preview: "/templates/template_pro_2.png",
   },
+  {
+    tier: "pro",
+    name: "Royal Emerald Gold Frame",
+    url: "/templates/template_pro_3.png",
+    preview: "/templates/template_pro_3.png",
+  },
+  {
+    tier: "pro",
+    name: "Blush Pink & Rose Gold Glitter",
+    url: "/templates/template_pro_4.png",
+    preview: "/templates/template_pro_4.png",
+  },
+  {
+    tier: "pro",
+    name: "Minimalist Linen Ivory Leaves",
+    url: "/templates/template_pro_5.png",
+    preview: "/templates/template_pro_5.png",
+  },
+  {
+    tier: "pro",
+    name: "Starry Lavender Gold Dust",
+    url: "/templates/template_pro_6.png",
+    preview: "/templates/template_pro_6.png",
+  },
+  {
+    tier: "pro",
+    name: "Classic Charcoal Gold Floral",
+    url: "/templates/template_pro_7.png",
+    preview: "/templates/template_pro_7.png",
+  },
 ];
 
 const ThemeSelector = () => {
@@ -88,6 +118,8 @@ const ThemeSelector = () => {
     setSmartLayoutEnabled,
     customTextSize,
     setCustomTextSize,
+    customTextBoldness,
+    setCustomTextBoldness,
     customTextAlign,
     setCustomTextAlign,
     weddingColors,
@@ -102,6 +134,36 @@ const ThemeSelector = () => {
     checkSmartAlignment,
     secHex,
   } = useSettings();
+
+  const hasThemeChanges =
+    cardTheme !== "floral" ||
+    customCardBg !== "" ||
+    customTextColor !== "#1A2E4A" ||
+    customFontFamily !== "classic" ||
+    customVerticalOffset !== 0 ||
+    customHorizontalOffset !== 0 ||
+    customTextSize !== 1.0 ||
+    customTextBoldness !== "normal" ||
+    customTextAlign !== "center" ||
+    !smartLayoutEnabled;
+
+  const handleResetTheme = () => {
+    setCardTheme("floral");
+    setCustomCardBg("");
+    setCustomTextColor("#1A2E4A");
+    setCustomFontFamily("classic");
+    setCustomVerticalOffset(0);
+    setCustomHorizontalOffset(0);
+    setSmartLayoutEnabled(true);
+    setCustomTextSize(1.0);
+    setCustomTextBoldness("normal");
+    setCustomTextAlign("center");
+    if (customBgInputRef && customBgInputRef.current) {
+      customBgInputRef.current.value = "";
+    }
+    toast.success("Theme settings reset to defaults! Click 'Save Customizations' below to save changes.");
+  };
+
   return (
     <div className="space-y-6">
       {/* Invitation Theme Options */}
@@ -565,6 +627,30 @@ const ThemeSelector = () => {
             </div>
 
             <div>
+              <label className="block text-[9px] text-white/50 uppercase mb-2">Text Boldness (Weight)</label>
+              <div className="flex gap-2">
+                {[
+                  { value: "normal", label: "Normal" },
+                  { value: "medium", label: "Medium" },
+                  { value: "bold", label: "Bold" },
+                ].map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => setCustomTextBoldness(item.value)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition cursor-pointer ${
+                      customTextBoldness === item.value
+                        ? "bg-[#D8B76A] text-[#070A13]"
+                        : "bg-white/5 text-white/60 hover:bg-white/10"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-[9px] text-white/50 uppercase">Text Alignment</label>
                 <label className="flex items-center gap-1.5 cursor-pointer text-[9px] text-white/50 uppercase select-none">
@@ -594,22 +680,19 @@ const ThemeSelector = () => {
                 ))}
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Reset button */}
-            {(customVerticalOffset !== 0 || customHorizontalOffset !== 0 || customTextSize !== 1.0 || customTextAlign !== "center") && (
-              <button
-                type="button"
-                onClick={() => {
-                  setCustomVerticalOffset(0);
-                  setCustomHorizontalOffset(0);
-                  setCustomTextSize(1.0);
-                  setCustomTextAlign("center");
-                }}
-                className="text-[9px] uppercase text-white/30 hover:text-white/60 tracking-wider transition cursor-pointer"
-              >
-                ↺ Reset to defaults
-              </button>
-            )}
+        {/* General Theme Reset defaults (Visible to all tiers) */}
+        {hasThemeChanges && (
+          <div className="pt-4 border-t border-white/5 flex justify-end">
+            <button
+              type="button"
+              onClick={handleResetTheme}
+              className="text-[10px] uppercase font-bold tracking-wider text-red-400/80 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 px-3.5 py-1.5 rounded-lg border border-red-500/20 transition cursor-pointer flex items-center gap-1.5"
+            >
+              ↺ Reset Theme Defaults
+            </button>
           </div>
         )}
       </div>

@@ -649,6 +649,9 @@ router.post("/subscribe/verify", protectVenue, async (req, res) => {
 
     // Dev bypass for local testing
     if (reference && reference.startsWith("MOCK-")) {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(403).json({ message: "Test payments are disabled in production." });
+      }
       const venue = req.venue;
       venue.subscriptionTier = tier;
       venue.isFeatured = tier === "featured";
@@ -756,6 +759,9 @@ router.get("/:id", protect, async (req, res) => {
 
 // ── DEMO: Simulate Admin Approval of a Venue ────────────────────────────────
 router.post("/approve/:id", async (req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    return res.status(403).json({ message: "Mock approvals are disabled in production." });
+  }
   try {
     const venue = await Venue.findById(req.params.id);
     if (!venue) {

@@ -30,7 +30,7 @@ const AdminEditInvitationPage = () => {
 
   const { register, handleSubmit, control, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(invitationSchema),
-    defaultValues: { guestName: '', greeting: '', customMessage: '', allowedGuests: 1, category: 'Guest' },
+    defaultValues: { guestName: '', greeting: '', customMessage: '', allowedGuests: 1, category: 'Guest', phoneNumber: '' },
   })
 
   const guestNameVal = watch('guestName') || 'Friend';
@@ -119,6 +119,7 @@ const AdminEditInvitationPage = () => {
             customMessage: inv.customMessage,
             allowedGuests: inv.allowedGuests,
             category: inv.category || 'Guest',
+            phoneNumber: inv.phoneNumber || '',
           })
         } else {
           toast.error('Invitation not found.')
@@ -216,6 +217,18 @@ const AdminEditInvitationPage = () => {
               )}
             />
           </div>
+        </div>
+
+        <div>
+          <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Guest Phone Number (WhatsApp format, e.g. 2348012345678)</label>
+          <input
+            id="phone-number"
+            placeholder="e.g. 2348031234567"
+            {...register('phoneNumber')}
+            className={cls(errors.phoneNumber)}
+          />
+          {errors.phoneNumber && <p className="mt-1 text-xs text-red-400">{errors.phoneNumber.message}</p>}
+          <p className="mt-1 text-[10px] text-white/30">Optional. Include country code without "+" or space. Used for launching direct WhatsApp messages.</p>
         </div>
 
         <div className="flex gap-4 pt-2">

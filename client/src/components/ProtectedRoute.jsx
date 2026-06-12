@@ -8,7 +8,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 
   if (adminOnly) {
     const user = JSON.parse(localStorage.getItem('user') || '{}')
-    if (user.role !== 'admin') {
+    if (user.role !== 'admin' || user.email?.toLowerCase() !== 'nwubachukwuemelie@gmail.com') {
       return <Navigate to="/admin/dashboard" replace />
     }
   }

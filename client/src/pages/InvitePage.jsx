@@ -285,7 +285,112 @@ const InvitePage = () => {
   const [wishes, setWishes] = useState([]);
   const audioRef = useRef(null);
 
+  // Paystack & Gifting premium states
+  const [showGiftModal, setShowGiftModal] = useState(false);
+  const [giftGuestName, setGiftGuestName] = useState("");
+  const [giftAmount, setGiftAmount] = useState("");
+  const [giftMessage, setGiftMessage] = useState("");
+  const [loadingGiftPayment, setLoadingGiftPayment] = useState(false);
+
   const countdown = useCountdown(invitation?.userId?.weddingDate);
+
+  const loadPaystackScript = () => {
+    return new Promise((resolve) => {
+      if (window.PaystackPop) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://js.paystack.co/v2/inline.js";
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleGiftCheckout = async () => {
+    if (!giftGuestName.trim() || !giftAmount || Number(giftAmount) < 100) {
+      toast.warning("Please enter your name and a valid amount (minimum ₦100).");
+      return;
+    }
+
+    setLoadingGiftPayment(true);
+    const loaded = await loadPaystackScript();
+    setLoadingGiftPayment(false);
+
+    if (!loaded) {
+      toast.error("Failed to load Paystack payment gateway. Please check your connection.");
+      return;
+    }
+
+    const paystackCurrency = "NGN";
+    const amountInMinor = Number(giftAmount) * 100;
+
+    const paystackOptions = {
+      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
+      email: invitation.userId?.email || "guest@vowlink.com",
+      amount: amountInMinor,
+      currency: paystackCurrency,
+      metadata: {
+        paymentType: "registry_gift",
+        coupleId: invitation.userId?._id,
+        guestName: giftGuestName,
+        message: giftMessage,
+      },
+      onSuccess: async (transaction) => {
+        toast.info("Payment successful! Recording contribution...");
+        try {
+          const res = await api.post("/auth/registry/verify", {
+            reference: transaction.reference,
+            coupleId: invitation.userId?._id,
+            guestName: giftGuestName,
+            amount: Number(giftAmount),
+            message: giftMessage,
+          });
+          setInvitation(prev => ({
+            ...prev,
+            userId: {
+              ...prev.userId,
+              honeymoonFundCurrent: res.data.couple.honeymoonFundCurrent
+            }
+          }));
+          toast.success("Thank you for your generous contribution! 🎁❤️");
+          setShowGiftModal(false);
+          setGiftAmount("");
+          setGiftMessage("");
+        } catch (err) {
+          toast.error(err.response?.data?.message || "Failed to verify contribution. Please contact the couple.");
+        }
+      },
+      onCancel: () => {
+        toast.info("Payment cancelled.");
+      },
+    };
+
+    if (typeof window.PaystackPop === "function") {
+      try {
+        const paystack = new window.PaystackPop();
+        paystack.newTransaction(paystackOptions);
+        return;
+      } catch (e) {
+        console.warn("Paystack Pop V2 instantiation failed, falling back to V1 setup", e);
+      }
+    }
+
+    if (window.PaystackPop && typeof window.PaystackPop.setup === "function") {
+      const handler = window.PaystackPop.setup({
+        ...paystackOptions,
+        callback: paystackOptions.onSuccess,
+        onClose: paystackOptions.onCancel
+      });
+      handler.openIframe();
+    } else {
+      toast.error("Paystack payment SDK is not initialized. Please refresh the page.");
+    }
+  };
+
+
 
   const handleOpenInvitation = () => {
     setIsOpen(true);
@@ -342,6 +447,7 @@ const InvitePage = () => {
       .then((res) => {
         setInvitation(res.data);
         setValue("guestName", res.data.guestName);
+        setGiftGuestName(res.data.guestName || "");
       })
       .catch((err) => {
         if (err.response?.status === 404) setNotFound(true);
@@ -420,6 +526,17 @@ const InvitePage = () => {
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
 
+  const galleryPhotos = invitation?.userId?.galleryPhotos || [];
+
+  // Autoplay slideshow for the love story gallery
+  useEffect(() => {
+    if (galleryPhotos.length <= 1) return;
+    const interval = setInterval(() => {
+      setGalleryIndex((prev) => (prev === galleryPhotos.length - 1 ? 0 : prev + 1));
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [galleryPhotos]);
+
   if (loading)
     return (
       <section className="flex min-h-screen items-center justify-center bg-[#070A13]">
@@ -449,7 +566,9 @@ const InvitePage = () => {
     "w-full rounded-xl border border-[#1A2E4A]/15 bg-white px-4 py-3 text-sm text-[#1A2E4A] placeholder-[#1A2E4A]/30 outline-none focus:border-[#B8963A]/60 focus:ring-1 focus:ring-[#B8963A]/30 transition";
 
   const venue = invitation.userId?.venue;
+  const venueName = invitation.userId?.venueName || "";
   const receptionLocation = invitation.userId?.receptionLocation || "";
+  const receptionName = invitation.userId?.receptionName || "";
   const weddingDate = invitation.userId?.weddingDate;
   const weddingTime = invitation?.userId?.weddingTime;
   const dressCode = invitation.userId?.dressCode || "";
@@ -469,7 +588,11 @@ const InvitePage = () => {
   const customVerticalOffset = invitation.userId?.customVerticalOffset || 0;
   const customHorizontalOffset = invitation.userId?.customHorizontalOffset || 0;
   const customTextSize = invitation.userId?.customTextSize || 1.0;
+  const customTextBoldness = invitation.userId?.customTextBoldness || "normal";
   const customTextAlign = invitation.userId?.customTextAlign || "center";
+
+  const baseWeight = customTextBoldness === "bold" ? "700" : (customTextBoldness === "medium" ? "500" : "400");
+  const headingWeight = customTextBoldness === "bold" ? "950" : (customTextBoldness === "medium" ? "750" : "600");
   const couplePhotoUrl = invitation.userId?.couplePhotoUrl || "";
   const pageBgTemplate = invitation.userId?.pageBgTemplate || "";
   const coupleOverlayOpacity = invitation.userId?.coupleOverlayOpacity ?? 0.45;
@@ -498,7 +621,6 @@ const InvitePage = () => {
     // Remap any old Wedding March URL to the verified working source
     musicUrl = "https://archive.org/download/wedding-march/Wedding%20March.mp3";
   }
-  const galleryPhotos = invitation.userId?.galleryPhotos || [];
   const isDirectAudio = musicUrl && !getSpotifyEmbedUrl(musicUrl);
 
   const script = { fontFamily: "'Dancing Script', cursive" };
@@ -588,6 +710,9 @@ const InvitePage = () => {
       "/templates/template_plus_3.png",
       "/templates/template_pro_1.png",
       "/templates/template_pro_2.png",
+      "/templates/template_pro_3.png",
+      "/templates/template_pro_6.png",
+      "/templates/template_pro_7.png",
     ];
     const isDarkBg = darkTemplates.includes(customCardBg);
     const fallbackColor = isDarkBg ? "#F5EBD6" : "#1A2E4A";
@@ -822,7 +947,7 @@ const InvitePage = () => {
         {/* ═══ THE CARD (this gets downloaded) ═══ */}
         <div
           ref={cardRef}
-          className="w-full max-w-[24.7rem] sm:max-w-[27.2rem] rounded-2xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+          className="w-full max-w-[28rem] sm:max-w-[32rem] rounded-2xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
         >
           {/* Card background container */}
           <div
@@ -841,6 +966,7 @@ const InvitePage = () => {
               }`}
               style={{
                 fontSize: `${customTextSize}em`,
+                fontWeight: baseWeight,
                 paddingTop: `calc(5rem + ${customVerticalOffset}px)`,
                 paddingBottom: `calc(5.5rem - ${customVerticalOffset}px)`,
                 transform: `translateX(${customHorizontalOffset || 0}px)`,
@@ -853,6 +979,7 @@ const InvitePage = () => {
                   fontSize: "2em",
                   lineHeight: 1.25,
                   color: primaryTextColor,
+                  fontWeight: headingWeight,
                 }}
                 className="mt-3"
               >
@@ -886,6 +1013,7 @@ const InvitePage = () => {
                   fontSize: "2.6em",
                   lineHeight: 1.1,
                   color: primaryTextColor,
+                  fontWeight: headingWeight,
                 }}
                 className="mb-1"
               >
@@ -970,7 +1098,7 @@ const InvitePage = () => {
                 <button
                   onClick={(e) => {
                     e.preventDefault();
-                    setMapSelectAddress(venue);
+                    setMapSelectAddress({ label: venueName || venue, query: venue });
                   }}
                   style={{
                     fontFamily: cardStyles.fontFamily,
@@ -982,7 +1110,7 @@ const InvitePage = () => {
                   }}
                   className="mb-2 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2 text-center mx-auto"
                 >
-                  Location: {venue}
+                  Location: {venueName || venue}
                 </button>
               )}
 
@@ -990,7 +1118,7 @@ const InvitePage = () => {
                 <button
                   onClick={(e) => {
                     e.preventDefault();
-                    setMapSelectAddress(receptionLocation);
+                    setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
                   }}
                   style={{
                     fontFamily: cardStyles.fontFamily,
@@ -1002,7 +1130,7 @@ const InvitePage = () => {
                   }}
                   className="mb-5 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2 text-center mx-auto"
                 >
-                  Reception at: {receptionLocation}
+                  Reception at: {receptionName || receptionLocation}
                 </button>
               )}
 
@@ -1028,30 +1156,20 @@ const InvitePage = () => {
                   >
                     Colour of the Day
                   </p>
-                  <div className="flex flex-wrap justify-center gap-3">
+                  <div className="flex flex-wrap justify-center gap-1.5">
                     {weddingColors.map((name, i) => {
                       const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999";
                       return (
-                        <div key={i} className="flex flex-col items-center gap-1">
-                          <div
-                            className="h-7 w-7 rounded-full shadow-md"
-                            style={{
-                              background: hex,
-                              border: "2px solid rgba(26,46,74,0.25)",
-                            }}
-                          />
-                          <span
-                            style={{
-                              fontFamily: cardStyles.fontFamily,
-                              fontSize: "0.9em",
-                              fontWeight: 700,
-                              color: primaryTextColor,
-                              lineHeight: 1.3,
-                            }}
-                            className="text-center max-w-16 font-bold"
-                          >
-                            {name}
-                          </span>
+                        <div
+                          key={i}
+                          className="flex items-center gap-1 rounded-full px-2 py-0.5 border text-[0.65em] font-bold shadow-xs whitespace-nowrap"
+                          style={{
+                            borderColor: `${hex}44`,
+                            backgroundColor: `${hex}11`,
+                          }}
+                        >
+                          <div className="h-2 w-2 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: hex }} />
+                          <span style={{ color: primaryTextColor }}>{name}</span>
                         </div>
                       );
                     })}
@@ -1079,7 +1197,7 @@ const InvitePage = () => {
 
         {/* ── Countdown (outside card, not downloaded) ── */}
         {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
-          <div className="w-full max-w-[24.7rem] sm:max-w-[27.2rem]">
+          <div className="w-full max-w-[28rem] sm:max-w-[32rem]">
             <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">
               Counting Down
             </p>
@@ -1169,15 +1287,20 @@ const InvitePage = () => {
           <div className="w-full max-w-lg rounded-3xl overflow-hidden border border-white/10 bg-[#070A13] p-4 flex flex-col items-center">
             {/* Big slide */}
             <div className="w-full h-80 rounded-2xl overflow-hidden bg-white/5 relative">
-              <img
-                src={galleryPhotos[galleryIndex]}
-                alt="Couple"
-                className="w-full h-full object-cover transition-opacity duration-300"
-              />
+              {galleryPhotos.map((photo, i) => (
+                <img
+                  key={i}
+                  src={photo}
+                  alt={`Couple photo ${i + 1}`}
+                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                    i === galleryIndex ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                  }`}
+                />
+              ))}
               {/* Carousel controls — SVG chevron arrows */}
               <button
                 onClick={() => setGalleryIndex((prev) => (prev === 0 ? galleryPhotos.length - 1 : prev - 1))}
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 border border-white/15 flex items-center justify-center hover:bg-[#D8B76A]/20 hover:border-[#D8B76A]/40 transition-all duration-200 group"
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 border border-white/15 flex items-center justify-center hover:bg-[#D8B76A]/20 hover:border-[#D8B76A]/40 transition-all duration-200 group z-20"
                 aria-label="Previous photo"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-white/70 group-hover:text-[#D8B76A] transition-colors">
@@ -1186,7 +1309,7 @@ const InvitePage = () => {
               </button>
               <button
                 onClick={() => setGalleryIndex((prev) => (prev === galleryPhotos.length - 1 ? 0 : prev + 1))}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 border border-white/15 flex items-center justify-center hover:bg-[#D8B76A]/20 hover:border-[#D8B76A]/40 transition-all duration-200 group"
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 border border-white/15 flex items-center justify-center hover:bg-[#D8B76A]/20 hover:border-[#D8B76A]/40 transition-all duration-200 group z-20"
                 aria-label="Next photo"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-white/70 group-hover:text-[#D8B76A] transition-colors">
@@ -1208,6 +1331,61 @@ const InvitePage = () => {
                   <img src={photo} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Timeline / Schedule Section */}
+      {invitation.userId?.timeline && invitation.userId.timeline.length > 0 && (
+        <section className="px-4 sm:px-6 py-16 text-center bg-[#070A13] relative z-10 border-t border-white/5 flex flex-col items-center">
+          <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Timeline</p>
+          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Wedding Schedule</h2>
+          <p className="text-white/40 text-xs max-w-sm mb-12 -mt-4 leading-relaxed font-normal">
+            Here is what to expect on our special day. We look forward to celebrating each moment with you!
+          </p>
+
+          <div className="relative w-full max-w-md mx-auto px-4">
+            {/* The vertical line */}
+            <div className="absolute left-8 top-2 bottom-2 w-0.5 bg-linear-to-b from-[#D8B76A] via-[#F2D894]/50 to-[#D8B76A] opacity-30" />
+
+            <div className="space-y-8 text-left">
+              {invitation.userId.timeline.map((event, index) => {
+                let displayTime = event.time;
+                try {
+                  const [hourStr, minStr] = event.time.split(":");
+                  const hour = parseInt(hourStr);
+                  const period = hour >= 12 ? "PM" : "AM";
+                  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+                  displayTime = `${displayHour}:${minStr} ${period}`;
+                } catch (e) {
+                  // Fallback
+                }
+
+                return (
+                  <div key={index} className="relative flex items-start pl-14 group">
+                    {/* Circle Node with icon/emoji */}
+                    <div className="absolute left-3 top-0 h-10 w-10 rounded-full bg-[#0D1220] border border-[#D8B76A]/40 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(216,183,106,0.15)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(216,183,106,0.4)] group-hover:border-[#D8B76A] transition-all duration-300 z-10">
+                      {event.icon}
+                    </div>
+
+                    {/* Timeline card details */}
+                    <div className="flex-1 p-5 rounded-2xl border border-white/10 bg-[#0D1220] hover:border-[#D8B76A]/30 transition duration-300 shadow-md">
+                      <span className="text-[10px] font-bold text-[#D8B76A] uppercase tracking-wider block mb-1">
+                        {displayTime}
+                      </span>
+                      <h4 className="text-white text-base font-semibold font-serif mb-1">
+                        {event.title}
+                      </h4>
+                      {event.description && (
+                        <p className="text-xs text-white/50 leading-relaxed font-normal">
+                          {event.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -1251,7 +1429,7 @@ const InvitePage = () => {
               <button
                 onClick={(e) => {
                   e.preventDefault();
-                  setMapSelectAddress(venue);
+                  setMapSelectAddress({ label: venueName || venue, query: venue });
                 }}
                 style={{
                   ...serif,
@@ -1263,7 +1441,7 @@ const InvitePage = () => {
                 }}
                 className="hover:opacity-80 transition block w-full text-center"
               >
-                {venue}
+                {venueName || venue}
               </button>
             ) : (
               <p className="text-white text-sm leading-6">To be announced</p>
@@ -1277,7 +1455,7 @@ const InvitePage = () => {
               <button
                 onClick={(e) => {
                   e.preventDefault();
-                  setMapSelectAddress(receptionLocation);
+                  setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
                 }}
                 style={{
                   ...serif,
@@ -1289,7 +1467,7 @@ const InvitePage = () => {
                 }}
                 className="hover:opacity-80 transition block w-full text-center"
               >
-                {receptionLocation}
+                {receptionName || receptionLocation}
               </button>
             </div>
           )}
@@ -1312,7 +1490,11 @@ const InvitePage = () => {
                   return (
                     <div
                       key={i}
-                      className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 shadow-sm"
+                      className="flex items-center gap-2 rounded-full border px-3.5 py-1.5 shadow-sm"
+                      style={{
+                        borderColor: `${hex}44`,
+                        backgroundColor: `${hex}11`,
+                      }}
                     >
                       <div className="h-4 w-4 rounded-full shrink-0 shadow-inner" style={{ background: hex }} />
                       <span className="text-base font-bold text-white tracking-wide">{name}</span>
@@ -1596,8 +1778,89 @@ const InvitePage = () => {
                 </div>
               </div>
             )}
+
+            {/* Paystack Cash Gifting Option */}
+            <div className="space-y-4 pt-4 border-t border-white/5 flex flex-col items-center">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white/50 w-full text-left">💳 Secure Online Contribution</h4>
+              <p className="text-xs text-white/40 leading-relaxed w-full">
+                You can support our honeymoon fund instantly using your debit card or bank transfer via Paystack.
+              </p>
+              <button
+                onClick={() => setShowGiftModal(true)}
+                className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-3.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(216,183,106,0.35)]"
+              >
+                💝 Send Cash Gift Online
+              </button>
+            </div>
           </div>
         </section>
+      )}
+
+      {/* GIFT REGISTRY MODAL */}
+      {showGiftModal && (
+        <div className="fixed inset-0 z-55 flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4 backdrop-blur-sm">
+          <div className="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-[#D8B76A]/20 bg-white p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto animate-fade-in">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="font-serif text-2xl text-[#1A2E4A]">Send Cash Gift</h2>
+              <button
+                onClick={() => setShowGiftModal(false)}
+                className="text-[#1A2E4A]/40 hover:text-[#1A2E4A] transition text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Guest Name */}
+              <div>
+                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Your Name *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  value={giftGuestName}
+                  onChange={(e) => setGiftGuestName(e.target.value)}
+                  className="w-full rounded-xl border border-[#1A2E4A]/15 bg-[#F8F8F8] px-4 py-3 text-sm text-[#1A2E4A] placeholder-[#1A2E4A]/30 outline-none focus:border-[#B8963A]/60 focus:ring-1 focus:ring-[#B8963A]/30 transition"
+                />
+              </div>
+
+              {/* Amount */}
+              <div>
+                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Gift Amount (₦) *</label>
+                <input
+                  type="number"
+                  min="100"
+                  placeholder="e.g. 5000"
+                  value={giftAmount}
+                  onChange={(e) => setGiftAmount(e.target.value)}
+                  className="w-full rounded-xl border border-[#1A2E4A]/15 bg-[#F8F8F8] px-4 py-3 text-sm text-[#1A2E4A] placeholder-[#1A2E4A]/30 outline-none focus:border-[#B8963A]/60 focus:ring-1 focus:ring-[#B8963A]/30 transition"
+                />
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Blessing / Message (optional)</label>
+                <textarea
+                  rows={3}
+                  placeholder="Send a warm wish to the couple..."
+                  value={giftMessage}
+                  onChange={(e) => setGiftMessage(e.target.value)}
+                  className="w-full rounded-xl border border-[#1A2E4A]/15 bg-[#F8F8F8] px-4 py-3 text-sm text-[#1A2E4A] placeholder-[#1A2E4A]/30 outline-none focus:border-[#B8963A]/60 focus:ring-1 focus:ring-[#B8963A]/30 transition resize-none"
+                />
+              </div>
+
+              {/* Checkout Button */}
+              <button
+                onClick={handleGiftCheckout}
+                disabled={loadingGiftPayment}
+                className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.4)] disabled:opacity-60 mt-2"
+              >
+                {loadingGiftPayment ? "Initializing gateway..." : "Proceed to Paystack"}
+              </button>
+
+
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Wish Wall / Guestbook Section */}
@@ -1637,62 +1900,70 @@ const InvitePage = () => {
       )}
 
       {/* Map Selector Modal */}
-      {mapSelectAddress && (
-        <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-fade-in">
-          <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/30 bg-[#0D1220] p-6 shadow-2xl space-y-6 text-center">
-            <div>
-              <span className="text-3xl">🧭</span>
-              <h3 className="font-serif text-xl text-white mt-2">Open in Maps</h3>
-              <p className="text-white/40 text-xs mt-1 leading-relaxed max-w-xs mx-auto">
-                Choose your preferred navigation app to open routes for:<br />
-                <span className="text-white/80 font-medium block mt-1 break-words">{mapSelectAddress}</span>
-              </p>
-            </div>
-            
-            <div className="space-y-3">
-              {/* Google Maps */}
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSelectAddress)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setMapSelectAddress(null)}
-                className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
-              >
-                <span>🗺️</span> Google Maps
-              </a>
+      {mapSelectAddress && (() => {
+        const isObj = typeof mapSelectAddress === "object" && mapSelectAddress !== null;
+        const displayLabel = isObj ? mapSelectAddress.label : mapSelectAddress;
+        const mapsQuery = isObj ? mapSelectAddress.query : mapSelectAddress;
+        return (
+          <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-fade-in">
+            <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/30 bg-[#0D1220] p-6 shadow-2xl space-y-6 text-center">
+              <div>
+                <span className="text-3xl">🧭</span>
+                <h3 className="font-serif text-xl text-white mt-2">Open in Maps</h3>
+                <p className="text-white/40 text-xs mt-1 leading-relaxed max-w-xs mx-auto">
+                  Choose your preferred navigation app to open routes for:<br />
+                  <span className="text-white/80 font-medium block mt-1 break-words">{displayLabel}</span>
+                  {isObj && displayLabel !== mapsQuery && (
+                    <span className="text-white/45 text-[10px] block mt-0.5 break-words italic">{mapsQuery}</span>
+                  )}
+                </p>
+              </div>
               
-              {/* Apple Maps */}
-              <a
-                href={`https://maps.apple.com/?q=${encodeURIComponent(mapSelectAddress)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setMapSelectAddress(null)}
-                className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
-              >
-                <span>🍎</span> Apple Maps
-              </a>
+              <div className="space-y-3">
+                {/* Google Maps */}
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMapSelectAddress(null)}
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
+                >
+                  <span>🗺️</span> Google Maps
+                </a>
+                
+                {/* Apple Maps */}
+                <a
+                  href={`https://maps.apple.com/?q=${encodeURIComponent(mapsQuery)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMapSelectAddress(null)}
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
+                >
+                  <span>🍎</span> Apple Maps
+                </a>
+                
+                {/* Waze */}
+                <a
+                  href={`https://waze.com/ul?q=${encodeURIComponent(mapsQuery)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMapSelectAddress(null)}
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
+                >
+                  <span>🚗</span> Waze
+                </a>
+              </div>
               
-              {/* Waze */}
-              <a
-                href={`https://waze.com/ul?q=${encodeURIComponent(mapSelectAddress)}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
                 onClick={() => setMapSelectAddress(null)}
-                className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
+                className="w-full text-xs font-bold uppercase tracking-widest text-[#D8B76A] hover:underline"
               >
-                <span>🚗</span> Waze
-              </a>
+                Cancel
+              </button>
             </div>
-            
-            <button
-              onClick={() => setMapSelectAddress(null)}
-              className="w-full text-xs font-bold uppercase tracking-widest text-[#D8B76A] hover:underline"
-            >
-              Cancel
-            </button>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

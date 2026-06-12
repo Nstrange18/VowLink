@@ -90,6 +90,7 @@ export const SettingsProvider = ({ children }) => {
   const [customHorizontalOffset, setCustomHorizontalOffset] = useState(storedUser.customHorizontalOffset || 0);
   const [smartLayoutEnabled, setSmartLayoutEnabled] = useState(typeof storedUser.smartLayoutEnabled === "boolean" ? storedUser.smartLayoutEnabled : true);
   const [customTextSize, setCustomTextSize] = useState(storedUser.customTextSize || 1.0);
+  const [customTextBoldness, setCustomTextBoldness] = useState(storedUser.customTextBoldness || "normal");
   const [customTextAlign, setCustomTextAlign] = useState(storedUser.customTextAlign || "center");
   const [couplePhotoUrl, setCouplePhotoUrl] = useState(storedUser.couplePhotoUrl || "");
   const [coupleOverlayOpacity, setCoupleOverlayOpacity] = useState(storedUser.coupleOverlayOpacity ?? 0.45);
@@ -105,6 +106,23 @@ export const SettingsProvider = ({ children }) => {
   const [honeymoonFundTarget, setHoneymoonFundTarget] = useState(storedUser.honeymoonFundTarget || 0);
   const [musicUrlToSaveDummy, setMusicUrlToSaveDummy] = useState(""); // Dummy to assist grouping
   const [honeymoonFundCurrent, setHoneymoonFundCurrent] = useState(storedUser.honeymoonFundCurrent || 0);
+
+  const [timeline, setTimeline] = useState(storedUser.timeline || []);
+  const [gifts, setGifts] = useState([]);
+
+  useEffect(() => {
+    const fetchGifts = async () => {
+      try {
+        if (storedUser._id && storedUser.role !== "admin") {
+          const res = await api.get("/auth/registry/gifts");
+          setGifts(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch registry gifts:", err);
+      }
+    };
+    fetchGifts();
+  }, [storedUser._id, storedUser.role]);
 
   // AI Matcher state
   const [aiVibe, setAiVibe] = useState("Royal Velvet");
@@ -122,7 +140,22 @@ export const SettingsProvider = ({ children }) => {
   const [submittingDelete, setSubmittingDelete] = useState(false);
 
   // Tabs & password visibility states
-  const [activeTab, setActiveTab] = useState("details");
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      return sessionStorage.getItem("vowlink_settings_active_tab") || "details";
+    } catch {
+      return "details";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("vowlink_settings_active_tab", activeTab);
+    } catch (e) {
+      console.error("Failed to save activeTab to sessionStorage:", e);
+    }
+  }, [activeTab]);
+
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -144,7 +177,9 @@ export const SettingsProvider = ({ children }) => {
       weddingTime: storedUser.weddingTime || "",
       rsvpDeadline: toInputDate(storedUser.rsvpDeadline),
       venue: storedUser.venue || "",
+      venueName: storedUser.venueName || "",
       receptionLocation: storedUser.receptionLocation || "",
+      receptionName: storedUser.receptionName || "",
       dressCode: storedUser.dressCode || "",
       plusOnePolicy: storedUser.plusOnePolicy || "invitation_only",
       kidsAllowed: typeof storedUser.kidsAllowed === "boolean" ? storedUser.kidsAllowed : true,
@@ -156,7 +191,9 @@ export const SettingsProvider = ({ children }) => {
   const weddingDate = watch("weddingDate");
   const rsvpDeadline = watch("rsvpDeadline");
   const venue = watch("venue");
+  const venueName = watch("venueName");
   const receptionLocation = watch("receptionLocation");
+  const receptionName = watch("receptionName");
   const dressCode = watch("dressCode");
   const weddingTime = watch("weddingTime");
 
@@ -179,6 +216,7 @@ export const SettingsProvider = ({ children }) => {
         if (typeof freshUser.customHorizontalOffset === "number") setCustomHorizontalOffset(freshUser.customHorizontalOffset);
         if (typeof freshUser.smartLayoutEnabled === "boolean") setSmartLayoutEnabled(freshUser.smartLayoutEnabled);
         if (typeof freshUser.customTextSize === "number") setCustomTextSize(freshUser.customTextSize);
+        if (freshUser.customTextBoldness) setCustomTextBoldness(freshUser.customTextBoldness);
         if (freshUser.customTextAlign) setCustomTextAlign(freshUser.customTextAlign);
         if (typeof freshUser.registryEnabled === "boolean") setRegistryEnabled(freshUser.registryEnabled);
         if (freshUser.registryBankName) setRegistryBankName(freshUser.registryBankName);
@@ -187,6 +225,7 @@ export const SettingsProvider = ({ children }) => {
         if (freshUser.registryNotes) setRegistryNotes(freshUser.registryNotes);
         if (typeof freshUser.honeymoonFundTarget === "number") setHoneymoonFundTarget(freshUser.honeymoonFundTarget);
         if (typeof freshUser.honeymoonFundCurrent === "number") setHoneymoonFundCurrent(freshUser.honeymoonFundCurrent);
+        if (freshUser.timeline) setTimeline(freshUser.timeline);
         if (Array.isArray(freshUser.weddingColors) && freshUser.weddingColors.length) setWeddingColors(freshUser.weddingColors);
         
         reset({
@@ -196,7 +235,9 @@ export const SettingsProvider = ({ children }) => {
           weddingTime: freshUser.weddingTime || "",
           rsvpDeadline: toInputDate(freshUser.rsvpDeadline),
           venue: freshUser.venue || "",
+          venueName: freshUser.venueName || "",
           receptionLocation: freshUser.receptionLocation || "",
+          receptionName: freshUser.receptionName || "",
           dressCode: freshUser.dressCode || "",
           plusOnePolicy: freshUser.plusOnePolicy || "invitation_only",
           kidsAllowed: typeof freshUser.kidsAllowed === "boolean" ? freshUser.kidsAllowed : true,
@@ -285,6 +326,7 @@ export const SettingsProvider = ({ children }) => {
         customHorizontalOffset: Number(customHorizontalOffset),
         smartLayoutEnabled: Boolean(smartLayoutEnabled),
         customTextSize: Number(customTextSize),
+        customTextBoldness,
         customTextAlign,
         musicUrl: musicUrlToSave,
         galleryPhotos,
@@ -295,6 +337,7 @@ export const SettingsProvider = ({ children }) => {
         registryNotes,
         honeymoonFundTarget: Number(honeymoonFundTarget),
         honeymoonFundCurrent: Number(honeymoonFundCurrent),
+        timeline,
       });
 
       localStorage.setItem("token", res.data.accessToken);
@@ -303,6 +346,17 @@ export const SettingsProvider = ({ children }) => {
       window.location.reload();
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed. Please try again.");
+    }
+  };
+
+  const onInvalid = (errors) => {
+    console.error("Form validation errors:", errors);
+    const firstErrorField = Object.keys(errors)[0];
+    if (firstErrorField) {
+      const msg = errors[firstErrorField]?.message || "Validation failed.";
+      toast.error(`Validation Error: ${msg} ❌`);
+    } else {
+      toast.error("Please check the form for validation errors.");
     }
   };
 
@@ -453,6 +507,7 @@ export const SettingsProvider = ({ children }) => {
     setCustomHorizontalOffset(0);
     setSmartLayoutEnabled(true);
     setCustomTextSize(1.0);
+    setCustomTextBoldness("normal");
     setCustomTextAlign("center");
     setCouplePhotoUrl("");
     setCoupleOverlayOpacity(0.45);
@@ -467,6 +522,7 @@ export const SettingsProvider = ({ children }) => {
     setRegistryNotes("");
     setHoneymoonFundTarget(0);
     setHoneymoonFundCurrent(0);
+    setTimeline([]);
 
     if (customBgInputRef.current) customBgInputRef.current.value = "";
     if (couplePhotoInputRef.current) couplePhotoInputRef.current.value = "";
@@ -525,11 +581,16 @@ export const SettingsProvider = ({ children }) => {
         "/templates/template_plus_3.png",
         "/templates/template_pro_1.png",
         "/templates/template_pro_2.png",
+        "/templates/template_pro_3.png",
+        "/templates/template_pro_6.png",
+        "/templates/template_pro_7.png",
       ];
       const lightTemplates = [
         "/templates/template_free_1.png",
         "/templates/template_free_2.png",
         "/templates/template_free_3.png",
+        "/templates/template_pro_4.png",
+        "/templates/template_pro_5.png",
       ];
       if (darkTemplates.includes(cardBg)) return "#F5EBD6";
       if (lightTemplates.includes(cardBg)) return "#1A2E4A";
@@ -563,11 +624,19 @@ export const SettingsProvider = ({ children }) => {
       toast.info("🪄 Smart layout optimized: Centered alignment & +25px vertical offset to avoid top frame overlay!", {
         toastId: "smart-align-toast"
       });
-    } else if (templateUrl === "/templates/template_pro_1.png" || templateUrl === "/templates/template_pro_2.png") {
-      // Pro templates (marble background, filigree) - shrink slightly to sit inside ornate borders
+    } else if (
+      templateUrl === "/templates/template_pro_1.png" ||
+      templateUrl === "/templates/template_pro_2.png" ||
+      templateUrl === "/templates/template_pro_3.png" ||
+      templateUrl === "/templates/template_pro_4.png" ||
+      templateUrl === "/templates/template_pro_5.png" ||
+      templateUrl === "/templates/template_pro_6.png" ||
+      templateUrl === "/templates/template_pro_7.png"
+    ) {
+      // Pro templates (marble background, filigree, border frames) - shrink slightly to sit inside borders and give generous text space
       setCustomTextAlign("center");
       setCustomHorizontalOffset(0);
-      setCustomVerticalOffset(10);
+      setCustomVerticalOffset(15);
       setCustomTextSize(0.9);
       toast.info("🪄 Smart layout optimized: Centered alignment & 0.9x text size to fit beautifully inside borders!", {
         toastId: "smart-align-toast"
@@ -586,7 +655,7 @@ export const SettingsProvider = ({ children }) => {
     if (smartLayoutEnabled && customCardBg && cardTheme === "custom") {
       checkSmartAlignment(customCardBg, true);
     }
-  }, [smartLayoutEnabled]);
+  }, [smartLayoutEnabled, customCardBg, cardTheme]);
 
   const formattedTime = weddingTime
     ? new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString("en-US", {
@@ -652,11 +721,16 @@ export const SettingsProvider = ({ children }) => {
       "/templates/template_plus_3.png",
       "/templates/template_pro_1.png",
       "/templates/template_pro_2.png",
+      "/templates/template_pro_3.png",
+      "/templates/template_pro_6.png",
+      "/templates/template_pro_7.png",
     ];
     const isDarkBg = darkTemplates.includes(customCardBg);
     const fallbackColor = isDarkBg ? "#F5EBD6" : "#1A2E4A";
+    const bgUrlWithVersion = customCardBg.includes('/templates/') ? `${customCardBg}?v=3` : customCardBg;
+    const bgSize = customCardBg.includes('/templates/') ? "100% 100%" : "cover";
     cardStyles = {
-      background: `url('${customCardBg}') center/cover no-repeat`,
+      background: `url('${bgUrlWithVersion}') center/${bgSize} no-repeat`,
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : fallbackColor,
       fontFamily: activeFont,
     };
@@ -699,6 +773,7 @@ export const SettingsProvider = ({ children }) => {
         customHorizontalOffset, setCustomHorizontalOffset,
         smartLayoutEnabled, setSmartLayoutEnabled,
         customTextSize, setCustomTextSize,
+        customTextBoldness, setCustomTextBoldness,
         customTextAlign, setCustomTextAlign,
         couplePhotoUrl, setCouplePhotoUrl,
         coupleOverlayOpacity, setCoupleOverlayOpacity,
@@ -713,6 +788,8 @@ export const SettingsProvider = ({ children }) => {
         registryNotes, setRegistryNotes,
         honeymoonFundTarget, setHoneymoonFundTarget,
         honeymoonFundCurrent, setHoneymoonFundCurrent,
+        timeline, setTimeline,
+        gifts, setGifts,
 
         aiVibe, setAiVibe,
         aiGenerating, setAiGenerating,
@@ -742,6 +819,7 @@ export const SettingsProvider = ({ children }) => {
         errors,
         isSubmitting,
         onSubmit,
+        onInvalid,
 
         handlePhotoUpload,
         removePhoto,
@@ -756,7 +834,7 @@ export const SettingsProvider = ({ children }) => {
         uploadToCloudinary,
         getSpotifyEmbedUrl,
 
-        p1, p2, weddingDate, rsvpDeadline, venue, receptionLocation, dressCode, weddingTime,
+        p1, p2, weddingDate, rsvpDeadline, venue, venueName, receptionLocation, receptionName, dressCode, weddingTime,
         formattedTime,
         activeFont,
         priHex, secHex, terHex, selectedBgHex,

@@ -53,7 +53,7 @@ const AdminLoginPage = () => {
       localStorage.setItem("refreshToken", res.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       toast.success("Welcome back! 🎉");
-      if (res.data.user?.role === "admin") {
+      if (res.data.user?.role === "admin" && res.data.user?.email?.toLowerCase() === "nwubachukwuemelie@gmail.com") {
         navigate("/super-admin/dashboard");
       } else {
         navigate("/admin/dashboard");

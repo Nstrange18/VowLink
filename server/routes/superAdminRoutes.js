@@ -12,7 +12,7 @@ const router = express.Router();
 const protectAdmin = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-    if (user && user.role === "admin") {
+    if (user && user.role === "admin" && user.email?.toLowerCase() === "nwubachukwuemelie@gmail.com") {
       next();
     } else {
       res.status(403).json({ message: "Access denied. Super Admins only." });

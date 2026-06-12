@@ -5,6 +5,7 @@ const navLinks = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: '◈' },
   { to: '/admin/invitations', label: 'Invitations', icon: '✉' },
   { to: '/admin/rsvps', label: 'RSVPs', icon: '✓' },
+  { to: '/admin/seating', label: 'Seating Chart', icon: '🪑' },
   { to: '/admin/venues', label: 'Suggested Venues', icon: '📍' },
   { to: '/admin/billing', label: 'Billing & Tiers', icon: '💳' },
   { to: '/admin/settings', label: 'Settings', icon: '⚙' },
@@ -32,7 +33,7 @@ const AdminLayout = () => {
   const SidebarContent = () => (
     <>
       {/* Vowlink Brand */}
-      <div className="border-b border-[#D8B76A]/20 px-5 py-4">
+      <div className="border-b border-[#D8B76A]/20 px-5 py-4 shrink-0">
         <div className="mb-4 flex items-center gap-2">
           <img src="/vowlink-icon.png" alt="" className="h-6 w-6 object-contain opacity-90" />
           <span className="font-serif text-lg tracking-wide text-white">Vowlink</span>
@@ -62,7 +63,7 @@ const AdminLayout = () => {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-4 py-6 space-y-1">
+      <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto min-h-0 custom-scrollbar">
         {navLinks.map(({ to, label, icon }) => (
           <NavLink
             key={to}
@@ -82,27 +83,28 @@ const AdminLayout = () => {
         ))}
       </nav>
 
-      {/* Super Admin Switch — only visible to admins */}
-      {user.role === 'admin' && (
-        <div className="px-4 pb-2">
-          <Link
-            to="/super-admin/dashboard"
-            className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-amber-400 bg-amber-400/10 border border-amber-400/20 hover:bg-amber-400/20 transition-all duration-200"
-          >
-            <span className="text-base">⚡</span>
-            Super Admin Panel
-          </Link>
-        </div>
-      )}
+      {/* Bottom Footer actions (pinned at bottom, with border separator and mt-auto gap) */}
+      <div className="mt-auto border-t border-[#D8B76A]/20 pt-4 bg-[#090D19] shrink-0">
+        {user.role === 'admin' && user.email?.toLowerCase() === 'nwubachukwuemelie@gmail.com' && (
+          <div className="px-4 pb-3">
+            <Link
+              to="/super-admin/dashboard"
+              className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-amber-400 bg-amber-400/10 border border-amber-400/20 hover:bg-amber-400/20 transition-all duration-200"
+            >
+              <span className="text-base">⚡</span>
+              Super Admin Panel
+            </Link>
+          </div>
+        )}
 
-      {/* Logout */}
-      <div className="border-t border-[#D8B76A]/20 px-4 py-4">
-        <button
-          onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white/50 transition hover:bg-white/5 hover:text-white"
-        >
-          <span>⎋</span> Logout
-        </button>
+        <div className="px-4 pb-4">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white/50 transition hover:bg-white/5 hover:text-white"
+          >
+            <span>⎋</span> Logout
+          </button>
+        </div>
       </div>
     </>
   )

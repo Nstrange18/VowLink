@@ -64,6 +64,7 @@ export const invitationSchema = z.object({
   customMessage: z.string().min(1, "A personal message is required").max(70, "Personal message cannot be more than 70 characters"),
   allowedGuests: z.coerce.number().min(1).max(10),
   category: z.string().min(1, "Category is required"),
+  phoneNumber: z.string().optional().default(""),
 });
 
 // ── Settings ──────────────────────────────────────────────────────────────────
@@ -75,7 +76,9 @@ export const settingsSchema = z
     weddingTime: z.string().optional(), 
     rsvpDeadline: z.string().optional(),
     venue: z.string().optional(),
+    venueName: z.string().optional().default(""),
     receptionLocation: z.string().optional().default(""),
+    receptionName: z.string().optional().default(""),
     weddingColors: z.array(z.string()).optional().default([]),
     dressCode: z.string().optional().default(""),
     plusOnePolicy: z
