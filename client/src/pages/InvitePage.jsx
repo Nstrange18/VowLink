@@ -4,6 +4,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { toPng } from "html-to-image";
+import { getTemplateLayout } from "../utils/templateLayouts";
 import api from "../utils/api";
 import { rsvpSchema } from "../utils/schemas";
 import { WEDDING_COLORS } from "../components/ColorPicker";
@@ -265,10 +266,316 @@ const WeddingDayParticles = () => {
   );
 };
 
+const renderFrameBorder = (frameBorder) => {
+  if (!frameBorder) return null;
+  
+  if (frameBorder === "gold-royal") {
+    return (
+      <div className="absolute inset-5 border-2 border-[#D8B76A]/40 pointer-events-none rounded-xl z-0">
+        <div className="absolute inset-1 border border-[#D8B76A]/20" />
+        {/* Decorative corner lines */}
+        <div className="absolute -top-1.5 -left-1.5 w-4 h-4 border-t-2 border-l-2 border-[#D8B76A]" />
+        <div className="absolute -top-1.5 -right-1.5 w-4 h-4 border-t-2 border-r-2 border-[#D8B76A]" />
+        <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 border-b-2 border-l-2 border-[#D8B76A]" />
+        <div className="absolute -bottom-1.5 -right-1.5 w-4 h-4 border-b-2 border-r-2 border-[#D8B76A]" />
+      </div>
+    );
+  }
+  
+  if (frameBorder === "lace") {
+    return (
+      <div className="absolute inset-4 border border-[#B8963A]/25 pointer-events-none rounded-xl z-0">
+        <div className="absolute top-0 bottom-0 left-2 right-2 border-l border-r border-[#B8963A]/10 border-dashed" />
+        <div className="absolute left-0 right-0 top-2 bottom-2 border-t border-b border-[#B8963A]/10 border-dashed" />
+      </div>
+    );
+  }
+  
+  if (frameBorder === "dashed-gold") {
+    return (
+      <div className="absolute inset-6 border border-dashed border-[#D8B76A]/35 pointer-events-none rounded-lg z-0" />
+    );
+  }
+  
+  if (frameBorder === "gold-thin") {
+    return (
+      <div className="absolute inset-4 border border-[#D8B76A]/25 pointer-events-none rounded-xl z-0" />
+    );
+  }
+  
+  if (frameBorder === "eucalyptus") {
+    return (
+      <div className="absolute inset-5 border border-[#A3B899]/20 pointer-events-none rounded-2xl z-0" />
+    );
+  }
+
+  if (frameBorder === "gold") {
+    return (
+      <div className="absolute inset-4 border-2 border-[#C9A84C]/30 pointer-events-none rounded-xl z-0">
+        <div className="absolute inset-0.5 border border-[#C9A84C]/10" />
+      </div>
+    );
+  }
+
+  if (frameBorder === "minimalist") {
+    return (
+      <div className="absolute inset-4 border border-slate-300 pointer-events-none z-0" />
+    );
+  }
+
+  return null;
+};
+
+const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary = false) => {
+  const lineStyle = { background: color, opacity: isSecondary ? 0.3 : 0.4 };
+  const char = isSecondary ? "✦" : "❧";
+  
+  // Choose character based on divider type
+  let finalChar = char;
+  if (dividerType === "floral-rose") finalChar = isSecondary ? "🥀" : "🌸";
+  else if (dividerType === "leaf-right") finalChar = isSecondary ? "🌿" : "🍃";
+  else if (dividerType === "eucalyptus") finalChar = "🌿";
+  else if (dividerType === "lace") finalChar = isSecondary ? "✧" : "✦";
+  else if (dividerType === "gold-royal") finalChar = isSecondary ? "✦" : "👑";
+  else if (dividerType === "gold-foil") finalChar = "✦";
+  else if (dividerType === "starry") finalChar = isSecondary ? "✦" : "✨";
+  else if (dividerType === "glitter") finalChar = isSecondary ? "✧" : "✨";
+  else if (dividerType === "filigree") finalChar = isSecondary ? "✥" : "❦";
+  else if (dividerType === "charcoal-gold") finalChar = isSecondary ? "✦" : "✧";
+  
+  if (dividerType === "gold-royal") {
+    return (
+      <div className={`flex items-center gap-2 select-none ${spacing}`}>
+        <div className="h-[1.5px] w-12 bg-linear-to-r from-transparent to-[#D8B76A]" />
+        <span className="text-[#D8B76A] text-[11px] font-bold">{finalChar}</span>
+        <div className="h-[1.5px] w-12 bg-linear-to-l from-transparent to-[#D8B76A]" />
+      </div>
+    );
+  }
+  
+  return (
+    <div className={`flex items-center gap-2 select-none ${spacing}`}>
+      <div className="h-px w-10" style={lineStyle} />
+      <span style={{ color: dividerType?.includes("gold") || dividerType === "glitter" ? "#D8B76A" : color }} className="text-[11px]">{finalChar}</span>
+      <div className="h-px w-10" style={lineStyle} />
+    </div>
+  );
+};
+
+const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, isFreeUser) => {
+  if (!customCardBg) return null;
+
+  if (customCardBg === "/templates/template_free_2.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <circle cx="85" cy="115" r="30" fill="#FFE5E9" opacity="0.6" filter="blur(10px)" />
+        <circle cx="95" cy="50" r="25" fill="#FFF0F2" opacity="0.8" filter="blur(8px)" />
+        <path d="M100,20 Q80,40 85,60 Q90,80 100,90" stroke="#C3A38A" strokeWidth="1" opacity="0.6" />
+        <path d="M100,50 Q75,70 80,95 Q85,120 100,130" stroke="#C3A38A" strokeWidth="1.2" opacity="0.5" />
+        <circle cx="82" cy="55" r="5" fill="#F4B2B9" opacity="0.9" />
+        <circle cx="78" cy="85" r="6" fill="#F4B2B9" opacity="0.95" />
+        <circle cx="81" cy="110" r="5.5" fill="#F4B2B9" opacity="0.9" />
+        <path d="M78,51 C73,48 70,52 78,55" fill="#B2C8B2" opacity="0.8" />
+        <path d="M72,83 C67,80 64,84 72,87" fill="#B2C8B2" opacity="0.8" />
+        <path d="M84,89 C82,94 86,96 84,89" fill="#B2C8B2" opacity="0.8" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/template_free_3.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <circle cx="15" cy="35" r="35" fill="#F4ECE1" opacity="0.7" filter="blur(12px)" />
+        <circle cx="10" cy="100" r="30" fill="#EFE5D8" opacity="0.6" filter="blur(10px)" />
+        <path d="M0,15 Q25,35 20,60 Q15,85 0,110" stroke="#A89276" strokeWidth="1" strokeLinecap="round" opacity="0.6" />
+        <path d="M0,50 Q18,75 15,100 Q12,125 0,140" stroke="#A89276" strokeWidth="0.8" strokeLinecap="round" opacity="0.5" />
+        <path d="M12,28 C18,24 22,28 12,32" fill="#D2C2AD" opacity="0.8" />
+        <path d="M18,48 C24,44 26,49 18,52" fill="#D2C2AD" opacity="0.9" />
+        <path d="M15,85 C22,81 24,86 15,89" fill="#D2C2AD" opacity="0.8" />
+        <path d="M10,120 C16,116 18,121 10,124" fill="#D2C2AD" opacity="0.8" />
+        <circle cx="13" cy="38" r="2.5" fill="#D8B76A" />
+        <circle cx="19" cy="68" r="3" fill="#D8B76A" />
+        <circle cx="14" cy="102" r="2.5" fill="#D8B76A" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/template_plus_1.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <rect x="5" y="5" width="90" height="140" rx="6" fill="none" stroke="#D8B76A" strokeWidth="0.5" opacity="0.3" />
+        <path d="M6,6 Q20,8 15,22 Q12,30 6,35" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+        <circle cx="12" cy="12" r="2.5" fill="#D8B76A" opacity="0.9" />
+        <circle cx="18" cy="8" r="2" fill="#A3B899" />
+        <path d="M94,6 Q80,8 85,22 Q88,30 94,35" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+        <circle cx="88" cy="12" r="2.5" fill="#D8B76A" opacity="0.9" />
+        <circle cx="82" cy="8" r="2" fill="#A3B899" />
+        <path d="M6,144 Q20,142 15,128 Q12,120 6,115" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+        <circle cx="12" cy="138" r="2.5" fill="#D8B76A" opacity="0.9" />
+        <circle cx="18" cy="142" r="2" fill="#A3B899" />
+        <path d="M94,144 Q80,142 85,128 Q88,120 94,115" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+        <circle cx="88" cy="138" r="2.5" fill="#D8B76A" opacity="0.9" />
+        <circle cx="82" cy="142" r="2" fill="#A3B899" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/template_plus_2.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <line x1="10" y1="0" x2="10" y2="150" stroke="#D8B76A" strokeWidth="0.75" opacity="0.4" />
+        <line x1="12" y1="0" x2="12" y2="150" stroke="#D8B76A" strokeWidth="0.25" opacity="0.2" />
+        <path d="M10,10 Q6,15 10,20 M10,30 Q6,35 10,40 M10,50 Q6,55 10,60 M10,70 Q6,75 10,80 M10,90 Q6,95 10,100 M10,110 Q6,115 10,120 M10,130 Q6,135 10,140" stroke="#D8B76A" strokeWidth="0.5" opacity="0.5" />
+        <path d="M0,0 Q18,0 18,18 Q0,18 0,0 Z" fill="#D8B76A" opacity="0.15" />
+        <path d="M0,150 Q18,150 18,132 Q0,132 0,150 Z" fill="#D8B76A" opacity="0.15" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/template_pro_1.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <path d="M100,5 Q70,40 85,75 Q100,110 80,145" stroke="#D8B76A" strokeWidth="0.8" opacity="0.7" />
+        <path d="M100,35 Q85,55 92,80 Q99,105 100,120" stroke="#D8B76A" strokeWidth="0.4" opacity="0.5" />
+        <path d="M100,70 Q90,95 93,115 Q96,135 100,140" stroke="#D8B76A" strokeWidth="0.5" opacity="0.6" />
+        <circle cx="88" cy="20" r="1" fill="#D8B76A" opacity="0.4" />
+        <circle cx="94" cy="55" r="1.5" fill="#D8B76A" opacity="0.5" />
+        <circle cx="82" cy="95" r="0.75" fill="#D8B76A" opacity="0.3" />
+        <circle cx="91" cy="130" r="1.2" fill="#D8B76A" opacity="0.4" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/template_pro_2.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        {/* Decorative corner quadrants (top-left & bottom-left) matching the velvet burgundy look */}
+        <path d="M0,15 A15,15 0 0,0 15,0 L0,0 Z" fill="#3D0C1A" opacity="0.9" />
+        <path d="M0,15 A15,15 0 0,0 15,0" stroke="#D8B76A" strokeWidth="0.75" opacity="0.8" />
+        <path d="M0,12 A12,12 0 0,0 12,0" stroke="#D8B76A" strokeWidth="0.25" opacity="0.5" />
+        
+        <path d="M0,135 A15,15 0 0,1 15,150 L0,150 Z" fill="#3D0C1A" opacity="0.9" />
+        <path d="M0,135 A15,15 0 0,1 15,150" stroke="#D8B76A" strokeWidth="0.75" opacity="0.8" />
+        <path d="M0,138 A12,12 0 0,1 12,150" stroke="#D8B76A" strokeWidth="0.25" opacity="0.5" />
+
+        {/* Straight gold vertical border line on the left side */}
+        <line x1="12" y1="0" x2="12" y2="150" stroke="#D8B76A" strokeWidth="0.75" opacity="0.8" />
+        
+        {/* Three semi-circular loops curving to the right */}
+        {/* Loop 1: centered at y=45 */}
+        <path d="M12,38 A7,7 0 0,1 12,52" stroke="#D8B76A" strokeWidth="0.75" fill="none" opacity="0.8" />
+        <circle cx="16" cy="45" r="1.5" fill="#D8B76A" opacity="0.9" />
+        
+        {/* Loop 2: centered at y=75 */}
+        <path d="M12,68 A7,7 0 0,1 12,82" stroke="#D8B76A" strokeWidth="0.75" fill="none" opacity="0.8" />
+        <circle cx="16" cy="75" r="1.5" fill="#D8B76A" opacity="0.9" />
+        
+        {/* Loop 3: centered at y=105 */}
+        <path d="M12,98 A7,7 0 0,1 12,112" stroke="#D8B76A" strokeWidth="0.75" fill="none" opacity="0.8" />
+        <circle cx="16" cy="105" r="1.5" fill="#D8B76A" opacity="0.9" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/template_pro_3.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <rect x="6" y="6" width="88" height="138" rx="8" fill="none" stroke="#D8B76A" strokeWidth="1.5" opacity="0.6" />
+        <rect x="7.5" y="7.5" width="85" height="135" rx="6.5" fill="none" stroke="#D8B76A" strokeWidth="0.5" opacity="0.3" />
+        <path d="M6,20 Q16,16 20,6" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
+        <path d="M94,20 Q84,16 80,6" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
+        <path d="M6,130 Q16,134 20,144" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
+        <path d="M94,130 Q84,134 80,144" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/template_pro_4.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <circle cx="95" cy="15" r="4" fill="#E8B5AC" opacity="0.8" />
+        <circle cx="88" cy="30" r="2.5" fill="#E8B5AC" opacity="0.6" />
+        <circle cx="92" cy="48" r="3.5" fill="#E8B5AC" opacity="0.7" />
+        <circle cx="84" cy="65" r="2" fill="#E8B5AC" opacity="0.5" />
+        <circle cx="96" cy="85" r="4.5" fill="#E8B5AC" opacity="0.8" />
+        <circle cx="89" cy="110" r="3" fill="#E8B5AC" opacity="0.6" />
+        <circle cx="94" cy="135" r="4" fill="#E8B5AC" opacity="0.8" />
+        <path d="M85,25 L86,22 L89,21 L86,20 L85,17 L84,20 L81,21 L84,22 Z" fill="#E8B5AC" opacity="0.9" />
+        <path d="M90,75 L91,72 L94,71 L91,70 L90,67 L89,70 L86,71 L89,72 Z" fill="#E8B5AC" opacity="0.9" />
+        <path d="M83,120 L84,117 L87,116 L84,115 L83,112 L82,115 L79,116 L82,117 Z" fill="#E8B5AC" opacity="0.8" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/template_pro_5.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <path d="M0,25 Q18,40 10,75 Q2,110 0,135" stroke="#7A8E7E" strokeWidth="0.8" strokeLinecap="round" opacity="0.7" />
+        <path d="M9,32 C15,31 16,36 9,38 Z" fill="#99AB9D" opacity="0.6" />
+        <path d="M12,48 C18,49 16,54 12,53 Z" fill="#99AB9D" opacity="0.6" />
+        <path d="M11,68 C17,71 14,75 11,72 Z" fill="#99AB9D" opacity="0.6" />
+        <path d="M6,90 C12,94 9,98 6,95 Z" fill="#99AB9D" opacity="0.5" />
+        <path d="M4,112 C10,115 8,119 4,116 Z" fill="#99AB9D" opacity="0.5" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/template_pro_6.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        {/* Left Side Gold Column Border */}
+        <g stroke="#D8B76A" strokeWidth="0.75" opacity="0.75">
+          <line x1="6" y1="0" x2="6" y2="150" />
+          <line x1="8" y1="0" x2="8" y2="150" strokeWidth="0.25" opacity="0.5" />
+          <path d="M6,5 Q2,10 6,15 M6,20 Q2,25 6,30 M6,35 Q2,40 6,45 M6,50 Q2,55 6,60 M6,65 Q2,70 6,75 M6,80 Q2,85 6,90 M6,95 Q2,100 6,105 M6,110 Q2,115 6,120 M6,125 Q2,130 6,135 M6,140 Q2,145 6,150" fill="none" />
+          <path d="M6,7 Q9,12 6,17 M6,22 Q9,27 6,32 M6,37 Q9,42 6,47 M6,52 Q9,57 6,62 M6,67 Q9,72 6,77 M6,82 Q9,87 6,92 M6,97 Q9,102 6,107 M6,112 Q9,117 6,122 M6,127 Q9,132 6,137 M6,142 Q9,147 6,147" fill="none" opacity="0.5" />
+        </g>
+
+        {/* Right Side Gold Column Border */}
+        <g stroke="#D8B76A" strokeWidth="0.75" opacity="0.75">
+          <line x1="94" y1="0" x2="94" y2="150" />
+          <line x1="92" y1="0" x2="92" y2="150" strokeWidth="0.25" opacity="0.5" />
+          <path d="M94,5 Q98,10 94,15 M94,20 Q98,25 94,30 M94,35 Q98,40 94,45 M94,50 Q98,55 94,60 M94,65 Q98,70 94,75 M94,80 Q98,85 94,90 M94,95 Q98,100 94,105 M94,110 Q98,115 94,120 M94,125 Q98,130 94,135 M94,140 Q98,145 94,150" fill="none" />
+          <path d="M94,7 Q91,12 94,17 M94,22 Q91,27 94,32 M94,37 Q91,42 94,47 M94,52 Q91,57 94,62 M94,67 Q91,72 94,77 M94,82 Q91,87 94,92 M94,97 Q91,102 94,107 M94,112 Q91,117 94,122 M94,127 Q91,132 94,137 M94,142 Q91,147 94,147" fill="none" opacity="0.5" />
+        </g>
+        
+        {/* Twinkling stars in the middle */}
+        <path d="M22,30 L23,28 L25,27 L23,26 L22,24 L21,26 L19,27 L21,28 Z" fill="#FFFFFF" opacity="0.85" />
+        <path d="M78,45 L79,43 L81,42 L79,41 L78,39 L77,41 L75,42 L77,43 Z" fill="#FFFFFF" opacity="0.85" />
+        <path d="M25,110 L26,108 L28,107 L26,106 L25,104 L24,106 L22,107 L24,108 Z" fill="#FFFFFF" opacity="0.8" />
+        <path d="M75,115 L76,113 L78,112 L76,111 L75,109 L74,111 L72,112 L74,113 Z" fill="#FFFFFF" opacity="0.8" />
+        {/* Scattered gold dust */}
+        <circle cx="30" cy="15" r="0.75" fill="#D8B76A" opacity="0.5" />
+        <circle cx="50" cy="12" r="1" fill="#D8B76A" opacity="0.6" />
+        <circle cx="70" cy="18" r="0.75" fill="#D8B76A" opacity="0.5" />
+        <circle cx="40" cy="138" r="1" fill="#D8B76A" opacity="0.5" />
+        <circle cx="60" cy="142" r="0.8" fill="#D8B76A" opacity="0.4" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/template_pro_7.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <path d="M100,30 Q78,50 82,75 Q86,100 100,110" stroke="#D8B76A" strokeWidth="0.8" strokeLinecap="round" opacity="0.5" />
+        <circle cx="85" cy="55" r="4" stroke="#D8B76A" strokeWidth="0.6" fill="none" opacity="0.6" />
+        <circle cx="85" cy="55" r="1.5" fill="#D8B76A" opacity="0.5" />
+        <circle cx="80" cy="80" r="5" stroke="#D8B76A" strokeWidth="0.6" fill="none" opacity="0.6" />
+        <circle cx="80" cy="80" r="2" fill="#D8B76A" opacity="0.5" />
+        <path d="M78,48 Q70,42 76,38 Q82,34 84,42 Z" fill="#D8B76A" opacity="0.15" />
+        <path d="M72,72 Q64,66 70,62 Q76,58 78,66 Z" fill="#D8B76A" opacity="0.15" />
+      </svg>
+    );
+  }
+
+  return null;
+};
+
 const InvitePage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const cardRef = useRef(null);
+  const downloadRef = useRef(null);
   const [invitation, setInvitation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -498,12 +805,32 @@ const InvitePage = () => {
   };
 
   const handleDownload = async () => {
-    if (!cardRef.current) return;
+    if (!downloadRef.current) return;
     setDownloading(true);
+    
+    // Add is-exporting class to collapse heights of hidden elements
+    downloadRef.current.classList.add("is-exporting");
+    
+    // Allow browser layout engine to recalculate and collapse heights
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     try {
-      const dataUrl = await toPng(cardRef.current, {
+      const dataUrl = await toPng(downloadRef.current, {
         cacheBust: true,
         pixelRatio: 2,
+        height: downloadRef.current.scrollHeight,
+        style: {
+          background: "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)",
+        },
+        filter: (node) => {
+          if (node.id === "rsvp-open-btn" || node.id === "download-actions-bar") {
+            return false;
+          }
+          if (node.classList && node.classList.contains("download-exclude")) {
+            return false;
+          }
+          return true;
+        }
       });
       const link = document.createElement("a");
       link.download = `invitation-${invitation.guestName?.toLowerCase().replace(/\s+/g, "-") || "card"}.png`;
@@ -512,18 +839,10 @@ const InvitePage = () => {
     } catch (e) {
       console.error("Download failed", e);
     } finally {
+      // Remove class to restore full layout for the guest
+      downloadRef.current.classList.remove("is-exporting");
       setDownloading(false);
     }
-  };
-
-  const handleWhatsAppShare = () => {
-    const inviteUrl = `${window.location.origin}/invite/${slug}`;
-    const p1 = invitation?.userId?.partner1Name || "";
-    const p2 = invitation?.userId?.partner2Name || "";
-    const msg = encodeURIComponent(
-      `You're cordially invited to the wedding of ${p1} & ${p2}! 🎉\n\nOpen your personal invitation here:\n${inviteUrl}`
-    );
-    window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
 
   const galleryPhotos = invitation?.userId?.galleryPhotos || [];
@@ -590,6 +909,9 @@ const InvitePage = () => {
   const customTextSize = invitation.userId?.customTextSize || 1.0;
   const customTextBoldness = invitation.userId?.customTextBoldness || "normal";
   const customTextAlign = invitation.userId?.customTextAlign || "center";
+
+  const layout = getTemplateLayout(cardTheme, customCardBg);
+  const textAlignment = customTextAlign || layout.align;
 
   const baseWeight = customTextBoldness === "bold" ? "700" : (customTextBoldness === "medium" ? "500" : "400");
   const headingWeight = customTextBoldness === "bold" ? "950" : (customTextBoldness === "medium" ? "750" : "600");
@@ -704,23 +1026,74 @@ const InvitePage = () => {
       fontFamily: activeFont,
     };
   } else if (cardTheme === "custom" && customCardBg) {
-    const darkTemplates = [
-      "/templates/template_plus_1.png",
-      "/templates/template_plus_2.png",
-      "/templates/template_plus_3.png",
-      "/templates/template_pro_1.png",
-      "/templates/template_pro_2.png",
-      "/templates/template_pro_3.png",
-      "/templates/template_pro_6.png",
-      "/templates/template_pro_7.png",
-    ];
-    const isDarkBg = darkTemplates.includes(customCardBg);
-    const fallbackColor = isDarkBg ? "#F5EBD6" : "#1A2E4A";
-    cardStyles = {
-      background: `url('${customCardBg}') center/cover no-repeat`,
-      color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : fallbackColor,
-      fontFamily: activeFont,
-    };
+    const isExempt = customCardBg === "/templates/template_free_1.png" || customCardBg === "/templates/template_plus_3.png";
+    if (isExempt) {
+      const bgUrlWithVersion = customCardBg.includes('/templates/') ? `${customCardBg}?v=3` : customCardBg;
+      const bgSize = customCardBg.includes('/templates/') ? "100% 100%" : "cover";
+      cardStyles = {
+        background: `url('${bgUrlWithVersion}') center/${bgSize} no-repeat`,
+        color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : (customCardBg === "/templates/template_plus_3.png" ? "#F5EBD6" : "#1A2E4A"),
+        fontFamily: activeFont,
+      };
+    } else {
+      let bg = "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)";
+      let color = "#1A2E4A";
+      
+      switch (customCardBg) {
+        case "/templates/template_free_2.png":
+          bg = "radial-gradient(circle at 100% 100%, #FFF0F2 0%, #FFFDFD 70%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
+          break;
+        case "/templates/template_free_3.png":
+          bg = "radial-gradient(circle at 0% 0%, #FAF6F0 0%, #FFFDF9 80%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
+          break;
+        case "/templates/template_plus_1.png":
+          bg = "radial-gradient(circle, #0F2D1F 0%, #06170F 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
+          break;
+        case "/templates/template_plus_2.png":
+          bg = "radial-gradient(circle at 100% 0%, #0D1C33 0%, #050B14 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+          break;
+        case "/templates/template_pro_1.png":
+          bg = "radial-gradient(circle at 100% 100%, #151515 0%, #080808 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+          break;
+        case "/templates/template_pro_2.png":
+          bg = "radial-gradient(circle at 100% 100%, #3D0C1A 0%, #1F050D 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+          break;
+        case "/templates/template_pro_3.png":
+          bg = "radial-gradient(circle, #0B2418 0%, #040F0A 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+          break;
+        case "/templates/template_pro_4.png":
+          bg = "linear-gradient(135deg, #FFF5F6 0%, #FFEBEF 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
+          break;
+        case "/templates/template_pro_5.png":
+          bg = "radial-gradient(circle at 0% 50%, #FCFAF7 0%, #F3EFE9 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#5C6B5E";
+          break;
+        case "/templates/template_pro_6.png":
+          bg = "radial-gradient(circle, #18122B 0%, #0F0C20 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+          break;
+        case "/templates/template_pro_7.png":
+          bg = "radial-gradient(circle at 100% 50%, #1F2022 0%, #121314 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+          break;
+        default:
+          bg = `url('${customCardBg}') center/cover no-repeat`;
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+      }
+      cardStyles = {
+        background: bg,
+        color: color,
+        fontFamily: activeFont,
+      };
+    }
   }
 
   // Adjust theme color tags
@@ -741,6 +1114,13 @@ const InvitePage = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: "#070A13" }}>
+      <style>{`
+        .is-exporting .download-exclude,
+        .is-exporting #rsvp-open-btn,
+        .is-exporting #download-actions-bar {
+          display: none !important;
+        }
+      `}</style>
       {isTodayWeddingDay && <WeddingDayParticles />}
       {isTodayWeddingDay && (
         <div className="bg-linear-to-r from-[#D8B76A] via-[#F2D894] to-[#D8B76A] text-[#070A13] px-4 py-3 text-center text-xs font-bold uppercase tracking-widest relative z-35 shadow-lg flex items-center justify-center gap-2">
@@ -758,7 +1138,7 @@ const InvitePage = () => {
         {couplePhotoUrl && (
           <>
             <div 
-              className="absolute inset-0 bg-cover bg-center transition-all duration-500"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-500"
               style={{ backgroundImage: `url(${couplePhotoUrl})` }}
             />
             <div 
@@ -943,7 +1323,8 @@ const InvitePage = () => {
       )}
 
       {/* ── INVITATION CARD SECTION ── */}
-      <section className="flex flex-col items-center justify-center py-10 px-4 gap-6 relative z-10">
+      <div ref={downloadRef} className="w-full relative z-10">
+        <section className="flex flex-col items-center justify-center py-10 px-4 gap-6 relative z-10 w-full">
         {/* ═══ THE CARD (this gets downloaded) ═══ */}
         <div
           ref={cardRef}
@@ -955,31 +1336,36 @@ const InvitePage = () => {
             style={cardStyles}
           >
             {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
+            {renderTemplateBackgroundGraphics(customCardBg, priHex, secHex, terHex, isFreeUser)}
+            {renderFrameBorder(layout.frameBorder)}
             {/* Custom Spacing & Scaling wrapper */}
             <div
-              className={`relative z-10 px-6 pt-14 pb-16 flex flex-col justify-center w-full min-h-[620px] transition-all ${
-                customTextAlign === "left"
+              className={`relative z-10 flex flex-col justify-center w-full min-h-[620px] transition-all ${
+                textAlignment === "left"
                   ? "items-start text-left"
-                  : customTextAlign === "right"
+                  : textAlignment === "right"
                   ? "items-end text-right"
                   : "items-center text-center"
               }`}
               style={{
                 fontSize: `${customTextSize}em`,
                 fontWeight: baseWeight,
-                paddingTop: `calc(5rem + ${customVerticalOffset}px)`,
-                paddingBottom: `calc(5.5rem - ${customVerticalOffset}px)`,
+                paddingTop: `calc(${layout.pt}px + ${customVerticalOffset}px)`,
+                paddingBottom: `calc(${layout.pb}px - ${customVerticalOffset}px)`,
+                paddingLeft: `${layout.pl}px`,
+                paddingRight: `${layout.pr}px`,
                 transform: `translateX(${customHorizontalOffset || 0}px)`,
               }}
             >
               {/* ── Wedding Invitation title ── */}
               <h2
                 style={{
-                  ...script,
+                  fontFamily: activeFont,
                   fontSize: "2em",
                   lineHeight: 1.25,
                   color: primaryTextColor,
                   fontWeight: headingWeight,
+                  textShadow: layout.textShadow || "none",
                 }}
                 className="mt-3"
               >
@@ -987,11 +1373,7 @@ const InvitePage = () => {
               </h2>
 
               {/* ornament divider */}
-              <div className="flex items-center gap-2 mb-5">
-                <div className="h-px w-12" style={{ background: primaryTextColor, opacity: 0.4 }} />
-                <span style={{ color: primaryTextColor, opacity: 0.6, fontSize: "0.65rem" }}>❧</span>
-                <div className="h-px w-12" style={{ background: primaryTextColor, opacity: 0.4 }} />
-              </div>
+              {renderOrnamentDivider(layout.dividerType, primaryTextColor, "mb-5")}
 
               {/* ── Marriage between ── */}
               <p
@@ -1000,6 +1382,7 @@ const InvitePage = () => {
                   fontSize: "1.35em",
                   fontStyle: "italic",
                   color: primaryTextColor,
+                  textShadow: layout.textShadow || "none",
                 }}
                 className="mb-1"
               >
@@ -1009,25 +1392,32 @@ const InvitePage = () => {
               {/* ── Couple names ── */}
               <h1
                 style={{
-                  ...script,
+                  fontFamily: activeFont,
                   fontSize: "2.6em",
                   lineHeight: 1.1,
                   color: primaryTextColor,
                   fontWeight: headingWeight,
+                  textShadow: layout.textShadow || "none",
+                  backgroundImage: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "linear-gradient(135deg, #FFF 0%, #D8B76A 60%, #A37F28 100%)" : "none",
+                  WebkitBackgroundClip: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "text" : "border-box",
+                  WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "transparent" : "initial",
+                  display: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "inline-block" : "block"
                 }}
-                className="mb-1"
+                className="mb-1 leading-tight"
               >
                 {invitation.userId?.partner1Name || "Partner 1"}{" "}
-                <span style={{ color: primaryTextColor, opacity: 0.9 }}>and</span>{" "}
+                <span style={{ 
+                  color: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : primaryTextColor,
+                  WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : "initial",
+                  opacity: 0.9 
+                }}>
+                  and
+                </span>{" "}
                 {invitation.userId?.partner2Name || "Partner 2"}
               </h1>
 
               {/* ornament */}
-              <div className="flex items-center gap-2 my-4">
-                <div className="h-px w-10" style={{ background: primaryTextColor, opacity: 0.3 }} />
-                <span style={{ color: primaryTextColor, opacity: 0.5, fontSize: "0.6rem" }}>✦</span>
-                <div className="h-px w-10" style={{ background: primaryTextColor, opacity: 0.3 }} />
-              </div>
+              {renderOrnamentDivider(layout.dividerType, primaryTextColor, "my-4", true)}
 
               {/* ── You are cordially invited ── */}
               <p
@@ -1035,6 +1425,7 @@ const InvitePage = () => {
                   fontFamily: cardStyles.fontFamily,
                   fontSize: "1.05em",
                   color: primaryTextColor,
+                  textShadow: layout.textShadow || "none",
                 }}
                 className="mb-4"
               >
@@ -1048,6 +1439,7 @@ const InvitePage = () => {
                   fontSize: "1.6em",
                   fontStyle: "italic",
                   color: primaryTextColor,
+                  textShadow: layout.textShadow || "none",
                 }}
                 className="mb-3"
               >
@@ -1061,6 +1453,7 @@ const InvitePage = () => {
                   fontSize: "1em",
                   lineHeight: 1.8,
                   color: primaryTextColor,
+                  textShadow: layout.textShadow || "none",
                 }}
                 className="mb-5 max-w-60"
               >
@@ -1074,6 +1467,7 @@ const InvitePage = () => {
                     fontFamily: cardStyles.fontFamily,
                     fontSize: "0.95em",
                     color: primaryTextColor,
+                    textShadow: layout.textShadow || "none",
                   }}
                   className="mb-2"
                 >
@@ -1087,6 +1481,7 @@ const InvitePage = () => {
                   fontFamily: cardStyles.fontFamily,
                   fontSize: "0.95em",
                   color: primaryTextColor,
+                  textShadow: layout.textShadow || "none",
                 }}
                 className="mb-2"
               >
@@ -1107,6 +1502,7 @@ const InvitePage = () => {
                     textDecoration: "underline",
                     textDecorationColor: `${accentColor}55`,
                     textUnderlineOffset: "3px",
+                    textShadow: layout.textShadow || "none",
                   }}
                   className="mb-2 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2 text-center mx-auto"
                 >
@@ -1127,6 +1523,7 @@ const InvitePage = () => {
                     textDecoration: "underline",
                     textDecorationColor: `${accentColor}55`,
                     textUnderlineOffset: "3px",
+                    textShadow: layout.textShadow || "none",
                   }}
                   className="mb-5 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2 text-center mx-auto"
                 >
@@ -1135,11 +1532,7 @@ const InvitePage = () => {
               )}
 
               {/* bottom ornament */}
-              <div className="flex items-center gap-2 mb-4">
-                <div className="h-px w-8" style={{ background: primaryTextColor, opacity: 0.3 }} />
-                <span style={{ color: primaryTextColor, opacity: 0.5, fontSize: "0.6rem" }}>◆</span>
-                <div className="h-px w-8" style={{ background: primaryTextColor, opacity: 0.3 }} />
-              </div>
+              {renderOrnamentDivider(layout.dividerType, primaryTextColor, "mb-4", true)}
 
               {/* Colors */}
               {weddingColors.length > 0 && (
@@ -1151,6 +1544,7 @@ const InvitePage = () => {
                       letterSpacing: "0.12em",
                       color: primaryTextColor,
                       opacity: 0.8,
+                      textShadow: layout.textShadow || "none",
                     }}
                     className="uppercase mb-2"
                   >
@@ -1185,6 +1579,7 @@ const InvitePage = () => {
                   letterSpacing: "0.18em",
                   color: primaryTextColor,
                   fontWeight: 700,
+                  textShadow: layout.textShadow || "none",
                 }}
                 className="uppercase"
               >
@@ -1197,7 +1592,7 @@ const InvitePage = () => {
 
         {/* ── Countdown (outside card, not downloaded) ── */}
         {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
-          <div className="w-full max-w-[28rem] sm:max-w-[32rem]">
+          <div className="w-full max-w-[28rem] sm:max-w-[32rem] download-exclude">
             <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">
               Counting Down
             </p>
@@ -1216,7 +1611,7 @@ const InvitePage = () => {
         {/* RSVP Deadline badge */}
         {rsvpDeadline && (
           <div
-            className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 ${
+            className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 download-exclude ${
               deadlinePassed
                 ? "border-red-400/30 bg-red-400/10 text-red-400"
                 : "border-amber-400/30 bg-amber-400/10 text-amber-300"
@@ -1237,25 +1632,25 @@ const InvitePage = () => {
 
         {/* RSVP Status / Button */}
         {invitation.hasRSVPed ? (
-          <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-8 py-4">
+          <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-8 py-4 download-exclude">
             <p className="text-sm text-emerald-400">✓ We've received your RSVP. Thank you!</p>
           </div>
         ) : deadlinePassed ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-8 py-4">
+          <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-8 py-4 download-exclude">
             <p className="text-sm text-red-400">🔒 RSVP is now closed.</p>
           </div>
         ) : (
           <button
             id="rsvp-open-btn"
             onClick={() => setShowForm(true)}
-            className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.45)]"
+            className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.45)] download-exclude"
           >
             ✦ RSVP Now
           </button>
         )}
 
-        {/* Download & Share */}
-        <div className="flex flex-wrap items-center justify-center gap-3 pb-4">
+        {/* Download */}
+        <div id="download-actions-bar" className="flex flex-wrap items-center justify-center gap-3 pb-4 download-exclude">
           <button
             onClick={handleDownload}
             disabled={downloading}
@@ -1269,18 +1664,12 @@ const InvitePage = () => {
               </>
             )}
           </button>
-          <button
-            onClick={handleWhatsAppShare}
-            className="flex items-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/15 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#25D366] backdrop-blur-sm transition hover:bg-[#25D366]/25"
-          >
-            <span>📲</span> Share
-          </button>
         </div>
       </section>
 
       {/* Love Story Couple Gallery Section (Plus/Pro) */}
       {galleryPhotos.length > 0 && (
-        <section className="px-4 py-16 bg-[#090D19] border-t border-white/5 relative z-10 flex flex-col items-center">
+        <section className="px-4 py-16 bg-[#090D19] border-t border-white/5 relative z-10 flex flex-col items-center download-exclude">
           <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-2 text-center">Love Story</p>
           <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 text-center">Our Gallery</h2>
 
@@ -1697,7 +2086,7 @@ const InvitePage = () => {
 
       {/* Gift Registry Section */}
       {invitation.userId?.registryEnabled && (
-        <section className="px-4 sm:px-6 py-16 text-center bg-[#090D19] relative z-10 border-t border-white/5 flex flex-col items-center">
+        <section className="px-4 sm:px-6 py-16 text-center bg-[#090D19] relative z-10 border-t border-white/5 flex flex-col items-center download-exclude">
           <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Gifting</p>
           <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Gift Registry & Honeymoon Fund</h2>
           
@@ -1795,6 +2184,7 @@ const InvitePage = () => {
           </div>
         </section>
       )}
+      </div>
 
       {/* GIFT REGISTRY MODAL */}
       {showGiftModal && (

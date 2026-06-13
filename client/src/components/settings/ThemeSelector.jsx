@@ -114,8 +114,6 @@ const ThemeSelector = () => {
     setCustomVerticalOffset,
     customHorizontalOffset,
     setCustomHorizontalOffset,
-    smartLayoutEnabled,
-    setSmartLayoutEnabled,
     customTextSize,
     setCustomTextSize,
     customTextBoldness,
@@ -131,7 +129,6 @@ const ThemeSelector = () => {
     customBgInputRef,
     handleCustomCardBgUpload,
     getSmartTextColor,
-    checkSmartAlignment,
     secHex,
   } = useSettings();
 
@@ -144,8 +141,7 @@ const ThemeSelector = () => {
     customHorizontalOffset !== 0 ||
     customTextSize !== 1.0 ||
     customTextBoldness !== "normal" ||
-    customTextAlign !== "center" ||
-    !smartLayoutEnabled;
+    customTextAlign !== "center";
 
   const handleResetTheme = () => {
     setCardTheme("floral");
@@ -154,7 +150,6 @@ const ThemeSelector = () => {
     setCustomFontFamily("classic");
     setCustomVerticalOffset(0);
     setCustomHorizontalOffset(0);
-    setSmartLayoutEnabled(true);
     setCustomTextSize(1.0);
     setCustomTextBoldness("normal");
     setCustomTextAlign("center");
@@ -394,7 +389,6 @@ const ThemeSelector = () => {
                         setCustomCardBg(t.url);
                         setCardTheme("custom");
                         setCustomTextColor(getSmartTextColor("custom", t.url));
-                        checkSmartAlignment(t.url);
                       }}
                       className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                         }`}
@@ -651,18 +645,7 @@ const ThemeSelector = () => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-[9px] text-white/50 uppercase">Text Alignment</label>
-                <label className="flex items-center gap-1.5 cursor-pointer text-[9px] text-white/50 uppercase select-none">
-                  <input
-                    type="checkbox"
-                    checked={smartLayoutEnabled}
-                    onChange={(e) => setSmartLayoutEnabled(e.target.checked)}
-                    className="h-3 w-3 rounded border-white/20 bg-white/10 accent-[#D8B76A]"
-                  />
-                  Smart Layout Auto-Alignment
-                </label>
-              </div>
+              <label className="block text-[9px] text-white/50 uppercase mb-2">Text Alignment</label>
               <div className="flex gap-2">
                 {["left", "center", "right"].map((align) => (
                   <button
@@ -684,17 +667,15 @@ const ThemeSelector = () => {
         )}
 
         {/* General Theme Reset defaults (Visible to all tiers) */}
-        {hasThemeChanges && (
-          <div className="pt-4 border-t border-white/5 flex justify-end">
-            <button
-              type="button"
-              onClick={handleResetTheme}
-              className="text-[10px] uppercase font-bold tracking-wider text-red-400/80 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 px-3.5 py-1.5 rounded-lg border border-red-500/20 transition cursor-pointer flex items-center gap-1.5"
-            >
-              ↺ Reset Theme Defaults
-            </button>
-          </div>
-        )}
+        <div className="pt-4 border-t border-white/5 flex justify-end">
+          <button
+            type="button"
+            onClick={handleResetTheme}
+            className="text-[10px] uppercase font-bold tracking-wider text-red-400/80 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 px-3.5 py-1.5 rounded-lg border border-red-500/20 transition cursor-pointer flex items-center gap-1.5"
+          >
+            ↺ Reset Theme Defaults
+          </button>
+        </div>
       </div>
     </div>
   );

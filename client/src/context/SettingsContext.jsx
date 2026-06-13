@@ -650,12 +650,7 @@ export const SettingsProvider = ({ children }) => {
     }
   };
 
-  // Automatically trigger smart layout optimizations when the user enables the checkbox
-  useEffect(() => {
-    if (smartLayoutEnabled && customCardBg && cardTheme === "custom") {
-      checkSmartAlignment(customCardBg, true);
-    }
-  }, [smartLayoutEnabled, customCardBg, cardTheme]);
+  // Removed smart layout auto-alignment trigger to let template layouts apply statically at render time.
 
   const formattedTime = weddingTime
     ? new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString("en-US", {
@@ -715,25 +710,74 @@ export const SettingsProvider = ({ children }) => {
       fontFamily: activeFont,
     };
   } else if (cardTheme === "custom" && customCardBg) {
-    const darkTemplates = [
-      "/templates/template_plus_1.png",
-      "/templates/template_plus_2.png",
-      "/templates/template_plus_3.png",
-      "/templates/template_pro_1.png",
-      "/templates/template_pro_2.png",
-      "/templates/template_pro_3.png",
-      "/templates/template_pro_6.png",
-      "/templates/template_pro_7.png",
-    ];
-    const isDarkBg = darkTemplates.includes(customCardBg);
-    const fallbackColor = isDarkBg ? "#F5EBD6" : "#1A2E4A";
-    const bgUrlWithVersion = customCardBg.includes('/templates/') ? `${customCardBg}?v=3` : customCardBg;
-    const bgSize = customCardBg.includes('/templates/') ? "100% 100%" : "cover";
-    cardStyles = {
-      background: `url('${bgUrlWithVersion}') center/${bgSize} no-repeat`,
-      color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : fallbackColor,
-      fontFamily: activeFont,
-    };
+    const isExempt = customCardBg === "/templates/template_free_1.png" || customCardBg === "/templates/template_plus_3.png";
+    if (isExempt) {
+      const bgUrlWithVersion = customCardBg.includes('/templates/') ? `${customCardBg}?v=3` : customCardBg;
+      const bgSize = customCardBg.includes('/templates/') ? "100% 100%" : "cover";
+      cardStyles = {
+        background: `url('${bgUrlWithVersion}') center/${bgSize} no-repeat`,
+        color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : (customCardBg === "/templates/template_plus_3.png" ? "#F5EBD6" : "#1A2E4A"),
+        fontFamily: activeFont,
+      };
+    } else {
+      let bg = "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)";
+      let color = "#1A2E4A";
+      
+      switch (customCardBg) {
+        case "/templates/template_free_2.png":
+          bg = "radial-gradient(circle at 100% 100%, #FFF0F2 0%, #FFFDFD 70%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
+          break;
+        case "/templates/template_free_3.png":
+          bg = "radial-gradient(circle at 0% 0%, #FAF6F0 0%, #FFFDF9 80%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
+          break;
+        case "/templates/template_plus_1.png":
+          bg = "radial-gradient(circle, #0F2D1F 0%, #06170F 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
+          break;
+        case "/templates/template_plus_2.png":
+          bg = "radial-gradient(circle at 100% 0%, #0D1C33 0%, #050B14 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+          break;
+        case "/templates/template_pro_1.png":
+          bg = "radial-gradient(circle at 100% 100%, #151515 0%, #080808 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+          break;
+        case "/templates/template_pro_2.png":
+          bg = "radial-gradient(circle at 100% 100%, #3D0C1A 0%, #1F050D 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+          break;
+        case "/templates/template_pro_3.png":
+          bg = "radial-gradient(circle, #0B2418 0%, #040F0A 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+          break;
+        case "/templates/template_pro_4.png":
+          bg = "linear-gradient(135deg, #FFF5F6 0%, #FFEBEF 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
+          break;
+        case "/templates/template_pro_5.png":
+          bg = "radial-gradient(circle at 0% 50%, #FCFAF7 0%, #F3EFE9 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#5C6B5E";
+          break;
+        case "/templates/template_pro_6.png":
+          bg = "radial-gradient(circle, #18122B 0%, #0F0C20 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+          break;
+        case "/templates/template_pro_7.png":
+          bg = "radial-gradient(circle at 100% 50%, #1F2022 0%, #121314 100%)";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+          break;
+        default:
+          bg = `url('${customCardBg}') center/cover no-repeat`;
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+      }
+      cardStyles = {
+        background: bg,
+        color: color,
+        fontFamily: activeFont,
+      };
+    }
   }
 
   const primaryTextColor = cardStyles.color;
