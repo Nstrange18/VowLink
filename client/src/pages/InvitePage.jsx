@@ -581,6 +581,7 @@ const InvitePage = () => {
   const [notFound, setNotFound] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
 
   // Premium state features
   const [showSpotifyPlayer, setShowSpotifyPlayer] = useState(false);
@@ -591,6 +592,7 @@ const InvitePage = () => {
   const [mapSelectAddress, setMapSelectAddress] = useState(null);
   const [wishes, setWishes] = useState([]);
   const audioRef = useRef(null);
+  const wasPlayingRef = useRef(false);
 
   // Paystack & Gifting premium states
   const [showGiftModal, setShowGiftModal] = useState(false);
@@ -599,7 +601,101 @@ const InvitePage = () => {
   const [giftMessage, setGiftMessage] = useState("");
   const [loadingGiftPayment, setLoadingGiftPayment] = useState(false);
 
+  // Declare variables unconditionally at the very top of the render scope 
+  // to completely eliminate any Temporal Dead Zone (TDZ) reference errors.
+  let musicUrl = "";
+  let isDirectAudio = false;
+  let galleryPhotos = [];
+
+  // Populate/re-assign variables once invitation details are asynchronously loaded.
+  if (invitation?.userId) {
+    musicUrl = invitation.userId.musicUrl || "";
+    // Check if the couple has uploaded local device audio (stored in localStorage)
+    // This only applies when viewing on the same device/browser where the audio was uploaded
+    const ownerUserId = invitation.userId._id;
+    if (ownerUserId) {
+      try {
+        const localAudio = localStorage.getItem(`vowlink_local_audio_url_${ownerUserId}`);
+        if (localAudio && localAudio.startsWith("data:audio")) {
+          musicUrl = localAudio;
+        }
+      } catch {}
+    }
+    // Map old placeholder SoundHelix loops to actual wedding instrumentals
+    if (musicUrl && !musicUrl.startsWith("data:") && (musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" || musicUrl === "https://archive.org/download/PianoGuysMusic/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3")) {
+      musicUrl = "https://archive.org/download/20-piano-guys-lord-of-the-rings-the-hobbit/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3";
+    } else if (musicUrl && !musicUrl.startsWith("data:") && musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3") {
+      musicUrl = "https://archive.org/download/fave2/Ed%20Sheeran%20-%20Perfect.mp3";
+    } else if (musicUrl && !musicUrl.startsWith("data:") && (musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" || musicUrl === "https://archive.org/download/CantHelpFallingInLoveWYou/Cant%20Help%20Falling%20In%20Love%20W%20You.mp3")) {
+      musicUrl = "https://archive.org/download/fave2/Haley%20Reinhart%20-%20Cant%20Help%20Falling%20In%20Love%20With%20You.mp3";
+    } else if (musicUrl && !musicUrl.startsWith("data:") && musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3") {
+      musicUrl = "https://archive.org/download/AlsPlaylistMixedGenre/John%20Legend%20-%20All%20of%20Me.mp3";
+    } else if (musicUrl && !musicUrl.startsWith("data:") && (musicUrl === "https://archive.org/download/100ClassicalMusicMasterpieces/18%20Mendelssohn%20-%20Wedding%20March.mp3" || musicUrl === "https://archive.org/download/ClassicalMusicMidi/Mendelssohn_-_Wedding_March.mp3")) {
+      // Remap any old Wedding March URL to the verified working source
+      musicUrl = "https://archive.org/download/wedding-march/Wedding%20March.mp3";
+    }
+    isDirectAudio = musicUrl && !getSpotifyEmbedUrl(musicUrl);
+    galleryPhotos = invitation.userId.galleryPhotos || [];
+  }
+
   const countdown = useCountdown(invitation?.userId?.weddingDate);
+
+  // Cleanup audio when leaving/unmounting the invitation page
+  useEffect(() => {
+    const audioEl = audioRef.current;
+    return () => {
+      if (audioEl) {
+        audioEl.pause();
+      }
+    };
+  }, [musicUrl, isDirectAudio]);
+
+  // Pause background music when user switches tabs or minimizes browser, and resume when they return
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (isPlaying && audioRef.current) {
+          audioRef.current.pause();
+          wasPlayingRef.current = true;
+        }
+      } else {
+        if (wasPlayingRef.current && audioRef.current && isOpen) {
+          audioRef.current.play()
+            .then(() => {
+              wasPlayingRef.current = false;
+            })
+            .catch((err) => console.log("Failed to resume playback on tab return", err));
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isPlaying, isOpen]);
+
+  // Autoplay slideshow for the love story gallery
+  useEffect(() => {
+    if (galleryPhotos.length <= 1) return;
+    const interval = setInterval(() => {
+      setGalleryIndex((prev) => (prev === galleryPhotos.length - 1 ? 0 : prev + 1));
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [galleryPhotos]);
+
+  // Handle page scroll to show/hide the floating scroll down indicator
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 40) {
+        setShowScrollIndicator(false);
+      } else {
+        setShowScrollIndicator(true);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const loadPaystackScript = () => {
     return new Promise((resolve) => {
@@ -769,6 +865,8 @@ const InvitePage = () => {
       .catch(() => {});
   }, [slug, setValue]);
 
+
+
   // Component lifecycle hooks
 
   const onRsvpSubmit = async (data) => {
@@ -845,17 +943,6 @@ const InvitePage = () => {
     }
   };
 
-  const galleryPhotos = invitation?.userId?.galleryPhotos || [];
-
-  // Autoplay slideshow for the love story gallery
-  useEffect(() => {
-    if (galleryPhotos.length <= 1) return;
-    const interval = setInterval(() => {
-      setGalleryIndex((prev) => (prev === galleryPhotos.length - 1 ? 0 : prev + 1));
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [galleryPhotos]);
-
   if (loading)
     return (
       <section className="flex min-h-screen items-center justify-center bg-[#070A13]">
@@ -918,32 +1005,6 @@ const InvitePage = () => {
   const couplePhotoUrl = invitation.userId?.couplePhotoUrl || "";
   const pageBgTemplate = invitation.userId?.pageBgTemplate || "";
   const coupleOverlayOpacity = invitation.userId?.coupleOverlayOpacity ?? 0.45;
-  let musicUrl = invitation.userId?.musicUrl || "";
-  // Check if the couple has uploaded local device audio (stored in localStorage)
-  // This only applies when viewing on the same device/browser where the audio was uploaded
-  const ownerUserId = invitation.userId?._id;
-  if (ownerUserId) {
-    try {
-      const localAudio = localStorage.getItem(`vowlink_local_audio_url_${ownerUserId}`);
-      if (localAudio && localAudio.startsWith("data:audio")) {
-        musicUrl = localAudio;
-      }
-    } catch {}
-  }
-  // Map old placeholder SoundHelix loops to actual wedding instrumentals
-  if (!musicUrl.startsWith("data:") && (musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" || musicUrl === "https://archive.org/download/PianoGuysMusic/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3")) {
-    musicUrl = "https://archive.org/download/20-piano-guys-lord-of-the-rings-the-hobbit/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3";
-  } else if (!musicUrl.startsWith("data:") && musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3") {
-    musicUrl = "https://archive.org/download/fave2/Ed%20Sheeran%20-%20Perfect.mp3";
-  } else if (!musicUrl.startsWith("data:") && (musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" || musicUrl === "https://archive.org/download/CantHelpFallingInLoveWYou/Cant%20Help%20Falling%20In%20Love%20W%20You.mp3")) {
-    musicUrl = "https://archive.org/download/fave2/Haley%20Reinhart%20-%20Cant%20Help%20Falling%20In%20Love%20With%20You.mp3";
-  } else if (!musicUrl.startsWith("data:") && musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3") {
-    musicUrl = "https://archive.org/download/AlsPlaylistMixedGenre/John%20Legend%20-%20All%20of%20Me.mp3";
-  } else if (!musicUrl.startsWith("data:") && (musicUrl === "https://archive.org/download/100ClassicalMusicMasterpieces/18%20Mendelssohn%20-%20Wedding%20March.mp3" || musicUrl === "https://archive.org/download/ClassicalMusicMidi/Mendelssohn_-_Wedding_March.mp3")) {
-    // Remap any old Wedding March URL to the verified working source
-    musicUrl = "https://archive.org/download/wedding-march/Wedding%20March.mp3";
-  }
-  const isDirectAudio = musicUrl && !getSpotifyEmbedUrl(musicUrl);
 
   const script = { fontFamily: "'Dancing Script', cursive" };
   const serif = { fontFamily: "'Cormorant Garamond', serif" };
@@ -1113,7 +1174,7 @@ const InvitePage = () => {
   const isTodayWeddingDay = weddingDate && (new Date(weddingDate).toDateString() === new Date().toDateString());
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ background: "#070A13" }}>
+    <div className={`min-h-screen relative ${isOpen ? "overflow-x-hidden" : "h-screen overflow-hidden"}`} style={{ background: "#070A13" }}>
       <style>{`
         .is-exporting .download-exclude,
         .is-exporting #rsvp-open-btn,
@@ -1250,6 +1311,25 @@ const InvitePage = () => {
         </div>
       )}
 
+      {/* Scroll Down Floating Indicator (un-downloadable) */}
+      {isOpen && showScrollIndicator && (
+        <div
+          onClick={() => {
+            const anchor = document.getElementById("details-start-anchor");
+            if (anchor) {
+              anchor.scrollIntoView({ behavior: "smooth" });
+            }
+          }}
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-35 flex items-center gap-2 cursor-pointer select-none animate-bounce download-exclude transition-all duration-300 hover:scale-105 hover:bg-[#0D1220]/90 bg-[#0D1220]/75 backdrop-blur-md border border-[#D8B76A]/30 px-4 py-2.5 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.6)]"
+          style={{ color: "#D8B76A" }}
+        >
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D8B76A]">
+            Scroll down for details
+          </span>
+          <span className="text-xs font-bold animate-pulse text-[#D8B76A]">↓</span>
+        </div>
+      )}
+
 
       {/* Background Animated Stardust Effect (Pro) */}
       {cardTheme === "stardust" && (
@@ -1323,7 +1403,7 @@ const InvitePage = () => {
       )}
 
       {/* ── INVITATION CARD SECTION ── */}
-      <div ref={downloadRef} className="w-full relative z-10">
+      <div ref={downloadRef} id="main-invitation-container" className="w-full relative z-10">
         <section className="flex flex-col items-center justify-center py-10 px-4 gap-6 relative z-10 w-full">
         {/* ═══ THE CARD (this gets downloaded) ═══ */}
         <div
@@ -1666,6 +1746,7 @@ const InvitePage = () => {
           </button>
         </div>
       </section>
+      <div id="details-start-anchor" className="scroll-mt-10" />
 
       {/* Love Story Couple Gallery Section (Plus/Pro) */}
       {galleryPhotos.length > 0 && (
@@ -2088,7 +2169,7 @@ const InvitePage = () => {
       {invitation.userId?.registryEnabled && (
         <section className="px-4 sm:px-6 py-16 text-center bg-[#090D19] relative z-10 border-t border-white/5 flex flex-col items-center download-exclude">
           <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Gifting</p>
-          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Gift Registry & Honeymoon Fund</h2>
+          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Gift Registry</h2>
           
           <div className="w-full max-w-xl rounded-3xl border border-[#D8B76A]/30 bg-[#070A13]/90 p-6 sm:p-8 shadow-2xl space-y-8 text-left relative overflow-hidden backdrop-blur-md">
             <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-9xl">🎁</div>
@@ -2097,40 +2178,6 @@ const InvitePage = () => {
               <p className="text-sm text-white/70 text-center leading-relaxed italic border-b border-white/5 pb-6">
                 "{invitation.userId.registryNotes}"
               </p>
-            )}
-
-            {/* Honeymoon Fund progress bar */}
-            {invitation.userId?.honeymoonFundTarget > 0 && (
-              <div className="space-y-3">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-white/50">🍯 Honeymoon Fund Tracker</h4>
-                    <p className="text-xs text-white/40 font-normal">Help us create memories of a lifetime.</p>
-                  </div>
-                  <span className="text-base font-serif text-[#D8B76A] font-semibold">
-                    {invitation.userId.honeymoonFundCurrent >= invitation.userId.honeymoonFundTarget ? (
-                      <span className="text-[#3EC58E] flex items-center gap-1 font-bold animate-pulse">🎉 Goal Reached!</span>
-                    ) : (
-                      `${Math.min(Math.round((invitation.userId.honeymoonFundCurrent / invitation.userId.honeymoonFundTarget) * 100), 100)}% Reached`
-                    )}
-                  </span>
-                </div>
-                <div className="h-4 w-full rounded-full bg-white/5 overflow-hidden relative border border-white/10 p-0.5">
-                  <div
-                    className={`h-full rounded-full transition-all duration-1000 ${
-                      invitation.userId.honeymoonFundCurrent >= invitation.userId.honeymoonFundTarget
-                        ? "bg-linear-to-r from-[#3EC58E] to-[#34D399] animate-pulse shadow-[0_0_15px_rgba(62,197,142,0.6)]"
-                        : "bg-linear-to-r from-[#D8B76A] to-[#F2D894] shadow-[0_0_10px_rgba(216,183,106,0.4)]"
-                    }`}
-                    style={{ width: `${Math.min(Math.round((invitation.userId.honeymoonFundCurrent / invitation.userId.honeymoonFundTarget) * 100), 100)}%` }}
-                  />
-                </div>
-                {invitation.userId.honeymoonFundCurrent >= invitation.userId.honeymoonFundTarget && (
-                  <p className="text-[10px] text-[#3EC58E] font-medium text-center italic mt-1 animate-fade-in">
-                    Target goal fully funded! Thank you so much for your immense generosity! ❤️
-                  </p>
-                )}
-              </div>
             )}
 
             {/* Bank details info */}
@@ -2170,15 +2217,15 @@ const InvitePage = () => {
 
             {/* Paystack Cash Gifting Option */}
             <div className="space-y-4 pt-4 border-t border-white/5 flex flex-col items-center">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white/50 w-full text-left">💳 Secure Online Contribution</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white/50 w-full text-left">💳 Secure Online Gifting</h4>
               <p className="text-xs text-white/40 leading-relaxed w-full">
-                You can support our honeymoon fund instantly using your debit card or bank transfer via Paystack.
+                You can send a cash gift instantly using your debit card or bank transfer via Paystack.
               </p>
               <button
                 onClick={() => setShowGiftModal(true)}
                 className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-3.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(216,183,106,0.35)]"
               >
-                💝 Send Cash Gift Online
+                💝 Send Cash Gift
               </button>
             </div>
           </div>

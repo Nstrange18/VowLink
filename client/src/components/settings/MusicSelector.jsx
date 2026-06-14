@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "react-toastify";
 import { useSettings } from "../../context/SettingsContext";
 
 const MusicSelector = () => {
@@ -20,6 +21,60 @@ const MusicSelector = () => {
     clearLocalAudio,
     getSpotifyEmbedUrl,
   } = useSettings();
+  const handleCuratedSelect = (url) => {
+    const curatedUrls = [
+      "https://archive.org/download/20-piano-guys-lord-of-the-rings-the-hobbit/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3",
+      "https://archive.org/download/fave2/Ed%20Sheeran%20-%20Perfect.mp3",
+      "https://archive.org/download/fave2/Haley%20Reinhart%20-%20Cant%20Help%20Falling%20In%20Love%20With%20You.mp3",
+      "https://archive.org/download/AlsPlaylistMixedGenre/John%20Legend%20-%20All%20of%20Me.mp3",
+      "https://archive.org/download/AlsPlaylistMixedGenre/Ed%20Sheeran%20-%20Thinking%20Out%20Loud.mp3",
+      "https://archive.org/download/wedding-march/Wedding%20March.mp3"
+    ];
+    const isCustom = localAudioUrl || (musicUrl && !curatedUrls.includes(musicUrl));
+    if (isCustom) {
+      toast.dismiss();
+      toast.info(
+        ({ closeToast }) => (
+          <div className="space-y-3 p-1">
+            <p className="text-xs font-semibold text-white leading-relaxed">
+              Selecting a curated soundtrack will replace your custom uploaded or linked song. Proceed?
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  clearLocalAudio();
+                  setMusicUrl(url);
+                  closeToast();
+                  toast.success("Switched to curated soundtrack!");
+                }}
+                className="px-3 py-1.5 rounded-lg bg-[#D8B76A] text-[#070A13] text-[10px] font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition"
+              >
+                Confirm
+              </button>
+              <button
+                type="button"
+                onClick={closeToast}
+                className="px-3 py-1.5 rounded-lg bg-white/10 text-white text-[10px] font-bold uppercase tracking-wider hover:bg-white/20 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ),
+        {
+          position: "top-center",
+          autoClose: false,
+          closeOnClick: false,
+          draggable: false,
+          closeButton: false,
+        }
+      );
+    } else {
+      setMusicUrl(url);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Photo Gallery */}
@@ -100,7 +155,7 @@ const MusicSelector = () => {
                     key={p.name}
                     type="button"
                     disabled={isFree}
-                    onClick={() => setMusicUrl(p.url)}
+                    onClick={() => handleCuratedSelect(p.url)}
                     className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2 ${isSelected
                       ? "border-[#D8B76A] bg-[#D8B76A]/10 text-white"
                       : "border-white/10 bg-white/3 text-white/70 hover:border-white/20"

@@ -257,7 +257,7 @@ const AdminSettingsPageContent = () => {
           { id: "details", label: "💍 Details", fullLabel: "💍 Wedding Details" },
           { id: "design", label: "🎨 Design", fullLabel: "🎨 Design & Theme" },
           { id: "media", label: "🎵 Music", fullLabel: "🎵 Media & Music" },
-          { id: "registry", label: "🎁 Registry", fullLabel: "🎁 Gift Registry & Fund" },
+          { id: "registry", label: "🎁 Registry", fullLabel: "🎁 Gift Registry" },
           { id: "security", label: "🔒 Security", fullLabel: "🔒 Security & Danger Zone" }
         ].map(tab => (
           <button
@@ -618,9 +618,9 @@ const AdminSettingsPageContent = () => {
                   <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6 animate-fade-in">
                     <div className="flex items-center justify-between border-b border-white/5 pb-4">
                       <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">🎁 Gift Registry & Cash Fund</h3>
+                        <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">🎁 Gift Registry</h3>
                         <p className="text-white/40 text-xs mt-1">
-                          Share bank details and honeymoon goals directly on your invitation and RSVP confirmation pages.
+                          Share bank details directly on your invitation and RSVP confirmation pages.
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -681,45 +681,13 @@ const AdminSettingsPageContent = () => {
                           </div>
                         </div>
 
-                        {/* Honeymoon Fund Card */}
-                        <div className="space-y-4 pt-4 border-t border-white/5">
-                          <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60">🍯 Honeymoon Fund Tracker</h4>
-                          <p className="text-[10px] text-white/40">
-                            Show a progress bar so guests can see how close you are to reaching your target.
-                          </p>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Target Goal (Amount)</label>
-                              <input
-                                type="number"
-                                min="0"
-                                placeholder="e.g. 5000"
-                                value={honeymoonFundTarget || ""}
-                                onChange={(e) => setHoneymoonFundTarget(Number(e.target.value))}
-                                className={cls(false)}
-                              />
-                            </div>
-                            <div>
-                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Current Contribution (Amount)</label>
-                              <input
-                                type="number"
-                                min="0"
-                                placeholder="e.g. 1500"
-                                value={honeymoonFundCurrent || ""}
-                                onChange={(e) => setHoneymoonFundCurrent(Number(e.target.value))}
-                                className={cls(false)}
-                              />
-                            </div>
-                          </div>
-                        </div>
 
                         {/* Registry Notes */}
                         <div className="space-y-2 pt-4 border-t border-white/5">
                           <label className="block text-[10px] uppercase tracking-widest text-white/50">Custom Gifting Message / Notes</label>
                           <textarea
                             rows={3}
-                            placeholder="e.g. Your presence is gift enough, but if you wish to contribute to our new beginning or honeymoon, here are our details. Thank you!"
+                            placeholder="e.g. Your presence is gift enough, but if you wish to support our new beginning, here are our details. Thank you!"
                             value={registryNotes || ""}
                             onChange={(e) => setRegistryNotes(e.target.value)}
                             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30 resize-none transition"
@@ -733,7 +701,7 @@ const AdminSettingsPageContent = () => {
                       <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220]/60 space-y-4 mt-6">
                         <h4 className="text-xs font-semibold uppercase tracking-wider text-[#D8B76A]">🎁 Recent Cash Gifts</h4>
                         <p className="text-[10px] text-white/40 leading-relaxed">
-                          Here are the contributions sent by your guests via Paystack to your Honeymoon Fund.
+                          Here are the cash gifts sent by your guests via Paystack.
                         </p>
 
                         {gifts.length === 0 ? (
