@@ -28,7 +28,7 @@ export const getTemplateLayout = (theme, customCardBg) => {
   switch (customCardBg) {
     case "/templates/template_free_1.png": // Classic Navy, Gold & Cream (Don't change layout)
       return { 
-        pt: 90, pb: 90, pl: 45, pr: 45, 
+        pt: 95, pb: 95, pl: 50, pr: 50, 
         align: "center", 
         textShadow: "none", 
         dividerType: "default" 
@@ -70,7 +70,7 @@ export const getTemplateLayout = (theme, customCardBg) => {
       
     case "/templates/template_plus_3.png": // Midnight Black Floral (Don't change layout)
       return { 
-        pt: 100, pb: 100, pl: 45, pr: 45, 
+        pt: 105, pb: 105, pl: 55, pr: 55, 
         align: "center", 
         textShadow: "none", 
         dividerType: "default" 

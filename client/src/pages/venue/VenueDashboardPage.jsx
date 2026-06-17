@@ -141,10 +141,43 @@ const VenueDashboardPage = () => {
   };
 
   const removeProofUrl = (index) => {
-    const updated = proofUrls.filter((_, i) => i !== index);
-    setProofUrls(updated);
-    setValue("verificationProofUrls", updated, { shouldDirty: true });
-    toast.info("Proof document removed. Click 'Save Changes' to update.");
+    toast.dismiss();
+    const ToastConfirm = ({ closeToast }) => (
+      <div className="flex flex-col gap-2 p-1 text-white">
+        <p className="font-semibold text-xs leading-relaxed">
+          Are you sure you want to remove this verification proof document?
+        </p>
+        <div className="flex gap-2 justify-end mt-1">
+          <button
+            type="button"
+            onClick={closeToast}
+            className="px-2 py-1 text-[10px] font-semibold bg-white/10 hover:bg-white/20 text-white rounded transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const updated = proofUrls.filter((_, i) => i !== index);
+              setProofUrls(updated);
+              setValue("verificationProofUrls", updated, { shouldDirty: true });
+              closeToast();
+              toast.info("Proof document removed. Click 'Save Changes' to update.");
+            }}
+            className="px-2 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    );
+    toast.warn(<ToastConfirm />, {
+      position: "top-center",
+      autoClose: false,
+      closeOnClick: false,
+      draggable: false,
+      closeButton: false,
+    });
   };
 
   // Change password state
@@ -378,6 +411,7 @@ const VenueDashboardPage = () => {
 
     if (photos.length + files.length > maxPhotos) {
       toast.warning(`Your current ${venue?.subscriptionTier.toUpperCase()} tier allows up to ${maxPhotos} photos. Upgrade your tier to upload more!`);
+      e.target.value = "";
       return;
     }
 
@@ -391,11 +425,46 @@ const VenueDashboardPage = () => {
       };
       reader.readAsDataURL(file);
     });
+
+    e.target.value = "";
   };
 
   const removePhoto = (index) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
-    toast.info("Photo removed. Click Save Changes to publish.");
+    toast.dismiss();
+    const ToastConfirm = ({ closeToast }) => (
+      <div className="flex flex-col gap-2 p-1 text-white">
+        <p className="font-semibold text-xs leading-relaxed">
+          Are you sure you want to remove this venue gallery photo?
+        </p>
+        <div className="flex gap-2 justify-end mt-1">
+          <button
+            type="button"
+            onClick={closeToast}
+            className="px-2 py-1 text-[10px] font-semibold bg-white/10 hover:bg-white/20 text-white rounded transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPhotos((prev) => prev.filter((_, i) => i !== index));
+              closeToast();
+              toast.info("Photo removed. Click Save Changes to publish.");
+            }}
+            className="px-2 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    );
+    toast.warn(<ToastConfirm />, {
+      position: "top-center",
+      autoClose: false,
+      closeOnClick: false,
+      draggable: false,
+      closeButton: false,
+    });
   };
 
   // Subscription upgrade handlers

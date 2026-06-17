@@ -18,7 +18,7 @@ router.get("/slug/:slug", async (req, res) => {
       slug: req.params.slug,
     }).populate(
       "userId",
-      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue venueName receptionLocation receptionName dressCode weddingColors plusOnePolicy kidsAllowed cardTheme customCardBg pageBgTemplate customTextColor customFontFamily customVerticalOffset customTextSize customTextBoldness couplePhotoUrl coupleOverlayOpacity musicUrl galleryPhotos tier registryEnabled registryBankName registryAccountName registryAccountNumber registryNotes honeymoonFundTarget honeymoonFundCurrent timeline",
+      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue venueName receptionLocation receptionName dressCode weddingColors plusOnePolicy kidsAllowed cardTheme customCardBg pageBgTemplate customTextColor customFontFamily customVerticalOffset customTextSize customTextBoldness couplePhotoUrl coupleOverlayOpacity musicUrl galleryPhotos tier registryEnabled registryBankName registryAccountName registryAccountNumber registryNotes honeymoonFundTarget honeymoonFundCurrent timeline customTextAlign customHorizontalOffset smartLayoutEnabled",
     );
 
     if (!invitation) {
@@ -73,9 +73,9 @@ router.post("/", protect, async (req, res) => {
       });
     }
 
-    if (customMessage.trim().length > 70) {
+    if (customMessage.trim().length > 170) {
       return res.status(400).json({
-        message: "Personal message cannot be more than 70 characters.",
+        message: "Personal message cannot be more than 170 characters.",
       });
     }
 
@@ -160,8 +160,8 @@ router.post("/bulk", protect, async (req, res) => {
 
       const greeting = g.greeting?.trim() || defaultGreeting?.replace("{name}", guestName) || `Dear ${guestName},`;
       let customMessage = g.customMessage?.trim() || defaultCustomMessage || "We request the pleasure of your company on our wedding day.";
-      if (customMessage.length > 70) {
-        customMessage = customMessage.substring(0, 70);
+      if (customMessage.length > 170) {
+        customMessage = customMessage.substring(0, 170);
       }
       const allowedGuests = Number(g.allowedGuests) || 1;
       const category = g.category?.trim() || "Guest";
@@ -227,9 +227,9 @@ router.put("/:id", protect, async (req, res) => {
     }
 
     const { customMessage } = req.body;
-    if (customMessage && customMessage.trim().length > 70) {
+    if (customMessage && customMessage.trim().length > 170) {
       return res.status(400).json({
-        message: "Personal message cannot be more than 70 characters.",
+        message: "Personal message cannot be more than 170 characters.",
       });
     }
 

@@ -384,15 +384,17 @@ export const SettingsProvider = ({ children }) => {
 
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
-    const maxPhotos = isPlus ? 3 : isPro ? 6 : 0;
+    const maxPhotos = isPlus ? 5 : isPro ? 15 : 0;
 
     if (isFree) {
       toast.warning("Photo galleries are a Plus and Pro plan feature! Upgrade to unlock.");
+      e.target.value = "";
       return;
     }
 
     if (galleryPhotos.length + files.length > maxPhotos) {
       toast.warning(`Your ${tier.toUpperCase()} plan limit is up to ${maxPhotos} photos.`);
+      e.target.value = "";
       return;
     }
 
@@ -406,13 +408,50 @@ export const SettingsProvider = ({ children }) => {
       };
       reader.readAsDataURL(file);
     });
+    
+    e.target.value = "";
   };
 
   const removePhoto = (index) => {
-    setGalleryPhotos((prev) => prev.filter((_, i) => i !== index));
-    if (galleryInputRef.current) {
-      galleryInputRef.current.value = "";
-    }
+    toast.dismiss();
+    const ToastConfirm = ({ closeToast }) => (
+      <div className="flex flex-col gap-2 p-1 text-white">
+        <p className="font-semibold text-xs leading-relaxed">
+          Are you sure you want to remove this gallery photo?
+        </p>
+        <div className="flex gap-2 justify-end mt-1">
+          <button
+            type="button"
+            onClick={closeToast}
+            className="px-2 py-1 text-[10px] font-semibold bg-white/10 hover:bg-white/20 text-white rounded transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setGalleryPhotos((prev) => prev.filter((_, i) => i !== index));
+              if (galleryInputRef.current) {
+                galleryInputRef.current.value = "";
+              }
+              closeToast();
+              toast.success("Gallery photo removed.");
+            }}
+            className="px-2 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    );
+
+    toast.warn(<ToastConfirm />, {
+      position: "top-center",
+      autoClose: false,
+      closeOnClick: false,
+      draggable: false,
+      closeButton: false,
+    });
   };
 
   const handleCustomCardBgUpload = (e) => {
@@ -677,7 +716,7 @@ export const SettingsProvider = ({ children }) => {
     fontFamily: activeFont,
   };
 
-  if (cardTheme === "floral") {
+  if (cardTheme === "floral" || cardTheme === "plain") {
     cardStyles = {
       background: selectedBgHex || "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)",
       color: customTextColor || "#1A2E4A",
@@ -710,74 +749,71 @@ export const SettingsProvider = ({ children }) => {
       fontFamily: activeFont,
     };
   } else if (cardTheme === "custom" && customCardBg) {
-    const isExempt = customCardBg === "/templates/template_free_1.png" || customCardBg === "/templates/template_plus_3.png";
-    if (isExempt) {
-      const bgUrlWithVersion = customCardBg.includes('/templates/') ? `${customCardBg}?v=3` : customCardBg;
-      const bgSize = customCardBg.includes('/templates/') ? "100% 100%" : "cover";
-      cardStyles = {
-        background: `url('${bgUrlWithVersion}') center/${bgSize} no-repeat`,
-        color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : (customCardBg === "/templates/template_plus_3.png" ? "#F5EBD6" : "#1A2E4A"),
-        fontFamily: activeFont,
-      };
-    } else {
-      let bg = "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)";
-      let color = "#1A2E4A";
-      
-      switch (customCardBg) {
-        case "/templates/template_free_2.png":
-          bg = "radial-gradient(circle at 100% 100%, #FFF0F2 0%, #FFFDFD 70%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
-          break;
-        case "/templates/template_free_3.png":
-          bg = "radial-gradient(circle at 0% 0%, #FAF6F0 0%, #FFFDF9 80%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
-          break;
-        case "/templates/template_plus_1.png":
-          bg = "radial-gradient(circle, #0F2D1F 0%, #06170F 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
-          break;
-        case "/templates/template_plus_2.png":
-          bg = "radial-gradient(circle at 100% 0%, #0D1C33 0%, #050B14 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
-          break;
-        case "/templates/template_pro_1.png":
-          bg = "radial-gradient(circle at 100% 100%, #151515 0%, #080808 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
-          break;
-        case "/templates/template_pro_2.png":
-          bg = "radial-gradient(circle at 100% 100%, #3D0C1A 0%, #1F050D 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
-          break;
-        case "/templates/template_pro_3.png":
-          bg = "radial-gradient(circle, #0B2418 0%, #040F0A 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
-          break;
-        case "/templates/template_pro_4.png":
-          bg = "linear-gradient(135deg, #FFF5F6 0%, #FFEBEF 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
-          break;
-        case "/templates/template_pro_5.png":
-          bg = "radial-gradient(circle at 0% 50%, #FCFAF7 0%, #F3EFE9 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#5C6B5E";
-          break;
-        case "/templates/template_pro_6.png":
-          bg = "radial-gradient(circle, #18122B 0%, #0F0C20 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
-          break;
-        case "/templates/template_pro_7.png":
-          bg = "radial-gradient(circle at 100% 50%, #1F2022 0%, #121314 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
-          break;
-        default:
-          bg = `url('${customCardBg}') center/cover no-repeat`;
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
-      }
-      cardStyles = {
-        background: bg,
-        color: color,
-        fontFamily: activeFont,
-      };
+    let bg = "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)";
+    let color = "#1A2E4A";
+    
+    switch (customCardBg) {
+      case "/templates/template_free_1.png":
+        bg = "url('/templates/template_free_1.png') center/cover no-repeat";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+        break;
+      case "/templates/template_free_2.png":
+        bg = "radial-gradient(circle at 100% 100%, #FFF0F2 0%, #FFFDFD 70%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
+        break;
+      case "/templates/template_free_3.png":
+        bg = "radial-gradient(circle at 0% 0%, #FAF6F0 0%, #FFFDF9 80%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
+        break;
+      case "/templates/template_plus_1.png":
+        bg = "radial-gradient(circle, #0F2D1F 0%, #06170F 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
+        break;
+      case "/templates/template_plus_2.png":
+        bg = "radial-gradient(circle at 100% 0%, #0D1C33 0%, #050B14 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/template_plus_3.png":
+        bg = "url('/templates/template_plus_3.png') center/cover no-repeat";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/template_pro_1.png":
+        bg = "radial-gradient(circle at 100% 100%, #151515 0%, #080808 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        break;
+      case "/templates/template_pro_2.png":
+        bg = "radial-gradient(circle at 100% 100%, #3D0C1A 0%, #1F050D 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/template_pro_3.png":
+        bg = "radial-gradient(circle, #0B2418 0%, #040F0A 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        break;
+      case "/templates/template_pro_4.png":
+        bg = "linear-gradient(135deg, #FFF5F6 0%, #FFEBEF 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
+        break;
+      case "/templates/template_pro_5.png":
+        bg = "radial-gradient(circle at 0% 50%, #FCFAF7 0%, #F3EFE9 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#5C6B5E";
+        break;
+      case "/templates/template_pro_6.png":
+        bg = "radial-gradient(circle, #18122B 0%, #0F0C20 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/template_pro_7.png":
+        bg = "radial-gradient(circle at 100% 50%, #1F2022 0%, #121314 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        break;
+      default:
+        bg = `url('${customCardBg}') center/cover no-repeat`;
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
     }
+    cardStyles = {
+      background: bg,
+      color: color,
+      fontFamily: activeFont,
+    };
   }
 
   const primaryTextColor = cardStyles.color;

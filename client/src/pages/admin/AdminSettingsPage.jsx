@@ -1,5 +1,6 @@
 import React from "react";
 import { Controller } from "react-hook-form";
+import { toast } from "react-toastify";
 import ColorPicker from "../../components/ColorPicker";
 import CustomSelect from "../../components/CustomSelect";
 import { SettingsProvider, useSettings } from "../../context/SettingsContext";
@@ -576,7 +577,43 @@ const AdminSettingsPageContent = () => {
                             <img src={couplePhotoUrl} alt="Couple portrait" className="h-16 w-16 rounded-xl object-cover border border-white/10" />
                             <button
                               type="button"
-                              onClick={() => setCouplePhotoUrl("")}
+                              onClick={() => {
+                                toast.dismiss();
+                                const ToastConfirm = ({ closeToast }) => (
+                                  <div className="flex flex-col gap-2 p-1 text-white">
+                                    <p className="font-semibold text-xs leading-relaxed">
+                                      Are you sure you want to remove the couple portrait photo?
+                                    </p>
+                                    <div className="flex gap-2 justify-end mt-1">
+                                      <button
+                                        type="button"
+                                        onClick={closeToast}
+                                        className="px-2 py-1 text-[10px] font-semibold bg-white/10 hover:bg-white/20 text-white rounded transition"
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setCouplePhotoUrl("");
+                                          closeToast();
+                                          toast.success("Couple portrait photo removed.");
+                                        }}
+                                        className="px-2 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
+                                      >
+                                        Confirm
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                                toast.warn(<ToastConfirm />, {
+                                  position: "top-center",
+                                  autoClose: false,
+                                  closeOnClick: false,
+                                  draggable: false,
+                                  closeButton: false,
+                                });
+                              }}
                               className="px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-[10px] font-semibold text-red-400 hover:bg-red-500/20 transition"
                             >
                               Delete Photo

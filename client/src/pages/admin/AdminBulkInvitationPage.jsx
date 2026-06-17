@@ -218,7 +218,7 @@ const AdminBulkInvitationPage = () => {
           </div>
           <div>
             <strong className="text-white block text-[11px]">5. Custom Msg <span className="text-white/40 font-normal">(Opt)</span></strong>
-            <span className="text-white/40 text-[9px] block mt-0.5">Specific invite card note. (Max 70 chars)</span>
+            <span className="text-white/40 text-[9px] block mt-0.5">Specific invite card note. (Max 170 chars)</span>
           </div>
         </div>
         <p className="text-[10px] text-white/40 font-normal">

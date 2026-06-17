@@ -90,7 +90,7 @@ const MusicSelector = () => {
 
         <div>
           <label className="block text-[10px] text-white/50 uppercase mb-2">
-            Upload Gallery Photos ({galleryPhotos.length} / {isPro ? 6 : isPlus ? 3 : 0})
+            Upload Gallery Photos ({galleryPhotos.length} / {isPro ? 15 : isPlus ? 5 : 0})
           </label>
           <input
             ref={galleryInputRef}
@@ -102,7 +102,7 @@ const MusicSelector = () => {
             className="w-full text-xs text-white/40 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#D8B76A]/10 file:text-[#D8B76A] hover:file:bg-[#D8B76A]/20 disabled:opacity-30 disabled:cursor-not-allowed"
           />
           <p className="text-[9px] text-white/30 mt-1">
-            {isPro ? "Upload up to 6 high-res photos." : isPlus ? "Upload up to 3 photos." : "Gallery is locked. Upgrade to Plus/Pro."}
+            {isPro ? "Upload up to 15 high-res photos." : isPlus ? "Upload up to 5 photos." : "Gallery is locked. Upgrade to Plus/Pro."}
           </p>
 
           {/* Photos grid */}

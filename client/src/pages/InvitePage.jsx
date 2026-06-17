@@ -400,22 +400,75 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
+  if (customCardBg === "/templates/template_free_1.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <style>{`
+          @keyframes floatGoldDust1 {
+            0% { transform: translateY(0px) translateX(0px) scale(0.8); opacity: 0.2; }
+            50% { transform: translateY(-8px) translateX(4px) scale(1.1); opacity: 0.6; }
+            100% { transform: translateY(-16px) translateX(0px) scale(0.8); opacity: 0.2; }
+          }
+          .gold-dust-1 { animation: floatGoldDust1 6s ease-in-out infinite; }
+          .gold-dust-2 { animation: floatGoldDust1 8s ease-in-out infinite; animation-delay: 2s; }
+          .gold-dust-3 { animation: floatGoldDust1 7s ease-in-out infinite; animation-delay: 4s; }
+        `}</style>
+        {/* Soft floating gold dust particles that overlay on top of the cream background */}
+        <circle cx="15" cy="35" r="0.7" fill="#D8B76A" className="gold-dust-1" />
+        <circle cx="25" cy="115" r="0.5" fill="#D8B76A" className="gold-dust-2" />
+        <circle cx="80" cy="45" r="0.6" fill="#D8B76A" className="gold-dust-3" />
+        <circle cx="75" cy="105" r="0.8" fill="#D8B76A" className="gold-dust-1" />
+        <circle cx="45" cy="20" r="0.5" fill="#D8B76A" className="gold-dust-2" />
+        <circle cx="55" cy="130" r="0.6" fill="#D8B76A" className="gold-dust-3" />
+        <circle cx="90" cy="85" r="0.5" fill="#D8B76A" className="gold-dust-1" />
+        <circle cx="12" cy="80" r="0.7" fill="#D8B76A" className="gold-dust-2" />
+      </svg>
+    );
+  }
+
   if (customCardBg === "/templates/template_plus_1.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <style>{`
+          @keyframes rustlePlusLeaves {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(1.5deg) scale(1.02); }
+          }
+          .eucalyptus-leaf {
+            animation: rustlePlusLeaves 5s ease-in-out infinite;
+            transform-origin: center;
+          }
+          .eucalyptus-leaf-delayed {
+            animation: rustlePlusLeaves 6s ease-in-out infinite;
+            animation-delay: 1.5s;
+            transform-origin: center;
+          }
+        `}</style>
         <rect x="5" y="5" width="90" height="140" rx="6" fill="none" stroke="#D8B76A" strokeWidth="0.5" opacity="0.3" />
-        <path d="M6,6 Q20,8 15,22 Q12,30 6,35" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
-        <circle cx="12" cy="12" r="2.5" fill="#D8B76A" opacity="0.9" />
-        <circle cx="18" cy="8" r="2" fill="#A3B899" />
-        <path d="M94,6 Q80,8 85,22 Q88,30 94,35" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
-        <circle cx="88" cy="12" r="2.5" fill="#D8B76A" opacity="0.9" />
-        <circle cx="82" cy="8" r="2" fill="#A3B899" />
-        <path d="M6,144 Q20,142 15,128 Q12,120 6,115" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
-        <circle cx="12" cy="138" r="2.5" fill="#D8B76A" opacity="0.9" />
-        <circle cx="18" cy="142" r="2" fill="#A3B899" />
-        <path d="M94,144 Q80,142 85,128 Q88,120 94,115" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
-        <circle cx="88" cy="138" r="2.5" fill="#D8B76A" opacity="0.9" />
-        <circle cx="82" cy="142" r="2" fill="#A3B899" />
+        <g className="eucalyptus-leaf">
+          <path d="M6,6 Q20,8 15,22 Q12,30 6,35" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+          <circle cx="12" cy="12" r="2.5" fill="#D8B76A" opacity="0.9" />
+          <path d="M14,15 C10,13 10,20 14,21 Z" fill="#7D9B76" opacity="0.7" />
+          <circle cx="18" cy="8" r="2" fill="#A3B899" />
+        </g>
+        <g className="eucalyptus-leaf-delayed">
+          <path d="M94,6 Q80,8 85,22 Q88,30 94,35" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+          <circle cx="88" cy="12" r="2.5" fill="#D8B76A" opacity="0.9" />
+          <path d="M86,15 C90,13 90,20 86,21 Z" fill="#7D9B76" opacity="0.7" />
+          <circle cx="82" cy="8" r="2" fill="#A3B899" />
+        </g>
+        <g className="eucalyptus-leaf-delayed">
+          <path d="M6,144 Q20,142 15,128 Q12,120 6,115" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+          <circle cx="12" cy="138" r="2.5" fill="#D8B76A" opacity="0.9" />
+          <path d="M14,135 C10,137 10,130 14,129 Z" fill="#7D9B76" opacity="0.7" />
+          <circle cx="18" cy="142" r="2" fill="#A3B899" />
+        </g>
+        <g className="eucalyptus-leaf">
+          <path d="M94,144 Q80,142 85,128 Q88,120 94,115" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+          <circle cx="88" cy="138" r="2.5" fill="#D8B76A" opacity="0.9" />
+          <path d="M86,135 C90,137 90,130 86,129 Z" fill="#7D9B76" opacity="0.7" />
+          <circle cx="82" cy="142" r="2" fill="#A3B899" />
+        </g>
       </svg>
     );
   }
@@ -423,11 +476,47 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
   if (customCardBg === "/templates/template_plus_2.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
-        <line x1="10" y1="0" x2="10" y2="150" stroke="#D8B76A" strokeWidth="0.75" opacity="0.4" />
+        <style>{`
+          @keyframes laceGlow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+          }
+          .lace-shimmer {
+            animation: laceGlow 4s ease-in-out infinite;
+          }
+        `}</style>
+        <line x1="10" y1="0" x2="10" y2="150" stroke="#D8B76A" strokeWidth="0.75" className="lace-shimmer" />
         <line x1="12" y1="0" x2="12" y2="150" stroke="#D8B76A" strokeWidth="0.25" opacity="0.2" />
-        <path d="M10,10 Q6,15 10,20 M10,30 Q6,35 10,40 M10,50 Q6,55 10,60 M10,70 Q6,75 10,80 M10,90 Q6,95 10,100 M10,110 Q6,115 10,120 M10,130 Q6,135 10,140" stroke="#D8B76A" strokeWidth="0.5" opacity="0.5" />
-        <path d="M0,0 Q18,0 18,18 Q0,18 0,0 Z" fill="#D8B76A" opacity="0.15" />
-        <path d="M0,150 Q18,150 18,132 Q0,132 0,150 Z" fill="#D8B76A" opacity="0.15" />
+        <path d="M10,10 Q6,15 10,20 M10,30 Q6,35 10,40 M10,50 Q6,55 10,60 M10,70 Q6,75 10,80 M10,90 Q6,95 10,100 M10,110 Q6,115 10,120 M10,130 Q6,135 10,140" stroke="#D8B76A" strokeWidth="0.5" className="lace-shimmer" />
+        <path d="M0,0 Q18,0 18,18 Q0,18 0,0 Z" fill="#D8B76A" opacity="0.12" />
+        <path d="M0,150 Q18,150 18,132 Q0,132 0,150 Z" fill="#D8B76A" opacity="0.12" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/template_plus_3.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <style>{`
+          @keyframes floatGoldDust2 {
+            0% { transform: translateY(0px) translateX(0px) scale(0.7); opacity: 0.15; }
+            50% { transform: translateY(-12px) translateX(6px) scale(1.3); opacity: 0.7; }
+            100% { transform: translateY(-24px) translateX(0px) scale(0.7); opacity: 0.15; }
+          }
+          .gold-glitter-1 { animation: floatGoldDust2 5s ease-in-out infinite; }
+          .gold-glitter-2 { animation: floatGoldDust2 7s ease-in-out infinite; animation-delay: 1.5s; }
+          .gold-glitter-3 { animation: floatGoldDust2 6s ease-in-out infinite; animation-delay: 3s; }
+          .gold-glitter-4 { animation: floatGoldDust2 8s ease-in-out infinite; animation-delay: 4.5s; }
+        `}</style>
+        {/* Magic gold dust floating elements over the midnight black floral template */}
+        <circle cx="20" cy="40" r="0.8" fill="#D8B76A" className="gold-glitter-1" />
+        <circle cx="30" cy="110" r="0.6" fill="#D8B76A" className="gold-glitter-2" />
+        <circle cx="75" cy="50" r="0.7" fill="#D8B76A" className="gold-glitter-3" />
+        <circle cx="80" cy="100" r="0.9" fill="#D8B76A" className="gold-glitter-4" />
+        <circle cx="40" cy="30" r="0.5" fill="#D8B76A" className="gold-glitter-2" />
+        <circle cx="60" cy="120" r="0.7" fill="#D8B76A" className="gold-glitter-1" />
+        <circle cx="85" cy="80" r="0.6" fill="#D8B76A" className="gold-glitter-3" />
+        <circle cx="15" cy="70" r="0.8" fill="#D8B76A" className="gold-glitter-4" />
       </svg>
     );
   }
@@ -435,9 +524,22 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
   if (customCardBg === "/templates/template_pro_1.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
-        <path d="M100,5 Q70,40 85,75 Q100,110 80,145" stroke="#D8B76A" strokeWidth="0.8" opacity="0.7" />
-        <path d="M100,35 Q85,55 92,80 Q99,105 100,120" stroke="#D8B76A" strokeWidth="0.4" opacity="0.5" />
-        <path d="M100,70 Q90,95 93,115 Q96,135 100,140" stroke="#D8B76A" strokeWidth="0.5" opacity="0.6" />
+        <style>{`
+          @keyframes veinGlow {
+            0%, 100% { opacity: 0.5; stroke-width: 0.8px; filter: drop-shadow(0 0 1px rgba(216,183,106,0.3)); }
+            50% { opacity: 0.95; stroke-width: 1.2px; filter: drop-shadow(0 0 5px rgba(216,183,106,0.9)); }
+          }
+          .gold-vein {
+            animation: veinGlow 4s ease-in-out infinite;
+          }
+          .gold-vein-delay {
+            animation: veinGlow 5s ease-in-out infinite;
+            animation-delay: 2.2s;
+          }
+        `}</style>
+        <path d="M100,5 Q70,40 85,75 Q100,110 80,145" stroke="#D8B76A" className="gold-vein" fill="none" />
+        <path d="M100,35 Q85,55 92,80 Q99,105 100,120" stroke="#D8B76A" className="gold-vein-delay" fill="none" />
+        <path d="M100,70 Q90,95 93,115 Q96,135 100,140" stroke="#D8B76A" className="gold-vein" fill="none" />
         <circle cx="88" cy="20" r="1" fill="#D8B76A" opacity="0.4" />
         <circle cx="94" cy="55" r="1.5" fill="#D8B76A" opacity="0.5" />
         <circle cx="82" cy="95" r="0.75" fill="#D8B76A" opacity="0.3" />
@@ -449,28 +551,31 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
   if (customCardBg === "/templates/template_pro_2.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
-        {/* Decorative corner quadrants (top-left & bottom-left) matching the velvet burgundy look */}
+        <style>{`
+          @keyframes filigreeSpin {
+            0% { transform: rotate(0deg); opacity: 0.7; }
+            50% { opacity: 0.95; }
+            100% { transform: rotate(360deg); opacity: 0.7; }
+          }
+          .filigree-star {
+            animation: filigreeSpin 25s linear infinite;
+            transform-origin: 12px 75px;
+          }
+        `}</style>
         <path d="M0,15 A15,15 0 0,0 15,0 L0,0 Z" fill="#3D0C1A" opacity="0.9" />
         <path d="M0,15 A15,15 0 0,0 15,0" stroke="#D8B76A" strokeWidth="0.75" opacity="0.8" />
         <path d="M0,12 A12,12 0 0,0 12,0" stroke="#D8B76A" strokeWidth="0.25" opacity="0.5" />
-        
         <path d="M0,135 A15,15 0 0,1 15,150 L0,150 Z" fill="#3D0C1A" opacity="0.9" />
         <path d="M0,135 A15,15 0 0,1 15,150" stroke="#D8B76A" strokeWidth="0.75" opacity="0.8" />
         <path d="M0,138 A12,12 0 0,1 12,150" stroke="#D8B76A" strokeWidth="0.25" opacity="0.5" />
-
-        {/* Straight gold vertical border line on the left side */}
         <line x1="12" y1="0" x2="12" y2="150" stroke="#D8B76A" strokeWidth="0.75" opacity="0.8" />
-        
-        {/* Three semi-circular loops curving to the right */}
-        {/* Loop 1: centered at y=45 */}
+        <g className="filigree-star">
+          <circle cx="12" cy="75" r="8" stroke="#D8B76A" strokeWidth="0.5" strokeDasharray="2,2" />
+          <path d="M12,65 L12,85 M2,75 L22,75" stroke="#D8B76A" strokeWidth="0.5" />
+        </g>
+        <circle cx="12" cy="75" r="2.5" fill="#D8B76A" />
         <path d="M12,38 A7,7 0 0,1 12,52" stroke="#D8B76A" strokeWidth="0.75" fill="none" opacity="0.8" />
         <circle cx="16" cy="45" r="1.5" fill="#D8B76A" opacity="0.9" />
-        
-        {/* Loop 2: centered at y=75 */}
-        <path d="M12,68 A7,7 0 0,1 12,82" stroke="#D8B76A" strokeWidth="0.75" fill="none" opacity="0.8" />
-        <circle cx="16" cy="75" r="1.5" fill="#D8B76A" opacity="0.9" />
-        
-        {/* Loop 3: centered at y=105 */}
         <path d="M12,98 A7,7 0 0,1 12,112" stroke="#D8B76A" strokeWidth="0.75" fill="none" opacity="0.8" />
         <circle cx="16" cy="105" r="1.5" fill="#D8B76A" opacity="0.9" />
       </svg>
@@ -480,12 +585,41 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
   if (customCardBg === "/templates/template_pro_3.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <style>{`
+          @keyframes sparkleStar {
+            0%, 100% { opacity: 0.2; transform: scale(0.6) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1.1) rotate(90deg); filter: drop-shadow(0 0 5px #D8B76A); }
+          }
+          .sparkler-1 {
+            animation: sparkleStar 3s ease-in-out infinite;
+            transform-origin: 20px 20px;
+          }
+          .sparkler-2 {
+            animation: sparkleStar 3.5s ease-in-out infinite;
+            animation-delay: 1.2s;
+            transform-origin: 80px 20px;
+          }
+          .sparkler-3 {
+            animation: sparkleStar 4s ease-in-out infinite;
+            animation-delay: 0.5s;
+            transform-origin: 20px 130px;
+          }
+          .sparkler-4 {
+            animation: sparkleStar 3.2s ease-in-out infinite;
+            animation-delay: 1.8s;
+            transform-origin: 80px 130px;
+          }
+        `}</style>
         <rect x="6" y="6" width="88" height="138" rx="8" fill="none" stroke="#D8B76A" strokeWidth="1.5" opacity="0.6" />
         <rect x="7.5" y="7.5" width="85" height="135" rx="6.5" fill="none" stroke="#D8B76A" strokeWidth="0.5" opacity="0.3" />
         <path d="M6,20 Q16,16 20,6" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
         <path d="M94,20 Q84,16 80,6" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
         <path d="M6,130 Q16,134 20,144" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
         <path d="M94,130 Q84,134 80,144" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
+        <path className="sparkler-1" d="M20,16 L21,19 L24,20 L21,21 L20,24 L19,21 L16,20 L19,19 Z" fill="#D8B76A" />
+        <path className="sparkler-2" d="M80,16 L81,19 L84,20 L81,21 L80,24 L79,21 L76,20 L79,19 Z" fill="#D8B76A" />
+        <path className="sparkler-3" d="M20,126 L21,129 L24,130 L21,131 L20,134 L19,131 L16,130 L19,129 Z" fill="#D8B76A" />
+        <path className="sparkler-4" d="M80,126 L81,129 L84,130 L81,131 L80,134 L79,131 L76,130 L79,129 Z" fill="#D8B76A" />
       </svg>
     );
   }
@@ -493,6 +627,28 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
   if (customCardBg === "/templates/template_pro_4.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <style>{`
+          @keyframes glitterFall {
+            0% { transform: translateY(-10px) translateX(0px); opacity: 0; }
+            30% { opacity: 0.85; }
+            70% { opacity: 0.85; }
+            100% { transform: translateY(160px) translateX(10px); opacity: 0; }
+          }
+          .glitter-particle-1 {
+            animation: glitterFall 10s linear infinite;
+            transform-origin: center;
+          }
+          .glitter-particle-2 {
+            animation: glitterFall 14s linear infinite;
+            animation-delay: 3s;
+            transform-origin: center;
+          }
+          .glitter-particle-3 {
+            animation: glitterFall 12s linear infinite;
+            animation-delay: 6s;
+            transform-origin: center;
+          }
+        `}</style>
         <circle cx="95" cy="15" r="4" fill="#E8B5AC" opacity="0.8" />
         <circle cx="88" cy="30" r="2.5" fill="#E8B5AC" opacity="0.6" />
         <circle cx="92" cy="48" r="3.5" fill="#E8B5AC" opacity="0.7" />
@@ -500,9 +656,24 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
         <circle cx="96" cy="85" r="4.5" fill="#E8B5AC" opacity="0.8" />
         <circle cx="89" cy="110" r="3" fill="#E8B5AC" opacity="0.6" />
         <circle cx="94" cy="135" r="4" fill="#E8B5AC" opacity="0.8" />
-        <path d="M85,25 L86,22 L89,21 L86,20 L85,17 L84,20 L81,21 L84,22 Z" fill="#E8B5AC" opacity="0.9" />
-        <path d="M90,75 L91,72 L94,71 L91,70 L90,67 L89,70 L86,71 L89,72 Z" fill="#E8B5AC" opacity="0.9" />
-        <path d="M83,120 L84,117 L87,116 L84,115 L83,112 L82,115 L79,116 L82,117 Z" fill="#E8B5AC" opacity="0.8" />
+        <g className="glitter-particle-1">
+          <circle cx="20" cy="10" r="1" fill="#E8B5AC" />
+          <circle cx="45" cy="30" r="0.75" fill="#D8B76A" />
+          <circle cx="75" cy="5" r="1.2" fill="#FFE5E9" />
+          <path d="M85,25 L86,22 L89,21 L86,20 L85,17 L84,20 L81,21 L84,22 Z" fill="#E8B5AC" />
+        </g>
+        <g className="glitter-particle-2">
+          <circle cx="15" cy="40" r="1.2" fill="#D8B76A" />
+          <circle cx="60" cy="15" r="0.8" fill="#FFE5E9" />
+          <circle cx="80" cy="50" r="1" fill="#E8B5AC" />
+          <path d="M30,55 L31,52 L34,51 L31,50 L30,47 L29,50 L26,51 L29,52 Z" fill="#E8B5AC" />
+        </g>
+        <g className="glitter-particle-3">
+          <circle cx="35" cy="25" r="0.8" fill="#E8B5AC" />
+          <circle cx="70" cy="35" r="1.1" fill="#D8B76A" />
+          <circle cx="90" cy="75" r="0.7" fill="#FFE5E9" />
+          <path d="M55,100 L56,97 L59,96 L56,95 L55,92 L54,95 L51,96 L54,97 Z" fill="#E8B5AC" />
+        </g>
       </svg>
     );
   }
@@ -510,12 +681,35 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
   if (customCardBg === "/templates/template_pro_5.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <style>{`
+          @keyframes leafDrift {
+            0% { transform: translateY(-10px) translateX(0px) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.75; }
+            80% { opacity: 0.75; }
+            100% { transform: translateY(160px) translateX(-20px) rotate(180deg); opacity: 0; }
+          }
+          .drifting-leaf-1 {
+            animation: leafDrift 12s linear infinite;
+          }
+          .drifting-leaf-2 {
+            animation: leafDrift 16s linear infinite;
+            animation-delay: 4s;
+          }
+        `}</style>
         <path d="M0,25 Q18,40 10,75 Q2,110 0,135" stroke="#7A8E7E" strokeWidth="0.8" strokeLinecap="round" opacity="0.7" />
         <path d="M9,32 C15,31 16,36 9,38 Z" fill="#99AB9D" opacity="0.6" />
         <path d="M12,48 C18,49 16,54 12,53 Z" fill="#99AB9D" opacity="0.6" />
         <path d="M11,68 C17,71 14,75 11,72 Z" fill="#99AB9D" opacity="0.6" />
         <path d="M6,90 C12,94 9,98 6,95 Z" fill="#99AB9D" opacity="0.5" />
         <path d="M4,112 C10,115 8,119 4,116 Z" fill="#99AB9D" opacity="0.5" />
+        <g className="drifting-leaf-1">
+          <path d="M45,20 C49,19 48,24 45,23 Z" fill="#99AB9D" opacity="0.7" />
+          <path d="M75,50 C79,49 78,54 75,53 Z" fill="#99AB9D" opacity="0.6" />
+        </g>
+        <g className="drifting-leaf-2">
+          <path d="M60,30 C64,29 63,34 60,33 Z" fill="#99AB9D" opacity="0.5" />
+          <path d="M30,80 C34,79 33,84 30,83 Z" fill="#99AB9D" opacity="0.6" />
+        </g>
       </svg>
     );
   }
@@ -523,28 +717,53 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
   if (customCardBg === "/templates/template_pro_6.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
-        {/* Left Side Gold Column Border */}
+        <style>{`
+          @keyframes twinkle {
+            0%, 100% { opacity: 0.35; transform: scale(0.85); }
+            50% { opacity: 1; transform: scale(1.15); filter: drop-shadow(0 0 2px #FFF); }
+          }
+          @keyframes shootingStar {
+            0% { transform: translate(-30px, -30px); opacity: 0; }
+            10% { opacity: 1; }
+            20% { transform: translate(120px, 120px); opacity: 0; }
+            100% { transform: translate(120px, 120px); opacity: 0; }
+          }
+          .twinkle-star {
+            animation: twinkle 3s ease-in-out infinite;
+          }
+          .twinkle-star-delayed {
+            animation: twinkle 4s ease-in-out infinite;
+            animation-delay: 1.5s;
+          }
+          .shooting-star-path {
+            animation: shootingStar 8s linear infinite;
+            animation-delay: 2s;
+          }
+        `}</style>
         <g stroke="#D8B76A" strokeWidth="0.75" opacity="0.75">
           <line x1="6" y1="0" x2="6" y2="150" />
           <line x1="8" y1="0" x2="8" y2="150" strokeWidth="0.25" opacity="0.5" />
           <path d="M6,5 Q2,10 6,15 M6,20 Q2,25 6,30 M6,35 Q2,40 6,45 M6,50 Q2,55 6,60 M6,65 Q2,70 6,75 M6,80 Q2,85 6,90 M6,95 Q2,100 6,105 M6,110 Q2,115 6,120 M6,125 Q2,130 6,135 M6,140 Q2,145 6,150" fill="none" />
           <path d="M6,7 Q9,12 6,17 M6,22 Q9,27 6,32 M6,37 Q9,42 6,47 M6,52 Q9,57 6,62 M6,67 Q9,72 6,77 M6,82 Q9,87 6,92 M6,97 Q9,102 6,107 M6,112 Q9,117 6,122 M6,127 Q9,132 6,137 M6,142 Q9,147 6,147" fill="none" opacity="0.5" />
         </g>
-
-        {/* Right Side Gold Column Border */}
         <g stroke="#D8B76A" strokeWidth="0.75" opacity="0.75">
           <line x1="94" y1="0" x2="94" y2="150" />
           <line x1="92" y1="0" x2="92" y2="150" strokeWidth="0.25" opacity="0.5" />
           <path d="M94,5 Q98,10 94,15 M94,20 Q98,25 94,30 M94,35 Q98,40 94,45 M94,50 Q98,55 94,60 M94,65 Q98,70 94,75 M94,80 Q98,85 94,90 M94,95 Q98,100 94,105 M94,110 Q98,115 94,120 M94,125 Q98,130 94,135 M94,140 Q98,145 94,150" fill="none" />
           <path d="M94,7 Q91,12 94,17 M94,22 Q91,27 94,32 M94,37 Q91,42 94,47 M94,52 Q91,57 94,62 M94,67 Q91,72 94,77 M94,82 Q91,87 94,92 M94,97 Q91,102 94,107 M94,112 Q91,117 94,122 M94,127 Q91,132 94,137 M94,142 Q91,147 94,147" fill="none" opacity="0.5" />
         </g>
-        
-        {/* Twinkling stars in the middle */}
-        <path d="M22,30 L23,28 L25,27 L23,26 L22,24 L21,26 L19,27 L21,28 Z" fill="#FFFFFF" opacity="0.85" />
-        <path d="M78,45 L79,43 L81,42 L79,41 L78,39 L77,41 L75,42 L77,43 Z" fill="#FFFFFF" opacity="0.85" />
-        <path d="M25,110 L26,108 L28,107 L26,106 L25,104 L24,106 L22,107 L24,108 Z" fill="#FFFFFF" opacity="0.8" />
-        <path d="M75,115 L76,113 L78,112 L76,111 L75,109 L74,111 L72,112 L74,113 Z" fill="#FFFFFF" opacity="0.8" />
-        {/* Scattered gold dust */}
+        <g className="twinkle-star">
+          <path d="M22,30 L23,28 L25,27 L23,26 L22,24 L21,26 L19,27 L21,28 Z" fill="#FFFFFF" />
+          <path d="M25,110 L26,108 L28,107 L26,106 L25,104 L24,106 L22,107 L24,108 Z" fill="#FFFFFF" />
+        </g>
+        <g className="twinkle-star-delayed">
+          <path d="M78,45 L79,43 L81,42 L79,41 L78,39 L77,41 L75,42 L77,43 Z" fill="#FFFFFF" />
+          <path d="M75,115 L76,113 L78,112 L76,111 L75,109 L74,111 L72,112 L74,113 Z" fill="#FFFFFF" />
+        </g>
+        <g className="shooting-star-path">
+          <line x1="0" y1="0" x2="-25" y2="-25" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
+          <circle cx="0" cy="0" r="1.5" fill="#FFFFFF" />
+        </g>
         <circle cx="30" cy="15" r="0.75" fill="#D8B76A" opacity="0.5" />
         <circle cx="50" cy="12" r="1" fill="#D8B76A" opacity="0.6" />
         <circle cx="70" cy="18" r="0.75" fill="#D8B76A" opacity="0.5" />
@@ -557,19 +776,35 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
   if (customCardBg === "/templates/template_pro_7.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <style>{`
+          @keyframes charcoalGoldFloat {
+            0%, 100% { transform: translateY(0px) scale(0.95); opacity: 0.4; }
+            50% { transform: translateY(-8px) scale(1.05); opacity: 0.8; }
+          }
+          .floating-gold-dust {
+            animation: charcoalGoldFloat 5s ease-in-out infinite;
+          }
+          .floating-gold-dust-delayed {
+            animation: charcoalGoldFloat 6s ease-in-out infinite;
+            animation-delay: 2s;
+          }
+        `}</style>
         <path d="M100,30 Q78,50 82,75 Q86,100 100,110" stroke="#D8B76A" strokeWidth="0.8" strokeLinecap="round" opacity="0.5" />
-        <circle cx="85" cy="55" r="4" stroke="#D8B76A" strokeWidth="0.6" fill="none" opacity="0.6" />
+        <circle cx="85" cy="55" r="4" stroke="#D8B76A" strokeWidth="0.6" fill="none" opacity="0.6" className="floating-gold-dust" />
         <circle cx="85" cy="55" r="1.5" fill="#D8B76A" opacity="0.5" />
-        <circle cx="80" cy="80" r="5" stroke="#D8B76A" strokeWidth="0.6" fill="none" opacity="0.6" />
+        <circle cx="80" cy="80" r="5" stroke="#D8B76A" strokeWidth="0.6" fill="none" opacity="0.6" className="floating-gold-dust-delayed" />
         <circle cx="80" cy="80" r="2" fill="#D8B76A" opacity="0.5" />
         <path d="M78,48 Q70,42 76,38 Q82,34 84,42 Z" fill="#D8B76A" opacity="0.15" />
         <path d="M72,72 Q64,66 70,62 Q76,58 78,66 Z" fill="#D8B76A" opacity="0.15" />
+        <circle cx="45" cy="40" r="0.8" fill="#D8B76A" className="floating-gold-dust" />
+        <circle cx="35" cy="90" r="1" fill="#D8B76A" className="floating-gold-dust-delayed" />
+        <circle cx="65" cy="115" r="0.6" fill="#D8B76A" className="floating-gold-dust" />
       </svg>
     );
   }
 
   return null;
-};
+}
 
 const InvitePage = () => {
   const { slug } = useParams();
@@ -1087,74 +1322,71 @@ const InvitePage = () => {
       fontFamily: activeFont,
     };
   } else if (cardTheme === "custom" && customCardBg) {
-    const isExempt = customCardBg === "/templates/template_free_1.png" || customCardBg === "/templates/template_plus_3.png";
-    if (isExempt) {
-      const bgUrlWithVersion = customCardBg.includes('/templates/') ? `${customCardBg}?v=3` : customCardBg;
-      const bgSize = customCardBg.includes('/templates/') ? "100% 100%" : "cover";
-      cardStyles = {
-        background: `url('${bgUrlWithVersion}') center/${bgSize} no-repeat`,
-        color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : (customCardBg === "/templates/template_plus_3.png" ? "#F5EBD6" : "#1A2E4A"),
-        fontFamily: activeFont,
-      };
-    } else {
-      let bg = "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)";
-      let color = "#1A2E4A";
-      
-      switch (customCardBg) {
-        case "/templates/template_free_2.png":
-          bg = "radial-gradient(circle at 100% 100%, #FFF0F2 0%, #FFFDFD 70%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
-          break;
-        case "/templates/template_free_3.png":
-          bg = "radial-gradient(circle at 0% 0%, #FAF6F0 0%, #FFFDF9 80%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
-          break;
-        case "/templates/template_plus_1.png":
-          bg = "radial-gradient(circle, #0F2D1F 0%, #06170F 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
-          break;
-        case "/templates/template_plus_2.png":
-          bg = "radial-gradient(circle at 100% 0%, #0D1C33 0%, #050B14 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
-          break;
-        case "/templates/template_pro_1.png":
-          bg = "radial-gradient(circle at 100% 100%, #151515 0%, #080808 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
-          break;
-        case "/templates/template_pro_2.png":
-          bg = "radial-gradient(circle at 100% 100%, #3D0C1A 0%, #1F050D 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
-          break;
-        case "/templates/template_pro_3.png":
-          bg = "radial-gradient(circle, #0B2418 0%, #040F0A 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
-          break;
-        case "/templates/template_pro_4.png":
-          bg = "linear-gradient(135deg, #FFF5F6 0%, #FFEBEF 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
-          break;
-        case "/templates/template_pro_5.png":
-          bg = "radial-gradient(circle at 0% 50%, #FCFAF7 0%, #F3EFE9 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#5C6B5E";
-          break;
-        case "/templates/template_pro_6.png":
-          bg = "radial-gradient(circle, #18122B 0%, #0F0C20 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
-          break;
-        case "/templates/template_pro_7.png":
-          bg = "radial-gradient(circle at 100% 50%, #1F2022 0%, #121314 100%)";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
-          break;
-        default:
-          bg = `url('${customCardBg}') center/cover no-repeat`;
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
-      }
-      cardStyles = {
-        background: bg,
-        color: color,
-        fontFamily: activeFont,
-      };
+    let bg = "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)";
+    let color = "#1A2E4A";
+    
+    switch (customCardBg) {
+      case "/templates/template_free_1.png":
+        bg = "radial-gradient(circle, #FCFAF7 60%, #F5EFEB 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+        break;
+      case "/templates/template_free_2.png":
+        bg = "radial-gradient(circle at 100% 100%, #FFF0F2 0%, #FFFDFD 70%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
+        break;
+      case "/templates/template_free_3.png":
+        bg = "radial-gradient(circle at 0% 0%, #FAF6F0 0%, #FFFDF9 80%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
+        break;
+      case "/templates/template_plus_1.png":
+        bg = "radial-gradient(circle, #0F2D1F 0%, #06170F 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
+        break;
+      case "/templates/template_plus_2.png":
+        bg = "radial-gradient(circle at 100% 0%, #0D1C33 0%, #050B14 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/template_plus_3.png":
+        bg = "radial-gradient(circle, #121212 0%, #050505 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/template_pro_1.png":
+        bg = "radial-gradient(circle at 100% 100%, #151515 0%, #080808 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        break;
+      case "/templates/template_pro_2.png":
+        bg = "radial-gradient(circle at 100% 100%, #3D0C1A 0%, #1F050D 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/template_pro_3.png":
+        bg = "radial-gradient(circle, #0B2418 0%, #040F0A 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        break;
+      case "/templates/template_pro_4.png":
+        bg = "linear-gradient(135deg, #FFF5F6 0%, #FFEBEF 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
+        break;
+      case "/templates/template_pro_5.png":
+        bg = "radial-gradient(circle at 0% 50%, #FCFAF7 0%, #F3EFE9 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#5C6B5E";
+        break;
+      case "/templates/template_pro_6.png":
+        bg = "radial-gradient(circle, #18122B 0%, #0F0C20 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/template_pro_7.png":
+        bg = "radial-gradient(circle at 100% 50%, #1F2022 0%, #121314 100%)";
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        break;
+      default:
+        bg = `url('${customCardBg}') center/cover no-repeat`;
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
     }
+    cardStyles = {
+      background: bg,
+      color: color,
+      fontFamily: activeFont,
+    };
   }
 
   // Adjust theme color tags

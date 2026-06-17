@@ -93,17 +93,17 @@ const AdminEditInvitationPage = () => {
     let options = toneBucket[categoryVal] || toneBucket.default || templates.simple.default;
     let text = options[Math.floor(Math.random() * options.length)];
 
-    if (text.length > 70 && text.includes(name) && name !== firstName) {
+    if (text.length > 170 && text.includes(name) && name !== firstName) {
       text = text.replace(name, firstName);
     }
-    if (text.length > 70) {
+    if (text.length > 170) {
       text = `Join us to celebrate our wedding day, ${firstName}!`;
     }
     if (text.length < 40) {
       text = `Dear ${firstName}, please join us as we celebrate our wedding day!`;
     }
-    if (text.length > 70) {
-      text = text.substring(0, 67) + "...";
+    if (text.length > 170) {
+      text = text.substring(0, 167) + "...";
     }
     setGeneratedMsg(text);
   };
@@ -188,11 +188,11 @@ const AdminEditInvitationPage = () => {
                 🪄 AI Message
               </button>
             </div>
-            <span className={`text-[10px] ${customMessageVal.length > 70 ? 'text-red-400 font-bold' : 'text-white/30'}`}>
-              {customMessageVal.length}/70
+            <span className={`text-[10px] ${customMessageVal.length > 170 ? 'text-red-400 font-bold' : 'text-white/30'}`}>
+              {customMessageVal.length}/170
             </span>
           </div>
-          <textarea rows={4} {...register('customMessage')} maxLength={70} className={`${cls(errors.customMessage)} resize-none`} />
+          <textarea rows={4} {...register('customMessage')} maxLength={170} className={`${cls(errors.customMessage)} resize-none`} />
           {errors.customMessage && <p className="mt-1 text-xs text-red-400">{errors.customMessage.message}</p>}
         </div>
 
@@ -281,8 +281,8 @@ const AdminEditInvitationPage = () => {
                 <div className="space-y-1.5 animate-fade-in">
                   <div className="flex justify-between items-center text-[10px] text-white/40">
                     <span>Generated Preview:</span>
-                    <span className={generatedMsg.length > 70 || generatedMsg.length < 40 ? "text-red-400 font-bold" : "text-emerald-400"}>
-                      {generatedMsg.length}/70 chars
+                    <span className={generatedMsg.length > 170 || generatedMsg.length < 40 ? "text-red-400 font-bold" : "text-emerald-400"}>
+                      {generatedMsg.length}/170 chars
                     </span>
                   </div>
                   <div className="bg-white/3 border border-white/5 p-3 rounded-xl text-xs text-white/80 font-mono italic leading-relaxed">

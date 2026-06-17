@@ -419,7 +419,6 @@ router.put("/me", protect, async (req, res) => {
     // Apply tier limitations for visual styles
     if (user.tier === "free") {
       const allowedFreeBgs = [
-        "/templates/template_free_1.png",
         "/templates/template_free_2.png",
         "/templates/template_free_3.png"
       ];
@@ -427,6 +426,9 @@ router.put("/me", protect, async (req, res) => {
       if (cardTheme === "custom" && customCardBg && allowedFreeBgs.includes(customCardBg)) {
         user.cardTheme = "custom";
         user.customCardBg = customCardBg;
+      } else if (cardTheme === "plain") {
+        user.cardTheme = "plain";
+        user.customCardBg = "";
       } else {
         user.cardTheme = "floral";
         user.customCardBg = "";
@@ -452,11 +454,10 @@ router.put("/me", protect, async (req, res) => {
         "/templates/template_free_2.png",
         "/templates/template_free_3.png",
         "/templates/template_plus_1.png",
-        "/templates/template_plus_2.png",
-        "/templates/template_plus_3.png"
+        "/templates/template_plus_2.png"
       ];
       // Plus tier layout permissions
-      if (cardTheme && cardTheme !== "custom" && ["floral", "minimalist", "navy"].includes(cardTheme)) {
+      if (cardTheme && cardTheme !== "custom" && ["floral", "minimalist", "navy", "plain"].includes(cardTheme)) {
         user.cardTheme = cardTheme;
         user.customCardBg = "";
       } else if (cardTheme === "custom" && customCardBg && allowedPlusBgs.includes(customCardBg)) {
@@ -472,7 +473,7 @@ router.put("/me", protect, async (req, res) => {
         user.pageBgTemplate = "";
       }
       if (Array.isArray(galleryPhotos)) {
-        user.galleryPhotos = galleryPhotos.slice(0, 3);
+        user.galleryPhotos = galleryPhotos.slice(0, 5);
       }
       if (musicUrl !== undefined) user.musicUrl = musicUrl;
       if (customFontFamily !== undefined) user.customFontFamily = customFontFamily;
@@ -489,7 +490,7 @@ router.put("/me", protect, async (req, res) => {
       // Pro tier unlocks everything
       if (cardTheme) user.cardTheme = cardTheme;
       if (Array.isArray(galleryPhotos)) {
-        user.galleryPhotos = galleryPhotos.slice(0, 6);
+        user.galleryPhotos = galleryPhotos.slice(0, 15);
       }
       if (musicUrl !== undefined) user.musicUrl = musicUrl;
       if (customFontFamily !== undefined) user.customFontFamily = customFontFamily;
