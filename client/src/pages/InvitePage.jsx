@@ -4,7 +4,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { toPng } from "html-to-image";
-import { getTemplateLayout } from "../utils/templateLayouts";
+import { getTemplateLayout, getBlockStyles } from "../utils/templateLayouts";
 import api from "../utils/api";
 import { rsvpSchema } from "../utils/schemas";
 import { WEDDING_COLORS } from "../components/ColorPicker";
@@ -365,7 +365,7 @@ const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary
 const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, isFreeUser) => {
   if (!customCardBg) return null;
 
-  if (customCardBg === "/templates/template_free_2.png") {
+  if (customCardBg === "/templates/Blush Pink Watercolor.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <circle cx="85" cy="115" r="30" fill="#FFE5E9" opacity="0.6" filter="blur(10px)" />
@@ -382,7 +382,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_free_3.png") {
+  if (customCardBg === "/templates/Cream Floral Elegance.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <circle cx="15" cy="35" r="35" fill="#F4ECE1" opacity="0.7" filter="blur(12px)" />
@@ -426,7 +426,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_plus_1.png") {
+  if (customCardBg === "/templates/Emerald Eucalyptus Frame.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -473,7 +473,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_plus_2.png") {
+  if (customCardBg === "/templates/Royal Navy Lace Accent.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -494,6 +494,31 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
+  if (customCardBg === "/templates/Elegant purple and silver floral.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <style>{`
+          @keyframes floatSilverDust {
+            0% { transform: translateY(0px) translateX(0px) scale(0.8); opacity: 0.15; }
+            50% { transform: translateY(-10px) translateX(5px) scale(1.25); opacity: 0.6; }
+            100% { transform: translateY(-20px) translateX(0px) scale(0.8); opacity: 0.15; }
+          }
+          .silver-dust-1 { animation: floatSilverDust 7s ease-in-out infinite; }
+          .silver-dust-2 { animation: floatSilverDust 9s ease-in-out infinite; animation-delay: 2.5s; }
+          .silver-dust-3 { animation: floatSilverDust 8s ease-in-out infinite; animation-delay: 5s; }
+        `}</style>
+        <circle cx="15" cy="35" r="0.8" fill="#D8B76A" className="silver-dust-1" opacity="0.3" />
+        <circle cx="25" cy="115" r="0.6" fill="#9F86C0" className="silver-dust-2" />
+        <circle cx="80" cy="45" r="0.7" fill="#E0AAFF" className="silver-dust-3" />
+        <circle cx="75" cy="105" r="0.9" fill="#D8B76A" className="silver-dust-1" opacity="0.3" />
+        <circle cx="45" cy="20" r="0.6" fill="#E0AAFF" className="silver-dust-2" />
+        <circle cx="55" cy="130" r="0.7" fill="#9F86C0" className="silver-dust-3" />
+        <circle cx="90" cy="85" r="0.6" fill="#D8B76A" className="silver-dust-1" opacity="0.2" />
+        <circle cx="12" cy="80" r="0.8" fill="#E0AAFF" className="silver-dust-2" />
+      </svg>
+    );
+  }
+
   if (customCardBg === "/templates/template_plus_3.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
@@ -508,7 +533,6 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
           .gold-glitter-3 { animation: floatGoldDust2 6s ease-in-out infinite; animation-delay: 3s; }
           .gold-glitter-4 { animation: floatGoldDust2 8s ease-in-out infinite; animation-delay: 4.5s; }
         `}</style>
-        {/* Magic gold dust floating elements over the midnight black floral template */}
         <circle cx="20" cy="40" r="0.8" fill="#D8B76A" className="gold-glitter-1" />
         <circle cx="30" cy="110" r="0.6" fill="#D8B76A" className="gold-glitter-2" />
         <circle cx="75" cy="50" r="0.7" fill="#D8B76A" className="gold-glitter-3" />
@@ -521,7 +545,30 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_pro_1.png") {
+  if (customCardBg === "/templates/Midnight Black Floral2.png") {
+    return (
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+        <style>{`
+          @keyframes floatGoldDust3 {
+            0% { transform: translateY(0px) translateX(0px) scale(0.7); opacity: 0.15; }
+            50% { transform: translateY(-15px) translateX(8px) scale(1.35); opacity: 0.75; }
+            100% { transform: translateY(-30px) translateX(0px) scale(0.7); opacity: 0.15; }
+          }
+          .gold-glitter3-1 { animation: floatGoldDust3 6s ease-in-out infinite; }
+          .gold-glitter3-2 { animation: floatGoldDust3 8s ease-in-out infinite; animation-delay: 2s; }
+          .gold-glitter3-3 { animation: floatGoldDust3 7s ease-in-out infinite; animation-delay: 4s; }
+        `}</style>
+        <circle cx="25" cy="45" r="0.8" fill="#D8B76A" className="gold-glitter3-1" />
+        <circle cx="35" cy="115" r="0.6" fill="#F5EBD6" className="gold-glitter3-2" />
+        <circle cx="70" cy="55" r="0.7" fill="#D8B76A" className="gold-glitter3-3" />
+        <circle cx="85" cy="95" r="0.9" fill="#F5EBD6" className="gold-glitter3-1" />
+        <circle cx="45" cy="25" r="0.5" fill="#D8B76A" className="gold-glitter3-2" />
+        <circle cx="65" cy="125" r="0.7" fill="#F5EBD6" className="gold-glitter3-3" />
+      </svg>
+    );
+  }
+
+  if (customCardBg === "/templates/Dark Black Gold Marble.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -548,7 +595,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_pro_2.png") {
+  if (customCardBg === "/templates/Burgundy Velvet Filigree.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -582,7 +629,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_pro_3.png") {
+  if (customCardBg === "/templates/Royal Emerald Gold Frame.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -624,7 +671,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_pro_4.png") {
+  if (customCardBg === "/templates/Blush Pink & Rose Gold Glitter.png") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -695,7 +742,49 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
             animation: leafDrift 16s linear infinite;
             animation-delay: 4s;
           }
+          @keyframes cherryDrift1 {
+            0% { transform: translateY(-10px) translateX(30px) rotate(0deg); opacity: 0; }
+            15% { opacity: 0.85; }
+            85% { opacity: 0.85; }
+            100% { transform: translateY(160px) translateX(10px) rotate(360deg); opacity: 0; }
+          }
+          @keyframes cherryDrift2 {
+            0% { transform: translateY(-10px) translateX(55px) rotate(0deg); opacity: 0; }
+            15% { opacity: 0.9; }
+            85% { opacity: 0.9; }
+            100% { transform: translateY(160px) translateX(80px) rotate(-270deg); opacity: 0; }
+          }
+          @keyframes cherryDrift3 {
+            0% { transform: translateY(-10px) translateX(75px) rotate(0deg); opacity: 0; }
+            15% { opacity: 0.8; }
+            85% { opacity: 0.8; }
+            100% { transform: translateY(160px) translateX(50px) rotate(180deg); opacity: 0; }
+          }
+          @keyframes cherryDrift4 {
+            0% { transform: translateY(-10px) translateX(20px) rotate(0deg); opacity: 0; }
+            15% { opacity: 0.85; }
+            85% { opacity: 0.85; }
+            100% { transform: translateY(160px) translateX(45px) rotate(290deg); opacity: 0; }
+          }
+          @keyframes cherryDrift5 {
+            0% { transform: translateY(-10px) translateX(85px) rotate(0deg); opacity: 0; }
+            15% { opacity: 0.9; }
+            85% { opacity: 0.9; }
+            100% { transform: translateY(160px) translateX(65px) rotate(-190deg); opacity: 0; }
+          }
+          .cherry-petal-1 { animation: cherryDrift1 14s linear infinite; }
+          .cherry-petal-2 { animation: cherryDrift2 18s linear infinite; animation-delay: 3s; }
+          .cherry-petal-3 { animation: cherryDrift3 15s linear infinite; animation-delay: 7.5s; }
+          .cherry-flower-1 { animation: cherryDrift4 22s linear infinite; animation-delay: 1.5s; }
+          .cherry-flower-2 { animation: cherryDrift5 17s linear infinite; animation-delay: 5s; }
         `}</style>
+        <defs>
+          <linearGradient id="cherryGradPro5" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFF5F7" stopOpacity="0.95" />
+            <stop offset="60%" stopColor="#FFC0CB" stopOpacity="0.85" />
+            <stop offset="100%" stopColor="#FFA6C9" stopOpacity="0.75" />
+          </linearGradient>
+        </defs>
         <path d="M0,25 Q18,40 10,75 Q2,110 0,135" stroke="#7A8E7E" strokeWidth="0.8" strokeLinecap="round" opacity="0.7" />
         <path d="M9,32 C15,31 16,36 9,38 Z" fill="#99AB9D" opacity="0.6" />
         <path d="M12,48 C18,49 16,54 12,53 Z" fill="#99AB9D" opacity="0.6" />
@@ -709,6 +798,39 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
         <g className="drifting-leaf-2">
           <path d="M60,30 C64,29 63,34 60,33 Z" fill="#99AB9D" opacity="0.5" />
           <path d="M30,80 C34,79 33,84 30,83 Z" fill="#99AB9D" opacity="0.6" />
+        </g>
+
+        {/* Drifting Cherry Blossom Petals */}
+        <g className="cherry-petal-1">
+          <path d="M 0,-3 C 2.5,-3 3.5,-1 3,1.5 C 2.5,3.5 0.5,5 0,6 C -0.8,4.8 -2.5,3 -2.5,1 C -2.5,-1.2 -1.8,-3 0,-3 Z" fill="url(#cherryGradPro5)" />
+        </g>
+        <g className="cherry-petal-2">
+          <path d="M 0,-3 C 2.5,-3 3.5,-1 3,1.5 C 2.5,3.5 0.5,5 0,6 C -0.8,4.8 -2.5,3 -2.5,1 C -2.5,-1.2 -1.8,-3 0,-3 Z" fill="url(#cherryGradPro5)" transform="scale(0.85)" />
+        </g>
+        <g className="cherry-petal-3">
+          <path d="M 0,-3 C 2.5,-3 3.5,-1 3,1.5 C 2.5,3.5 0.5,5 0,6 C -0.8,4.8 -2.5,3 -2.5,1 C -2.5,-1.2 -1.8,-3 0,-3 Z" fill="url(#cherryGradPro5)" transform="scale(1.05)" />
+        </g>
+
+        {/* Drifting Whole Cherry Blossom Flowers */}
+        <g className="cherry-flower-1">
+          <g transform="scale(0.9)">
+            <path d="M0,0 C-1,-3 -2,-3 -2,-1 C-2,1 -1,2 0,3 C1,2 2,1 2,-1 C2,-3 1,-3 0,0" fill="url(#cherryGradPro5)" />
+            <path d="M0,0 C-1,-3 -2,-3 -2,-1 C-2,1 -1,2 0,3 C1,2 2,1 2,-1 C2,-3 1,-3 0,0" fill="url(#cherryGradPro5)" transform="rotate(72)" />
+            <path d="M0,0 C-1,-3 -2,-3 -2,-1 C-2,1 -1,2 0,3 C1,2 2,1 2,-1 C2,-3 1,-3 0,0" fill="url(#cherryGradPro5)" transform="rotate(144)" />
+            <path d="M0,0 C-1,-3 -2,-3 -2,-1 C-2,1 -1,2 0,3 C1,2 2,1 2,-1 C2,-3 1,-3 0,0" fill="url(#cherryGradPro5)" transform="rotate(216)" />
+            <path d="M0,0 C-1,-3 -2,-3 -2,-1 C-2,1 -1,2 0,3 C1,2 2,1 2,-1 C2,-3 1,-3 0,0" fill="url(#cherryGradPro5)" transform="rotate(288)" />
+            <circle cx="0" cy="0" r="0.5" fill="#FFE4E1" opacity="0.9" />
+          </g>
+        </g>
+        <g className="cherry-flower-2">
+          <g transform="scale(0.75)">
+            <path d="M0,0 C-1,-3 -2,-3 -2,-1 C-2,1 -1,2 0,3 C1,2 2,1 2,-1 C2,-3 1,-3 0,0" fill="url(#cherryGradPro5)" />
+            <path d="M0,0 C-1,-3 -2,-3 -2,-1 C-2,1 -1,2 0,3 C1,2 2,1 2,-1 C2,-3 1,-3 0,0" fill="url(#cherryGradPro5)" transform="rotate(72)" />
+            <path d="M0,0 C-1,-3 -2,-3 -2,-1 C-2,1 -1,2 0,3 C1,2 2,1 2,-1 C2,-3 1,-3 0,0" fill="url(#cherryGradPro5)" transform="rotate(144)" />
+            <path d="M0,0 C-1,-3 -2,-3 -2,-1 C-2,1 -1,2 0,3 C1,2 2,1 2,-1 C2,-3 1,-3 0,0" fill="url(#cherryGradPro5)" transform="rotate(216)" />
+            <path d="M0,0 C-1,-3 -2,-3 -2,-1 C-2,1 -1,2 0,3 C1,2 2,1 2,-1 C2,-3 1,-3 0,0" fill="url(#cherryGradPro5)" transform="rotate(288)" />
+            <circle cx="0" cy="0" r="0.5" fill="#FFE4E1" opacity="0.9" />
+          </g>
         </g>
       </svg>
     );
@@ -1231,9 +1353,11 @@ const InvitePage = () => {
   const customTextSize = invitation.userId?.customTextSize || 1.0;
   const customTextBoldness = invitation.userId?.customTextBoldness || "normal";
   const customTextAlign = invitation.userId?.customTextAlign || "center";
+  const userHasCustomAlignment = invitation.userId?.userHasCustomAlignment || false;
+  const userHasCustomTextColor = invitation.userId?.userHasCustomTextColor || false;
 
   const layout = getTemplateLayout(cardTheme, customCardBg);
-  const textAlignment = customTextAlign || layout.align;
+  const textAlignment = userHasCustomAlignment ? (customTextAlign || "center") : (layout.align || "center");
 
   const baseWeight = customTextBoldness === "bold" ? "700" : (customTextBoldness === "medium" ? "500" : "400");
   const headingWeight = customTextBoldness === "bold" ? "950" : (customTextBoldness === "medium" ? "750" : "600");
@@ -1322,64 +1446,56 @@ const InvitePage = () => {
       fontFamily: activeFont,
     };
   } else if (cardTheme === "custom" && customCardBg) {
-    let bg = "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)";
+    let bg = `url('${customCardBg}') center/cover no-repeat`;
     let color = "#1A2E4A";
     
     switch (customCardBg) {
       case "/templates/template_free_1.png":
-        bg = "radial-gradient(circle, #FCFAF7 60%, #F5EFEB 100%)";
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
         break;
-      case "/templates/template_free_2.png":
-        bg = "radial-gradient(circle at 100% 100%, #FFF0F2 0%, #FFFDFD 70%)";
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
+      case "/templates/Blush Pink Watercolor.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3D2124";
         break;
-      case "/templates/template_free_3.png":
-        bg = "radial-gradient(circle at 0% 0%, #FAF6F0 0%, #FFFDF9 80%)";
+      case "/templates/Cream Floral Elegance.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
         break;
-      case "/templates/template_plus_1.png":
-        bg = "radial-gradient(circle, #0F2D1F 0%, #06170F 100%)";
+      case "/templates/Emerald Eucalyptus Frame.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
         break;
-      case "/templates/template_plus_2.png":
-        bg = "radial-gradient(circle at 100% 0%, #0D1C33 0%, #050B14 100%)";
+      case "/templates/Royal Navy Lace Accent.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/Elegant purple and silver floral.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3C2A4D";
         break;
       case "/templates/template_plus_3.png":
-        bg = "radial-gradient(circle, #121212 0%, #050505 100%)";
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/template_pro_1.png":
-        bg = "radial-gradient(circle at 100% 100%, #151515 0%, #080808 100%)";
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
-        break;
-      case "/templates/template_pro_2.png":
-        bg = "radial-gradient(circle at 100% 100%, #3D0C1A 0%, #1F050D 100%)";
+      case "/templates/Midnight Black Floral2.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/template_pro_3.png":
-        bg = "radial-gradient(circle, #0B2418 0%, #040F0A 100%)";
+      case "/templates/Dark Black Gold Marble.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
-      case "/templates/template_pro_4.png":
-        bg = "linear-gradient(135deg, #FFF5F6 0%, #FFEBEF 100%)";
+      case "/templates/Burgundy Velvet Filigree.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/Royal Emerald Gold Frame.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        break;
+      case "/templates/Blush Pink & Rose Gold Glitter.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
         break;
       case "/templates/template_pro_5.png":
-        bg = "radial-gradient(circle at 0% 50%, #FCFAF7 0%, #F3EFE9 100%)";
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#5C6B5E";
         break;
       case "/templates/template_pro_6.png":
-        bg = "radial-gradient(circle, #18122B 0%, #0F0C20 100%)";
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
       case "/templates/template_pro_7.png":
-        bg = "radial-gradient(circle at 100% 50%, #1F2022 0%, #121314 100%)";
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
       default:
-        bg = `url('${customCardBg}') center/cover no-repeat`;
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
     }
     cardStyles = {
@@ -1392,6 +1508,35 @@ const InvitePage = () => {
   // Adjust theme color tags
   const primaryTextColor = cardStyles.color;
   const accentColor = cardTheme === "navy" || cardTheme === "forest" || cardTheme === "stardust" ? secHex : (isFreeUser ? "#B8963A" : priHex);
+
+  const isFreeTemplate = layout.tier === "free";
+  const isPlusTemplate = layout.tier === "plus";
+  const isProTemplate = layout.tier === "pro";
+
+  const getBlockProps = (blockName, delay) => {
+    const blockStyles = getBlockStyles(
+      blockName,
+      layout,
+      customTextAlign,
+      userHasCustomAlignment,
+      "invite",
+      customTextColor,
+      primaryTextColor,
+      userHasCustomTextColor
+    );
+    
+    let className = "";
+    const style = { ...blockStyles };
+    
+    if (isPlusTemplate) {
+      className = "animate-plus-fade-up";
+    } else if (isProTemplate) {
+      className = "animate-pro-text-reveal";
+      style.animationDelay = delay;
+    }
+    
+    return { className, style };
+  };
 
   const isEnvelopeDark = ["navy", "stardust", "forest", "custom"].includes(cardTheme);
   const envelopeBg = cardTheme === "custom"
@@ -1640,15 +1785,24 @@ const InvitePage = () => {
         {/* ═══ THE CARD (this gets downloaded) ═══ */}
         <div
           ref={cardRef}
-          className="w-full max-w-[28rem] sm:max-w-[32rem] rounded-2xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+          key={customCardBg}
+          className={`w-full max-w-[28rem] sm:max-w-[32rem] rounded-2xl overflow-hidden transition-all duration-300 ${
+            isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
+          } ${
+            isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+          }`}
         >
           {/* Card background container */}
           <div
             className="relative w-full overflow-hidden"
             style={cardStyles}
           >
-            {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
-            {renderTemplateBackgroundGraphics(customCardBg, priHex, secHex, terHex, isFreeUser)}
+            {isProTemplate && <div className="pro-card-shimmer-overlay" />}
+
+            <div className={isProTemplate ? "animate-pro-float" : ""}>
+              {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
+              {renderTemplateBackgroundGraphics(customCardBg, priHex, secHex, terHex, isFreeUser)}
+            </div>
             {renderFrameBorder(layout.frameBorder)}
             {/* Custom Spacing & Scaling wrapper */}
             <div
@@ -1667,59 +1821,65 @@ const InvitePage = () => {
                 paddingLeft: `${layout.pl}px`,
                 paddingRight: `${layout.pr}px`,
                 transform: `translateX(${customHorizontalOffset || 0}px)`,
+                ...(layout?.contrastHelpers?.overlayBehindText ? {
+                  background: layout.contrastHelpers.overlayBehindText === true
+                    ? (layout.tier === "free" ? "rgba(255, 255, 255, 0.25)" : "rgba(0, 0, 0, 0.2)")
+                    : layout.contrastHelpers.overlayBehindText,
+                  borderRadius: "16px",
+                  backdropFilter: "blur(4px)",
+                  boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)",
+                  padding: "16px",
+                  width: "90%",
+                  margin: "0 auto",
+                } : {})
               }}
             >
               {/* ── Wedding Invitation title ── */}
               <h2
+                {...getBlockProps("title", "100ms")}
                 style={{
+                  ...getBlockProps("title", "100ms").style,
                   fontFamily: activeFont,
-                  fontSize: "2em",
-                  lineHeight: 1.25,
-                  color: primaryTextColor,
                   fontWeight: headingWeight,
-                  textShadow: layout.textShadow || "none",
                 }}
-                className="mt-3"
               >
                 Wedding Invitation
               </h2>
 
               {/* ornament divider */}
-              {renderOrnamentDivider(layout.dividerType, primaryTextColor, "mb-5")}
+              <div {...getBlockProps("divider1", "300ms")} className={`${getBlockProps("divider1", "300ms").className} flex justify-center w-full`}>
+                {renderOrnamentDivider(layout.dividerType, getBlockProps("divider1", "300ms").style.color, "my-3")}
+              </div>
 
               {/* ── Marriage between ── */}
               <p
+                {...getBlockProps("subtitle", "500ms")}
                 style={{
+                  ...getBlockProps("subtitle", "500ms").style,
                   ...script,
-                  fontSize: "1.35em",
                   fontStyle: "italic",
-                  color: primaryTextColor,
-                  textShadow: layout.textShadow || "none",
                 }}
-                className="mb-1"
               >
                 Marriage between
               </p>
 
               {/* ── Couple names ── */}
               <h1
+                {...getBlockProps("coupleNames", "700ms")}
+                className={`${getBlockProps("coupleNames", "700ms").className} leading-tight`}
                 style={{
+                  ...getBlockProps("coupleNames", "700ms").style,
                   fontFamily: activeFont,
-                  fontSize: "2.6em",
-                  lineHeight: 1.1,
-                  color: primaryTextColor,
                   fontWeight: headingWeight,
-                  textShadow: layout.textShadow || "none",
                   backgroundImage: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "linear-gradient(135deg, #FFF 0%, #D8B76A 60%, #A37F28 100%)" : "none",
                   WebkitBackgroundClip: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "text" : "border-box",
                   WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "transparent" : "initial",
                   display: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "inline-block" : "block"
                 }}
-                className="mb-1 leading-tight"
               >
                 {invitation.userId?.partner1Name || "Partner 1"}{" "}
                 <span style={{ 
-                  color: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : primaryTextColor,
+                  color: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : getBlockProps("coupleNames", "700ms").style.color,
                   WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : "initial",
                   opacity: 0.9 
                 }}>
@@ -1729,45 +1889,39 @@ const InvitePage = () => {
               </h1>
 
               {/* ornament */}
-              {renderOrnamentDivider(layout.dividerType, primaryTextColor, "my-4", true)}
+              <div {...getBlockProps("divider2", "900ms")} className={`${getBlockProps("divider2", "900ms").className} flex justify-center w-full`}>
+                {renderOrnamentDivider(layout.dividerType, getBlockProps("divider2", "900ms").style.color, "my-3", true)}
+              </div>
 
               {/* ── You are cordially invited ── */}
               <p
+                {...getBlockProps("greeting", "1100ms")}
                 style={{
-                  fontFamily: cardStyles.fontFamily,
-                  fontSize: "1.05em",
-                  color: primaryTextColor,
-                  textShadow: layout.textShadow || "none",
+                  ...getBlockProps("greeting", "1100ms").style,
                 }}
-                className="mb-4"
               >
                 You are cordially invited
               </p>
 
               {/* ── Salutation (customized greeting) ── */}
               <p
+                {...getBlockProps("greeting", "1100ms")}
                 style={{
+                  ...getBlockProps("greeting", "1100ms").style,
                   ...script,
-                  fontSize: "1.6em",
                   fontStyle: "italic",
-                  color: primaryTextColor,
-                  textShadow: layout.textShadow || "none",
                 }}
-                className="mb-3"
               >
                 {invitation.greeting || `Dear ${invitation.guestName},`}
               </p>
 
               {/* ── Custom message ── */}
               <p
+                {...getBlockProps("message", "1300ms")}
+                className={`${getBlockProps("message", "1300ms").className} opacity-90`}
                 style={{
-                  fontFamily: cardStyles.fontFamily,
-                  fontSize: "1em",
-                  lineHeight: 1.8,
-                  color: primaryTextColor,
-                  textShadow: layout.textShadow || "none",
+                  ...getBlockProps("message", "1300ms").style,
                 }}
-                className="mb-5 max-w-60"
               >
                 {invitation.customMessage}
               </p>
@@ -1775,13 +1929,10 @@ const InvitePage = () => {
               {/* ── Date ── */}
               {formattedDate && (
                 <p
+                  {...getBlockProps("details", "1500ms")}
                   style={{
-                    fontFamily: cardStyles.fontFamily,
-                    fontSize: "0.95em",
-                    color: primaryTextColor,
-                    textShadow: layout.textShadow || "none",
+                    ...getBlockProps("details", "1500ms").style,
                   }}
-                  className="mb-2"
                 >
                   Date : {formattedDate}
                 </p>
@@ -1789,13 +1940,10 @@ const InvitePage = () => {
 
               {/* ── Time ── */}
               <p
+                {...getBlockProps("details", "1600ms")}
                 style={{
-                  fontFamily: cardStyles.fontFamily,
-                  fontSize: "0.95em",
-                  color: primaryTextColor,
-                  textShadow: layout.textShadow || "none",
+                  ...getBlockProps("details", "1600ms").style,
                 }}
-                className="mb-2"
               >
                 Time : {formattedTimeWithFormat || "To be announced"}
               </p>
@@ -1807,16 +1955,14 @@ const InvitePage = () => {
                     e.preventDefault();
                     setMapSelectAddress({ label: venueName || venue, query: venue });
                   }}
+                  {...getBlockProps("details", "1700ms")}
                   style={{
-                    fontFamily: cardStyles.fontFamily,
-                    fontSize: "0.95em",
-                    color: primaryTextColor,
+                    ...getBlockProps("details", "1700ms").style,
                     textDecoration: "underline",
                     textDecorationColor: `${accentColor}55`,
                     textUnderlineOffset: "3px",
-                    textShadow: layout.textShadow || "none",
                   }}
-                  className="mb-2 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2 text-center mx-auto"
+                  className={`${getBlockProps("details", "1700ms").className} hover:opacity-80 transition block w-full px-2`}
                 >
                   Location: {venueName || venue}
                 </button>
@@ -1828,54 +1974,57 @@ const InvitePage = () => {
                     e.preventDefault();
                     setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
                   }}
+                  {...getBlockProps("reception", "1800ms")}
                   style={{
-                    fontFamily: cardStyles.fontFamily,
-                    fontSize: "0.95em",
-                    color: primaryTextColor,
+                    ...getBlockProps("reception", "1800ms").style,
                     textDecoration: "underline",
                     textDecorationColor: `${accentColor}55`,
                     textUnderlineOffset: "3px",
-                    textShadow: layout.textShadow || "none",
                   }}
-                  className="mb-5 hover:opacity-80 transition block w-full max-w-[260px] break-words whitespace-normal px-2 text-center mx-auto"
+                  className={`${getBlockProps("reception", "1800ms").className} hover:opacity-80 transition block w-full px-2`}
                 >
                   Reception at: {receptionName || receptionLocation}
                 </button>
               )}
 
               {/* bottom ornament */}
-              {renderOrnamentDivider(layout.dividerType, primaryTextColor, "mb-4", true)}
+              <div {...getBlockProps("divider2", "1900ms")} className={`${getBlockProps("divider2", "1900ms").className} flex justify-center w-full`}>
+                {renderOrnamentDivider(layout.dividerType, primaryTextColor, "my-3", true)}
+              </div>
 
               {/* Colors */}
               {weddingColors.length > 0 && (
-                <div className="mb-4">
+                <div
+                  {...getBlockProps("colors", "2000ms")}
+                  style={{
+                    ...getBlockProps("colors", "2000ms").style,
+                  }}
+                >
                   <p
                     style={{
-                      fontFamily: cardStyles.fontFamily,
-                      fontSize: "0.7em",
-                      letterSpacing: "0.12em",
-                      color: primaryTextColor,
+                      color: getBlockProps("colors", "2000ms").style.color,
                       opacity: 0.8,
-                      textShadow: layout.textShadow || "none",
+                      textShadow: getBlockProps("colors", "2000ms").style.textShadow || "none",
                     }}
-                    className="uppercase mb-2"
+                    className="uppercase mb-2 tracking-widest"
                   >
                     Colour of the Day
                   </p>
                   <div className="flex flex-wrap justify-center gap-1.5">
                     {weddingColors.map((name, i) => {
                       const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999";
+                      const blockStyles = getBlockProps("colors", "2000ms").style;
                       return (
                         <div
                           key={i}
-                          className="flex items-center gap-1 rounded-full px-2 py-0.5 border text-[0.65em] font-bold shadow-xs whitespace-nowrap"
+                          className="flex items-center gap-1.5 rounded-full px-2.5 py-0.75 border text-[1.2em] font-extrabold shadow-xs whitespace-nowrap"
                           style={{
                             borderColor: `${hex}44`,
                             backgroundColor: `${hex}11`,
                           }}
                         >
-                          <div className="h-2 w-2 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: hex }} />
-                          <span style={{ color: primaryTextColor }}>{name}</span>
+                          <div className="h-2.5 w-2.5 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: hex }} />
+                          <span style={{ color: blockStyles.color }}>{name}</span>
                         </div>
                       );
                     })}
@@ -1885,15 +2034,13 @@ const InvitePage = () => {
 
               {/* Category badge */}
               <p
+                {...getBlockProps("details", "2100ms")}
                 style={{
-                  fontFamily: cardStyles.fontFamily,
-                  fontSize: "1.25rem",
+                  ...getBlockProps("details", "2100ms").style,
                   letterSpacing: "0.18em",
-                  color: primaryTextColor,
                   fontWeight: 700,
-                  textShadow: layout.textShadow || "none",
                 }}
-                className="uppercase"
+                className={`${getBlockProps("details", "2100ms").className} uppercase`}
               >
                 {invitation.category || "Guest"}
               </p>
@@ -1955,7 +2102,9 @@ const InvitePage = () => {
           <button
             id="rsvp-open-btn"
             onClick={() => setShowForm(true)}
-            className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.45)] download-exclude"
+            className={`rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.45)] download-exclude ${
+              isProTemplate ? "animate-pro-btn-glow" : ""
+            }`}
           >
             ✦ RSVP Now
           </button>

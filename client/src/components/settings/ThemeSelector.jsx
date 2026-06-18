@@ -30,26 +30,32 @@ export const PREMADE_TEMPLATES = [
   {
     tier: "free",
     name: "Blush Pink Watercolor",
-    url: "/templates/template_free_2.png",
-    preview: "/templates/template_free_2.png",
+    url: "/templates/Blush Pink Watercolor.png",
+    preview: "/templates/Blush Pink Watercolor.png",
   },
   {
     tier: "free",
     name: "Cream Floral Elegance",
-    url: "/templates/template_free_3.png",
-    preview: "/templates/template_free_3.png",
+    url: "/templates/Cream Floral Elegance.png",
+    preview: "/templates/Cream Floral Elegance.png",
   },
   {
     tier: "plus",
     name: "Emerald Eucalyptus Frame",
-    url: "/templates/template_plus_1.png",
-    preview: "/templates/template_plus_1.png",
+    url: "/templates/Emerald Eucalyptus Frame.png",
+    preview: "/templates/Emerald Eucalyptus Frame.png",
   },
   {
     tier: "plus",
     name: "Royal Navy Lace Accent",
-    url: "/templates/template_plus_2.png",
-    preview: "/templates/template_plus_2.png",
+    url: "/templates/Royal Navy Lace Accent.png",
+    preview: "/templates/Royal Navy Lace Accent.png",
+  },
+  {
+    tier: "plus",
+    name: "Elegant Purple & Silver Floral",
+    url: "/templates/Elegant purple and silver floral.png",
+    preview: "/templates/Elegant purple and silver floral.png",
   },
   {
     tier: "pro",
@@ -59,27 +65,33 @@ export const PREMADE_TEMPLATES = [
   },
   {
     tier: "pro",
+    name: "Deep Black Rose",
+    url: "/templates/Midnight Black Floral2.png",
+    preview: "/templates/Midnight Black Floral2.png",
+  },
+  {
+    tier: "pro",
     name: "Dark Black Gold Marble",
-    url: "/templates/template_pro_1.png",
-    preview: "/templates/template_pro_1.png",
+    url: "/templates/Dark Black Gold Marble.png",
+    preview: "/templates/Dark Black Gold Marble.png",
   },
   {
     tier: "pro",
     name: "Burgundy Velvet Filigree",
-    url: "/templates/template_pro_2.png",
-    preview: "/templates/template_pro_2.png",
+    url: "/templates/Burgundy Velvet Filigree.png",
+    preview: "/templates/Burgundy Velvet Filigree.png",
   },
   {
     tier: "pro",
     name: "Royal Emerald Gold Frame",
-    url: "/templates/template_pro_3.png",
-    preview: "/templates/template_pro_3.png",
+    url: "/templates/Royal Emerald Gold Frame.png",
+    preview: "/templates/Royal Emerald Gold Frame.png",
   },
   {
     tier: "pro",
     name: "Blush Pink & Rose Gold Glitter",
-    url: "/templates/template_pro_4.png",
-    preview: "/templates/template_pro_4.png",
+    url: "/templates/Blush Pink & Rose Gold Glitter.png",
+    preview: "/templates/Blush Pink & Rose Gold Glitter.png",
   },
   {
     tier: "pro",
@@ -129,6 +141,9 @@ const ThemeSelector = () => {
     setCustomTextBoldness,
     customTextAlign,
     setCustomTextAlign,
+    setUserHasCustomAlignment,
+    userHasCustomTextColor,
+    setUserHasCustomTextColor,
     weddingColors,
     setWeddingColors,
     isFree,
@@ -163,6 +178,8 @@ const ThemeSelector = () => {
     setCustomTextSize(1.0);
     setCustomTextBoldness("normal");
     setCustomTextAlign("center");
+    setUserHasCustomAlignment(false);
+    setUserHasCustomTextColor(false);
     if (customBgInputRef && customBgInputRef.current) {
       customBgInputRef.current.value = "";
     }
@@ -203,6 +220,7 @@ const ThemeSelector = () => {
               }
               setCardTheme(val);
               setCustomTextColor(getSmartTextColor(val, customCardBg));
+              setUserHasCustomTextColor(false);
             }}
           >
             {THEMES.map((theme) => (
@@ -330,7 +348,7 @@ const ThemeSelector = () => {
           </div>
         )}
 
-        {/* Custom text color override */}
+         {/* Custom text color override */}
         {!isFree && (
           <div>
             <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50 font-semibold">Custom Text Color Override (Plus / Pro)</label>
@@ -339,13 +357,19 @@ const ThemeSelector = () => {
                 type="color"
                 className="w-10 h-10 border border-white/20 rounded bg-transparent cursor-pointer"
                 value={customTextColor}
-                onChange={(e) => setCustomTextColor(e.target.value)}
+                onChange={(e) => {
+                  setCustomTextColor(e.target.value);
+                  setUserHasCustomTextColor(true);
+                }}
               />
               <input
                 type="text"
                 className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 text-xs outline-none focus:border-[#D8B76A]/60 text-white font-mono"
                 value={customTextColor}
-                onChange={(e) => setCustomTextColor(e.target.value)}
+                onChange={(e) => {
+                  setCustomTextColor(e.target.value);
+                  setUserHasCustomTextColor(true);
+                }}
                 placeholder="#1A2E4A"
               />
             </div>
@@ -374,6 +398,7 @@ const ThemeSelector = () => {
                   setCustomCardBg("");
                   setCardTheme("plain");
                   setCustomTextColor(getSmartTextColor("plain", ""));
+                  setUserHasCustomTextColor(false);
                 }}
                 className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${
                   cardTheme === "plain"
@@ -403,6 +428,8 @@ const ThemeSelector = () => {
                         if (layout && layout.align) {
                           setCustomTextAlign(layout.align);
                         }
+                        setUserHasCustomAlignment(false);
+                        setUserHasCustomTextColor(false);
                       }}
                       className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                         }`}
@@ -449,6 +476,8 @@ const ThemeSelector = () => {
                         if (layout && layout.align) {
                           setCustomTextAlign(layout.align);
                         }
+                        setUserHasCustomAlignment(false);
+                        setUserHasCustomTextColor(false);
                       }}
                       className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                         }`}
@@ -505,6 +534,8 @@ const ThemeSelector = () => {
                         if (layout && layout.align) {
                           setCustomTextAlign(layout.align);
                         }
+                        setUserHasCustomAlignment(false);
+                        setUserHasCustomTextColor(false);
                       }}
                       className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                         }`}
@@ -630,102 +661,103 @@ const ThemeSelector = () => {
           </div>
         )}
 
-        {/* Fine-Tuning Controls — Always visible for Pro, any theme */}
-        {isPro && (
-          <div className="space-y-4">
-            <p className="text-[10px] text-amber-400 uppercase font-bold tracking-widest">Fine-Tuning (Pro)</p>
+        {/* Fine-Tuning Controls — Always visible for all tiers, any theme */}
+        <div className="space-y-4">
+          <p className="text-[10px] text-amber-400 uppercase font-bold tracking-widest">Fine-Tuning</p>
 
-            <div>
-              <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
-                <span>Vertical position offset</span>
-                <span className="font-mono text-[#D8B76A]">{customVerticalOffset}px</span>
-              </div>
-              <input
-                type="range"
-                min="-150"
-                max="150"
-                className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A]"
-                value={customVerticalOffset}
-                onChange={(e) => setCustomVerticalOffset(Number(e.target.value))}
-              />
+          <div>
+            <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
+              <span>Vertical position offset</span>
+              <span className="font-mono text-[#D8B76A]">{customVerticalOffset}px</span>
             </div>
+            <input
+              type="range"
+              min="-150"
+              max="150"
+              className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A]"
+              value={customVerticalOffset}
+              onChange={(e) => setCustomVerticalOffset(Number(e.target.value))}
+            />
+          </div>
 
-            <div>
-              <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
-                <span>Horizontal position offset</span>
-                <span className="font-mono text-[#D8B76A]">{customHorizontalOffset}px</span>
-              </div>
-              <input
-                type="range"
-                min="-100"
-                max="100"
-                className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A]"
-                value={customHorizontalOffset}
-                onChange={(e) => setCustomHorizontalOffset(Number(e.target.value))}
-              />
+          <div>
+            <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
+              <span>Horizontal position offset</span>
+              <span className="font-mono text-[#D8B76A]">{customHorizontalOffset}px</span>
             </div>
+            <input
+              type="range"
+              min="-100"
+              max="100"
+              className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A]"
+              value={customHorizontalOffset}
+              onChange={(e) => setCustomHorizontalOffset(Number(e.target.value))}
+            />
+          </div>
 
-            <div>
-              <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
-                <span>Text Size scale multiplier</span>
-                <span className="font-mono text-[#D8B76A]">{customTextSize}x</span>
-              </div>
-              <input
-                type="range"
-                min="0.6"
-                max="1.6"
-                step="0.05"
-                className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A]"
-                value={customTextSize}
-                onChange={(e) => setCustomTextSize(Number(e.target.value))}
-              />
+          <div>
+            <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
+              <span>Text Size scale multiplier</span>
+              <span className="font-mono text-[#D8B76A]">{customTextSize}x</span>
             </div>
+            <input
+              type="range"
+              min="0.6"
+              max="1.6"
+              step="0.05"
+              className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A]"
+              value={customTextSize}
+              onChange={(e) => setCustomTextSize(Number(e.target.value))}
+            />
+          </div>
 
-            <div>
-              <label className="block text-[9px] text-white/50 uppercase mb-2">Text Boldness (Weight)</label>
-              <div className="flex gap-2">
-                {[
-                  { value: "normal", label: "Normal" },
-                  { value: "medium", label: "Medium" },
-                  { value: "bold", label: "Bold" },
-                ].map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => setCustomTextBoldness(item.value)}
-                    className={`flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition cursor-pointer ${
-                      customTextBoldness === item.value
-                        ? "bg-[#D8B76A] text-[#070A13]"
-                        : "bg-white/5 text-white/60 hover:bg-white/10"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[9px] text-white/50 uppercase mb-2">Text Alignment</label>
-              <div className="flex gap-2">
-                {["left", "center", "right"].map((align) => (
-                  <button
-                    key={align}
-                    type="button"
-                    onClick={() => setCustomTextAlign(align)}
-                    className={`flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition cursor-pointer ${
-                      customTextAlign === align
-                        ? "bg-[#D8B76A] text-[#070A13]"
-                        : "bg-white/5 text-white/60 hover:bg-white/10"
-                    }`}
-                  >
-                    {align}
-                  </button>
-                ))}
-              </div>
+          <div>
+            <label className="block text-[9px] text-white/50 uppercase mb-2">Text Boldness (Weight)</label>
+            <div className="flex gap-2">
+              {[
+                { value: "normal", label: "Normal" },
+                { value: "medium", label: "Medium" },
+                { value: "bold", label: "Bold" },
+              ].map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setCustomTextBoldness(item.value)}
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition cursor-pointer ${
+                    customTextBoldness === item.value
+                      ? "bg-[#D8B76A] text-[#070A13]"
+                      : "bg-white/5 text-white/60 hover:bg-white/10"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
           </div>
-        )}
+
+          <div>
+            <label className="block text-[9px] text-white/50 uppercase mb-2">Text Alignment</label>
+            <div className="flex gap-2">
+              {["left", "center", "right"].map((align) => (
+                <button
+                  key={align}
+                  type="button"
+                  onClick={() => {
+                    setCustomTextAlign(align);
+                    setUserHasCustomAlignment(true);
+                  }}
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition cursor-pointer ${
+                    customTextAlign === align
+                      ? "bg-[#D8B76A] text-[#070A13]"
+                      : "bg-white/5 text-white/60 hover:bg-white/10"
+                  }`}
+                >
+                  {align}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
         {/* General Theme Reset defaults (Visible to all tiers) */}
         <div className="pt-4 border-t border-white/5 flex justify-end">

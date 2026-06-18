@@ -56,6 +56,10 @@ const userSchema = new mongoose.Schema(
       default: "#1A2E4A",
       trim: true,
     },
+    userHasCustomTextColor: {
+      type: Boolean,
+      default: false,
+    },
     customFontFamily: {
       type: String,
       default: "classic",
@@ -102,6 +106,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["left", "center", "right"],
       default: "center",
+    },
+    userHasCustomAlignment: {
+      type: Boolean,
+      default: false,
     },
     customHorizontalOffset: {
       type: Number,

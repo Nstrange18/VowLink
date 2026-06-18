@@ -84,6 +84,7 @@ const userPayload = (user) => ({
   tier: user.tier || "free",
   cardTheme: user.cardTheme || "floral",
   customTextColor: user.customTextColor || "#1A2E4A",
+  userHasCustomTextColor: typeof user.userHasCustomTextColor === "boolean" ? user.userHasCustomTextColor : false,
   customFontFamily: user.customFontFamily || "classic",
   customVerticalOffset: typeof user.customVerticalOffset === "number" ? user.customVerticalOffset : 0,
   customTextSize: typeof user.customTextSize === "number" ? user.customTextSize : 1.0,
@@ -93,6 +94,7 @@ const userPayload = (user) => ({
   shortlistedVenues: user.shortlistedVenues || [],
   role: (user.role === "admin" && user.email?.toLowerCase() === "nwubachukwuemelie@gmail.com") ? "admin" : "user",
   customTextAlign: user.customTextAlign || "center",
+  userHasCustomAlignment: typeof user.userHasCustomAlignment === "boolean" ? user.userHasCustomAlignment : false,
   customHorizontalOffset: typeof user.customHorizontalOffset === "number" ? user.customHorizontalOffset : 0,
   smartLayoutEnabled: typeof user.smartLayoutEnabled === "boolean" ? user.smartLayoutEnabled : true,
   registryEnabled: typeof user.registryEnabled === "boolean" ? user.registryEnabled : false,
@@ -134,6 +136,7 @@ const userPublic = (user) => ({
   // These are fetched separately by the settings page via GET /api/auth/me.
   cardTheme: user.cardTheme || "floral",
   customTextColor: user.customTextColor || "#1A2E4A",
+  userHasCustomTextColor: typeof user.userHasCustomTextColor === "boolean" ? user.userHasCustomTextColor : false,
   customFontFamily: user.customFontFamily || "classic",
   customVerticalOffset: typeof user.customVerticalOffset === "number" ? user.customVerticalOffset : 0,
   customTextSize: typeof user.customTextSize === "number" ? user.customTextSize : 1.0,
@@ -144,6 +147,7 @@ const userPublic = (user) => ({
   pageBgTemplate: user.pageBgTemplate || "",
   role: (user.role === "admin" && user.email?.toLowerCase() === "nwubachukwuemelie@gmail.com") ? "admin" : "user",
   customTextAlign: user.customTextAlign || "center",
+  userHasCustomAlignment: typeof user.userHasCustomAlignment === "boolean" ? user.userHasCustomAlignment : false,
   customHorizontalOffset: typeof user.customHorizontalOffset === "number" ? user.customHorizontalOffset : 0,
   smartLayoutEnabled: typeof user.smartLayoutEnabled === "boolean" ? user.smartLayoutEnabled : true,
   registryEnabled: typeof user.registryEnabled === "boolean" ? user.registryEnabled : false,
@@ -344,6 +348,8 @@ router.put("/me", protect, async (req, res) => {
       couplePhotoUrl,
       coupleOverlayOpacity,
       customTextAlign,
+      userHasCustomAlignment,
+      userHasCustomTextColor,
       customHorizontalOffset,
       smartLayoutEnabled,
       registryEnabled,
@@ -419,8 +425,8 @@ router.put("/me", protect, async (req, res) => {
     // Apply tier limitations for visual styles
     if (user.tier === "free") {
       const allowedFreeBgs = [
-        "/templates/template_free_2.png",
-        "/templates/template_free_3.png"
+        "/templates/Blush Pink Watercolor.png",
+        "/templates/Cream Floral Elegance.png"
       ];
       // Free users can use floral or custom theme with free background templates
       if (cardTheme === "custom" && customCardBg && allowedFreeBgs.includes(customCardBg)) {
@@ -442,19 +448,16 @@ router.put("/me", protect, async (req, res) => {
       } else {
         user.customTextColor = "#1A2E4A";
       }
-      user.customVerticalOffset = 0;
-      user.customTextSize = 1.0;
-      user.customTextBoldness = "normal";
-      user.customHorizontalOffset = 0;
       user.couplePhotoUrl = "";
       user.coupleOverlayOpacity = 0.45;
     } else if (user.tier === "plus") {
       const allowedPlusBgs = [
         "/templates/template_free_1.png",
-        "/templates/template_free_2.png",
-        "/templates/template_free_3.png",
-        "/templates/template_plus_1.png",
-        "/templates/template_plus_2.png"
+        "/templates/Blush Pink Watercolor.png",
+        "/templates/Cream Floral Elegance.png",
+        "/templates/Emerald Eucalyptus Frame.png",
+        "/templates/Royal Navy Lace Accent.png",
+        "/templates/Elegant purple and silver floral.png"
       ];
       // Plus tier layout permissions
       if (cardTheme && cardTheme !== "custom" && ["floral", "minimalist", "navy", "plain"].includes(cardTheme)) {
@@ -480,12 +483,6 @@ router.put("/me", protect, async (req, res) => {
       if (customTextColor !== undefined) user.customTextColor = customTextColor;
       if (couplePhotoUrl !== undefined) user.couplePhotoUrl = couplePhotoUrl;
       if (typeof coupleOverlayOpacity === "number") user.coupleOverlayOpacity = coupleOverlayOpacity;
-      
-      // Pro-only manual offsets/styles are cleared/locked for Plus
-      user.customVerticalOffset = 0;
-      user.customTextSize = 1.0;
-      user.customTextBoldness = "normal";
-      user.customHorizontalOffset = 0;
     } else if (user.tier === "pro") {
       // Pro tier unlocks everything
       if (cardTheme) user.cardTheme = cardTheme;
@@ -496,19 +493,29 @@ router.put("/me", protect, async (req, res) => {
       if (customFontFamily !== undefined) user.customFontFamily = customFontFamily;
       if (customTextColor !== undefined) user.customTextColor = customTextColor;
       if (customCardBg !== undefined) user.customCardBg = customCardBg;
-      if (typeof customVerticalOffset === "number") user.customVerticalOffset = customVerticalOffset;
-      if (typeof customHorizontalOffset === "number") user.customHorizontalOffset = customHorizontalOffset;
-      if (typeof customTextSize === "number") user.customTextSize = customTextSize;
-      if (customTextBoldness !== undefined && ["normal", "medium", "bold"].includes(customTextBoldness)) {
-        user.customTextBoldness = customTextBoldness;
-      }
       if (couplePhotoUrl !== undefined) user.couplePhotoUrl = couplePhotoUrl;
       if (typeof coupleOverlayOpacity === "number") user.coupleOverlayOpacity = coupleOverlayOpacity;
       if (pageBgTemplate !== undefined) user.pageBgTemplate = pageBgTemplate;
     }
 
+    // Apply fine-tuning inputs for all tiers
+    if (typeof customVerticalOffset === "number") user.customVerticalOffset = customVerticalOffset;
+    if (typeof customHorizontalOffset === "number") user.customHorizontalOffset = customHorizontalOffset;
+    if (typeof customTextSize === "number") user.customTextSize = customTextSize;
+    if (customTextBoldness !== undefined && ["normal", "medium", "bold"].includes(customTextBoldness)) {
+      user.customTextBoldness = customTextBoldness;
+    }
+
     if (customTextAlign && ["left", "center", "right"].includes(customTextAlign)) {
       user.customTextAlign = customTextAlign;
+    }
+
+    if (typeof userHasCustomAlignment === "boolean") {
+      user.userHasCustomAlignment = userHasCustomAlignment;
+    }
+
+    if (typeof userHasCustomTextColor === "boolean") {
+      user.userHasCustomTextColor = userHasCustomTextColor;
     }
 
     if (typeof smartLayoutEnabled === "boolean") {

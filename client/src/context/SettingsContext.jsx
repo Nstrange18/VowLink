@@ -92,6 +92,8 @@ export const SettingsProvider = ({ children }) => {
   const [customTextSize, setCustomTextSize] = useState(storedUser.customTextSize || 1.0);
   const [customTextBoldness, setCustomTextBoldness] = useState(storedUser.customTextBoldness || "normal");
   const [customTextAlign, setCustomTextAlign] = useState(storedUser.customTextAlign || "center");
+  const [userHasCustomAlignment, setUserHasCustomAlignment] = useState(storedUser.userHasCustomAlignment || false);
+  const [userHasCustomTextColor, setUserHasCustomTextColor] = useState(storedUser.userHasCustomTextColor || false);
   const [couplePhotoUrl, setCouplePhotoUrl] = useState(storedUser.couplePhotoUrl || "");
   const [coupleOverlayOpacity, setCoupleOverlayOpacity] = useState(storedUser.coupleOverlayOpacity ?? 0.45);
   const [musicUrl, setMusicUrl] = useState(storedUser.musicUrl || "");
@@ -218,6 +220,8 @@ export const SettingsProvider = ({ children }) => {
         if (typeof freshUser.customTextSize === "number") setCustomTextSize(freshUser.customTextSize);
         if (freshUser.customTextBoldness) setCustomTextBoldness(freshUser.customTextBoldness);
         if (freshUser.customTextAlign) setCustomTextAlign(freshUser.customTextAlign);
+        if (typeof freshUser.userHasCustomAlignment === "boolean") setUserHasCustomAlignment(freshUser.userHasCustomAlignment);
+        if (typeof freshUser.userHasCustomTextColor === "boolean") setUserHasCustomTextColor(freshUser.userHasCustomTextColor);
         if (typeof freshUser.registryEnabled === "boolean") setRegistryEnabled(freshUser.registryEnabled);
         if (freshUser.registryBankName) setRegistryBankName(freshUser.registryBankName);
         if (freshUser.registryAccountName) setRegistryAccountName(freshUser.registryAccountName);
@@ -328,6 +332,8 @@ export const SettingsProvider = ({ children }) => {
         customTextSize: Number(customTextSize),
         customTextBoldness,
         customTextAlign,
+        userHasCustomAlignment,
+        userHasCustomTextColor,
         musicUrl: musicUrlToSave,
         galleryPhotos,
         registryEnabled: Boolean(registryEnabled),
@@ -548,6 +554,8 @@ export const SettingsProvider = ({ children }) => {
     setCustomTextSize(1.0);
     setCustomTextBoldness("normal");
     setCustomTextAlign("center");
+    setUserHasCustomAlignment(false);
+    setUserHasCustomTextColor(false);
     setCouplePhotoUrl("");
     setCoupleOverlayOpacity(0.45);
     setMusicUrl("");
@@ -615,21 +623,23 @@ export const SettingsProvider = ({ children }) => {
     if (["floral", "minimalist"].includes(theme)) return "#1A2E4A";
     if (theme === "custom" && cardBg) {
       const darkTemplates = [
-        "/templates/template_plus_1.png",
-        "/templates/template_plus_2.png",
+        "/templates/Emerald Eucalyptus Frame.png",
+        "/templates/Royal Navy Lace Accent.png",
         "/templates/template_plus_3.png",
-        "/templates/template_pro_1.png",
-        "/templates/template_pro_2.png",
-        "/templates/template_pro_3.png",
+        "/templates/Dark Black Gold Marble.png",
+        "/templates/Burgundy Velvet Filigree.png",
+        "/templates/Royal Emerald Gold Frame.png",
         "/templates/template_pro_6.png",
         "/templates/template_pro_7.png",
+        "/templates/Midnight Black Floral2.png",
       ];
       const lightTemplates = [
         "/templates/template_free_1.png",
-        "/templates/template_free_2.png",
-        "/templates/template_free_3.png",
-        "/templates/template_pro_4.png",
+        "/templates/Blush Pink Watercolor.png",
+        "/templates/Cream Floral Elegance.png",
+        "/templates/Blush Pink & Rose Gold Glitter.png",
         "/templates/template_pro_5.png",
+        "/templates/Elegant purple and silver floral.png",
       ];
       if (darkTemplates.includes(cardBg)) return "#F5EBD6";
       if (lightTemplates.includes(cardBg)) return "#1A2E4A";
@@ -642,7 +652,7 @@ export const SettingsProvider = ({ children }) => {
     if (!overrideEnabled) return;
 
     const leftAlignTemplates = [
-      "/templates/template_plus_2.png",
+      "/templates/Royal Navy Lace Accent.png",
       "/templates/template_plus_3.png",
     ];
 
@@ -654,7 +664,7 @@ export const SettingsProvider = ({ children }) => {
       toast.info("🪄 Smart layout optimized: Left alignment, 25px margin & 0.9x text size applied to prevent design overlap!", {
         toastId: "smart-align-toast"
       });
-    } else if (templateUrl === "/templates/template_plus_1.png") {
+    } else if (templateUrl === "/templates/Emerald Eucalyptus Frame.png") {
       // Emerald Eucalyptus Frame - shift vertically to avoid leaf graphics
       setCustomTextAlign("center");
       setCustomHorizontalOffset(0);
@@ -664,10 +674,12 @@ export const SettingsProvider = ({ children }) => {
         toastId: "smart-align-toast"
       });
     } else if (
-      templateUrl === "/templates/template_pro_1.png" ||
-      templateUrl === "/templates/template_pro_2.png" ||
-      templateUrl === "/templates/template_pro_3.png" ||
-      templateUrl === "/templates/template_pro_4.png" ||
+      templateUrl === "/templates/Elegant purple and silver floral.png" ||
+      templateUrl === "/templates/Midnight Black Floral2.png" ||
+      templateUrl === "/templates/Dark Black Gold Marble.png" ||
+      templateUrl === "/templates/Burgundy Velvet Filigree.png" ||
+      templateUrl === "/templates/Royal Emerald Gold Frame.png" ||
+      templateUrl === "/templates/Blush Pink & Rose Gold Glitter.png" ||
       templateUrl === "/templates/template_pro_5.png" ||
       templateUrl === "/templates/template_pro_6.png" ||
       templateUrl === "/templates/template_pro_7.png"
@@ -749,64 +761,56 @@ export const SettingsProvider = ({ children }) => {
       fontFamily: activeFont,
     };
   } else if (cardTheme === "custom" && customCardBg) {
-    let bg = "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)";
+    let bg = `url('${customCardBg}') center/cover no-repeat`;
     let color = "#1A2E4A";
     
     switch (customCardBg) {
       case "/templates/template_free_1.png":
-        bg = "url('/templates/template_free_1.png') center/cover no-repeat";
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
         break;
-      case "/templates/template_free_2.png":
-        bg = "radial-gradient(circle at 100% 100%, #FFF0F2 0%, #FFFDFD 70%)";
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
+      case "/templates/Blush Pink Watercolor.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3D2124";
         break;
-      case "/templates/template_free_3.png":
-        bg = "radial-gradient(circle at 0% 0%, #FAF6F0 0%, #FFFDF9 80%)";
+      case "/templates/Cream Floral Elegance.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
         break;
-      case "/templates/template_plus_1.png":
-        bg = "radial-gradient(circle, #0F2D1F 0%, #06170F 100%)";
+      case "/templates/Emerald Eucalyptus Frame.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
         break;
-      case "/templates/template_plus_2.png":
-        bg = "radial-gradient(circle at 100% 0%, #0D1C33 0%, #050B14 100%)";
+      case "/templates/Royal Navy Lace Accent.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/Elegant purple and silver floral.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3C2A4D";
         break;
       case "/templates/template_plus_3.png":
-        bg = "url('/templates/template_plus_3.png') center/cover no-repeat";
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/template_pro_1.png":
-        bg = "radial-gradient(circle at 100% 100%, #151515 0%, #080808 100%)";
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
-        break;
-      case "/templates/template_pro_2.png":
-        bg = "radial-gradient(circle at 100% 100%, #3D0C1A 0%, #1F050D 100%)";
+      case "/templates/Midnight Black Floral2.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/template_pro_3.png":
-        bg = "radial-gradient(circle, #0B2418 0%, #040F0A 100%)";
+      case "/templates/Dark Black Gold Marble.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
-      case "/templates/template_pro_4.png":
-        bg = "linear-gradient(135deg, #FFF5F6 0%, #FFEBEF 100%)";
+      case "/templates/Burgundy Velvet Filigree.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        break;
+      case "/templates/Royal Emerald Gold Frame.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        break;
+      case "/templates/Blush Pink & Rose Gold Glitter.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
         break;
       case "/templates/template_pro_5.png":
-        bg = "radial-gradient(circle at 0% 50%, #FCFAF7 0%, #F3EFE9 100%)";
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#5C6B5E";
         break;
       case "/templates/template_pro_6.png":
-        bg = "radial-gradient(circle, #18122B 0%, #0F0C20 100%)";
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
       case "/templates/template_pro_7.png":
-        bg = "radial-gradient(circle at 100% 50%, #1F2022 0%, #121314 100%)";
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
       default:
-        bg = `url('${customCardBg}') center/cover no-repeat`;
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
     }
     cardStyles = {
@@ -855,6 +859,8 @@ export const SettingsProvider = ({ children }) => {
         customTextSize, setCustomTextSize,
         customTextBoldness, setCustomTextBoldness,
         customTextAlign, setCustomTextAlign,
+        userHasCustomAlignment, setUserHasCustomAlignment,
+        userHasCustomTextColor, setUserHasCustomTextColor,
         couplePhotoUrl, setCouplePhotoUrl,
         coupleOverlayOpacity, setCoupleOverlayOpacity,
         musicUrl, setMusicUrl,
