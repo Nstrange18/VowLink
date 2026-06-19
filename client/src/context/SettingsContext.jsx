@@ -623,6 +623,7 @@ export const SettingsProvider = ({ children }) => {
     if (["floral", "minimalist"].includes(theme)) return "#1A2E4A";
     if (theme === "custom" && cardBg) {
       const darkTemplates = [
+        "/templates/elegant_gold_frame_with_navy_backdrop.png",
         "/templates/Emerald Eucalyptus Frame.png",
         "/templates/Royal Navy Lace Accent.png",
         "/templates/template_plus_3.png",
@@ -743,9 +744,8 @@ export const SettingsProvider = ({ children }) => {
     };
   } else if (cardTheme === "navy") {
     cardStyles = {
-      background: "radial-gradient(circle, #0F1F38 0%, #060D18 100%)",
-      border: `2px solid ${secHex}`,
-      color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : secHex,
+      background: "url('/templates/elegant_gold_frame_with_navy_backdrop.png') center/cover no-repeat",
+      color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A",
       fontFamily: activeFont,
     };
   } else if (cardTheme === "stardust") {
@@ -776,6 +776,9 @@ export const SettingsProvider = ({ children }) => {
         break;
       case "/templates/Emerald Eucalyptus Frame.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
+        break;
+      case "/templates/elegant_gold_frame_with_navy_backdrop.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
       case "/templates/Royal Navy Lace Accent.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";

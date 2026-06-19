@@ -132,6 +132,11 @@ export const getTemplateLayout = (theme, customCardBg) => {
         title: "#b1c4beff", subtitle: "#639c87ff", coupleNames: "#D8B76A", greeting: "#88d1b6ff", message: "#88d1b6ff", details: "#a5b1adff", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "none" });
 
+    case "/templates/elegant_gold_frame_with_navy_backdrop.png": // Royal Navy Gold Frame
+      return createPreset("plus", "center", 120, 120, 100, 100, "0 0 6px rgba(216, 183, 106, 0.5)", "gold", "gold", "68%", {}, {
+        title: "#D8B76A", subtitle: "#EADFC8", coupleNames: "#FFFFFF", greeting: "#FFF5E0", message: "#EADFC8", details: "#FFF5E0", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
+      }, { textShadow: "0 0 8px rgba(0,0,0,0.7)" });
+
     case "/templates/Royal Navy Lace Accent.png": // Royal Navy Lace Accent - Center (symmetric lace on both sides)
       return createPreset("plus", "center", 110, 110, 130, 130, "0 0 4px rgba(255,255,255,0.2)", "lace", "lace", "60%", {}, {
         title: "#D8B76A", subtitle: "#EADFC8", coupleNames: "#FFFFFF", greeting: "#FFF5E0", message: "#EADFC8", details: "#FFF5E0", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
@@ -193,7 +198,24 @@ export const getTemplateLayout = (theme, customCardBg) => {
 };
 
 /**
+ * Safe per-block font size caps (in em units).
+ * Prevents text from growing too large and breaking the card layout.
+ *   format: { preview: { min, max }, invite: { min, max } }
+ */
+const BLOCK_FONT_CAPS = {
+  title:       { preview: { min: 0.9,  max: 1.55 }, invite: { min: 1.2,  max: 2.4  } },
+  subtitle:    { preview: { min: 0.6,  max: 0.95 }, invite: { min: 0.8,  max: 1.55 } },
+  coupleNames: { preview: { min: 1.1,  max: 2.1  }, invite: { min: 1.4,  max: 3.0  } },
+  greeting:    { preview: { min: 0.6,  max: 0.95 }, invite: { min: 0.85, max: 1.85 } },
+  message:     { preview: { min: 0.55, max: 0.85 }, invite: { min: 0.75, max: 1.15 } },
+  details:     { preview: { min: 0.6,  max: 0.9  }, invite: { min: 0.75, max: 1.1  } },
+  reception:   { preview: { min: 0.6,  max: 0.9  }, invite: { min: 0.75, max: 1.1  } },
+  colors:      { preview: { min: 0.5,  max: 0.72 }, invite: { min: 0.65, max: 0.95 } },
+};
+
+/**
  * Returns compiled inline styles for a block name, applying layoutConfig variables.
+ * Accepts customTextSize to apply per-block clamped font scaling (never on parent wrapper).
  */
 export const getBlockStyles = (
   blockName,
@@ -203,7 +225,8 @@ export const getBlockStyles = (
   pageType,
   customTextColor,
   primaryTextColor,
-  userHasCustomTextColor
+  userHasCustomTextColor,
+  customTextSize = 1.0
 ) => {
   const layoutConfig = layout?.layoutConfig || {};
   const blockConfig = layoutConfig.blocks?.[blockName] || {};
@@ -225,8 +248,8 @@ export const getBlockStyles = (
   // Extract variables
   const mt = getVal("marginTop", undefined);
   const mb = getVal("marginBottom", undefined);
-  const maxWidth = getVal("maxWidth", undefined);
-  const fontSize = getVal("fontSize", undefined);
+  const blockMaxWidth = getVal("maxWidth", undefined);
+  const rawFontSize = getVal("fontSize", undefined);
   const lineHeight = getVal("lineHeight", undefined);
   const transform = getVal("transform", undefined);
 
@@ -241,16 +264,28 @@ export const getBlockStyles = (
     textAlign: finalAlignment,
     alignSelf,
     textShadow: finalShadow,
-    wordBreak: "break-word",
-    overflowWrap: "break-word",
+    // Safe word breaking: prevent mid-word splits while allowing long words to wrap
+    wordBreak: "normal",
+    overflowWrap: "anywhere",
     whiteSpace: "normal",
     width: "100%",
+    maxWidth: "100%",
   };
 
   if (mt !== undefined) styles.marginTop = mt;
   if (mb !== undefined) styles.marginBottom = mb;
-  if (maxWidth !== undefined) styles.maxWidth = maxWidth;
-  if (fontSize !== undefined) styles.fontSize = fontSize;
+  if (blockMaxWidth !== undefined) styles.maxWidth = blockMaxWidth;
+
+  // Apply per-block clamped font size with scale multiplier.
+  // Using CSS clamp() ensures text stays within safe min/max regardless of slider position.
+  if (rawFontSize !== undefined) {
+    const baseEm = parseFloat(rawFontSize);
+    const caps = BLOCK_FONT_CAPS[blockName]?.[pageType] || { min: baseEm * 0.7, max: baseEm * 1.4 };
+    const scale = typeof customTextSize === "number" && customTextSize > 0 ? customTextSize : 1.0;
+    const scaledEm = Math.round(baseEm * scale * 1000) / 1000;
+    styles.fontSize = `clamp(${caps.min}em, ${scaledEm}em, ${caps.max}em)`;
+  }
+
   if (lineHeight !== undefined) styles.lineHeight = lineHeight;
   if (transform !== undefined) styles.transform = transform;
 

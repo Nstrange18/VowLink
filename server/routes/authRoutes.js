@@ -457,6 +457,7 @@ router.put("/me", protect, async (req, res) => {
         "/templates/Cream Floral Elegance.png",
         "/templates/Emerald Eucalyptus Frame.png",
         "/templates/Royal Navy Lace Accent.png",
+        "/templates/elegant_gold_frame_with_navy_backdrop.png",
         "/templates/Elegant purple and silver floral.png"
       ];
       // Plus tier layout permissions

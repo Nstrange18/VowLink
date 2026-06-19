@@ -47,6 +47,12 @@ export const PREMADE_TEMPLATES = [
   },
   {
     tier: "plus",
+    name: "Royal Navy Gold Frame",
+    url: "/templates/elegant_gold_frame_with_navy_backdrop.png",
+    preview: "/templates/elegant_gold_frame_with_navy_backdrop.png",
+  },
+  {
+    tier: "plus",
     name: "Royal Navy Lace Accent",
     url: "/templates/Royal Navy Lace Accent.png",
     preview: "/templates/Royal Navy Lace Accent.png",
@@ -219,7 +225,8 @@ const ThemeSelector = () => {
                 return;
               }
               setCardTheme(val);
-              setCustomTextColor(getSmartTextColor(val, customCardBg));
+              if (val !== "custom") setCustomCardBg(""); // Clear template overlay when switching to a built-in theme
+              setCustomTextColor(getSmartTextColor(val, val !== "custom" ? "" : customCardBg));
               setUserHasCustomTextColor(false);
             }}
           >
@@ -253,7 +260,7 @@ const ThemeSelector = () => {
                 textStyle = { color: "#2E3A59" };
                 borderClass = "border-2 border-double border-[#2E3A59]/30";
               } else if (theme.value === "navy") {
-                previewStyle = { backgroundColor: "#0A1424" };
+                previewStyle = { background: "url('/templates/elegant_gold_frame_with_navy_backdrop.png') center/cover no-repeat" };
                 textStyle = { color: "#D8B76A" };
                 borderClass = "border border-[#D8B76A]";
               } else if (theme.value === "stardust") {
@@ -284,7 +291,8 @@ const ThemeSelector = () => {
                       return;
                     }
                     setCardTheme(theme.value);
-                    setCustomTextColor(getSmartTextColor(theme.value, customCardBg));
+                    if (theme.value !== "custom") setCustomCardBg(""); // Clear template overlay when switching to a built-in theme
+                    setCustomTextColor(getSmartTextColor(theme.value, theme.value !== "custom" ? "" : customCardBg));
                   }}
                   className={`relative h-20 rounded-xl overflow-hidden flex flex-col justify-between p-2.5 transition-all duration-300 ${borderClass} ${isSelected
                     ? "ring-2 ring-[#D8B76A] ring-offset-2 ring-offset-[#070A13] scale-98"
@@ -428,7 +436,9 @@ const ThemeSelector = () => {
                         if (layout && layout.align) {
                           setCustomTextAlign(layout.align);
                         }
-                        setUserHasCustomAlignment(false);
+                        // Note: userHasCustomAlignment is NOT reset here.
+                        // Template selection only updates the default alignment (customTextAlign),
+                        // but if the user had manually overridden alignment, that override persists.
                         setUserHasCustomTextColor(false);
                       }}
                       className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
@@ -476,7 +486,9 @@ const ThemeSelector = () => {
                         if (layout && layout.align) {
                           setCustomTextAlign(layout.align);
                         }
-                        setUserHasCustomAlignment(false);
+                        // Note: userHasCustomAlignment is NOT reset here.
+                        // Template selection only updates the default alignment (customTextAlign),
+                        // but if the user had manually overridden alignment, that override persists.
                         setUserHasCustomTextColor(false);
                       }}
                       className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
@@ -534,7 +546,9 @@ const ThemeSelector = () => {
                         if (layout && layout.align) {
                           setCustomTextAlign(layout.align);
                         }
-                        setUserHasCustomAlignment(false);
+                        // Note: userHasCustomAlignment is NOT reset here.
+                        // Template selection only updates the default alignment (customTextAlign),
+                        // but if the user had manually overridden alignment, that override persists.
                         setUserHasCustomTextColor(false);
                       }}
                       className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
