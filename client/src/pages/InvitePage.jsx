@@ -1615,7 +1615,7 @@ const InvitePage = () => {
         {/* ═══ THE CARD (this gets downloaded) ═══ */}
         <div
           ref={cardRef}
-          key={customCardBg}
+          key={customCardBg || cardTheme}
           className={`w-full max-w-[28rem] sm:max-w-[32rem] rounded-2xl overflow-hidden transition-all duration-300 ${
             isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
           } ${
@@ -1629,7 +1629,7 @@ const InvitePage = () => {
           >
             {isProTemplate && <div className="pro-card-shimmer-overlay" />}
 
-            <div className={isProTemplate ? "animate-pro-float" : ""}>
+            <div key={`${cardTheme}__${customCardBg}`} className={isProTemplate ? "animate-pro-float" : ""}>
               {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
               {cardTheme === "custom" && renderTemplateBackgroundGraphics(customCardBg, priHex, secHex, terHex, isFreeUser)}
             </div>
