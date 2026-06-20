@@ -86,14 +86,19 @@ router.post("/", protect, async (req, res) => {
 
     // Limit check based on tier
     const count = await Invitation.countDocuments({ userId: req.user.id });
-    if (user.tier === "free" && count >= 10) {
+    if (user.tier === "free" && count >= 1) {
       return res.status(403).json({
-        message: "You have reached the maximum limit of 10 invitations for the Free plan. Please upgrade to create more.",
+        message: "You have reached the maximum limit of 1 generic invitation link for the Free plan. Please upgrade to Plus or Pro to create personalized guest links.",
       });
     }
     if (user.tier === "plus" && count >= 100) {
       return res.status(403).json({
-        message: "You have reached the maximum limit of 100 invitations for the Plus plan. Please upgrade to Pro for unlimited invitations.",
+        message: "You have reached the maximum limit of 100 invitations for the Plus plan. Please upgrade to Pro for more invitations.",
+      });
+    }
+    if (user.tier === "pro" && count >= 500) {
+      return res.status(403).json({
+        message: "You have reached the maximum limit of 500 invitations for the Pro plan.",
       });
     }
 
@@ -147,6 +152,11 @@ router.post("/bulk", protect, async (req, res) => {
     if (user.tier === "plus" && currentCount + guests.length > 100) {
       return res.status(403).json({
         message: `Creating ${guests.length} invitations will exceed your Plus plan limit of 100. Current total: ${currentCount}.`,
+      });
+    }
+    if (user.tier === "pro" && currentCount + guests.length > 500) {
+      return res.status(403).json({
+        message: `Creating ${guests.length} invitations will exceed your Pro plan limit of 500. Current total: ${currentCount}.`,
       });
     }
 

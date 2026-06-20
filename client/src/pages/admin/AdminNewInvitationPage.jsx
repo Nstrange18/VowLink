@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,6 +25,25 @@ const AdminNewInvitationPage = () => {
   const [aiModalOpen, setAiModalOpen] = useState(false)
   const [aiTone, setAiTone] = useState("elegant")
   const [generatedMsg, setGeneratedMsg] = useState("")
+  const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
+
+  useEffect(() => {
+    const checkLimit = async () => {
+      try {
+        const res = await api.get('/invitations')
+        const count = res.data.length
+        const tier = user.tier || 'free'
+        const limit = tier === 'free' ? 1 : tier === 'plus' ? 100 : 500
+        if (count >= limit) {
+          toast.warning(`You have reached the limit of ${limit} invitation${limit === 1 ? '' : 's'} for the ${tier.toUpperCase()} plan. Redirecting to billing...`, { toastId: 'limit-reached-redirect' })
+          navigate('/admin/billing')
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    checkLimit()
+  }, [navigate, user.tier])
 
   const { register, handleSubmit, control, watch, setValue, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(invitationSchema),

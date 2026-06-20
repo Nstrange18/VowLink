@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Controller } from "react-hook-form";
 import { toast } from "react-toastify";
 import ColorPicker from "../../components/ColorPicker";
@@ -150,6 +151,7 @@ const inputErr = "border-red-400/50";
 const cls = (err) => `${inputBase} ${err ? inputErr : inputOk}`;
 
 const AdminSettingsPageContent = () => {
+  const navigate = useNavigate();
   const {
     storedUser,
     tier,
@@ -501,9 +503,9 @@ const AdminSettingsPageContent = () => {
                   <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4">
                     <div className="flex justify-between items-center">
                       <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">3. AI Intelligent Theme Matcher</h3>
-                      {isFree && (
-                        <span className="text-[9px] uppercase font-bold tracking-wider text-white/30 bg-white/5 px-2 py-0.5 rounded">
-                          Locked
+                      {!isPro && (
+                        <span className="text-[9px] uppercase font-bold tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded flex items-center gap-1">
+                          <span>🔒</span> Pro Feature
                         </span>
                       )}
                     </div>
@@ -514,7 +516,7 @@ const AdminSettingsPageContent = () => {
                       <div className="flex-1">
                         <select
                           disabled={!isPro}
-                          className="w-full rounded-xl border border-white/10 bg-[#070A13] px-3 py-2 text-xs text-white outline-none focus:border-[#D8B76A]/60"
+                          className="w-full rounded-xl border border-white/10 bg-[#070A13] px-3 py-2 text-xs text-white outline-none focus:border-[#D8B76A]/60 disabled:opacity-50"
                           value={aiVibe}
                           onChange={(e) => setAiVibe(e.target.value)}
                         >
@@ -526,14 +528,30 @@ const AdminSettingsPageContent = () => {
                       </div>
                       <button
                         type="button"
-                        onClick={handleAiVibeGenerate}
-                        disabled={aiGenerating || !isPro}
-                        className="px-5 py-2.5 rounded-xl bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-xs font-bold uppercase tracking-wider text-[#070A13] transition disabled:opacity-50 flex items-center justify-center gap-2"
+                        onClick={(e) => {
+                          if (!isPro) {
+                            toast.warning("AI Intelligent Theme Matcher is a Pro feature! Upgrade your plan to unlock.", { toastId: 'ai-matcher-lock' });
+                            navigate('/admin/billing');
+                            return;
+                          }
+                          handleAiVibeGenerate();
+                        }}
+                        disabled={aiGenerating}
+                        className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 whitespace-nowrap ${
+                          !isPro 
+                            ? 'bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white cursor-pointer'
+                            : 'bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13]'
+                        }`}
                       >
                         {aiGenerating ? (
                           <>
                             <span className="animate-spin">🌀</span>
                             <span>Styling Vibe...</span>
+                          </>
+                        ) : !isPro ? (
+                          <>
+                            <span>🪄</span>
+                            <span>Auto-Coordinate 🔒</span>
                           </>
                         ) : (
                           <>

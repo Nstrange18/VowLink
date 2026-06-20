@@ -274,7 +274,9 @@ export const getBlockStyles = (
 
   if (mt !== undefined) styles.marginTop = mt;
   if (mb !== undefined) styles.marginBottom = mb;
-  if (blockMaxWidth !== undefined) styles.maxWidth = blockMaxWidth;
+  if (blockMaxWidth !== undefined) {
+    styles.maxWidth = (customTextSize > 1.0) ? "100%" : blockMaxWidth;
+  }
 
   // Apply per-block clamped font size with scale multiplier.
   // Using CSS clamp() ensures text stays within safe min/max regardless of slider position.

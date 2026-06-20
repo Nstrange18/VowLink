@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
+import { toast } from 'react-toastify'
 import api from '../../utils/api'
 
 const AdminRsvpsPage = () => {
   const [rsvps, setRsvps] = useState([])
   const [loading, setLoading] = useState(true)
+  const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
+  const tier = user.tier || 'free';
+  const rsvpLimit = tier === 'free' ? 20 : tier === 'plus' ? 100 : 500;
+  const percent = Math.min((rsvps.length / rsvpLimit) * 100, 100);
 
   useEffect(() => {
     api.get('/rsvps')
@@ -13,6 +18,10 @@ const AdminRsvpsPage = () => {
   }, [])
 
   const exportCSV = () => {
+    if (tier !== 'pro') {
+      toast.warning('Exporting RSVP list is a Pro feature! Upgrade to unlock.', { toastId: 'export-lock' });
+      return;
+    }
     const headers = ['Guest Name', 'Category', 'Phone', 'Attending', 'No. of Guests', 'Meal Preference', 'Message', 'Date Submitted']
     const rows = rsvps.map((r) => [
       r.guestName,
@@ -43,14 +52,43 @@ const AdminRsvpsPage = () => {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Responses</p>
-          <h2 className="font-serif text-3xl sm:text-4xl text-white">RSVPs</h2>
+          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-2">RSVPs</h2>
+          
+          {/* RSVP Limit Tracker */}
+          <div className="mt-3 flex flex-col gap-1.5 w-72 sm:w-80">
+            <div className="flex justify-between items-center text-[10px] text-white/50 uppercase tracking-wider">
+              <span>RSVP Limit ({tier.toUpperCase()})</span>
+              <span className="font-semibold text-white">{rsvps.length} / {rsvpLimit}</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden border border-white/10 relative">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ${
+                  percent >= 100 
+                    ? 'bg-linear-to-r from-red-500 to-rose-400' 
+                    : percent >= 75 
+                      ? 'bg-linear-to-r from-amber-500 to-yellow-400' 
+                      : 'bg-linear-to-r from-[#D8B76A] to-[#F2D894]'
+                }`}
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+            {percent >= 100 && (
+              <p className="text-[9px] text-red-400 mt-0.5 animate-pulse font-medium">
+                ⚠️ Limit reached! Upgrade your plan to accept more guest RSVPs.
+              </p>
+            )}
+          </div>
         </div>
         {rsvps.length > 0 && (
           <button
             onClick={exportCSV}
-            className="flex items-center gap-2 rounded-full border border-[#D8B76A]/30 bg-[#D8B76A]/10 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#D8B76A] transition hover:bg-[#D8B76A]/20 whitespace-nowrap"
+            className={`flex items-center gap-2 rounded-full border px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition whitespace-nowrap cursor-pointer ${
+              tier === 'pro'
+                ? 'border-[#D8B76A]/30 bg-[#D8B76A]/10 text-[#D8B76A] hover:bg-[#D8B76A]/20'
+                : 'border-white/10 bg-white/5 text-white/40 hover:bg-white/10'
+            }`}
           >
-            <span>⬇</span> Export CSV
+            <span>⬇</span> Export CSV {tier !== 'pro' && '🔒'}
           </button>
         )}
       </div>

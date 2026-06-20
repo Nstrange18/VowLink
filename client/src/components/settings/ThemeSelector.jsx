@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { toast } from "react-toastify";
 import ColorPicker from "../ColorPicker";
 import { useSettings } from "../../context/SettingsContext";
@@ -128,6 +128,7 @@ const renderTemplatePreviewOrnaments = (url) => {
 };
 
 const ThemeSelector = () => {
+  const [fineTuningLocked, setFineTuningLocked] = useState(true);
   const {
     cardTheme,
     setCardTheme,
@@ -216,18 +217,16 @@ const ThemeSelector = () => {
             value={cardTheme}
             onChange={(e) => {
               const val = e.target.value;
-              if (isFree && val !== "floral") {
-                toast.warning("Upgrade to Plus or Pro plan to unlock custom themes!", { toastId: "theme-lock-free" });
-                return;
-              }
-              if (isPlus && val === "custom") {
-                toast.warning("Upgrade to Pro plan to unlock custom background design uploads!", { toastId: "theme-lock-plus" });
-                return;
-              }
               setCardTheme(val);
               if (val !== "custom") setCustomCardBg(""); // Clear template overlay when switching to a built-in theme
               setCustomTextColor(getSmartTextColor(val, val !== "custom" ? "" : customCardBg));
               setUserHasCustomTextColor(false);
+
+              const isLocked = (isFree && val !== "floral") || (isPlus && val === "custom");
+              if (isLocked) {
+                const reqTier = (val === "custom" || val === "stardust" || val === "forest") ? "Pro" : "Plus / Pro";
+                toast.info(`✨ Previewing premium theme layout! Upgrade to ${reqTier} to save this theme.`, { toastId: "theme-select-preview" });
+              }
             }}
           >
             {THEMES.map((theme) => (
@@ -286,13 +285,13 @@ const ThemeSelector = () => {
                   key={theme.value}
                   type="button"
                   onClick={() => {
-                    if (isLocked) {
-                      toast.warning(isFree ? "Upgrade to Plus or Pro plan to unlock premium themes!" : "Upgrade to Pro plan to unlock custom card design uploads!", { toastId: "theme-tile-lock" });
-                      return;
-                    }
                     setCardTheme(theme.value);
                     if (theme.value !== "custom") setCustomCardBg(""); // Clear template overlay when switching to a built-in theme
                     setCustomTextColor(getSmartTextColor(theme.value, theme.value !== "custom" ? "" : customCardBg));
+                    if (isLocked) {
+                      const reqTier = (theme.value === "custom" || theme.value === "stardust" || theme.value === "forest") ? "Pro" : "Plus / Pro";
+                      toast.info(`✨ Previewing premium theme layout! Upgrade to ${reqTier} to save this theme.`, { toastId: "theme-select-preview" });
+                    }
                   }}
                   className={`relative h-20 rounded-xl overflow-hidden flex flex-col justify-between p-2.5 transition-all duration-300 ${borderClass} ${isSelected
                     ? "ring-2 ring-[#D8B76A] ring-offset-2 ring-offset-[#070A13] scale-98"
@@ -307,10 +306,13 @@ const ThemeSelector = () => {
                   )}
 
                   {isLocked && (
-                    <div className="absolute inset-0 bg-black/75 backdrop-blur-xs flex flex-col items-center justify-center text-center p-1.5 z-10">
+                    <div className="absolute inset-0 bg-black/85 backdrop-blur-xs flex flex-col items-center justify-center text-center p-1.5 z-10 hover:bg-black/60 transition duration-300">
                       <span className="text-sm">🔒</span>
                       <span className="text-[8px] uppercase tracking-wider text-white/80 mt-1 font-bold">
                         {theme.value === "custom" ? "Pro Only" : "Plus / Pro"}
+                      </span>
+                      <span className="text-[6px] text-white/50 uppercase mt-0.5 tracking-wide">
+                        Click to Preview
                       </span>
                     </div>
                   )}
@@ -474,10 +476,6 @@ const ThemeSelector = () => {
                       key={t.name}
                       type="button"
                       onClick={() => {
-                        if (isLocked) {
-                          toast.warning("Upgrade to Plus or Pro plan to unlock Plus templates! 🔒", { toastId: "plus-template-lock" });
-                          return;
-                        }
                         setCustomCardBg(t.url);
                         setCardTheme("custom");
                         setCustomTextColor(getSmartTextColor("custom", t.url));
@@ -486,10 +484,10 @@ const ThemeSelector = () => {
                         if (layout && layout.align) {
                           setCustomTextAlign(layout.align);
                         }
-                        // Note: userHasCustomAlignment is NOT reset here.
-                        // Template selection only updates the default alignment (customTextAlign),
-                        // but if the user had manually overridden alignment, that override persists.
                         setUserHasCustomTextColor(false);
+                        if (isLocked) {
+                          toast.info("✨ Previewing Plus template! Upgrade to Plus or Pro to save this template. 🔒", { toastId: "plus-template-preview" });
+                        }
                       }}
                       className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                         }`}
@@ -499,10 +497,13 @@ const ThemeSelector = () => {
                       <div className="absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
 
                       {isLocked && (
-                        <div className="absolute inset-0 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-center text-center p-2 z-20">
+                        <div className="absolute inset-0 bg-black/85 backdrop-blur-xs flex flex-col items-center justify-center text-center p-2 z-20 hover:bg-black/60 transition duration-300">
                           <span className="text-sm">🔒</span>
                           <span className="text-[8px] uppercase tracking-wider text-white/80 mt-1 font-bold">
                             Plus / Pro
+                          </span>
+                          <span className="text-[6px] text-white/50 uppercase mt-0.5 tracking-wide">
+                            Click to Preview
                           </span>
                         </div>
                       )}
@@ -534,10 +535,6 @@ const ThemeSelector = () => {
                       key={t.name}
                       type="button"
                       onClick={() => {
-                        if (isLocked) {
-                          toast.warning("Upgrade to Pro plan to unlock Pro templates! 🔒", { toastId: "pro-template-lock" });
-                          return;
-                        }
                         setCustomCardBg(t.url);
                         setCardTheme("custom");
                         setCustomTextColor(getSmartTextColor("custom", t.url));
@@ -546,10 +543,10 @@ const ThemeSelector = () => {
                         if (layout && layout.align) {
                           setCustomTextAlign(layout.align);
                         }
-                        // Note: userHasCustomAlignment is NOT reset here.
-                        // Template selection only updates the default alignment (customTextAlign),
-                        // but if the user had manually overridden alignment, that override persists.
                         setUserHasCustomTextColor(false);
+                        if (isLocked) {
+                          toast.info("✨ Previewing Pro template! Upgrade to Pro to save this template. 🔒", { toastId: "pro-template-preview" });
+                        }
                       }}
                       className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                         }`}
@@ -559,10 +556,13 @@ const ThemeSelector = () => {
                       <div className="absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
 
                       {isLocked && (
-                        <div className="absolute inset-0 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-center text-center p-2 z-20">
+                        <div className="absolute inset-0 bg-black/85 backdrop-blur-xs flex flex-col items-center justify-center text-center p-2 z-20 hover:bg-black/60 transition duration-300">
                           <span className="text-sm">🔒</span>
                           <span className="text-[8px] uppercase tracking-wider text-white/80 mt-1 font-bold">
                             Pro Only
+                          </span>
+                          <span className="text-[6px] text-white/50 uppercase mt-0.5 tracking-wide">
+                            Click to Preview
                           </span>
                         </div>
                       )}
@@ -677,52 +677,106 @@ const ThemeSelector = () => {
 
         {/* Fine-Tuning Controls — Always visible for all tiers, any theme */}
         <div className="space-y-4">
-          <p className="text-[10px] text-amber-400 uppercase font-bold tracking-widest">Fine-Tuning</p>
+          <div className="flex justify-between items-center">
+            <p className="text-[10px] text-amber-400 uppercase font-bold tracking-widest">Fine-Tuning</p>
+            <button
+              type="button"
+              onClick={() => setFineTuningLocked(!fineTuningLocked)}
+              className={`px-3 py-1 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition ${
+                fineTuningLocked
+                  ? "bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20"
+                  : "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+              }`}
+            >
+              {fineTuningLocked ? "🔒 Locked (Click to Edit)" : "🔓 Unlocked"}
+            </button>
+          </div>
 
+          {/* Vertical position offset */}
           <div>
-            <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
+            <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1.5">
               <span>Vertical position offset</span>
               <span className="font-mono text-[#D8B76A]">{customVerticalOffset}px</span>
             </div>
-            <input
-              type="range"
-              min="-150"
-              max="150"
-              className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A]"
-              value={customVerticalOffset}
-              onChange={(e) => setCustomVerticalOffset(Number(e.target.value))}
-            />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                disabled={fineTuningLocked || customVerticalOffset <= -150}
+                onClick={() => setCustomVerticalOffset(Math.max(-150, customVerticalOffset - 5))}
+                className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              >
+                -
+              </button>
+              <div className="flex-1 text-center font-mono text-xs text-white/80 select-none">
+                {customVerticalOffset}px
+              </div>
+              <button
+                type="button"
+                disabled={fineTuningLocked || customVerticalOffset >= 150}
+                onClick={() => setCustomVerticalOffset(Math.min(150, customVerticalOffset + 5))}
+                className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              >
+                +
+              </button>
+            </div>
           </div>
 
+          {/* Horizontal position offset */}
           <div>
-            <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
+            <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1.5">
               <span>Horizontal position offset</span>
               <span className="font-mono text-[#D8B76A]">{customHorizontalOffset}px</span>
             </div>
-            <input
-              type="range"
-              min="-100"
-              max="100"
-              className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A]"
-              value={customHorizontalOffset}
-              onChange={(e) => setCustomHorizontalOffset(Number(e.target.value))}
-            />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                disabled={fineTuningLocked || customHorizontalOffset <= -100}
+                onClick={() => setCustomHorizontalOffset(Math.max(-100, customHorizontalOffset - 5))}
+                className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              >
+                -
+              </button>
+              <div className="flex-1 text-center font-mono text-xs text-white/80 select-none">
+                {customHorizontalOffset}px
+              </div>
+              <button
+                type="button"
+                disabled={fineTuningLocked || customHorizontalOffset >= 100}
+                onClick={() => setCustomHorizontalOffset(Math.min(100, customHorizontalOffset + 5))}
+                className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              >
+                +
+              </button>
+            </div>
           </div>
 
+          {/* Text Size scale multiplier */}
           <div>
-            <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
+            <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1.5">
               <span>Text Size scale multiplier</span>
-              <span className="font-mono text-[#D8B76A]">{customTextSize}x</span>
+              <span className="font-mono text-[#D8B76A]">{customTextSize.toFixed(2)}x</span>
             </div>
-            <input
-              type="range"
-              min="0.6"
-              max="1.6"
-              step="0.05"
-              className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A]"
-              value={customTextSize}
-              onChange={(e) => setCustomTextSize(Number(e.target.value))}
-            />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                disabled={fineTuningLocked || customTextSize <= 0.6}
+                onClick={() => setCustomTextSize(Number(Math.max(0.6, customTextSize - 0.05).toFixed(2)))}
+                className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              >
+                -
+              </button>
+              <div className="flex-1 text-center font-mono text-xs text-white/80 select-none">
+                {customTextSize.toFixed(2)}x
+              </div>
+              <button
+                type="button"
+                disabled={fineTuningLocked || customTextSize >= 1.6}
+                onClick={() => setCustomTextSize(Number(Math.min(1.6, customTextSize + 0.05).toFixed(2)))}
+                className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              >
+                +
+              </button>
+            </div>
           </div>
 
           <div>
@@ -736,12 +790,15 @@ const ThemeSelector = () => {
                 <button
                   key={item.value}
                   type="button"
-                  onClick={() => setCustomTextBoldness(item.value)}
+                  onClick={() => {
+                    if (fineTuningLocked) return;
+                    setCustomTextBoldness(item.value);
+                  }}
                   className={`flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition cursor-pointer ${
                     customTextBoldness === item.value
                       ? "bg-[#D8B76A] text-[#070A13]"
                       : "bg-white/5 text-white/60 hover:bg-white/10"
-                  }`}
+                  } ${fineTuningLocked ? "opacity-30 cursor-not-allowed pointer-events-none" : ""}`}
                 >
                   {item.label}
                 </button>
@@ -757,6 +814,7 @@ const ThemeSelector = () => {
                   key={align}
                   type="button"
                   onClick={() => {
+                    if (fineTuningLocked) return;
                     setCustomTextAlign(align);
                     setUserHasCustomAlignment(true);
                   }}
@@ -764,7 +822,7 @@ const ThemeSelector = () => {
                     customTextAlign === align
                       ? "bg-[#D8B76A] text-[#070A13]"
                       : "bg-white/5 text-white/60 hover:bg-white/10"
-                  }`}
+                  } ${fineTuningLocked ? "opacity-30 cursor-not-allowed pointer-events-none" : ""}`}
                 >
                   {align}
                 </button>

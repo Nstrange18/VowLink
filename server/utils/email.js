@@ -242,10 +242,56 @@ const sendNewVenueRegistrationAdminAlert = async (venue) => {
   }
 };
 
+// ── 6. Couple RSVP Limit Reached Alert ──────────────────────────────────────────
+const sendRsvpLimitReachedAlert = async ({ coupleEmail, coupleName, tier, limit }) => {
+  if (!process.env.SENDGRID_API_KEY || !coupleEmail) return;
+
+  const body = `
+    <h2 style="margin:0 0 8px 0;color:#F87171;font-size:22px;font-weight:400;">RSVP Limit Reached ⚠️</h2>
+    <p style="margin:0 0 24px 0;color:rgba(255,255,255,0.5);font-size:14px;font-family:sans-serif;">${coupleName}</p>
+
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;">
+      <p style="margin:0 0 12px 0;color:rgba(255,255,255,0.9);font-size:16px;font-family:sans-serif;">
+        Your wedding invitation RSVP list is now full.
+      </p>
+      <div style="font-size:48px;color:#F87171;font-weight:700;margin:16px 0;font-family:sans-serif;">
+        ${limit} / ${limit}
+      </div>
+      <p style="margin:0;color:rgba(255,255,255,0.6);font-size:14px;line-height:1.6;font-family:sans-serif;">
+        You have reached the maximum limit of <strong style="color:#fff;">${limit} RSVPs</strong> permitted under your <strong style="color:#D8B76A;">${tier.toUpperCase()} plan</strong>.
+      </p>
+      <p style="margin:16px 0 0 0;color:rgba(255,255,255,0.5);font-size:13px;line-height:1.6;font-family:sans-serif;">
+        Any subsequent guests attempting to RSVP to your wedding invitations will be blocked and advised that the limit is reached.
+      </p>
+    </div>
+
+    <div style="text-align:center;margin:32px 0 20px 0;">
+      <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/admin/billing" style="display:inline-block;background:linear-gradient(135deg,#D8B76A 0%,#F2D894 100%);color:#070A13;text-decoration:none;font-weight:600;padding:14px 32px;border-radius:999px;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;box-shadow:0 8px 24px rgba(216,183,106,0.25);">
+        Upgrade Plan Now
+      </a>
+    </div>
+
+    <p style="color:rgba(255,255,255,0.4);font-size:12px;font-family:sans-serif;margin:0;text-align:center;">Log in to your VowLink dashboard to manage RSVP lists.</p>
+  `;
+
+  try {
+    await sgMail.send({
+      to: coupleEmail,
+      from: FROM_EMAIL,
+      subject: `⚠️ VowLink Alert: Your RSVP limit has been reached! (${tier.toUpperCase()} Plan)`,
+      html: wrapEmail(body),
+    });
+    console.log(`📧 RSVP limit reached alert sent to ${coupleEmail}`);
+  } catch (err) {
+    console.error("❌ SendGrid RSVP limit reached alert error:", err.response?.body || err.message);
+  }
+};
+
 module.exports = {
   sendRsvpCoupleAlert,
   sendRsvpGuestConfirmation,
   sendHoneymoonGoalReachedNotification,
   sendWeddingDayCongratulationsEmail,
-  sendNewVenueRegistrationAdminAlert
+  sendNewVenueRegistrationAdminAlert,
+  sendRsvpLimitReachedAlert
 };

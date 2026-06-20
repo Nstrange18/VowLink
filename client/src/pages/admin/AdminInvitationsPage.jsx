@@ -58,9 +58,9 @@ const AdminInvitationsPage = () => {
   }
 
   const tier = user.tier || 'free';
-  const limit = tier === 'free' ? 10 : tier === 'plus' ? 100 : Infinity;
+  const limit = tier === 'free' ? 1 : tier === 'plus' ? 100 : 500;
   const count = invitations.length;
-  const progressPercent = limit === Infinity ? 0 : Math.min((count / limit) * 100, 100);
+  const progressPercent = Math.min((count / limit) * 100, 100);
 
   // Dynamic unique categories from invitations
   const categories = ["all", ...new Set(invitations.map(inv => inv.category || "Guest").filter(Boolean))];
@@ -110,7 +110,7 @@ const AdminInvitationsPage = () => {
               />
             </div>
             <span className="text-[10px] text-white/40 uppercase tracking-wider">
-              {count} / {limit === Infinity ? '∞' : limit} invitations
+              {count} / {limit} invitations
             </span>
           </div>
         </div>
@@ -133,8 +133,15 @@ const AdminInvitationsPage = () => {
             + Bulk Import
           </Link>
           <Link
-            to="/admin/invitations/new"
+            to={count >= limit ? "#" : "/admin/invitations/new"}
             id="new-invitation-btn"
+            onClick={(e) => {
+              if (count >= limit) {
+                e.preventDefault();
+                toast.warning(`You have reached the limit of ${limit} invitation${limit === 1 ? '' : 's'} for the ${tier.toUpperCase()} plan. Please upgrade your plan to create more!`, { toastId: 'limit-reached-new' });
+                navigate('/admin/billing');
+              }
+            }}
             className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] whitespace-nowrap"
           >
             + New Invitation

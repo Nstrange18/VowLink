@@ -594,6 +594,7 @@ const InvitationCardPreview = () => {
     coupleOverlayOpacity,
     cardStyles,
     isFreeUser,
+    isFree,
     customTextAlign,
     userHasCustomAlignment,
     customTextSize,
@@ -658,6 +659,13 @@ const InvitationCardPreview = () => {
 
   const baseWeight = customTextBoldness === "bold" ? "700" : (customTextBoldness === "medium" ? "500" : "400");
   const headingWeight = customTextBoldness === "bold" ? "950" : (customTextBoldness === "medium" ? "750" : "600");
+
+  const scalePadding = (val) => {
+    if (customTextSize > 1.0) {
+      return Math.max(16, Math.round(val / customTextSize));
+    }
+    return val;
+  };
 
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -744,8 +752,8 @@ const InvitationCardPreview = () => {
               fontWeight: baseWeight,
               paddingTop: `calc(${layout.pt}px + ${customVerticalOffset}px)`,
               paddingBottom: `calc(${layout.pb}px - ${customVerticalOffset}px)`,
-              paddingLeft: `${layout.pl}px`,
-              paddingRight: `${layout.pr}px`,
+              paddingLeft: `${scalePadding(layout.pl)}px`,
+              paddingRight: `${scalePadding(layout.pr)}px`,
               transform: `translateX(${customHorizontalOffset || 0}px)`,
               ...(layout?.contrastHelpers?.overlayBehindText ? {
                 background: layout.contrastHelpers.overlayBehindText === true
@@ -905,6 +913,14 @@ const InvitationCardPreview = () => {
                     );
                   })}
                 </div>
+              </div>
+            )}
+            
+            {isFree && (
+              <div className="absolute bottom-2.5 left-0 right-0 text-center select-none pointer-events-none opacity-45 z-20">
+                <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: cardStyles.color || "#000000" }}>
+                  Powered by VowLink
+                </span>
               </div>
             )}
           </div>

@@ -1342,6 +1342,13 @@ const InvitePage = () => {
   const isPlusTemplate = layout.tier === "plus";
   const isProTemplate = layout.tier === "pro";
 
+  const scalePadding = (val) => {
+    if (customTextSize > 1.0) {
+      return Math.max(16, Math.round(val / customTextSize));
+    }
+    return val;
+  };
+
   const getBlockProps = (blockName, delay) => {
     const blockStyles = getBlockStyles(
       blockName,
@@ -1648,8 +1655,8 @@ const InvitePage = () => {
                 fontWeight: baseWeight,
                 paddingTop: `calc(${layout.pt}px + ${customVerticalOffset}px)`,
                 paddingBottom: `calc(${layout.pb}px - ${customVerticalOffset}px)`,
-                paddingLeft: `${layout.pl}px`,
-                paddingRight: `${layout.pr}px`,
+                paddingLeft: `${scalePadding(layout.pl)}px`,
+                paddingRight: `${scalePadding(layout.pr)}px`,
                 transform: `translateX(${customHorizontalOffset || 0}px)`,
                 ...(layout?.contrastHelpers?.overlayBehindText ? {
                   background: layout.contrastHelpers.overlayBehindText === true
@@ -1780,41 +1787,61 @@ const InvitePage = () => {
 
               {/* ── Venue (clickable → Maps Selector Modal) ── */}
               {venue && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setMapSelectAddress({ label: venueName || venue, query: venue });
-                  }}
-                  {...getBlockProps("details", "1700ms")}
-                  style={{
-                    ...getBlockProps("details", "1700ms").style,
-                    textDecoration: "underline",
-                    textDecorationColor: `${accentColor}55`,
-                    textUnderlineOffset: "3px",
-                  }}
-                  className={`${getBlockProps("details", "1700ms").className} hover:opacity-80 transition block w-full px-2`}
-                >
-                  Location: {venueName || venue}
-                </button>
+                isFreeUser ? (
+                  <div
+                    {...getBlockProps("details", "1700ms")}
+                    className={`${getBlockProps("details", "1700ms").className} block w-full px-2`}
+                    style={getBlockProps("details", "1700ms").style}
+                  >
+                    Location: {venueName || venue}
+                  </div>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setMapSelectAddress({ label: venueName || venue, query: venue });
+                    }}
+                    {...getBlockProps("details", "1700ms")}
+                    style={{
+                      ...getBlockProps("details", "1700ms").style,
+                      textDecoration: "underline",
+                      textDecorationColor: `${accentColor}55`,
+                      textUnderlineOffset: "3px",
+                    }}
+                    className={`${getBlockProps("details", "1700ms").className} hover:opacity-80 transition block w-full px-2`}
+                  >
+                    Location: {venueName || venue}
+                  </button>
+                )
               )}
 
               {receptionLocation && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
-                  }}
-                  {...getBlockProps("reception", "1800ms")}
-                  style={{
-                    ...getBlockProps("reception", "1800ms").style,
-                    textDecoration: "underline",
-                    textDecorationColor: `${accentColor}55`,
-                    textUnderlineOffset: "3px",
-                  }}
-                  className={`${getBlockProps("reception", "1800ms").className} hover:opacity-80 transition block w-full px-2`}
-                >
-                  Reception at: {receptionName || receptionLocation}
-                </button>
+                isFreeUser ? (
+                  <div
+                    {...getBlockProps("reception", "1800ms")}
+                    className={`${getBlockProps("reception", "1800ms").className} block w-full px-2`}
+                    style={getBlockProps("reception", "1800ms").style}
+                  >
+                    Reception at: {receptionName || receptionLocation}
+                  </div>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
+                    }}
+                    {...getBlockProps("reception", "1800ms")}
+                    style={{
+                      ...getBlockProps("reception", "1800ms").style,
+                      textDecoration: "underline",
+                      textDecorationColor: `${accentColor}55`,
+                      textUnderlineOffset: "3px",
+                    }}
+                    className={`${getBlockProps("reception", "1800ms").className} hover:opacity-80 transition block w-full px-2`}
+                  >
+                    Reception at: {receptionName || receptionLocation}
+                  </button>
+                )
               )}
 
               {/* bottom ornament */}
@@ -1874,6 +1901,14 @@ const InvitePage = () => {
               >
                 {invitation.category || "Guest"}
               </p>
+              
+              {isFreeUser && (
+                <div className="absolute bottom-2.5 left-0 right-0 text-center select-none pointer-events-none opacity-45 z-20">
+                  <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: cardStyles.color || "#000000" }}>
+                    Powered by VowLink
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -2107,23 +2142,27 @@ const InvitePage = () => {
             <span className="text-2xl text-[#D8B76A]">📍</span>
             <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Venue</p>
             {venue ? (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  setMapSelectAddress({ label: venueName || venue, query: venue });
-                }}
-                style={{
-                  ...serif,
-                  fontSize: "0.95rem",
-                  color: "gainsboro",
-                  textDecoration: "underline",
-                  textDecorationColor: "#B8963A55",
-                  textUnderlineOffset: "3px",
-                }}
-                className="hover:opacity-80 transition block w-full text-center"
-              >
-                {venueName || venue}
-              </button>
+              isFreeUser ? (
+                <p className="text-white text-sm leading-6">{venueName || venue}</p>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setMapSelectAddress({ label: venueName || venue, query: venue });
+                  }}
+                  style={{
+                    ...serif,
+                    fontSize: "0.95rem",
+                    color: "gainsboro",
+                    textDecoration: "underline",
+                    textDecorationColor: "#B8963A55",
+                    textUnderlineOffset: "3px",
+                  }}
+                  className="hover:opacity-80 transition block w-full text-center"
+                >
+                  {venueName || venue}
+                </button>
+              )
             ) : (
               <p className="text-white text-sm leading-6">To be announced</p>
             )}
@@ -2133,23 +2172,27 @@ const InvitePage = () => {
             <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
               <span className="text-2xl text-[#D8B76A]">🥂</span>
               <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Reception at</p>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
-                }}
-                style={{
-                  ...serif,
-                  fontSize: "0.95rem",
-                  color: "gainsboro",
-                  textDecoration: "underline",
-                  textDecorationColor: "#B8963A55",
-                  textUnderlineOffset: "3px",
-                }}
-                className="hover:opacity-80 transition block w-full text-center"
-              >
-                {receptionName || receptionLocation}
-              </button>
+              {isFreeUser ? (
+                <p className="text-white text-sm leading-6">{receptionName || receptionLocation}</p>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
+                  }}
+                  style={{
+                    ...serif,
+                    fontSize: "0.95rem",
+                    color: "gainsboro",
+                    textDecoration: "underline",
+                    textDecorationColor: "#B8963A55",
+                    textUnderlineOffset: "3px",
+                  }}
+                  className="hover:opacity-80 transition block w-full text-center"
+                >
+                  {receptionName || receptionLocation}
+                </button>
+              )}
             </div>
           )}
 

@@ -305,6 +305,69 @@ export const SettingsProvider = ({ children }) => {
   };
 
   const onSubmit = async (data) => {
+    const checkTierPermissions = (theme, bg, userTier) => {
+      if (theme === "custom") {
+        if (!bg) return true;
+        if (bg.startsWith("data:") || bg.startsWith("http")) {
+          return userTier === "pro";
+        }
+        
+        const proTemplates = [
+          "/templates/template_plus_3.png",
+          "/templates/Midnight Black Floral2.png",
+          "/templates/Dark Black Gold Marble.png",
+          "/templates/Burgundy Velvet Filigree.png",
+          "/templates/Royal Emerald Gold Frame.png",
+          "/templates/Blush Pink & Rose Gold Glitter.png",
+          "/templates/template_pro_5.png",
+          "/templates/template_pro_6.png",
+          "/templates/template_pro_7.png",
+        ];
+        if (proTemplates.includes(bg)) {
+          return userTier === "pro";
+        }
+
+        const plusTemplates = [
+          "/templates/template_free_1.png",
+          "/templates/Emerald Eucalyptus Frame.png",
+          "/templates/elegant_gold_frame_with_navy_backdrop.png",
+          "/templates/Royal Navy Lace Accent.png",
+          "/templates/Elegant purple and silver floral.png",
+        ];
+        if (plusTemplates.includes(bg)) {
+          return userTier === "plus" || userTier === "pro";
+        }
+        return true;
+      }
+      if (["stardust", "forest"].includes(theme)) {
+        return userTier === "pro";
+      }
+      if (["minimalist", "navy"].includes(theme)) {
+        return userTier === "plus" || userTier === "pro";
+      }
+      return true;
+    };
+
+    if (!checkTierPermissions(cardTheme, customCardBg, tier)) {
+      const isCustomUpload = cardTheme === "custom" && customCardBg && (customCardBg.startsWith("data:") || customCardBg.startsWith("http"));
+      const proTemplates = [
+        "/templates/template_plus_3.png",
+        "/templates/Midnight Black Floral2.png",
+        "/templates/Dark Black Gold Marble.png",
+        "/templates/Burgundy Velvet Filigree.png",
+        "/templates/Royal Emerald Gold Frame.png",
+        "/templates/Blush Pink & Rose Gold Glitter.png",
+        "/templates/template_pro_5.png",
+        "/templates/template_pro_6.png",
+        "/templates/template_pro_7.png",
+      ];
+      const isProTemplate = cardTheme === "custom" && proTemplates.includes(customCardBg);
+      const isProTheme = ["stardust", "forest"].includes(cardTheme);
+      const targetReq = (isCustomUpload || isProTemplate || isProTheme) ? "Pro" : "Plus / Pro";
+      toast.error(`❌ Saved failed: You have selected a premium design that is locked on the ${tier.toUpperCase()} plan. Please upgrade to ${targetReq} to save this configuration!`, { toastId: "upgrade-to-save" });
+      return;
+    }
+
     if (registryEnabled) {
       const targetVal = Number(honeymoonFundTarget) || 0;
       const currentVal = Number(honeymoonFundCurrent) || 0;

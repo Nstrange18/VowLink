@@ -4,7 +4,7 @@ const Invitation = require("../models/Invitation");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 const rateLimit = require("express-rate-limit");
-const { sendRsvpCoupleAlert, sendRsvpGuestConfirmation } = require("../utils/email");
+const { sendRsvpCoupleAlert, sendRsvpGuestConfirmation, sendRsvpLimitReachedAlert } = require("../utils/email");
 
 const router = express.Router();
 
@@ -40,9 +40,33 @@ router.post("/", rsvpLimiter, async (req, res) => {
       });
     }
 
-    const invitation = await Invitation.findById(invitationId).populate("userId", "plusOnePolicy email partner1Name partner2Name weddingDate venue");
+    const invitation = await Invitation.findById(invitationId).populate("userId", "plusOnePolicy email partner1Name partner2Name weddingDate venue tier");
     if (!invitation) {
       return res.status(404).json({ message: "Invitation not found." });
+    }
+
+    const couple = invitation.userId;
+    let currentRsvpCount = 0;
+    if (couple) {
+      const coupleInvitations = await Invitation.find({ userId: couple._id }).select("_id");
+      const invitationIds = coupleInvitations.map((i) => i._id);
+      currentRsvpCount = await RSVP.countDocuments({ invitationId: { $in: invitationIds } });
+
+      if (couple.tier === "free" && currentRsvpCount >= 20) {
+        return res.status(403).json({
+          message: "This wedding invitation has reached the maximum limit of 20 RSVP responses for the Free plan. To accept more RSVPs, the couple needs to upgrade their plan.",
+        });
+      }
+      if (couple.tier === "plus" && currentRsvpCount >= 100) {
+        return res.status(403).json({
+          message: "This wedding invitation has reached the maximum limit of 100 RSVP responses for the Plus plan. To accept more RSVPs, the couple needs to upgrade their plan.",
+        });
+      }
+      if (couple.tier === "pro" && currentRsvpCount >= 500) {
+        return res.status(403).json({
+          message: "This wedding invitation has reached the maximum limit of 500 RSVP responses.",
+        });
+      }
     }
 
     const plusOnePolicy = invitation.userId?.plusOnePolicy || "invitation_only";
@@ -64,7 +88,6 @@ router.post("/", rsvpLimiter, async (req, res) => {
     await invitation.save();
 
     // ── Fire emails async (don't block response) ──────────────────────────
-    const couple = invitation.userId;
     if (couple) {
       const coupleName = `${couple.partner1Name} & ${couple.partner2Name}`;
 
@@ -87,6 +110,17 @@ router.post("/", rsvpLimiter, async (req, res) => {
           attending,
           weddingDate: couple.weddingDate,
           venue: couple.venue,
+        }).catch(() => {});
+      }
+
+      // Check if RSVP limit is reached with this submission
+      const limit = couple.tier === "free" ? 20 : couple.tier === "plus" ? 100 : 500;
+      if ((couple.tier === "free" || couple.tier === "plus") && currentRsvpCount + 1 === limit) {
+        sendRsvpLimitReachedAlert({
+          coupleEmail: couple.email,
+          coupleName,
+          tier: couple.tier,
+          limit
         }).catch(() => {});
       }
     }
