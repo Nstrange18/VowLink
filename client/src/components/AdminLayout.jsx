@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 const navLinks = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: '◈' },
@@ -24,10 +25,46 @@ const AdminLayout = () => {
   const coupleName = p1 && p2 ? `${p1} & ${p2}` : 'Your Portal'
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('user')
-    navigate('/admin/login')
+    toast.dismiss();
+    toast.warn(
+      ({ closeToast }) => (
+        <div className="flex flex-col gap-2 p-1 text-white">
+          <p className="font-semibold text-xs leading-relaxed">
+            Are you sure you want to log out of your wedding portal?
+          </p>
+          <div className="flex gap-2 justify-end mt-1">
+            <button
+              type="button"
+              onClick={closeToast}
+              className="px-2.5 py-1 text-[10px] font-semibold bg-white/10 hover:bg-white/20 text-white rounded transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('user');
+                closeToast();
+                toast.info("Logged out successfully.");
+                navigate('/admin/login');
+              }}
+              className="px-2.5 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
+            >
+              Confirm Logout
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        position: "top-center",
+        autoClose: false,
+        closeOnClick: false,
+        draggable: false,
+        closeButton: false,
+      }
+    );
   }
 
   const SidebarContent = () => (
