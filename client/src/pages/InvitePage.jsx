@@ -765,6 +765,8 @@ const InvitePage = () => {
   const [showForm, setShowForm] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+  const [scale, setScale] = useState(1);
+  const [cardHeight, setCardHeight] = useState(0);
 
   // Premium state features
   const [showSpotifyPlayer, setShowSpotifyPlayer] = useState(false);
@@ -789,6 +791,7 @@ const InvitePage = () => {
   let musicUrl = "";
   let isDirectAudio = false;
   let galleryPhotos = [];
+  const customTextSize = invitation?.userId?.customTextSize || 1.0;
 
   // Populate/re-assign variables once invitation details are asynchronously loaded.
   if (invitation?.userId) {
@@ -879,6 +882,60 @@ const InvitePage = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Handle dynamically scaling the invitation card to fit the viewport height
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleResize = () => {
+      const card = cardRef.current;
+      if (!card) return;
+
+      // Card offsetHeight is native height since transforms don't affect layout geometry
+      const actualHeight = card.offsetHeight;
+      setCardHeight(actualHeight);
+
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Card native design layout width is 608px (38rem)
+      const nativeWidth = 608;
+
+      // Compute scale needed to fit horizontally (allow 24px margin layout margins)
+      const scaleX = (viewportWidth - 24) / nativeWidth;
+
+      // Compute scale needed to fit vertically (allow 60px layout margins)
+      const scaleY = (viewportHeight - 60) / actualHeight;
+
+      let newScale;
+      if (viewportWidth < 640) {
+        // On mobile viewports, prioritize fitting the screen width so it is readable
+        // and doesn't get squeezed into an ultra-thin column.
+        newScale = scaleX;
+      } else {
+        // On larger screens (tablets/laptops), fit the most constrained dimension
+        newScale = Math.min(scaleX, scaleY);
+      }
+
+      // Cap scale at 1.25 (allow scaling up on larger screens like laptops)
+      setScale(Math.min(1.25, newScale));
+    };
+
+    window.addEventListener("resize", handleResize);
+    
+    // Trigger at multiple intervals to handle slow font loading and image renders
+    const timers = [
+      setTimeout(handleResize, 100),
+      setTimeout(handleResize, 300),
+      setTimeout(handleResize, 800),
+      setTimeout(handleResize, 1500)
+    ];
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      timers.forEach(clearTimeout);
+    };
+  }, [isOpen, invitation, customTextSize]);
 
   const loadPaystackScript = () => {
     return new Promise((resolve) => {
@@ -980,6 +1037,7 @@ const InvitePage = () => {
 
   const handleOpenInvitation = () => {
     setIsOpen(true);
+    window.scrollTo(0, 0); // Reset scroll to top to center card in viewport
     if (audioRef.current) {
       audioRef.current.play()
         .then(() => setIsPlaying(true))
@@ -1129,7 +1187,7 @@ const InvitePage = () => {
 
   if (loading)
     return (
-      <section className="flex min-h-screen items-center justify-center bg-[#070A13]">
+      <section className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-[#070A13]">
         <p className="text-white/40 text-sm tracking-widest uppercase animate-pulse">
           Loading your invitation...
         </p>
@@ -1138,7 +1196,7 @@ const InvitePage = () => {
 
   if (notFound)
     return (
-      <section className="flex min-h-screen items-center justify-center bg-[#070A13] text-center px-6">
+      <section className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-[#070A13] text-center px-6">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-4">
             Not Found
@@ -1177,7 +1235,6 @@ const InvitePage = () => {
   const customFontFamily = invitation.userId?.customFontFamily || "classic";
   const customVerticalOffset = invitation.userId?.customVerticalOffset || 0;
   const customHorizontalOffset = invitation.userId?.customHorizontalOffset || 0;
-  const customTextSize = invitation.userId?.customTextSize || 1.0;
   const customTextBoldness = invitation.userId?.customTextBoldness || "normal";
   const customTextAlign = invitation.userId?.customTextAlign || "center";
   const userHasCustomAlignment = invitation.userId?.userHasCustomAlignment || false;
@@ -1388,7 +1445,7 @@ const InvitePage = () => {
   const isTodayWeddingDay = weddingDate && (new Date(weddingDate).toDateString() === new Date().toDateString());
 
   return (
-    <div className={`min-h-screen relative ${isOpen ? "overflow-x-hidden" : "h-screen overflow-hidden"}`} style={{ background: "#070A13" }}>
+    <div className={`min-h-screen min-h-[100dvh] relative ${isOpen ? "overflow-x-hidden" : "h-screen h-[100dvh] overflow-hidden"}`} style={{ background: "#070A13" }}>
       <style>{`
         .is-exporting .download-exclude,
         .is-exporting #rsvp-open-btn,
@@ -1618,17 +1675,35 @@ const InvitePage = () => {
 
       {/* ── INVITATION CARD SECTION ── */}
       <div ref={downloadRef} id="main-invitation-container" className="w-full relative z-10">
-        <section className="flex flex-col items-center justify-center py-10 px-4 gap-6 relative z-10 w-full">
+        {/* Section 1: Invitation Card centered vertically in viewport */}
+        <section className="flex flex-col items-center justify-center py-0 px-4 relative z-10 w-full min-h-screen min-h-[100dvh]">
         {/* ═══ THE CARD (this gets downloaded) ═══ */}
-        <div
-          ref={cardRef}
-          key={customCardBg || cardTheme}
-          className={`w-full max-w-[28rem] sm:max-w-[32rem] rounded-2xl overflow-hidden transition-all duration-300 ${
-            isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
-          } ${
-            isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
-          }`}
+        <div 
+          className="w-full flex items-start justify-center relative"
+          style={{ 
+            height: cardHeight > 0 && isOpen && !downloading ? `${cardHeight * (downloading ? 1 : scale)}px` : "auto",
+            transition: "height 0.3s ease-out"
+          }}
         >
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "center",
+              transform: isOpen && !downloading ? `scale(${scale})` : "none",
+              transformOrigin: "top center",
+              transition: "transform 0.3s ease-out",
+            }}
+          >
+            <div
+              ref={cardRef}
+              key={customCardBg || cardTheme}
+              className={`w-[608px] flex-none rounded-2xl overflow-hidden transition-all duration-300 ${
+                isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
+              } ${
+                isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+              }`}
+            >
           {/* Card background container */}
           <div
             className="relative w-full overflow-hidden"
@@ -1911,12 +1986,18 @@ const InvitePage = () => {
               )}
             </div>
           </div>
+          </div>
         </div>
-        {/* ═══ END CARD ═══ */}
+      </div>
+      {/* ═══ END CARD ═══ */}
+      </section>
+
+      {/* Section 2: Details & RSVP actions below the card */}
+      <section className="flex flex-col items-center justify-center py-10 px-4 gap-6 relative z-10 w-full download-exclude">
 
         {/* ── Countdown (outside card, not downloaded) ── */}
         {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
-          <div className="w-full max-w-[28rem] sm:max-w-[32rem] download-exclude">
+          <div className="w-full download-exclude" style={{ maxWidth: `${608 * scale}px` }}>
             <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">
               Counting Down
             </p>

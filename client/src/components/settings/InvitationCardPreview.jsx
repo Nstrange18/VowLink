@@ -723,7 +723,7 @@ const InvitationCardPreview = () => {
         {/* The Invitation Card — key forces full remount on template/theme change */}
         <div
           key={customCardBg || cardTheme}
-          className={`relative z-10 w-full max-w-[28rem] sm:max-w-[32rem] overflow-hidden rounded-xl border border-white/5 transition-all duration-300 ${
+          className={`relative z-10 w-full max-w-[92%] sm:max-w-[38rem] overflow-hidden rounded-xl border border-white/5 transition-all duration-300 ${
             isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
           } ${
             isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-2xl"

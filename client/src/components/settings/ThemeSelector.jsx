@@ -128,7 +128,6 @@ const renderTemplatePreviewOrnaments = (url) => {
 };
 
 const ThemeSelector = () => {
-  const [fineTuningLocked, setFineTuningLocked] = useState(true);
   const {
     cardTheme,
     setCardTheme,
@@ -679,17 +678,6 @@ const ThemeSelector = () => {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <p className="text-[10px] text-amber-400 uppercase font-bold tracking-widest">Fine-Tuning</p>
-            <button
-              type="button"
-              onClick={() => setFineTuningLocked(!fineTuningLocked)}
-              className={`px-3 py-1 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition ${
-                fineTuningLocked
-                  ? "bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20"
-                  : "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
-              }`}
-            >
-              {fineTuningLocked ? "🔒 Locked (Click to Edit)" : "🔓 Unlocked"}
-            </button>
           </div>
 
           {/* Vertical position offset */}
@@ -701,7 +689,7 @@ const ThemeSelector = () => {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                disabled={fineTuningLocked || customVerticalOffset <= -150}
+                disabled={customVerticalOffset <= -150}
                 onClick={() => setCustomVerticalOffset(Math.max(-150, customVerticalOffset - 5))}
                 className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
               >
@@ -712,7 +700,7 @@ const ThemeSelector = () => {
               </div>
               <button
                 type="button"
-                disabled={fineTuningLocked || customVerticalOffset >= 150}
+                disabled={customVerticalOffset >= 150}
                 onClick={() => setCustomVerticalOffset(Math.min(150, customVerticalOffset + 5))}
                 className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
               >
@@ -730,7 +718,7 @@ const ThemeSelector = () => {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                disabled={fineTuningLocked || customHorizontalOffset <= -100}
+                disabled={customHorizontalOffset <= -100}
                 onClick={() => setCustomHorizontalOffset(Math.max(-100, customHorizontalOffset - 5))}
                 className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
               >
@@ -741,7 +729,7 @@ const ThemeSelector = () => {
               </div>
               <button
                 type="button"
-                disabled={fineTuningLocked || customHorizontalOffset >= 100}
+                disabled={customHorizontalOffset >= 100}
                 onClick={() => setCustomHorizontalOffset(Math.min(100, customHorizontalOffset + 5))}
                 className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
               >
@@ -759,7 +747,7 @@ const ThemeSelector = () => {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                disabled={fineTuningLocked || customTextSize <= 0.6}
+                disabled={customTextSize <= 0.6}
                 onClick={() => setCustomTextSize(Number(Math.max(0.6, customTextSize - 0.05).toFixed(2)))}
                 className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
               >
@@ -770,7 +758,7 @@ const ThemeSelector = () => {
               </div>
               <button
                 type="button"
-                disabled={fineTuningLocked || customTextSize >= 1.6}
+                disabled={customTextSize >= 1.6}
                 onClick={() => setCustomTextSize(Number(Math.min(1.6, customTextSize + 0.05).toFixed(2)))}
                 className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
               >
@@ -791,14 +779,13 @@ const ThemeSelector = () => {
                   key={item.value}
                   type="button"
                   onClick={() => {
-                    if (fineTuningLocked) return;
                     setCustomTextBoldness(item.value);
                   }}
                   className={`flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition cursor-pointer ${
                     customTextBoldness === item.value
                       ? "bg-[#D8B76A] text-[#070A13]"
                       : "bg-white/5 text-white/60 hover:bg-white/10"
-                  } ${fineTuningLocked ? "opacity-30 cursor-not-allowed pointer-events-none" : ""}`}
+                  }`}
                 >
                   {item.label}
                 </button>
@@ -814,7 +801,6 @@ const ThemeSelector = () => {
                   key={align}
                   type="button"
                   onClick={() => {
-                    if (fineTuningLocked) return;
                     setCustomTextAlign(align);
                     setUserHasCustomAlignment(true);
                   }}
@@ -822,7 +808,7 @@ const ThemeSelector = () => {
                     customTextAlign === align
                       ? "bg-[#D8B76A] text-[#070A13]"
                       : "bg-white/5 text-white/60 hover:bg-white/10"
-                  } ${fineTuningLocked ? "opacity-30 cursor-not-allowed pointer-events-none" : ""}`}
+                  }`}
                 >
                   {align}
                 </button>
