@@ -73,6 +73,38 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 1.0,
     },
+    customTextSizeTitle: {
+      type: Number,
+      default: 1.0,
+    },
+    customTextSizeSubtitle: {
+      type: Number,
+      default: 1.0,
+    },
+    customTextSizeCoupleNames: {
+      type: Number,
+      default: 1.0,
+    },
+    customTextSizeGreeting: {
+      type: Number,
+      default: 1.0,
+    },
+    customTextSizeMessage: {
+      type: Number,
+      default: 1.0,
+    },
+    customTextSizeDetails: {
+      type: Number,
+      default: 1.0,
+    },
+    customTextSizeReception: {
+      type: Number,
+      default: 1.0,
+    },
+    customTextSizeColors: {
+      type: Number,
+      default: 1.0,
+    },
     customTextBoldness: {
       type: String,
       default: "normal",

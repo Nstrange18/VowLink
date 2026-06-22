@@ -272,10 +272,20 @@ export const getBlockStyles = (
     maxWidth: "100%",
   };
 
+  // Determine scale factor based on block name
+  let scale = 1.0;
+  if (typeof customTextSize === "object" && customTextSize !== null) {
+    let lookupKey = blockName;
+    if (blockName === "divider1" || blockName === "divider2") lookupKey = "details";
+    scale = customTextSize[lookupKey] || customTextSize.global || 1.0;
+  } else {
+    scale = typeof customTextSize === "number" && customTextSize > 0 ? customTextSize : 1.0;
+  }
+
   if (mt !== undefined) styles.marginTop = mt;
   if (mb !== undefined) styles.marginBottom = mb;
   if (blockMaxWidth !== undefined) {
-    styles.maxWidth = (customTextSize > 1.0) ? "100%" : blockMaxWidth;
+    styles.maxWidth = (scale > 1.0) ? "100%" : blockMaxWidth;
   }
 
   // Apply per-block clamped font size with scale multiplier.
@@ -283,9 +293,10 @@ export const getBlockStyles = (
   if (rawFontSize !== undefined) {
     const baseEm = parseFloat(rawFontSize);
     const caps = BLOCK_FONT_CAPS[blockName]?.[pageType] || { min: baseEm * 0.7, max: baseEm * 1.4 };
-    const scale = typeof customTextSize === "number" && customTextSize > 0 ? customTextSize : 1.0;
     const scaledEm = Math.round(baseEm * scale * 1000) / 1000;
-    styles.fontSize = `clamp(${caps.min}em, ${scaledEm}em, ${caps.max}em)`;
+    // Relax the max cap to allow scaling to container limit as requested
+    const maxCap = Math.max(caps.max * 2.5, 6.0);
+    styles.fontSize = `clamp(${caps.min}em, ${scaledEm}em, ${maxCap}em)`;
   }
 
   if (lineHeight !== undefined) styles.lineHeight = lineHeight;

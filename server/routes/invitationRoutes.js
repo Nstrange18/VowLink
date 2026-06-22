@@ -18,7 +18,7 @@ router.get("/slug/:slug", async (req, res) => {
       slug: req.params.slug,
     }).populate(
       "userId",
-      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue venueName receptionLocation receptionName dressCode weddingColors plusOnePolicy kidsAllowed cardTheme customCardBg pageBgTemplate customTextColor userHasCustomTextColor customFontFamily customVerticalOffset customTextSize customTextBoldness couplePhotoUrl coupleOverlayOpacity musicUrl galleryPhotos tier registryEnabled registryBankName registryAccountName registryAccountNumber registryNotes honeymoonFundTarget honeymoonFundCurrent timeline customTextAlign userHasCustomAlignment customHorizontalOffset smartLayoutEnabled email",
+      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue venueName receptionLocation receptionName dressCode weddingColors plusOnePolicy kidsAllowed cardTheme customCardBg pageBgTemplate customTextColor userHasCustomTextColor customFontFamily customVerticalOffset customTextSize customTextSizeTitle customTextSizeSubtitle customTextSizeCoupleNames customTextSizeGreeting customTextSizeMessage customTextSizeDetails customTextSizeReception customTextSizeColors customTextBoldness couplePhotoUrl coupleOverlayOpacity musicUrl galleryPhotos tier registryEnabled registryBankName registryAccountName registryAccountNumber registryNotes honeymoonFundTarget honeymoonFundCurrent timeline customTextAlign userHasCustomAlignment customHorizontalOffset smartLayoutEnabled email",
     );
 
     if (!invitation) {

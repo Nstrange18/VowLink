@@ -90,6 +90,14 @@ export const SettingsProvider = ({ children }) => {
   const [customHorizontalOffset, setCustomHorizontalOffset] = useState(storedUser.customHorizontalOffset || 0);
   const [smartLayoutEnabled, setSmartLayoutEnabled] = useState(typeof storedUser.smartLayoutEnabled === "boolean" ? storedUser.smartLayoutEnabled : true);
   const [customTextSize, setCustomTextSize] = useState(storedUser.customTextSize || 1.0);
+  const [customTextSizeTitle, setCustomTextSizeTitle] = useState(storedUser.customTextSizeTitle || 1.0);
+  const [customTextSizeSubtitle, setCustomTextSizeSubtitle] = useState(storedUser.customTextSizeSubtitle || 1.0);
+  const [customTextSizeCoupleNames, setCustomTextSizeCoupleNames] = useState(storedUser.customTextSizeCoupleNames || 1.0);
+  const [customTextSizeGreeting, setCustomTextSizeGreeting] = useState(storedUser.customTextSizeGreeting || 1.0);
+  const [customTextSizeMessage, setCustomTextSizeMessage] = useState(storedUser.customTextSizeMessage || 1.0);
+  const [customTextSizeDetails, setCustomTextSizeDetails] = useState(storedUser.customTextSizeDetails || 1.0);
+  const [customTextSizeReception, setCustomTextSizeReception] = useState(storedUser.customTextSizeReception || 1.0);
+  const [customTextSizeColors, setCustomTextSizeColors] = useState(storedUser.customTextSizeColors || 1.0);
   const [customTextBoldness, setCustomTextBoldness] = useState(storedUser.customTextBoldness || "normal");
   const [customTextAlign, setCustomTextAlign] = useState(storedUser.customTextAlign || "center");
   const [userHasCustomAlignment, setUserHasCustomAlignment] = useState(storedUser.userHasCustomAlignment || false);
@@ -218,6 +226,14 @@ export const SettingsProvider = ({ children }) => {
         if (typeof freshUser.customHorizontalOffset === "number") setCustomHorizontalOffset(freshUser.customHorizontalOffset);
         if (typeof freshUser.smartLayoutEnabled === "boolean") setSmartLayoutEnabled(freshUser.smartLayoutEnabled);
         if (typeof freshUser.customTextSize === "number") setCustomTextSize(freshUser.customTextSize);
+        if (typeof freshUser.customTextSizeTitle === "number") setCustomTextSizeTitle(freshUser.customTextSizeTitle);
+        if (typeof freshUser.customTextSizeSubtitle === "number") setCustomTextSizeSubtitle(freshUser.customTextSizeSubtitle);
+        if (typeof freshUser.customTextSizeCoupleNames === "number") setCustomTextSizeCoupleNames(freshUser.customTextSizeCoupleNames);
+        if (typeof freshUser.customTextSizeGreeting === "number") setCustomTextSizeGreeting(freshUser.customTextSizeGreeting);
+        if (typeof freshUser.customTextSizeMessage === "number") setCustomTextSizeMessage(freshUser.customTextSizeMessage);
+        if (typeof freshUser.customTextSizeDetails === "number") setCustomTextSizeDetails(freshUser.customTextSizeDetails);
+        if (typeof freshUser.customTextSizeReception === "number") setCustomTextSizeReception(freshUser.customTextSizeReception);
+        if (typeof freshUser.customTextSizeColors === "number") setCustomTextSizeColors(freshUser.customTextSizeColors);
         if (freshUser.customTextBoldness) setCustomTextBoldness(freshUser.customTextBoldness);
         if (freshUser.customTextAlign) setCustomTextAlign(freshUser.customTextAlign);
         if (typeof freshUser.userHasCustomAlignment === "boolean") setUserHasCustomAlignment(freshUser.userHasCustomAlignment);
@@ -393,6 +409,14 @@ export const SettingsProvider = ({ children }) => {
         customHorizontalOffset: Number(customHorizontalOffset),
         smartLayoutEnabled: Boolean(smartLayoutEnabled),
         customTextSize: Number(customTextSize),
+        customTextSizeTitle: Number(customTextSizeTitle),
+        customTextSizeSubtitle: Number(customTextSizeSubtitle),
+        customTextSizeCoupleNames: Number(customTextSizeCoupleNames),
+        customTextSizeGreeting: Number(customTextSizeGreeting),
+        customTextSizeMessage: Number(customTextSizeMessage),
+        customTextSizeDetails: Number(customTextSizeDetails),
+        customTextSizeReception: Number(customTextSizeReception),
+        customTextSizeColors: Number(customTextSizeColors),
         customTextBoldness,
         customTextAlign,
         userHasCustomAlignment,
@@ -615,6 +639,14 @@ export const SettingsProvider = ({ children }) => {
     setCustomHorizontalOffset(0);
     setSmartLayoutEnabled(true);
     setCustomTextSize(1.0);
+    setCustomTextSizeTitle(1.0);
+    setCustomTextSizeSubtitle(1.0);
+    setCustomTextSizeCoupleNames(1.0);
+    setCustomTextSizeGreeting(1.0);
+    setCustomTextSizeMessage(1.0);
+    setCustomTextSizeDetails(1.0);
+    setCustomTextSizeReception(1.0);
+    setCustomTextSizeColors(1.0);
     setCustomTextBoldness("normal");
     setCustomTextAlign("center");
     setUserHasCustomAlignment(false);
@@ -923,6 +955,14 @@ export const SettingsProvider = ({ children }) => {
         customHorizontalOffset, setCustomHorizontalOffset,
         smartLayoutEnabled, setSmartLayoutEnabled,
         customTextSize, setCustomTextSize,
+        customTextSizeTitle, setCustomTextSizeTitle,
+        customTextSizeSubtitle, setCustomTextSizeSubtitle,
+        customTextSizeCoupleNames, setCustomTextSizeCoupleNames,
+        customTextSizeGreeting, setCustomTextSizeGreeting,
+        customTextSizeMessage, setCustomTextSizeMessage,
+        customTextSizeDetails, setCustomTextSizeDetails,
+        customTextSizeReception, setCustomTextSizeReception,
+        customTextSizeColors, setCustomTextSizeColors,
         customTextBoldness, setCustomTextBoldness,
         customTextAlign, setCustomTextAlign,
         userHasCustomAlignment, setUserHasCustomAlignment,

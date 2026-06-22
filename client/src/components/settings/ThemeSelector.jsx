@@ -143,6 +143,22 @@ const ThemeSelector = () => {
     setCustomHorizontalOffset,
     customTextSize,
     setCustomTextSize,
+    customTextSizeTitle,
+    setCustomTextSizeTitle,
+    customTextSizeSubtitle,
+    setCustomTextSizeSubtitle,
+    customTextSizeCoupleNames,
+    setCustomTextSizeCoupleNames,
+    customTextSizeGreeting,
+    setCustomTextSizeGreeting,
+    customTextSizeMessage,
+    setCustomTextSizeMessage,
+    customTextSizeDetails,
+    setCustomTextSizeDetails,
+    customTextSizeReception,
+    setCustomTextSizeReception,
+    customTextSizeColors,
+    setCustomTextSizeColors,
     customTextBoldness,
     setCustomTextBoldness,
     customTextAlign,
@@ -163,6 +179,8 @@ const ThemeSelector = () => {
     secHex,
   } = useSettings();
 
+  const [showDetailedScaling, setShowDetailedScaling] = useState(false);
+
   const hasThemeChanges =
     cardTheme !== "floral" ||
     customCardBg !== "" ||
@@ -171,6 +189,14 @@ const ThemeSelector = () => {
     customVerticalOffset !== 0 ||
     customHorizontalOffset !== 0 ||
     customTextSize !== 1.0 ||
+    customTextSizeTitle !== 1.0 ||
+    customTextSizeSubtitle !== 1.0 ||
+    customTextSizeCoupleNames !== 1.0 ||
+    customTextSizeGreeting !== 1.0 ||
+    customTextSizeMessage !== 1.0 ||
+    customTextSizeDetails !== 1.0 ||
+    customTextSizeReception !== 1.0 ||
+    customTextSizeColors !== 1.0 ||
     customTextBoldness !== "normal" ||
     customTextAlign !== "center";
 
@@ -182,6 +208,14 @@ const ThemeSelector = () => {
     setCustomVerticalOffset(0);
     setCustomHorizontalOffset(0);
     setCustomTextSize(1.0);
+    setCustomTextSizeTitle(1.0);
+    setCustomTextSizeSubtitle(1.0);
+    setCustomTextSizeCoupleNames(1.0);
+    setCustomTextSizeGreeting(1.0);
+    setCustomTextSizeMessage(1.0);
+    setCustomTextSizeDetails(1.0);
+    setCustomTextSizeReception(1.0);
+    setCustomTextSizeColors(1.0);
     setCustomTextBoldness("normal");
     setCustomTextAlign("center");
     setUserHasCustomAlignment(false);
@@ -765,6 +799,62 @@ const ThemeSelector = () => {
                 +
               </button>
             </div>
+          </div>
+
+          {/* Detailed section multipliers */}
+          <div className="border-t border-white/5 pt-4">
+            <button
+              type="button"
+              onClick={() => setShowDetailedScaling(!showDetailedScaling)}
+              className="w-full flex justify-between items-center text-[10px] uppercase font-bold text-white/70 hover:text-white transition py-1 cursor-pointer outline-none"
+            >
+              <span className="flex items-center gap-1.5">
+                <span>⚙️</span> Detailed Section Font Sizes
+              </span>
+              <span className="font-mono text-[#D8B76A]">{showDetailedScaling ? "▲ Hide" : "▼ Show"}</span>
+            </button>
+            {showDetailedScaling && (
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 border-l-2 border-[#D8B76A]/20 pl-3 transition-all duration-300">
+                {[
+                  { label: "Couple Names", value: customTextSizeCoupleNames, setter: setCustomTextSizeCoupleNames },
+                  { label: "Personal Message", value: customTextSizeMessage, setter: setCustomTextSizeMessage },
+                  { label: "Joining Statement", value: customTextSizeSubtitle, setter: setCustomTextSizeSubtitle },
+                  { label: "Invitation Title", value: customTextSizeTitle, setter: setCustomTextSizeTitle },
+                  { label: "Guest Greeting", value: customTextSizeGreeting, setter: setCustomTextSizeGreeting },
+                  { label: "Date & Venue Address", value: customTextSizeDetails, setter: setCustomTextSizeDetails },
+                  { label: "Reception Details", value: customTextSizeReception, setter: setCustomTextSizeReception },
+                  { label: "Color Palette Chips", value: customTextSizeColors, setter: setCustomTextSizeColors },
+                ].map(slider => (
+                  <div key={slider.label}>
+                    <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1.5">
+                      <span>{slider.label}</span>
+                      <span className="font-mono text-[#D8B76A]">{slider.value.toFixed(2)}x</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        disabled={slider.value <= 0.5}
+                        onClick={() => slider.setter(Number(Math.max(0.5, slider.value - 0.05).toFixed(2)))}
+                        className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                      >
+                        -
+                      </button>
+                      <div className="flex-1 text-center font-mono text-xs text-white/80 select-none">
+                        {slider.value.toFixed(2)}x
+                      </div>
+                      <button
+                        type="button"
+                        disabled={slider.value >= 2.5}
+                        onClick={() => slider.setter(Number(Math.min(2.5, slider.value + 0.05).toFixed(2)))}
+                        className="h-8 w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold transition flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>

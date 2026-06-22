@@ -598,6 +598,14 @@ const InvitationCardPreview = () => {
     customTextAlign,
     userHasCustomAlignment,
     customTextSize,
+    customTextSizeTitle,
+    customTextSizeSubtitle,
+    customTextSizeCoupleNames,
+    customTextSizeGreeting,
+    customTextSizeMessage,
+    customTextSizeDetails,
+    customTextSizeReception,
+    customTextSizeColors,
     customTextBoldness,
     customVerticalOffset,
     customHorizontalOffset,
@@ -631,6 +639,18 @@ const InvitationCardPreview = () => {
   const isPlusTemplate = layout.tier === "plus";
   const isProTemplate = layout.tier === "pro";
 
+  const customTextSizesObj = {
+    global: customTextSize,
+    title: customTextSizeTitle,
+    subtitle: customTextSizeSubtitle,
+    coupleNames: customTextSizeCoupleNames,
+    greeting: customTextSizeGreeting,
+    message: customTextSizeMessage,
+    details: customTextSizeDetails,
+    reception: customTextSizeReception,
+    colors: customTextSizeColors,
+  };
+
   const getBlockProps = (blockName, delay) => {
     const blockStyles = getBlockStyles(
       blockName,
@@ -641,7 +661,7 @@ const InvitationCardPreview = () => {
       customTextColor,
       primaryTextColor,
       userHasCustomTextColor,
-      customTextSize
+      customTextSizesObj
     );
     
     let className = "";

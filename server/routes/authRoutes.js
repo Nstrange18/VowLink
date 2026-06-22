@@ -88,6 +88,14 @@ const userPayload = (user) => ({
   customFontFamily: user.customFontFamily || "classic",
   customVerticalOffset: typeof user.customVerticalOffset === "number" ? user.customVerticalOffset : 0,
   customTextSize: typeof user.customTextSize === "number" ? user.customTextSize : 1.0,
+  customTextSizeTitle: typeof user.customTextSizeTitle === "number" ? user.customTextSizeTitle : 1.0,
+  customTextSizeSubtitle: typeof user.customTextSizeSubtitle === "number" ? user.customTextSizeSubtitle : 1.0,
+  customTextSizeCoupleNames: typeof user.customTextSizeCoupleNames === "number" ? user.customTextSizeCoupleNames : 1.0,
+  customTextSizeGreeting: typeof user.customTextSizeGreeting === "number" ? user.customTextSizeGreeting : 1.0,
+  customTextSizeMessage: typeof user.customTextSizeMessage === "number" ? user.customTextSizeMessage : 1.0,
+  customTextSizeDetails: typeof user.customTextSizeDetails === "number" ? user.customTextSizeDetails : 1.0,
+  customTextSizeReception: typeof user.customTextSizeReception === "number" ? user.customTextSizeReception : 1.0,
+  customTextSizeColors: typeof user.customTextSizeColors === "number" ? user.customTextSizeColors : 1.0,
   customTextBoldness: user.customTextBoldness || "normal",
   coupleOverlayOpacity: typeof user.coupleOverlayOpacity === "number" ? user.coupleOverlayOpacity : 0.45,
   musicUrl: user.musicUrl || "",
@@ -140,6 +148,14 @@ const userPublic = (user) => ({
   customFontFamily: user.customFontFamily || "classic",
   customVerticalOffset: typeof user.customVerticalOffset === "number" ? user.customVerticalOffset : 0,
   customTextSize: typeof user.customTextSize === "number" ? user.customTextSize : 1.0,
+  customTextSizeTitle: typeof user.customTextSizeTitle === "number" ? user.customTextSizeTitle : 1.0,
+  customTextSizeSubtitle: typeof user.customTextSizeSubtitle === "number" ? user.customTextSizeSubtitle : 1.0,
+  customTextSizeCoupleNames: typeof user.customTextSizeCoupleNames === "number" ? user.customTextSizeCoupleNames : 1.0,
+  customTextSizeGreeting: typeof user.customTextSizeGreeting === "number" ? user.customTextSizeGreeting : 1.0,
+  customTextSizeMessage: typeof user.customTextSizeMessage === "number" ? user.customTextSizeMessage : 1.0,
+  customTextSizeDetails: typeof user.customTextSizeDetails === "number" ? user.customTextSizeDetails : 1.0,
+  customTextSizeReception: typeof user.customTextSizeReception === "number" ? user.customTextSizeReception : 1.0,
+  customTextSizeColors: typeof user.customTextSizeColors === "number" ? user.customTextSizeColors : 1.0,
   customTextBoldness: user.customTextBoldness || "normal",
   coupleOverlayOpacity: typeof user.coupleOverlayOpacity === "number" ? user.coupleOverlayOpacity : 0.45,
   musicUrl: user.musicUrl || "",
@@ -342,6 +358,14 @@ router.put("/me", protect, async (req, res) => {
       customFontFamily,
       customVerticalOffset,
       customTextSize,
+      customTextSizeTitle,
+      customTextSizeSubtitle,
+      customTextSizeCoupleNames,
+      customTextSizeGreeting,
+      customTextSizeMessage,
+      customTextSizeDetails,
+      customTextSizeReception,
+      customTextSizeColors,
       customTextBoldness,
       musicUrl,
       galleryPhotos,
@@ -503,6 +527,14 @@ router.put("/me", protect, async (req, res) => {
     if (typeof customVerticalOffset === "number") user.customVerticalOffset = customVerticalOffset;
     if (typeof customHorizontalOffset === "number") user.customHorizontalOffset = customHorizontalOffset;
     if (typeof customTextSize === "number") user.customTextSize = customTextSize;
+    if (typeof customTextSizeTitle === "number") user.customTextSizeTitle = customTextSizeTitle;
+    if (typeof customTextSizeSubtitle === "number") user.customTextSizeSubtitle = customTextSizeSubtitle;
+    if (typeof customTextSizeCoupleNames === "number") user.customTextSizeCoupleNames = customTextSizeCoupleNames;
+    if (typeof customTextSizeGreeting === "number") user.customTextSizeGreeting = customTextSizeGreeting;
+    if (typeof customTextSizeMessage === "number") user.customTextSizeMessage = customTextSizeMessage;
+    if (typeof customTextSizeDetails === "number") user.customTextSizeDetails = customTextSizeDetails;
+    if (typeof customTextSizeReception === "number") user.customTextSizeReception = customTextSizeReception;
+    if (typeof customTextSizeColors === "number") user.customTextSizeColors = customTextSizeColors;
     if (customTextBoldness !== undefined && ["normal", "medium", "bold"].includes(customTextBoldness)) {
       user.customTextBoldness = customTextBoldness;
     }

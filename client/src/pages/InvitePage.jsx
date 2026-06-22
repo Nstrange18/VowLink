@@ -792,6 +792,14 @@ const InvitePage = () => {
   let isDirectAudio = false;
   let galleryPhotos = [];
   const customTextSize = invitation?.userId?.customTextSize || 1.0;
+  const customTextSizeTitle = invitation?.userId?.customTextSizeTitle || 1.0;
+  const customTextSizeSubtitle = invitation?.userId?.customTextSizeSubtitle || 1.0;
+  const customTextSizeCoupleNames = invitation?.userId?.customTextSizeCoupleNames || 1.0;
+  const customTextSizeGreeting = invitation?.userId?.customTextSizeGreeting || 1.0;
+  const customTextSizeMessage = invitation?.userId?.customTextSizeMessage || 1.0;
+  const customTextSizeDetails = invitation?.userId?.customTextSizeDetails || 1.0;
+  const customTextSizeReception = invitation?.userId?.customTextSizeReception || 1.0;
+  const customTextSizeColors = invitation?.userId?.customTextSizeColors || 1.0;
 
   // Populate/re-assign variables once invitation details are asynchronously loaded.
   if (invitation?.userId) {
@@ -1406,6 +1414,18 @@ const InvitePage = () => {
     return val;
   };
 
+  const customTextSizesObj = {
+    global: customTextSize,
+    title: customTextSizeTitle,
+    subtitle: customTextSizeSubtitle,
+    coupleNames: customTextSizeCoupleNames,
+    greeting: customTextSizeGreeting,
+    message: customTextSizeMessage,
+    details: customTextSizeDetails,
+    reception: customTextSizeReception,
+    colors: customTextSizeColors,
+  };
+
   const getBlockProps = (blockName, delay) => {
     const blockStyles = getBlockStyles(
       blockName,
@@ -1416,7 +1436,7 @@ const InvitePage = () => {
       customTextColor,
       primaryTextColor,
       userHasCustomTextColor,
-      customTextSize
+      customTextSizesObj
     );
     
     let className = "";
@@ -2302,7 +2322,7 @@ const InvitePage = () => {
                       }}
                     >
                       <div className="h-5 w-5 rounded-full shrink-0 shadow-inner" style={{ background: hex }} />
-                      <span className="text-lg font-bold text-white tracking-wide">{name}</span>
+                      <span className="text-xs font-bold text-white tracking-wide">{name}</span>
                     </div>
                   );
                 })}
