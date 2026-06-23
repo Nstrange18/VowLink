@@ -120,6 +120,30 @@ export const SettingsProvider = ({ children }) => {
   const [timeline, setTimeline] = useState(storedUser.timeline || []);
   const [gifts, setGifts] = useState([]);
 
+  // Image Cropper Queue states
+  const [cropperQueue, setCropperQueue] = useState([]);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [cropperImageSrc, setCropperImageSrc] = useState("");
+  const [cropperTitle, setCropperTitle] = useState("");
+  const [cropperDefaultAspect, setCropperDefaultAspect] = useState(1);
+  const [cropperCallback, setCropperCallback] = useState(null);
+
+  // Crop queue processor
+  useEffect(() => {
+    if (cropperQueue.length > 0 && !cropperOpen) {
+      const nextItem = cropperQueue[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCropperImageSrc(reader.result);
+        setCropperTitle(nextItem.title);
+        setCropperDefaultAspect(nextItem.defaultAspect);
+        setCropperCallback(() => nextItem.callback);
+        setCropperOpen(true);
+      };
+      reader.readAsDataURL(nextItem.file);
+    }
+  }, [cropperQueue, cropperOpen]);
+
   useEffect(() => {
     const fetchGifts = async () => {
       try {
@@ -491,17 +515,18 @@ export const SettingsProvider = ({ children }) => {
       return;
     }
 
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const url = await uploadToCloudinary(reader.result);
-          setGalleryPhotos((prev) => [...prev, url]);
-        } catch (err) {}
-      };
-      reader.readAsDataURL(file);
-    });
+    // Queue up files to crop one-by-one
+    const newItems = files.map((file) => ({
+      file,
+      title: "Crop Gallery Photo",
+      defaultAspect: 1, // 1:1 default aspect ratio
+      callback: async (croppedDataUrl) => {
+        const url = await uploadToCloudinary(croppedDataUrl);
+        setGalleryPhotos((prev) => [...prev, url]);
+      }
+    }));
     
+    setCropperQueue((prev) => [...prev, ...newItems]);
     e.target.value = "";
   };
 
@@ -554,16 +579,19 @@ export const SettingsProvider = ({ children }) => {
     }
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const url = await uploadToCloudinary(reader.result);
+      const newItem = {
+        file,
+        title: "Crop Background Card",
+        defaultAspect: 608 / 580, // Card ratio
+        callback: async (croppedDataUrl) => {
+          const url = await uploadToCloudinary(croppedDataUrl);
           setCustomCardBg(url);
           setCustomTextColor("#FFFFFF");
-        } catch (err) {}
+        }
       };
-      reader.readAsDataURL(file);
+      setCropperQueue((prev) => [...prev, newItem]);
     }
+    e.target.value = "";
   };
 
   const handleCouplePhotoUpload = (e) => {
@@ -573,17 +601,20 @@ export const SettingsProvider = ({ children }) => {
     }
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const url = await uploadToCloudinary(reader.result);
+      const newItem = {
+        file,
+        title: "Crop Couple Portrait",
+        defaultAspect: 9 / 16, // Ideal vertical aspect ratio
+        callback: async (croppedDataUrl) => {
+          const url = await uploadToCloudinary(croppedDataUrl);
           setCouplePhotoUrl(url);
           setPageBgTemplate("");
           toast.success("Couple photo uploaded! 💑 It will appear as the page background.");
-        } catch (err) {}
+        }
       };
-      reader.readAsDataURL(file);
+      setCropperQueue((prev) => [...prev, newItem]);
     }
+    e.target.value = "";
   };
 
   const handleLocalAudioUpload = (e) => {
@@ -982,6 +1013,13 @@ export const SettingsProvider = ({ children }) => {
         honeymoonFundCurrent, setHoneymoonFundCurrent,
         timeline, setTimeline,
         gifts, setGifts,
+
+        cropperQueue, setCropperQueue,
+        cropperOpen, setCropperOpen,
+        cropperImageSrc, setCropperImageSrc,
+        cropperTitle, setCropperTitle,
+        cropperDefaultAspect, setCropperDefaultAspect,
+        cropperCallback, setCropperCallback,
 
         aiVibe, setAiVibe,
         aiGenerating, setAiGenerating,

@@ -657,7 +657,7 @@ const InvitationCardPreview = () => {
       layout,
       customTextAlign,
       userHasCustomAlignment,
-      "preview",
+      "invite",
       customTextColor,
       primaryTextColor,
       userHasCustomTextColor,
@@ -688,7 +688,9 @@ const InvitationCardPreview = () => {
   };
 
   const containerRef = useRef(null);
+  const cardRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [cardHeight, setCardHeight] = useState(0);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -703,11 +705,27 @@ const InvitationCardPreview = () => {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!cardRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        if (entry.contentRect) {
+          setCardHeight(entry.contentRect.height);
+        }
+      }
+    });
+    observer.observe(cardRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   const shouldHideBg = containerWidth > 0 && containerWidth < 380;
 
+  const nativeWidth = 608;
+  const cardScale = containerWidth ? Math.min(1.0, (containerWidth - (shouldHideBg ? 16 : 48)) / nativeWidth) : 0.6;
+
   const previewContainerClass = shouldHideBg
-    ? "w-full bg-transparent rounded-none overflow-hidden shadow-none border-none p-0 relative flex items-center justify-center min-h-0"
-    : "w-full bg-[#070A13] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 p-4 sm:p-6 relative flex items-center justify-center min-h-[580px]";
+    ? "w-full bg-transparent rounded-none overflow-hidden shadow-none border-none p-0 relative flex items-start justify-center min-h-0 pt-2"
+    : "w-full bg-[#070A13] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 p-4 sm:p-6 relative flex items-start justify-center min-h-[580px] pt-6";
 
   return (
     <div className="col-span-12 lg:col-span-6 lg:sticky lg:top-8 space-y-4 animate-fade-in">
@@ -717,6 +735,10 @@ const InvitationCardPreview = () => {
         ref={containerRef}
         id="live-card-preview"
         className={previewContainerClass}
+        style={{
+          height: cardHeight > 0 ? `${cardHeight * cardScale + (shouldHideBg ? 16 : 48)}px` : "auto",
+          transition: "height 0.3s ease-out"
+        }}
       >
         {/* Page Background (Couple Photo) */}
         {!shouldHideBg && couplePhotoUrl ? (
@@ -742,29 +764,37 @@ const InvitationCardPreview = () => {
 
         {/* The Invitation Card — key forces full remount on template/theme change */}
         <div
+          ref={cardRef}
           key={customCardBg || cardTheme}
-          className={`relative z-10 w-full max-w-[92%] sm:max-w-[38rem] overflow-hidden rounded-xl border border-white/5 transition-all duration-300 ${
+          className={`relative z-10 w-[608px] flex-none rounded-2xl overflow-hidden transition-all duration-300 ${
             isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
           } ${
             isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-2xl"
           }`}
-          style={cardStyles}
+          style={{
+            transform: `scale(${cardScale})`,
+            transformOrigin: "top center",
+          }}
         >
-          {isProTemplate && <div className="pro-card-shimmer-overlay" />}
-
-          {/* key forces full remount of ornaments/animation layers when theme or template changes */}
-          <div key={`${cardTheme}__${customCardBg}`} className={isProTemplate ? "animate-pro-float" : ""}>
-            {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
-            {cardTheme === "custom" && renderTemplateBackgroundGraphics(customCardBg, priHex, secHex, terHex, isFreeUser)}
-          </div>
-          {renderFrameBorder(layout.frameBorder)}
-
           <div
-            className={`relative z-10 flex flex-col justify-center w-full min-h-[580px] transition-all ${
-              textAlignment === "left"
-                ? "items-start text-left"
-                : textAlignment === "right"
-                ? "items-end text-right"
+            className="relative w-full overflow-hidden"
+            style={cardStyles}
+          >
+            {isProTemplate && <div className="pro-card-shimmer-overlay" />}
+
+            {/* key forces full remount of ornaments/animation layers when theme or template changes */}
+            <div key={`${cardTheme}__${customCardBg}`} className={isProTemplate ? "animate-pro-float" : ""}>
+              {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
+              {cardTheme === "custom" && renderTemplateBackgroundGraphics(customCardBg, priHex, secHex, terHex, isFreeUser)}
+            </div>
+            {renderFrameBorder(layout.frameBorder)}
+
+            <div
+              className={`relative z-10 flex flex-col justify-center w-full min-h-[620px] transition-all ${
+                textAlignment === "left"
+                  ? "items-start text-left"
+                  : textAlignment === "right"
+                  ? "items-end text-right"
                 : "items-center text-center"
             }`}
             style={{
@@ -946,6 +976,7 @@ const InvitationCardPreview = () => {
           </div>
         </div>
       </div>
+    </div>
 
       {/* Quick Upload Own Card Action (Pro Only) */}
       {isPro && (

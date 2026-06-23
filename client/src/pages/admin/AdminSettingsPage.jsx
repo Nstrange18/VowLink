@@ -8,6 +8,7 @@ import { SettingsProvider, useSettings } from "../../context/SettingsContext";
 import InvitationCardPreview from "../../components/settings/InvitationCardPreview";
 import ThemeSelector from "../../components/settings/ThemeSelector";
 import MusicSelector from "../../components/settings/MusicSelector";
+import ImageEditorModal from "../../components/ImageEditorModal";
 
 const TIMELINE_ICONS = [
   { char: "⛪", label: "Church/Ceremony" },
@@ -177,6 +178,12 @@ const AdminSettingsPageContent = () => {
     customTextSize, setCustomTextSize,
     customTextAlign, setCustomTextAlign,
     couplePhotoUrl, setCouplePhotoUrl,
+    cropperQueue, setCropperQueue,
+    cropperOpen, setCropperOpen,
+    cropperImageSrc, setCropperImageSrc,
+    cropperTitle, setCropperTitle,
+    cropperDefaultAspect, setCropperDefaultAspect,
+    cropperCallback, setCropperCallback,
     coupleOverlayOpacity, setCoupleOverlayOpacity,
     musicUrl, setMusicUrl,
     galleryPhotos, setGalleryPhotos,
@@ -995,6 +1002,32 @@ const AdminSettingsPageContent = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Image Cropper and Editor Modal */}
+      {cropperOpen && (
+        <ImageEditorModal
+          isOpen={cropperOpen}
+          imageSrc={cropperImageSrc}
+          title={cropperTitle}
+          defaultAspect={cropperDefaultAspect}
+          onClose={() => {
+            setCropperOpen(false);
+            setCropperQueue([]); // Clear crop queue on cancel
+          }}
+          onConfirm={async (croppedDataUrl) => {
+            setCropperOpen(false);
+            try {
+              if (cropperCallback) {
+                await cropperCallback(croppedDataUrl);
+              }
+            } catch (err) {
+              console.error("Cropper confirm callback failed:", err);
+            }
+            // Move to next item in the crop queue
+            setCropperQueue((prev) => prev.slice(1));
+          }}
+        />
       )}
     </div>
   );
