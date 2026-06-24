@@ -20,6 +20,17 @@ const getSpotifyEmbedUrl = (url) => {
   return "";
 };
 
+const isDarkColor = (hex) => {
+  if (!hex || hex === '#999') return false;
+  const c = hex.replace('#', '');
+  if (c.length !== 6) return false;
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness < 120;
+};
+
 const resolveWeddingColors = (colors, defaultColorsList) => {
   const colorMap = {};
   defaultColorsList.forEach(c => {
@@ -30,11 +41,6 @@ const resolveWeddingColors = (colors, defaultColorsList) => {
 
   const primary = hexList[0] || "#1A2E4A"; // Default Navy
   
-  const isDarkColor = (hex) => {
-    const darkHexes = ["#1a2e4a", "#1c1c1c", "#800020", "#2d6a4f", "#008080", "#2b4d9c"];
-    return darkHexes.includes(hex.toLowerCase());
-  };
-
   const secondary = hexList[1] || (hexList[0] && !isDarkColor(hexList[0]) ? hexList[0] : "#C9A84C");
   const tertiary = hexList[2] || secondary;
 
@@ -1966,16 +1972,17 @@ const InvitePage = () => {
                     {weddingColors.map((name, i) => {
                       const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999";
                       const blockStyles = getBlockProps("colors", "2000ms").style;
+                      const isDark = isDarkColor(hex);
                       return (
                         <div
                           key={i}
                           className="flex items-center gap-1.5 rounded-full px-2.5 py-0.75 border text-[1.2em] font-extrabold shadow-xs whitespace-nowrap"
                           style={{
-                            borderColor: `${hex}44`,
-                            backgroundColor: `${hex}11`,
+                            borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
+                            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
                           }}
                         >
-                          <div className="h-2.5 w-2.5 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: hex }} />
+                          <div className={`h-2.5 w-2.5 rounded-full shrink-0 shadow-xs border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ backgroundColor: hex }} />
                           <span style={{ color: blockStyles.color }}>{name}</span>
                         </div>
                       );
@@ -2312,16 +2319,17 @@ const InvitePage = () => {
               <div className="flex justify-center flex-wrap gap-2">
                 {weddingColors.map((name, i) => {
                   const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999";
+                  const isDark = isDarkColor(hex);
                   return (
                     <div
                       key={i}
                       className="flex items-center gap-2 rounded-full border px-3.5 py-1.5 shadow-sm"
                       style={{
-                        borderColor: `${hex}44`,
-                        backgroundColor: `${hex}11`,
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
+                        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
                       }}
                     >
-                      <div className="h-5 w-5 rounded-full shrink-0 shadow-inner" style={{ background: hex }} />
+                      <div className={`h-5 w-5 rounded-full shrink-0 shadow-inner border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ background: hex }} />
                       <span className="text-xs font-bold text-white tracking-wide">{name}</span>
                     </div>
                   );

@@ -103,6 +103,7 @@ export const SettingsProvider = ({ children }) => {
   const [userHasCustomAlignment, setUserHasCustomAlignment] = useState(storedUser.userHasCustomAlignment || false);
   const [userHasCustomTextColor, setUserHasCustomTextColor] = useState(storedUser.userHasCustomTextColor || false);
   const [couplePhotoUrl, setCouplePhotoUrl] = useState(storedUser.couplePhotoUrl || "");
+  const [customShareMessage, setCustomShareMessage] = useState(storedUser.customShareMessage || "");
   const [coupleOverlayOpacity, setCoupleOverlayOpacity] = useState(storedUser.coupleOverlayOpacity ?? 0.45);
   const [musicUrl, setMusicUrl] = useState(storedUser.musicUrl || "");
   const [galleryPhotos, setGalleryPhotos] = useState(storedUser.galleryPhotos || []);
@@ -270,6 +271,7 @@ export const SettingsProvider = ({ children }) => {
         if (typeof freshUser.honeymoonFundTarget === "number") setHoneymoonFundTarget(freshUser.honeymoonFundTarget);
         if (typeof freshUser.honeymoonFundCurrent === "number") setHoneymoonFundCurrent(freshUser.honeymoonFundCurrent);
         if (freshUser.timeline) setTimeline(freshUser.timeline);
+        if (freshUser.customShareMessage) setCustomShareMessage(freshUser.customShareMessage);
         if (Array.isArray(freshUser.weddingColors) && freshUser.weddingColors.length) setWeddingColors(freshUser.weddingColors);
         
         reset({
@@ -426,6 +428,7 @@ export const SettingsProvider = ({ children }) => {
         customCardBg,
         pageBgTemplate: "",
         couplePhotoUrl,
+        customShareMessage,
         coupleOverlayOpacity,
         customTextColor,
         customFontFamily,
@@ -683,6 +686,7 @@ export const SettingsProvider = ({ children }) => {
     setUserHasCustomAlignment(false);
     setUserHasCustomTextColor(false);
     setCouplePhotoUrl("");
+    setCustomShareMessage("");
     setCoupleOverlayOpacity(0.45);
     setMusicUrl("");
     setGalleryPhotos([]);
@@ -999,6 +1003,7 @@ export const SettingsProvider = ({ children }) => {
         userHasCustomAlignment, setUserHasCustomAlignment,
         userHasCustomTextColor, setUserHasCustomTextColor,
         couplePhotoUrl, setCouplePhotoUrl,
+        customShareMessage, setCustomShareMessage,
         coupleOverlayOpacity, setCoupleOverlayOpacity,
         musicUrl, setMusicUrl,
         galleryPhotos, setGalleryPhotos,

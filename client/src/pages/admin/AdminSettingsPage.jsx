@@ -178,6 +178,7 @@ const AdminSettingsPageContent = () => {
     customTextSize, setCustomTextSize,
     customTextAlign, setCustomTextAlign,
     couplePhotoUrl, setCouplePhotoUrl,
+    customShareMessage, setCustomShareMessage,
     cropperQueue, setCropperQueue,
     cropperOpen, setCropperOpen,
     cropperImageSrc, setCropperImageSrc,
@@ -580,8 +581,8 @@ const AdminSettingsPageContent = () => {
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-white/40 leading-relaxed">
-                      Upload a romantic photo of the couple. It will serve as the fullscreen background backdrop behind your elegant invitation card.
+                     <p className="text-[10px] text-white/40 leading-relaxed">
+                      Upload a romantic photo of the couple. It will serve as the fullscreen background backdrop behind your elegant invitation card, and will also be shown as the preview image when sharing your invitation links on WhatsApp, Slack, and other platforms.
                     </p>
 
                     <div className="space-y-4">
@@ -664,6 +665,30 @@ const AdminSettingsPageContent = () => {
                           </div>
                         </div>
                       )}
+                    </div>
+
+                    {/* WhatsApp/Social Share Preview Message */}
+                    <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4 animate-fade-in">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">5. Social Share Preview Message</h3>
+                      </div>
+                      <p className="text-[10px] text-white/40 leading-relaxed">
+                        Customize the description text that guests see when you share their invitation links on WhatsApp, Slack, Facebook, etc. "Powered by VowLink" will automatically be appended.
+                      </p>
+
+                      <div className="space-y-2">
+                        <label className="block text-[10px] uppercase tracking-widest text-white/50">Custom Share Description</label>
+                        <textarea
+                          rows="3"
+                          placeholder="e.g. We are so excited to celebrate our special day with you! Tap to view your personal invitation and RSVP."
+                          value={customShareMessage}
+                          onChange={(e) => setCustomShareMessage(e.target.value)}
+                          className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white placeholder-white/30 outline-none focus:border-[#D8B76A]/60 transition"
+                        />
+                        <p className="text-[8px] text-white/30">
+                          Leave blank to use the default: <em>"You are specially invited to celebrate the wedding of {storedUser?.partner1Name || "Partner 1"} and {storedUser?.partner2Name || "Partner 2"}. Tap the link to view your invitation and RSVP."</em>
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1016,16 +1041,16 @@ const AdminSettingsPageContent = () => {
             setCropperQueue([]); // Clear crop queue on cancel
           }}
           onConfirm={async (croppedDataUrl) => {
+            const callback = cropperCallback;
             setCropperOpen(false);
+            setCropperQueue((prev) => prev.slice(1));
             try {
-              if (cropperCallback) {
-                await cropperCallback(croppedDataUrl);
+              if (callback) {
+                await callback(croppedDataUrl);
               }
             } catch (err) {
               console.error("Cropper confirm callback failed:", err);
             }
-            // Move to next item in the crop queue
-            setCropperQueue((prev) => prev.slice(1));
           }}
         />
       )}

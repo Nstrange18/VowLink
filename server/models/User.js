@@ -114,6 +114,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    customShareMessage: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     coupleOverlayOpacity: {
       type: Number,
       default: 0.45,

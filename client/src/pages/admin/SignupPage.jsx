@@ -8,6 +8,17 @@ import { signupSchema } from "../../utils/schemas";
 import ColorPicker, { WEDDING_COLORS } from "../../components/ColorPicker";
 import CustomSelect from "../../components/CustomSelect";
 
+const isDarkColor = (hex) => {
+  if (!hex || hex === '#999') return false;
+  const c = hex.replace('#', '');
+  if (c.length !== 6) return false;
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness < 120;
+};
+
 const EyeIcon = ({ open }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -459,11 +470,12 @@ const SignupPage = () => {
                     const hex =
                       WEDDING_COLORS.find((c) => c.name === name)?.hex ||
                       "#999";
+                    const isDark = isDarkColor(hex);
                     return (
                       <div
                         key={i}
                         title={name}
-                        className="h-4 w-4 rounded-full border border-white/20"
+                        className={`h-4 w-4 rounded-full border ${isDark ? 'border-white/60' : 'border-white/20'}`}
                         style={{ background: hex }}
                       />
                     );

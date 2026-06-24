@@ -159,6 +159,7 @@ const userPublic = (user) => ({
   customTextBoldness: user.customTextBoldness || "normal",
   coupleOverlayOpacity: typeof user.coupleOverlayOpacity === "number" ? user.coupleOverlayOpacity : 0.45,
   musicUrl: user.musicUrl || "",
+  customShareMessage: user.customShareMessage || "",
   shortlistedVenues: user.shortlistedVenues || [],
   pageBgTemplate: user.pageBgTemplate || "",
   role: (user.role === "admin" && user.email?.toLowerCase() === "nwubachukwuemelie@gmail.com") ? "admin" : "user",
@@ -370,6 +371,7 @@ router.put("/me", protect, async (req, res) => {
       musicUrl,
       galleryPhotos,
       couplePhotoUrl,
+      customShareMessage,
       coupleOverlayOpacity,
       customTextAlign,
       userHasCustomAlignment,
@@ -553,6 +555,10 @@ router.put("/me", protect, async (req, res) => {
 
     if (typeof smartLayoutEnabled === "boolean") {
       user.smartLayoutEnabled = smartLayoutEnabled;
+    }
+
+    if (customShareMessage !== undefined) {
+      user.customShareMessage = customShareMessage;
     }
 
     await user.save();

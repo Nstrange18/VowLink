@@ -2,6 +2,16 @@ import React, { useEffect, useState, useRef } from "react";
 import { WEDDING_COLORS } from "../ColorPicker";
 import { useSettings } from "../../context/SettingsContext";
 import { getTemplateLayout, getBlockStyles } from "../../utils/templateLayouts";
+const isDarkColor = (hex) => {
+  if (!hex || hex === '#999') return false;
+  const c = hex.replace('#', '');
+  if (c.length !== 6) return false;
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness < 120;
+};
 
 export const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
   const flowerColor = isFreeUser ? "#8C715A" : pri;
@@ -716,7 +726,7 @@ const InvitationCardPreview = () => {
     });
     observer.observe(cardRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [cardTheme, customCardBg]);
 
   const shouldHideBg = containerWidth > 0 && containerWidth < 380;
 
@@ -948,16 +958,17 @@ const InvitationCardPreview = () => {
                   {weddingColors.map((name, i) => {
                     const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || "#999";
                     const blockStyles = getBlockProps("colors").style;
+                    const isDark = isDarkColor(hex);
                     return (
                       <div
                         key={i}
                         className="flex items-center gap-1.5 rounded-full px-2.5 py-0.75 border text-[1.2em] font-extrabold shadow-md whitespace-nowrap"
                         style={{
-                          borderColor: `${hex}44`,
-                          backgroundColor: `${hex}11`,
+                          borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
                         }}
                       >
-                        <div className="h-3 w-3 rounded-full shrink-0 shadow-xs" style={{ backgroundColor: hex }} />
+                        <div className={`h-3 w-3 rounded-full shrink-0 shadow-xs border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ backgroundColor: hex }} />
                         <span style={{ color: blockStyles.color }} className="text-[1.05em] font-bold">{name}</span>
                       </div>
                     );

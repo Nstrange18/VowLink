@@ -1,0 +1,130 @@
+module.exports = async (req, res) => {
+  const { slug } = req.query;
+  if (!slug) {
+    return res.status(400).send('Slug is required');
+  }
+
+  // Get backend URL from env, default to production Render API
+  let apiBaseUrl = process.env.VITE_API_URL;
+  if (!apiBaseUrl) {
+    apiBaseUrl = 'https://vow-link-dxj5.onrender.com/api';
+  }
+  // Trim trailing slash if present
+  apiBaseUrl = apiBaseUrl.replace(/\/$/, '');
+
+  try {
+    const url = `${apiBaseUrl}/invitations/slug/${slug}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Backend returned status ${response.status}`);
+    }
+    
+    const invitation = await response.json();
+    if (!invitation) {
+      throw new Error('Empty invitation data');
+    }
+
+    const user = invitation.userId || {};
+    const partner1 = user.partner1Name || '';
+    const partner2 = user.partner2Name || '';
+    const coupleNames = partner1 && partner2 ? `${partner1} & ${partner2}` : 'Our';
+    const coupleNamesText = partner1 && partner2 ? `${partner1} and ${partner2}` : 'us';
+
+    const title = `${coupleNames}’s Wedding Invitation`;
+    
+    let descriptionText = user.customShareMessage
+      ? user.customShareMessage.trim()
+      : `You are specially invited to celebrate the wedding of ${coupleNamesText}. Tap the link to view your invitation and RSVP.`;
+    
+    // Ensure "Powered by VowLink" is included in description
+    const description = descriptionText.toLowerCase().includes('powered by vowlink')
+      ? descriptionText
+      : `${descriptionText} Powered by VowLink.`;
+    
+    // Choose image:
+    // 1. couplePhotoUrl (uploaded photo)
+    // 2. customCardBg (selected template)
+    // 3. Fallback default VowLink logo
+    let imageUrl = '';
+    if (user.couplePhotoUrl) {
+      imageUrl = user.couplePhotoUrl;
+    } else if (user.customCardBg) {
+      const bg = user.customCardBg;
+      if (bg.startsWith('http://') || bg.startsWith('https://')) {
+        imageUrl = bg;
+      } else {
+        const cleanBg = bg.startsWith('/') ? bg : `/${bg}`;
+        imageUrl = `https://${req.headers.host}${cleanBg}`;
+      }
+    } else {
+      imageUrl = `https://${req.headers.host}/vowlink-logo.png`;
+    }
+
+    const inviteUrl = `https://${req.headers.host}/invite/${slug}`;
+
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  <meta name="description" content="${description}">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="${inviteUrl}">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="${description}">
+  <meta property="og:image" content="${imageUrl}">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="${inviteUrl}">
+  <meta property="twitter:title" content="${title}">
+  <meta property="twitter:description" content="${description}">
+  <meta property="twitter:image" content="${imageUrl}">
+</head>
+<body>
+  <p>Redirecting to invitation...</p>
+  <script>
+    window.location.href = "${inviteUrl}";
+  </script>
+</body>
+</html>
+    `.trim();
+
+    res.setHeader('Content-Type', 'text/html');
+    return res.status(200).send(html);
+
+  } catch (error) {
+    console.error('Error rendering preview:', error.message);
+    const fallbackTitle = "Wedding Invitation | VowLink";
+    const fallbackDesc = "You are specially invited to celebrate. Tap the link to view your invitation and RSVP. Powered by VowLink.";
+    const fallbackImg = `https://${req.headers.host}/vowlink-logo.png`;
+    const fallbackUrl = `https://${req.headers.host}/invite/${slug}`;
+
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${fallbackTitle}</title>
+  <meta name="description" content="${fallbackDesc}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="${fallbackUrl}">
+  <meta property="og:title" content="${fallbackTitle}">
+  <meta property="og:description" content="${fallbackDesc}">
+  <meta property="og:image" content="${fallbackImg}">
+</head>
+<body>
+  <p>Redirecting to invitation...</p>
+  <script>
+    window.location.href = "${fallbackUrl}";
+  </script>
+</body>
+</html>
+    `.trim();
+    res.setHeader('Content-Type', 'text/html');
+    return res.status(200).send(html);
+  }
+};

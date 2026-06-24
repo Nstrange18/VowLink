@@ -34,6 +34,17 @@ export const WEDDING_COLORS = [
   { name: 'Rose Gold',       hex: '#B76E79' },
 ]
 
+const isDarkColor = (hex) => {
+  if (!hex || hex === '#999') return false;
+  const c = hex.replace('#', '');
+  if (c.length !== 6) return false;
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness < 120;
+};
+
 const ColorPicker = ({ value = [], onChange }) => {
   const toggle = (name) => {
     if (value.includes(name)) {
@@ -56,7 +67,7 @@ const ColorPicker = ({ value = [], onChange }) => {
               <div key={name}
                 className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 pl-2 pr-3 py-1.5"
               >
-                <div className="h-3.5 w-3.5 rounded-full border border-white/20 flex-shrink-0"
+                <div className={`h-3.5 w-3.5 rounded-full border flex-shrink-0 ${isDarkColor(hex) ? 'border-white/60' : 'border-white/20'}`}
                   style={{ background: hex }} />
                 <span className="text-xs text-white/80">{name}</span>
                 <button type="button" onClick={() => toggle(name)}
@@ -91,7 +102,7 @@ const ColorPicker = ({ value = [], onChange }) => {
             >
               {/* Swatch */}
               <div
-                className="h-8 w-8 rounded-full border border-white/20 shadow-inner"
+                className={`h-8 w-8 rounded-full border shadow-inner ${isDarkColor(hex) ? 'border-white/60' : 'border-white/20'}`}
                 style={{ background: hex }}
               />
               {/* Selected tick */}
