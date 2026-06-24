@@ -180,6 +180,8 @@ const ThemeSelector = () => {
   } = useSettings();
 
   const [showDetailedScaling, setShowDetailedScaling] = useState(false);
+  const [showThemeLayout, setShowThemeLayout] = useState(true);
+  const [showFineTuning, setShowFineTuning] = useState(true);
 
   const hasThemeChanges =
     cardTheme !== "floral" ||
@@ -230,18 +232,24 @@ const ThemeSelector = () => {
     <div className="space-y-6">
       {/* Invitation Theme Options */}
       <div className="p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6">
-        <div className="flex justify-between items-center">
-          <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">2. Invitation Theme Layout</h3>
-          {isFree && (
-            <button
-              type="button"
-              onClick={() => {}}
-              className="text-[9px] uppercase font-bold tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30"
-            >
-              Upgrade
-            </button>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={() => setShowThemeLayout(!showThemeLayout)}
+          className="w-full flex justify-between items-center text-sm font-semibold uppercase tracking-widest text-[#D8B76A] hover:text-white transition py-1 cursor-pointer outline-none"
+        >
+          <span className="flex items-center gap-2">
+            <span>🎨</span> 2. Invitation Theme Layout
+            {isFree && (
+              <span className="text-[9px] uppercase font-bold tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30">
+                Upgrade
+              </span>
+            )}
+          </span>
+          <span className="font-mono text-[10px] text-[#D8B76A]">{showThemeLayout ? "▲ Hide" : "▼ Show"}</span>
+        </button>
+
+        {showThemeLayout && (
+          <div className="space-y-6 pt-2 border-t border-white/5 animate-fade-in">
 
         <div>
           <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Theme Layout</label>
@@ -707,9 +715,24 @@ const ThemeSelector = () => {
             </div>
           </div>
         )}
+      </div>
+    )}
 
         {/* Fine-Tuning Controls — Always visible for all tiers, any theme */}
-        <div className="space-y-4">
+        <div className="space-y-4 border-t border-white/5 pt-6">
+          <button
+            type="button"
+            onClick={() => setShowFineTuning(!showFineTuning)}
+            className="w-full flex justify-between items-center text-sm font-semibold uppercase tracking-widest text-[#D8B76A] hover:text-white transition py-1 cursor-pointer outline-none"
+          >
+            <span className="flex items-center gap-2">
+              <span>🔧</span> Fine-Tuning Controls
+            </span>
+            <span className="font-mono text-[10px] text-[#D8B76A]">{showFineTuning ? "▲ Hide" : "▼ Show"}</span>
+          </button>
+
+          {showFineTuning && (
+            <div className="space-y-4 mt-4 animate-fade-in">
           <div className="flex justify-between items-center">
             <p className="text-[10px] text-amber-400 uppercase font-bold tracking-widest">Fine-Tuning</p>
           </div>
@@ -905,6 +928,8 @@ const ThemeSelector = () => {
               ))}
             </div>
           </div>
+          </div>
+          )}
         </div>
 
         {/* General Theme Reset defaults (Visible to all tiers) */}

@@ -252,6 +252,9 @@ const AdminSettingsPageContent = () => {
     formattedDate,
   } = useSettings();
 
+  const [showCouplePortrait, setShowCouplePortrait] = React.useState(true);
+  const [showSocialShare, setShowSocialShare] = React.useState(false);
+
   return (
     <div className="p-4 sm:p-8 max-w-6xl mx-auto text-white">
       <div className="mb-6">
@@ -573,19 +576,27 @@ const AdminSettingsPageContent = () => {
 
                   {/* Couple Portrait Image (Autoplays as card backdrop) */}
                   <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">4. Couple Portrait Page Background</h3>
-                      {isFree && (
-                        <span className="text-[9px] uppercase font-bold tracking-wider text-white/30 bg-white/5 px-2 py-0.5 rounded">
-                          Locked
-                        </span>
-                      )}
-                    </div>
-                     <p className="text-[10px] text-white/40 leading-relaxed">
-                      Upload a romantic photo of the couple. It will serve as the fullscreen background backdrop behind your elegant invitation card, and will also be shown as the preview image when sharing your invitation links on WhatsApp, Slack, and other platforms.
-                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowCouplePortrait(!showCouplePortrait)}
+                      className="w-full flex justify-between items-center text-sm font-semibold uppercase tracking-widest text-[#D8B76A] hover:text-white transition py-1 cursor-pointer outline-none"
+                    >
+                      <span className="flex items-center gap-2 text-left">
+                        <span>📸</span> 4. Couple Portrait Page Background
+                        {isFree && (
+                          <span className="text-[9px] uppercase font-bold tracking-wider text-white/30 bg-white/5 px-2 py-0.5 rounded shrink-0">
+                            Locked
+                          </span>
+                        )}
+                      </span>
+                      <span className="font-mono text-[10px] text-[#D8B76A] shrink-0">{showCouplePortrait ? "▲ Hide" : "▼ Show"}</span>
+                    </button>
 
-                    <div className="space-y-4">
+                    {showCouplePortrait && (
+                      <div className="space-y-4 mt-4 animate-fade-in">
+                        <p className="text-[10px] text-white/40 leading-relaxed">
+                          Upload a romantic photo of the couple. It will serve as the fullscreen background backdrop behind your elegant invitation card, and will also be shown as the preview image when sharing your invitation links on WhatsApp, Slack, and other platforms.
+                        </p>
                       <div>
                         <input
                           ref={couplePhotoInputRef}
@@ -666,30 +677,43 @@ const AdminSettingsPageContent = () => {
                         </div>
                       )}
                     </div>
+                  )}
+                </div>
 
-                    {/* WhatsApp/Social Share Preview Message */}
-                    <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4 animate-fade-in">
-                      <div className="flex justify-between items-center">
-                        <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">5. Social Share Preview Message</h3>
-                      </div>
-                      <p className="text-[10px] text-white/40 leading-relaxed">
-                        Customize the description text that guests see when you share their invitation links on WhatsApp, Slack, Facebook, etc. "Powered by VowLink" will automatically be appended.
-                      </p>
+                  {/* WhatsApp/Social Share Preview Message */}
+                  <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4 animate-fade-in">
+                    <button
+                      type="button"
+                      onClick={() => setShowSocialShare(!showSocialShare)}
+                      className="w-full flex justify-between items-center text-sm font-semibold uppercase tracking-widest text-[#D8B76A] hover:text-white transition py-1 cursor-pointer outline-none"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>🔗</span> 5. Social Share Preview Message
+                      </span>
+                      <span className="font-mono text-[10px] text-[#D8B76A] shrink-0">{showSocialShare ? "▲ Hide" : "▼ Show"}</span>
+                    </button>
 
-                      <div className="space-y-2">
-                        <label className="block text-[10px] uppercase tracking-widest text-white/50">Custom Share Description</label>
-                        <textarea
-                          rows="3"
-                          placeholder="e.g. We are so excited to celebrate our special day with you! Tap to view your personal invitation and RSVP."
-                          value={customShareMessage}
-                          onChange={(e) => setCustomShareMessage(e.target.value)}
-                          className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white placeholder-white/30 outline-none focus:border-[#D8B76A]/60 transition"
-                        />
-                        <p className="text-[8px] text-white/30">
-                          Leave blank to use the default: <em>"You are specially invited to celebrate the wedding of {storedUser?.partner1Name || "Partner 1"} and {storedUser?.partner2Name || "Partner 2"}. Tap the link to view your invitation and RSVP."</em>
+                    {showSocialShare && (
+                      <div className="space-y-4 mt-4 animate-fade-in">
+                        <p className="text-[10px] text-white/40 leading-relaxed">
+                          Customize the description text that guests see when you share their invitation links on WhatsApp, Slack, Facebook, etc. "Powered by VowLink" will automatically be appended.
                         </p>
+
+                        <div className="space-y-2">
+                          <label className="block text-[10px] uppercase tracking-widest text-white/50">Custom Share Description</label>
+                          <textarea
+                            rows="3"
+                            placeholder="e.g. We are so excited to celebrate our special day with you! Tap to view your personal invitation and RSVP."
+                            value={customShareMessage}
+                            onChange={(e) => setCustomShareMessage(e.target.value)}
+                            className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white placeholder-white/30 outline-none focus:border-[#D8B76A]/60 transition"
+                          />
+                          <p className="text-[8px] text-white/30 font-semibold">
+                            Leave blank to use the default: <em>"You are specially invited to celebrate the wedding of {storedUser?.partner1Name || "Partner 1"} and {storedUser?.partner2Name || "Partner 2"}. Tap the link to view your invitation and RSVP."</em>
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               )}

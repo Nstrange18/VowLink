@@ -8,7 +8,9 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(WhatsApp|facebookexternalhit|Twitterbot|Slackbot|Discordbot|TelegramBot|LinkedInBot).*"
+          "value": {
+            "re": ".*(WhatsApp|facebookexternalhit|Twitterbot|Slackbot|Discordbot|TelegramBot|LinkedInBot).*"
+          }
         }
       ],
       "destination": "/api/share-preview?slug=:slug"
