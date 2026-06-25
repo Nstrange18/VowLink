@@ -280,7 +280,10 @@ const AdminInvitationsPage = () => {
                           <button
                             onClick={() => {
                               const url = `${window.location.origin}/invite/${inv.slug}`
-                              const msg = encodeURIComponent(`Hello ${inv.guestName}! We are so excited to celebrate our wedding with you. Please view your personal invitation and RSVP here:\n${url}`)
+                              const msgBody = user.customShareMessage && user.customShareMessage.trim()
+                                ? user.customShareMessage.trim()
+                                : `We are so excited to celebrate our wedding with you. Please view your personal invitation and RSVP here:`;
+                              const msg = encodeURIComponent(`Hello ${inv.guestName}! ${msgBody}\n${url}`)
                               const targetUrl = inv.phoneNumber 
                                 ? `https://wa.me/${inv.phoneNumber.trim().replace(/\+/g, '')}?text=${msg}`
                                 : `https://wa.me/?text=${msg}`;
@@ -328,7 +331,10 @@ const AdminInvitationsPage = () => {
                     <button
                       onClick={() => {
                         const url = `${window.location.origin}/invite/${inv.slug}`
-                        const msg = encodeURIComponent(`Hello ${inv.guestName}! We are so excited to celebrate our wedding with you. Please view your personal invitation and RSVP here:\n${url}`)
+                        const msgBody = user.customShareMessage && user.customShareMessage.trim()
+                          ? user.customShareMessage.trim()
+                          : `We are so excited to celebrate our wedding with you. Please view your personal invitation and RSVP here:`;
+                        const msg = encodeURIComponent(`Hello ${inv.guestName}! ${msgBody}\n${url}`)
                         const targetUrl = inv.phoneNumber 
                           ? `https://wa.me/${inv.phoneNumber.trim().replace(/\+/g, '')}?text=${msg}`
                           : `https://wa.me/?text=${msg}`;

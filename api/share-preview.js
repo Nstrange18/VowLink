@@ -47,11 +47,19 @@ module.exports = async (req, res) => {
     // 3. Fallback default VowLink logo
     let imageUrl = '';
     if (user.couplePhotoUrl) {
-      imageUrl = user.couplePhotoUrl;
+      let url = user.couplePhotoUrl;
+      if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+        url = url.replace('/upload/', '/upload/q_auto,w_500/');
+      }
+      imageUrl = url;
     } else if (user.customCardBg) {
       const bg = user.customCardBg;
       if (bg.startsWith('http://') || bg.startsWith('https://')) {
-        imageUrl = bg;
+        let url = bg;
+        if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+          url = url.replace('/upload/', '/upload/q_auto,w_500/');
+        }
+        imageUrl = url;
       } else {
         const cleanBg = bg.startsWith('/') ? bg : `/${bg}`;
         imageUrl = `https://${req.headers.host}${cleanBg}`;
@@ -76,6 +84,8 @@ module.exports = async (req, res) => {
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
@@ -115,6 +125,8 @@ module.exports = async (req, res) => {
   <meta property="og:title" content="${fallbackTitle}">
   <meta property="og:description" content="${fallbackDesc}">
   <meta property="og:image" content="${fallbackImg}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
 </head>
 <body>
   <p>Redirecting to invitation...</p>
