@@ -885,15 +885,19 @@ const InvitePage = () => {
   }, [galleryPhotos]);
 
   // Handle page scroll to show/hide the floating scroll down indicator
+  // Pill persists until the user reaches the bottom of the page
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 40) {
+      const distanceFromBottom =
+        document.documentElement.scrollHeight -
+        (window.scrollY + window.innerHeight);
+      if (distanceFromBottom < 80) {
         setShowScrollIndicator(false);
       } else {
         setShowScrollIndicator(true);
       }
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -1609,7 +1613,7 @@ const InvitePage = () => {
       )}
 
       {/* Scroll Down Floating Indicator (un-downloadable) */}
-      {isOpen && showScrollIndicator && (
+      {isOpen && (
         <div
           onClick={() => {
             const anchor = document.getElementById("details-start-anchor");
@@ -1617,8 +1621,13 @@ const InvitePage = () => {
               anchor.scrollIntoView({ behavior: "smooth" });
             }
           }}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-35 flex items-center gap-2 cursor-pointer select-none animate-bounce download-exclude transition-all duration-300 hover:scale-105 hover:bg-[#0D1220]/90 bg-[#0D1220]/75 backdrop-blur-md border border-[#D8B76A]/30 px-4 py-2.5 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.6)]"
-          style={{ color: "#D8B76A" }}
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-35 flex items-center gap-2 cursor-pointer select-none animate-bounce download-exclude hover:scale-105 hover:bg-[#0D1220]/90 bg-[#0D1220]/75 backdrop-blur-md border border-[#D8B76A]/30 px-4 py-2.5 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.6)]"
+          style={{
+            color: "#D8B76A",
+            opacity: showScrollIndicator ? 1 : 0,
+            pointerEvents: showScrollIndicator ? "auto" : "none",
+            transition: "opacity 0.6s ease, transform 0.3s ease",
+          }}
         >
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D8B76A]">
             Scroll down for details
@@ -2020,7 +2029,7 @@ const InvitePage = () => {
       </section>
 
       {/* Section 2: Details & RSVP actions below the card */}
-      <section className="flex flex-col items-center justify-center py-10 px-4 gap-6 relative z-10 w-full download-exclude">
+      <section id="details-start-anchor" className="flex flex-col items-center justify-center py-10 px-4 gap-6 relative z-10 w-full download-exclude">
 
         {/* ── Countdown (outside card, not downloaded) ── */}
         {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
