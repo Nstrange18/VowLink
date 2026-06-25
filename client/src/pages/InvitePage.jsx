@@ -779,6 +779,7 @@ const InvitePage = () => {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [audioReady, setAudioReady] = useState(false); // true once browser can start playing
   const [hiddenOverlay, setHiddenOverlay] = useState(false);
   const [mapSelectAddress, setMapSelectAddress] = useState(null);
   const [wishes, setWishes] = useState([]);
@@ -841,15 +842,42 @@ const InvitePage = () => {
 
   const countdown = useCountdown(invitation?.userId?.weddingDate);
 
-  // Cleanup audio when leaving/unmounting the invitation page
+  // Pre-load audio as soon as the music URL is known (invitation data arrives).
+  // Creating the Audio object here — rather than waiting for a JSX <audio> to
+  // mount — means buffering starts during the envelope screen, so by the time
+  // the guest clicks "Open Card" the audio is already ready.
   useEffect(() => {
-    const audioEl = audioRef.current;
-    return () => {
-      if (audioEl) {
-        audioEl.pause();
+    if (!isDirectAudio || !musicUrl) return;
+
+    const audio = new Audio();
+    audio.src = musicUrl;
+    audio.loop = true;
+    audio.preload = "auto";
+
+    audio.addEventListener("canplay", () => {
+      setAudioReady(true);
+      if (pendingPlayRef.current) {
+        pendingPlayRef.current = false;
+        audio.play()
+          .then(() => setIsPlaying(true))
+          .catch((err) => console.log("Deferred playback failed", err));
       }
+    });
+
+    // Kick off buffering immediately
+    audio.load();
+    audioRef.current = audio;
+
+    return () => {
+      audio.pause();
+      audio.src = "";
+      audioRef.current = null;
+      setAudioReady(false);
+      setIsPlaying(false);
     };
-  }, [musicUrl, isDirectAudio]);
+  // Re-run only when the actual audio URL changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [musicUrl]);
 
   // Pause background music when user switches tabs or minimizes browser, and resume when they return
   useEffect(() => {
@@ -906,21 +934,31 @@ const InvitePage = () => {
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleResize = () => {
+    // scaleLocked prevents address-bar-driven resize events (which fire constantly
+    // on mobile as the user scrolls and the browser chrome collapses/expands)
+    // from re-running the scale calculation after the initial stable measurement.
+    let scaleLocked = false;
+
+    const computeScale = () => {
       const card = cardRef.current;
       if (!card) return;
 
-      // Card offsetHeight is native height since transforms don't affect layout geometry
       const actualHeight = card.offsetHeight;
       setCardHeight(actualHeight);
 
       const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
+
+      // Use visualViewport.height when available — it reflects the stable layout
+      // viewport and does NOT change when the mobile browser address bar
+      // collapses/expands during scroll, unlike window.innerHeight which causes
+      // the jarring zoom-on-scroll glitch on iOS/Android.
+      const viewportHeight =
+        window.visualViewport?.height ?? window.innerHeight;
 
       // Card native design layout width is 608px (38rem)
       const nativeWidth = 608;
 
-      // Compute scale needed to fit horizontally (allow 24px margin layout margins)
+      // Compute scale needed to fit horizontally (allow 24px layout margins)
       const scaleX = (viewportWidth - 24) / nativeWidth;
 
       // Compute scale needed to fit vertically (allow 60px layout margins)
@@ -928,7 +966,7 @@ const InvitePage = () => {
 
       let newScale;
       if (viewportWidth < 640) {
-        // On mobile viewports, prioritize fitting the screen width so it is readable
+        // On mobile viewports, prioritize width so the card stays readable
         // and doesn't get squeezed into an ultra-thin column.
         newScale = scaleX;
       } else {
@@ -936,18 +974,26 @@ const InvitePage = () => {
         newScale = Math.min(scaleX, scaleY);
       }
 
-      // Cap scale at 1.25 (allow scaling up on larger screens like laptops)
       setScale(Math.min(1.25, newScale));
     };
 
+    const handleResize = () => {
+      // Ignore resize events triggered by mobile address-bar collapse/expand
+      // after the scale has been locked in by the initial measurement cycle.
+      if (scaleLocked) return;
+      computeScale();
+    };
+
     window.addEventListener("resize", handleResize);
-    
-    // Trigger at multiple intervals to handle slow font loading and image renders
+
+    // Trigger at multiple intervals to handle slow font loading and image renders.
+    // After the last timer fires we lock the scale so that subsequent mobile
+    // address-bar resize events cannot trigger another jarring rescale.
     const timers = [
-      setTimeout(handleResize, 100),
-      setTimeout(handleResize, 300),
-      setTimeout(handleResize, 800),
-      setTimeout(handleResize, 1500)
+      setTimeout(computeScale, 100),
+      setTimeout(computeScale, 300),
+      setTimeout(computeScale, 800),
+      setTimeout(() => { computeScale(); scaleLocked = true; }, 1500),
     ];
 
     return () => {
@@ -1058,12 +1104,18 @@ const InvitePage = () => {
     setIsOpen(true);
     window.scrollTo(0, 0); // Reset scroll to top to center card in viewport
     if (audioRef.current) {
+      // Always call .play() synchronously within the gesture handler.
+      // On iOS Safari this "registers" the play in the gesture context so
+      // the browser will play as soon as the audio is ready, even if it hasn't
+      // buffered yet. On desktop, Chrome/Firefox also queue the play internally.
       const playPromise = audioRef.current.play();
       if (playPromise !== undefined) {
         playPromise
           .then(() => setIsPlaying(true))
           .catch(() => {
-            // Audio not ready yet — flag it so onCanPlayThrough will trigger play
+            // play() rejected — audio may not be buffered yet on slow networks.
+            // Set pendingPlayRef so onCanPlay can retry (desktop fallback only;
+            // iOS would have already queued the play above).
             pendingPlayRef.current = true;
           });
       }
@@ -1533,24 +1585,7 @@ const InvitePage = () => {
         <div className="absolute top-[60%] right-[12%] w-0.5 h-0.5 rounded-full bg-[#D8B76A] opacity-20" />
         <div className="absolute bottom-[30%] left-[30%] w-1 h-1 rounded-full bg-white opacity-15" />
       </div>
-      {/* Direct HTML5 Audio Element */}
-      {isDirectAudio && (
-        <audio
-          ref={audioRef}
-          src={musicUrl}
-          loop
-          preload="auto"
-          onCanPlayThrough={() => {
-            // If a play was requested before audio was ready, fire it now
-            if (pendingPlayRef.current && audioRef.current) {
-              pendingPlayRef.current = false;
-              audioRef.current.play()
-                .then(() => setIsPlaying(true))
-                .catch((err) => console.log("Deferred playback failed", err));
-            }
-          }}
-        />
-      )}
+      {/* Audio is managed programmatically via audioRef (see useEffect above) */}
 
       {/* Fullscreen Envelope Welcome Overlay */}
       {!hiddenOverlay && (
@@ -1627,6 +1662,13 @@ const InvitePage = () => {
             <p className="mt-8 text-[10px] uppercase tracking-[0.2em] opacity-40" style={{ color: envelopeTextColor }}>
               {musicUrl ? "Click to unveil details & play music" : "Click to unveil details"}
             </p>
+            {/* Music buffering hint — only visible while audio is still loading */}
+            {isDirectAudio && !audioReady && (
+              <p className="mt-2 text-[9px] uppercase tracking-widest opacity-30 flex items-center gap-1" style={{ color: envelopeTextColor }}>
+                <span className="inline-block animate-spin" style={{ animationDuration: "1.5s" }}>♪</span>
+                Loading music…
+              </p>
+            )}
           </div>
         </div>
       )}
