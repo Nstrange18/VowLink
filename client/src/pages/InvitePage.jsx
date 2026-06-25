@@ -784,6 +784,7 @@ const InvitePage = () => {
   const [wishes, setWishes] = useState([]);
   const audioRef = useRef(null);
   const wasPlayingRef = useRef(false);
+  const pendingPlayRef = useRef(false); // tracks a play request made before audio was ready
 
   // Paystack & Gifting premium states
   const [showGiftModal, setShowGiftModal] = useState(false);
@@ -1057,9 +1058,18 @@ const InvitePage = () => {
     setIsOpen(true);
     window.scrollTo(0, 0); // Reset scroll to top to center card in viewport
     if (audioRef.current) {
-      audioRef.current.play()
-        .then(() => setIsPlaying(true))
-        .catch((err) => console.log("Playback prevented", err));
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsPlaying(true))
+          .catch(() => {
+            // Audio not ready yet — flag it so onCanPlayThrough will trigger play
+            pendingPlayRef.current = true;
+          });
+      }
+    } else {
+      // Audio element not mounted yet — flag for deferred play
+      pendingPlayRef.current = true;
     }
     if (musicUrl && getSpotifyEmbedUrl(musicUrl)) {
       setShowSpotifyPlayer(true);
@@ -1530,6 +1540,15 @@ const InvitePage = () => {
           src={musicUrl}
           loop
           preload="auto"
+          onCanPlayThrough={() => {
+            // If a play was requested before audio was ready, fire it now
+            if (pendingPlayRef.current && audioRef.current) {
+              pendingPlayRef.current = false;
+              audioRef.current.play()
+                .then(() => setIsPlaying(true))
+                .catch((err) => console.log("Deferred playback failed", err));
+            }
+          }}
         />
       )}
 
