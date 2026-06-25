@@ -1615,18 +1615,12 @@ const InvitePage = () => {
       {/* Scroll Down Floating Indicator (un-downloadable) */}
       {isOpen && (
         <div
-          onClick={() => {
-            const anchor = document.getElementById("details-start-anchor");
-            if (anchor) {
-              anchor.scrollIntoView({ behavior: "smooth" });
-            }
-          }}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-35 flex items-center gap-2 cursor-pointer select-none animate-bounce download-exclude hover:scale-105 hover:bg-[#0D1220]/90 bg-[#0D1220]/75 backdrop-blur-md border border-[#D8B76A]/30 px-4 py-2.5 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.6)]"
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-35 flex items-center gap-2 select-none animate-bounce download-exclude bg-[#0D1220]/75 backdrop-blur-md border border-[#D8B76A]/30 px-4 py-2.5 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.6)]"
           style={{
             color: "#D8B76A",
             opacity: showScrollIndicator ? 1 : 0,
-            pointerEvents: showScrollIndicator ? "auto" : "none",
-            transition: "opacity 0.6s ease, transform 0.3s ease",
+            pointerEvents: "none",
+            transition: "opacity 0.6s ease",
           }}
         >
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D8B76A]">
