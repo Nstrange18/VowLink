@@ -9,7 +9,7 @@
           "type": "header",
           "key": "user-agent",
           "value": {
-            "re": "(WhatsApp|facebookexternalhit|Twitterbot|Slackbot|Discordbot|TelegramBot|LinkedInBot)"
+            "re": ".*([Ww]hats[Aa]pp|[Ff]acebook[Ee]xternal[Hh]it|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Tt]elegram[Bb]ot|[Ll]inked[Ii]n[Bb]ot).*"
           }
         }
       ],
