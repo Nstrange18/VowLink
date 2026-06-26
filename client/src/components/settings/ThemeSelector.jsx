@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import ColorPicker from "../ColorPicker";
 import { useSettings } from "../../context/SettingsContext";
@@ -465,7 +466,7 @@ const ThemeSelector = () => {
             <div className="space-y-2">
               <p className="text-[9px] uppercase tracking-wider text-white/40 font-bold">Free Tier Templates (Unlocked)</p>
               <div className="grid grid-cols-2 gap-3">
-                {PREMADE_TEMPLATES.filter(t => t.tier === "free").map(t => {
+                {PREMADE_TEMPLATES.filter(t => t.tier === "free" && !t.onlyInGallery).map(t => {
                   const isSelected = cardTheme === "custom" && customCardBg === t.url;
                   return (
                     <button
@@ -509,7 +510,7 @@ const ThemeSelector = () => {
             <div className="space-y-2">
               <p className="text-[9px] uppercase tracking-wider text-white/40 font-bold">Plus Tier Templates</p>
               <div className="grid grid-cols-2 gap-3">
-                {PREMADE_TEMPLATES.filter(t => t.tier === "plus").map(t => {
+                {PREMADE_TEMPLATES.filter(t => t.tier === "plus" && !t.onlyInGallery).map(t => {
                   const isLocked = isFree;
                   const isSelected = cardTheme === "custom" && customCardBg === t.url;
                   return (
@@ -568,7 +569,7 @@ const ThemeSelector = () => {
             <div className="space-y-2">
               <p className="text-[9px] uppercase tracking-wider text-white/40 font-bold">Pro Tier Templates</p>
               <div className="grid grid-cols-2 gap-3">
-                {PREMADE_TEMPLATES.filter(t => t.tier === "pro").map(t => {
+                {PREMADE_TEMPLATES.filter(t => t.tier === "pro" && !t.onlyInGallery).map(t => {
                   const isLocked = isFree || isPlus;
                   const isSelected = cardTheme === "custom" && customCardBg === t.url;
                   return (
@@ -622,6 +623,14 @@ const ThemeSelector = () => {
                 })}
               </div>
             </div>
+
+            {/* See More Button */}
+            <Link
+              to="/admin/templates"
+              className="w-full mt-4 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-[#D8B76A] hover:text-[#070A13] hover:border-[#D8B76A] text-xs font-bold uppercase tracking-widest text-[#D8B76A] transition-all duration-300 cursor-pointer shadow-md"
+            >
+              See More Templates <span>→</span>
+            </Link>
           </div>
         </div>
 

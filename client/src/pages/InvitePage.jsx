@@ -1416,11 +1416,23 @@ const InvitePage = () => {
       case "/templates/template_free_1.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
         break;
+      case "/templates/template_free_2.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#4A5D4E";
+        break;
+      case "/templates/template_free_3.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6E5B4F";
+        break;
       case "/templates/Blush Pink Watercolor.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3D2124";
         break;
       case "/templates/Cream Floral Elegance.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
+        break;
+      case "/templates/template_plus_1.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#B8963A";
+        break;
+      case "/templates/template_plus_2.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#800020";
         break;
       case "/templates/Emerald Eucalyptus Frame.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
@@ -1433,6 +1445,18 @@ const InvitePage = () => {
         break;
       case "/templates/Elegant purple and silver floral.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3C2A4D";
+        break;
+      case "/templates/template_pro_1.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D4AF37";
+        break;
+      case "/templates/template_pro_2.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
+        break;
+      case "/templates/template_pro_3.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        break;
+      case "/templates/template_pro_4.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D4AF37";
         break;
       case "/templates/template_plus_3.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
@@ -1462,7 +1486,19 @@ const InvitePage = () => {
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
       default:
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+        if (customCardBg.startsWith("/Free Plan Vowlink/")) {
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+        } else if (customCardBg.startsWith("/Plus Plans Vowlink/")) {
+          const isDark = customCardBg.includes("Midnight") || customCardBg.includes("Velvet") || customCardBg.includes("Dark") || customCardBg.includes("Onyx") || customCardBg.includes("Black") || customCardBg.includes("Navy");
+          const defaultColor = isDark ? "#F5EBD6" : "#1A2E4A";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : defaultColor;
+        } else if (customCardBg.startsWith("/Pro Plans Vowlink/")) {
+          const isDark = customCardBg.includes("Midnight") || customCardBg.includes("Velvet") || customCardBg.includes("Dark") || customCardBg.includes("Onyx") || customCardBg.includes("Black") || customCardBg.includes("Navy") || customCardBg.includes("Purple") || customCardBg.includes("Blue") || customCardBg.includes("Emerald") || customCardBg.includes("Celestial") || customCardBg.includes("(1).png") || customCardBg.includes("(2).png") || customCardBg.includes("(3).png") || customCardBg.includes("(5).png") || customCardBg.includes("(6).png") || customCardBg.includes("(7).png") || customCardBg.includes("(10).png");
+          const defaultColor = isDark ? "#F5EBD6" : "#1A2E4A";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : defaultColor;
+        } else {
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+        }
     }
     cardStyles = {
       background: bg,
@@ -1836,6 +1872,19 @@ const InvitePage = () => {
                 } : {})
               }}
             >
+              <div
+                className={`w-full flex flex-col justify-center transition-all ${
+                  textAlignment === "left"
+                    ? "items-start text-left"
+                    : textAlignment === "right"
+                    ? "items-end text-right"
+                    : "items-center text-center"
+                }`}
+                style={{
+                  maxWidth: layout.layoutConfig?.safeArea?.maxWidth || "85%",
+                  margin: textAlignment === "left" ? "0 auto 0 0" : textAlignment === "right" ? "0 0 0 auto" : "0 auto",
+                }}
+              >
               {/* ── Wedding Invitation title ── */}
               <h2
                 {...getBlockProps("title", "100ms")}
@@ -2067,6 +2116,7 @@ const InvitePage = () => {
               >
                 {invitation.category || "Guest"}
               </p>
+              </div>
               
               {isFreeUser && (
                 <div className="absolute bottom-2.5 left-0 right-0 text-center select-none pointer-events-none opacity-45 z-20">

@@ -16,6 +16,7 @@ mongoose.connect(mongoUri)
       console.log("\nUser Document details:");
       console.log("ID:", user._id);
       console.log("Email:", user.email);
+      console.log("Tier:", user.tier);
       console.log("Wedding Colors:", user.weddingColors);
       console.log("Card Theme:", user.cardTheme);
       console.log("Custom Card Bg:", user.customCardBg);

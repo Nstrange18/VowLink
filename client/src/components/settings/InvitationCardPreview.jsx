@@ -828,154 +828,168 @@ const InvitationCardPreview = () => {
               } : {})
             }}
           >
-            <h2 
-              {...getBlockProps("title", "100ms")}
+            <div
+              className={`w-full flex flex-col justify-center transition-all ${
+                textAlignment === "left"
+                  ? "items-start text-left"
+                  : textAlignment === "right"
+                  ? "items-end text-right"
+                  : "items-center text-center"
+              }`}
               style={{
-                ...getBlockProps("title", "100ms").style,
-                fontFamily: activeFont,
-                fontWeight: headingWeight,
+                maxWidth: layout.layoutConfig?.safeArea?.maxWidth || "85%",
+                margin: textAlignment === "left" ? "0 auto 0 0" : textAlignment === "right" ? "0 0 0 auto" : "0 auto",
               }}
             >
-              Wedding Invitation
-            </h2>
-
-            <div {...getBlockProps("divider1", "300ms")} className={`${getBlockProps("divider1", "300ms").className} flex justify-center w-full`}>
-              {renderOrnamentDivider(layout.dividerType, getBlockProps("divider1").style.color, "my-3")}
-            </div>
-
-            <p 
-              {...getBlockProps("subtitle", "500ms")}
-              style={{
-                ...getBlockProps("subtitle", "500ms").style,
-                fontStyle: "italic",
-              }}
-            >
-              Marriage between
-            </p>
-
-            <h1 
-              {...getBlockProps("coupleNames", "700ms")}
-              className={`${getBlockProps("coupleNames", "700ms").className} leading-tight`}
-              style={{ 
-                ...getBlockProps("coupleNames", "700ms").style,
-                fontFamily: activeFont, 
-                fontWeight: headingWeight, 
-                backgroundImage: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "linear-gradient(135deg, #FFF 0%, #D8B76A 60%, #A37F28 100%)" : "none",
-                WebkitBackgroundClip: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "text" : "border-box",
-                WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "transparent" : "initial",
-                display: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "inline-block" : "block"
-              }}
-            >
-              {p1 || "Partner 1"}{" "}
-              <span style={{ 
-                color: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : getBlockProps("coupleNames").style.color,
-                WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : "initial",
-                opacity: 0.9 
-              }}>
-                and
-              </span>{" "}
-              {p2 || "Partner 2"}
-            </h1>
-
-            <div {...getBlockProps("divider2", "900ms")} className={`${getBlockProps("divider2", "900ms").className} flex justify-center w-full`}>
-              {renderOrnamentDivider(layout.dividerType, getBlockProps("divider2").style.color, "my-3", true)}
-            </div>
-
-            <p 
-              {...getBlockProps("greeting", "1100ms")}
-              style={{
-                ...getBlockProps("greeting", "1100ms").style,
-              }}
-            >
-              Dear Guest Name,
-            </p>
-
-            <p 
-              {...getBlockProps("message", "1300ms")}
-              className={`${getBlockProps("message", "1300ms").className} opacity-90`}
-              style={{
-                ...getBlockProps("message", "1300ms").style,
-              }}
-            >
-              We request the honor of your presence as we celebrate our love and write a new chapter of our lives together.
-            </p>
-
-            {formattedDate && (
-              <p 
-                {...getBlockProps("details", "1500ms")}
+              <h2 
+                {...getBlockProps("title", "100ms")}
                 style={{
-                  ...getBlockProps("details", "1500ms").style,
+                  ...getBlockProps("title", "100ms").style,
+                  fontFamily: activeFont,
+                  fontWeight: headingWeight,
                 }}
               >
-                Date: {formattedDate}
-              </p>
-            )}
+                Wedding Invitation
+              </h2>
 
-            {formattedTime && (
-              <p 
-                {...getBlockProps("details", "1600ms")}
-                style={{
-                  ...getBlockProps("details", "1600ms").style,
-                }}
-              >
-                Time: {formattedTime}
-              </p>
-            )}
-
-            {venue && (
-              <p 
-                {...getBlockProps("details", "1700ms")}
-                style={{
-                  ...getBlockProps("details", "1700ms").style,
-                }}
-              >
-                Location: {venueName || venue}
-              </p>
-            )}
-
-            {receptionLocation && (
-              <p 
-                {...getBlockProps("reception", "1800ms")}
-                style={{
-                  ...getBlockProps("reception", "1800ms").style,
-                }}
-              >
-                Reception: {receptionName || receptionLocation}
-              </p>
-            )}
-
-            {weddingColors.length > 0 && (
-              <div 
-                {...getBlockProps("colors", "2000ms")}
-                style={{
-                  ...getBlockProps("colors", "2000ms").style,
-                }}
-              >
-                <p className="uppercase tracking-widest mb-2" style={{ color: getBlockProps("colors").style.color, opacity: 0.8, textShadow: getBlockProps("colors").style.textShadow }}>
-                  Colour of the Day
-                </p>
-                <div className="flex flex-wrap gap-1.5 justify-center">
-                  {weddingColors.map((name, i) => {
-                    const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || "#999";
-                    const blockStyles = getBlockProps("colors").style;
-                    const isDark = isDarkColor(hex);
-                    return (
-                      <div
-                        key={i}
-                        className="flex items-center gap-1.5 rounded-full px-2.5 py-0.75 border text-[1.2em] font-extrabold shadow-md whitespace-nowrap"
-                        style={{
-                          borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
-                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
-                        }}
-                      >
-                        <div className={`h-3 w-3 rounded-full shrink-0 shadow-xs border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ backgroundColor: hex }} />
-                        <span style={{ color: blockStyles.color }} className="text-[1.05em] font-bold">{name}</span>
-                      </div>
-                    );
-                  })}
-                </div>
+              <div {...getBlockProps("divider1", "300ms")} className={`${getBlockProps("divider1", "300ms").className} flex justify-center w-full`}>
+                {renderOrnamentDivider(layout.dividerType, getBlockProps("divider1").style.color, "my-3")}
               </div>
-            )}
+
+              <p 
+                {...getBlockProps("subtitle", "500ms")}
+                style={{
+                  ...getBlockProps("subtitle", "500ms").style,
+                  fontStyle: "italic",
+                }}
+              >
+                Marriage between
+              </p>
+
+              <h1 
+                {...getBlockProps("coupleNames", "700ms")}
+                className={`${getBlockProps("coupleNames", "700ms").className} leading-tight`}
+                style={{ 
+                  ...getBlockProps("coupleNames", "700ms").style,
+                  fontFamily: activeFont, 
+                  fontWeight: headingWeight, 
+                  backgroundImage: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "linear-gradient(135deg, #FFF 0%, #D8B76A 60%, #A37F28 100%)" : "none",
+                  WebkitBackgroundClip: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "text" : "border-box",
+                  WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "transparent" : "initial",
+                  display: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "inline-block" : "block"
+                }}
+              >
+                {p1 || "Partner 1"}{" "}
+                <span style={{ 
+                  color: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : getBlockProps("coupleNames").style.color,
+                  WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : "initial",
+                  opacity: 0.9 
+                }}>
+                  and
+                </span>{" "}
+                {p2 || "Partner 2"}
+              </h1>
+
+              <div {...getBlockProps("divider2", "900ms")} className={`${getBlockProps("divider2", "900ms").className} flex justify-center w-full`}>
+                {renderOrnamentDivider(layout.dividerType, getBlockProps("divider2").style.color, "my-3", true)}
+              </div>
+
+              <p 
+                {...getBlockProps("greeting", "1100ms")}
+                style={{
+                  ...getBlockProps("greeting", "1100ms").style,
+                }}
+              >
+                Dear Guest Name,
+              </p>
+
+              <p 
+                {...getBlockProps("message", "1300ms")}
+                className={`${getBlockProps("message", "1300ms").className} opacity-90`}
+                style={{
+                  ...getBlockProps("message", "1300ms").style,
+                }}
+              >
+                We request the honor of your presence as we celebrate our love and write a new chapter of our lives together.
+              </p>
+
+              {formattedDate && (
+                <p 
+                  {...getBlockProps("details", "1500ms")}
+                  style={{
+                    ...getBlockProps("details", "1500ms").style,
+                  }}
+                >
+                  Date: {formattedDate}
+                </p>
+              )}
+
+              {formattedTime && (
+                <p 
+                  {...getBlockProps("details", "1600ms")}
+                  style={{
+                    ...getBlockProps("details", "1600ms").style,
+                  }}
+                >
+                  Time: {formattedTime}
+                </p>
+              )}
+
+              {venue && (
+                <p 
+                  {...getBlockProps("details", "1700ms")}
+                  style={{
+                    ...getBlockProps("details", "1700ms").style,
+                  }}
+                >
+                  Location: {venueName || venue}
+                </p>
+              )}
+
+              {receptionLocation && (
+                <p 
+                  {...getBlockProps("reception", "1800ms")}
+                  style={{
+                    ...getBlockProps("reception", "1800ms").style,
+                  }}
+                >
+                  Reception: {receptionName || receptionLocation}
+                </p>
+              )}
+
+              {weddingColors.length > 0 && (
+                <div 
+                  {...getBlockProps("colors", "2000ms")}
+                  style={{
+                    ...getBlockProps("colors", "2000ms").style,
+                  }}
+                >
+                  <p className="uppercase tracking-widest mb-2" style={{ color: getBlockProps("colors").style.color, opacity: 0.8, textShadow: getBlockProps("colors").style.textShadow }}>
+                    Colour of the Day
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 justify-center">
+                    {weddingColors.map((name, i) => {
+                      const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || "#999";
+                      const blockStyles = getBlockProps("colors").style;
+                      const isDark = isDarkColor(hex);
+                      return (
+                        <div
+                          key={i}
+                          className="flex items-center gap-1.5 rounded-full px-2.5 py-0.75 border text-[1.2em] font-extrabold shadow-md whitespace-nowrap"
+                          style={{
+                            borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
+                            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
+                          }}
+                        >
+                          <div className={`h-3 w-3 rounded-full shrink-0 shadow-xs border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ backgroundColor: hex }} />
+                          <span style={{ color: blockStyles.color }} className="text-[1.05em] font-bold">{name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
             
             {isFree && (
               <div className="absolute bottom-2.5 left-0 right-0 text-center select-none pointer-events-none opacity-45 z-20">

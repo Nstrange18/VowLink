@@ -6,6 +6,7 @@ import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import CustomSelect from '../../components/CustomSelect'
 import { invitationSchema } from '../../utils/schemas'
+import AiMessageAssist from '../../components/AiMessageAssist'
 
 const CATEGORIES = [
   { value: 'Guest', label: 'Guest' },
@@ -22,10 +23,13 @@ const cls = (err) => `${inputBase} ${err ? inputErr : inputOk}`
 
 const AdminNewInvitationPage = () => {
   const navigate = useNavigate()
-  const [aiModalOpen, setAiModalOpen] = useState(false)
-  const [aiTone, setAiTone] = useState("elegant")
-  const [generatedMsg, setGeneratedMsg] = useState("")
   const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
+
+  // Derive couple names and formatted wedding date from the stored user profile
+  const coupleNames = [user.partner1Name, user.partner2Name].filter(Boolean).join(' and ')
+  const weddingDate = user.weddingDate
+    ? new Date(user.weddingDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    : ''
 
   useEffect(() => {
     const checkLimit = async () => {
@@ -54,76 +58,7 @@ const AdminNewInvitationPage = () => {
   const categoryVal = watch('category') || 'Guest';
   const customMessageVal = watch('customMessage') || '';
 
-  const handleGenerateAiMessage = () => {
-    const name = guestNameVal.trim() || "Friend";
-    const firstName = name.split(" ")[0];
 
-    const templates = {
-      elegant: {
-        VIP: [
-          `We would be honored by your presence at our wedding, ${name}.`,
-          `We request the pleasure of your company on our wedding day, ${firstName}.`
-        ],
-        Family: [
-          `Please join us as we celebrate our marriage and family, ${name}.`,
-          `We would be deeply honored to celebrate our wedding with you, ${firstName}.`
-        ],
-        default: [
-          `We request the pleasure of your company on our wedding day, ${name}.`,
-          `We would be honored by your presence at our wedding, ${firstName}.`
-        ]
-      },
-      warm: {
-        Family: [
-          `Having you there as family means the world to us, ${firstName}!`,
-          `Our special day wouldn't be complete without our family, ${firstName}!`
-        ],
-        Friend: [
-          `We can't wait to celebrate our wedding day with you, ${firstName}!`,
-          `Our wedding day wouldn't be complete without you, ${firstName}!`
-        ],
-        default: [
-          `We can't wait to share our special wedding day with you, ${firstName}!`,
-          `Our wedding day wouldn't be complete without you there, ${name}!`
-        ]
-      },
-      casual: {
-        Friend: [
-          `Can't wait to party and celebrate our wedding with you, ${firstName}!`,
-          `Get ready to celebrate and dance the night away, ${firstName}!`
-        ],
-        default: [
-          `We are getting married! Join us for food, fun and dancing, ${firstName}!`,
-          `Can't wait to celebrate and party on our wedding day, ${firstName}!`
-        ]
-      },
-      simple: {
-        default: [
-          `Can't wait to see you on our wedding day, ${firstName}!`,
-          `Please join us for our wedding celebration, dear ${firstName}!`,
-          `We look forward to celebrating our marriage with you, ${firstName}.`
-        ]
-      }
-    };
-
-    const toneBucket = templates[aiTone] || templates.simple;
-    let options = toneBucket[categoryVal] || toneBucket.default || templates.simple.default;
-    let text = options[Math.floor(Math.random() * options.length)];
-
-    if (text.length > 170 && text.includes(name) && name !== firstName) {
-      text = text.replace(name, firstName);
-    }
-    if (text.length > 170) {
-      text = `Join us to celebrate our wedding day, ${firstName}!`;
-    }
-    if (text.length < 40) {
-      text = `Dear ${firstName}, please join us as we celebrate our wedding day!`;
-    }
-    if (text.length > 170) {
-      text = text.substring(0, 167) + "...";
-    }
-    setGeneratedMsg(text);
-  };
 
   const onSubmit = async (data) => {
     try {
@@ -169,19 +104,7 @@ const AdminNewInvitationPage = () => {
 
         <div>
           <div className="flex justify-between items-center mb-2">
-            <div className="flex items-center gap-2">
-              <label className="block text-xs uppercase tracking-widest text-white/50">Personal Message *</label>
-              <button
-                type="button"
-                onClick={() => {
-                  setGeneratedMsg("")
-                  setAiModalOpen(true)
-                }}
-                className="px-2 py-0.5 rounded-md bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] hover:bg-[#D8B76A]/20 text-[9px] font-bold uppercase tracking-wider transition cursor-pointer"
-              >
-                🪄 AI Message
-              </button>
-            </div>
+            <label className="block text-xs uppercase tracking-widest text-white/50">Personal Message *</label>
             <span className={`text-[10px] ${customMessageVal.length > 170 ? 'text-red-400 font-bold' : 'text-white/30'}`}>
               {customMessageVal.length}/170
             </span>
@@ -189,6 +112,14 @@ const AdminNewInvitationPage = () => {
           <textarea id="custom-message" rows={4} placeholder="Write a personal message for this guest..." maxLength={170}
             {...register('customMessage')} className={`${cls(errors.customMessage)} resize-none`} />
           {errors.customMessage && <p className="mt-1 text-xs text-red-400">{errors.customMessage.message}</p>}
+          {/* AI Assist panel */}
+          <AiMessageAssist
+            guestName={guestNameVal}
+            coupleNames={coupleNames}
+            weddingDate={weddingDate}
+            currentMessage={customMessageVal}
+            onApply={(text) => setValue('customMessage', text, { shouldValidate: true })}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -238,79 +169,6 @@ const AdminNewInvitationPage = () => {
         </div>
       </form>
 
-      {/* AI Message Helper Modal */}
-      {aiModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-[#090D19] border border-white/10 p-6 rounded-2xl w-full max-w-md space-y-4 shadow-2xl animate-fade-in">
-            <div>
-              <h3 className="font-serif text-xl text-white">🪄 AI Personal Message Assistant</h3>
-              <p className="text-[11px] text-white/40 mt-1">
-                Generate a custom wedding message for <strong className="text-white">{guestNameVal}</strong> ({categoryVal}).
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[10px] uppercase tracking-wider text-white/50 mb-1.5">Select Message Tone</label>
-                <select
-                  value={aiTone}
-                  onChange={(e) => setAiTone(e.target.value)}
-                  className="w-full rounded-xl border bg-[#070A13] border-white/10 px-4 py-2.5 text-xs text-white outline-none focus:border-[#D8B76A]/60"
-                >
-                  <option value="elegant">Elegant & Formal</option>
-                  <option value="warm">Warm & Emotional</option>
-                  <option value="casual">Fun & Casual</option>
-                  <option value="simple">Short & Simple</option>
-                </select>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleGenerateAiMessage}
-                className="w-full py-2.5 rounded-xl bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] hover:bg-[#D8B76A]/20 text-xs font-semibold uppercase tracking-wider transition cursor-pointer"
-              >
-                Generate Message
-              </button>
-
-              {generatedMsg && (
-                <div className="space-y-1.5 animate-fade-in">
-                  <div className="flex justify-between items-center text-[10px] text-white/40">
-                    <span>Generated Preview:</span>
-                    <span className={generatedMsg.length > 170 || generatedMsg.length < 40 ? "text-red-400 font-bold" : "text-emerald-400"}>
-                      {generatedMsg.length}/170 chars
-                    </span>
-                  </div>
-                  <div className="bg-white/3 border border-white/5 p-3 rounded-xl text-xs text-white/80 font-mono italic leading-relaxed">
-                    "{generatedMsg}"
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setAiModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-white/60 hover:text-white text-xs font-semibold uppercase tracking-wider border border-white/10 hover:bg-white/5 transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={!generatedMsg}
-                onClick={() => {
-                  setValue("customMessage", generatedMsg)
-                  setAiModalOpen(false)
-                  toast.success("Applied AI generated message! 🪄")
-                }}
-                className="px-5 py-2 rounded-xl bg-linear-to-r from-[#D8B76A] to-[#F2D894] text-[#070A13] text-xs font-bold uppercase tracking-wider hover:opacity-95 disabled:opacity-50 transition cursor-pointer"
-              >
-                Apply Message
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -200,8 +200,14 @@ const userSchema = new mongoose.Schema(
         icon: { type: String, default: "ring" },
       }
     ],
+    // AI text generation credit tracking (lifetime usage per plan)
+    aiCreditsUsed: {
+      type: Number,
+      default: 0,
+    },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
+
   },
   { timestamps: true },
 );

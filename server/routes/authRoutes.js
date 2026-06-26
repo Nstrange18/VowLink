@@ -455,7 +455,7 @@ router.put("/me", protect, async (req, res) => {
         "/templates/Cream Floral Elegance.png"
       ];
       // Free users can use floral or custom theme with free background templates
-      if (cardTheme === "custom" && customCardBg && allowedFreeBgs.includes(customCardBg)) {
+      if (cardTheme === "custom" && customCardBg && (allowedFreeBgs.includes(customCardBg) || customCardBg.startsWith("/Free Plan Vowlink/"))) {
         user.cardTheme = "custom";
         user.customCardBg = customCardBg;
       } else if (cardTheme === "plain") {
@@ -490,7 +490,7 @@ router.put("/me", protect, async (req, res) => {
       if (cardTheme && cardTheme !== "custom" && ["floral", "minimalist", "navy", "plain"].includes(cardTheme)) {
         user.cardTheme = cardTheme;
         user.customCardBg = "";
-      } else if (cardTheme === "custom" && customCardBg && allowedPlusBgs.includes(customCardBg)) {
+      } else if (cardTheme === "custom" && customCardBg && (allowedPlusBgs.includes(customCardBg) || customCardBg.startsWith("/Free Plan Vowlink/") || customCardBg.startsWith("/Plus Plans Vowlink/"))) {
         user.cardTheme = "custom";
         user.customCardBg = customCardBg;
       } else {
