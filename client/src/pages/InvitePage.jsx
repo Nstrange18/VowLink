@@ -1562,7 +1562,7 @@ const InvitePage = () => {
         {couplePhotoUrl && (
           <>
             <div 
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-500"
+              className="absolute inset-0 bg-contain sm:bg-cover bg-center bg-no-repeat transition-all duration-500"
               style={{ backgroundImage: `url(${couplePhotoUrl})` }}
             />
             <div 
