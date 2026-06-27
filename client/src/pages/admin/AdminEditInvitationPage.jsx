@@ -25,17 +25,17 @@ const AdminEditInvitationPage = () => {
   const { id } = useParams()
   const { state } = useLocation()
   const navigate = useNavigate()
-  const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
 
   // Derive couple names and formatted wedding date from the stored user profile
   const coupleNames = [user.partner1Name, user.partner2Name].filter(Boolean).join(' and ')
   const weddingDate = user.weddingDate
     ? new Date(user.weddingDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
     : ''
+  const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
 
   const { register, handleSubmit, control, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(invitationSchema),
-    defaultValues: { guestName: '', greeting: '', customMessage: '', allowedGuests: 1, category: 'Guest', phoneNumber: '' },
+    defaultValues: { guestName: '', greeting: '', customMessage: '', allowedGuests: 1, category: 'Guest', phoneNumber: '', senderGroup: 'general' },
   })
 
   const guestNameVal = watch('guestName') || 'Friend';
@@ -55,6 +55,7 @@ const AdminEditInvitationPage = () => {
             allowedGuests: inv.allowedGuests,
             category: inv.category || 'Guest',
             phoneNumber: inv.phoneNumber || '',
+            senderGroup: inv.senderGroup || 'general',
           })
         } else {
           toast.error('Invitation not found.')
@@ -160,6 +161,22 @@ const AdminEditInvitationPage = () => {
           />
           {errors.phoneNumber && <p className="mt-1 text-xs text-red-400">{errors.phoneNumber.message}</p>}
           <p className="mt-1 text-[10px] text-white/30">Optional. Include country code without "+" or space. Used for launching direct WhatsApp messages.</p>
+        </div>
+
+        <div>
+          <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Send Invite By</label>
+          <select
+            id="sender-group"
+            {...register('senderGroup')}
+            className="w-full rounded-xl border bg-white/5 border-white/10 px-4 py-3 text-sm text-white focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30 outline-none transition"
+          >
+            <option value="general" className="bg-[#070A13]">General</option>
+            <option value="bride" className="bg-[#070A13]">Bride</option>
+            <option value="groom" className="bg-[#070A13]">Groom</option>
+            <option value="both" className="bg-[#070A13]">Both</option>
+          </select>
+          {errors.senderGroup && <p className="mt-1 text-xs text-red-400">{errors.senderGroup.message}</p>}
+          <p className="mt-1 text-[10px] text-white/30 font-serif">Select who is responsible for sending this guest their invitation link.</p>
         </div>
 
         <div className="flex gap-4 pt-2">

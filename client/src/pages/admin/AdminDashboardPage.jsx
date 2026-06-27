@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../utils/api'
+import Skeleton from '../../components/common/Skeleton'
 
 const CATEGORIES = ['VIP', 'Family', 'Friend', 'Colleague', 'Guest']
 
@@ -12,16 +13,20 @@ const categoryColors = {
   Guest: { ring: 'border-white/20', bg: 'bg-white/5', text: 'text-white/60', dot: 'bg-white/40' },
 }
 
-const StatCard = ({ label, value, color, sub }) => (
+const StatCard = ({ label, value, color, sub, loading }) => (
   <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-4 sm:p-6">
     <p className="text-[10px] sm:text-xs uppercase tracking-widest text-white/40 mb-2 leading-tight">{label}</p>
-    <p className={`font-serif text-4xl sm:text-5xl font-light ${color}`}>{value}</p>
-    {sub && <p className="mt-2 text-[10px] sm:text-xs text-white/30">{sub}</p>}
+    {loading ? (
+      <Skeleton className="h-10 w-16 mt-1" />
+    ) : (
+      <p className={`font-serif text-4xl sm:text-5xl font-light ${color}`}>{value}</p>
+    )}
+    {sub && !loading && <p className="mt-2 text-[10px] sm:text-xs text-white/30">{sub}</p>}
   </div>
 )
 
 // ── Wedding Countdown Widget ──────────────────────────────────────────────────
-const CountdownWidget = ({ weddingDate }) => {
+const CountdownWidget = ({ weddingDate, loading }) => {
   const [daysLeft, setDaysLeft] = useState(null)
   const [user, setUser] = useState(null)
 
@@ -44,6 +49,21 @@ const CountdownWidget = ({ weddingDate }) => {
     const id = setInterval(update, 60000)
     return () => clearInterval(id)
   }, [weddingDate])
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl border border-white/5 bg-[#0D1220]/60 px-6 py-7 h-28 flex items-center justify-between animate-pulse">
+        <div className="space-y-3">
+          <Skeleton className="h-3.5 w-32" />
+          <Skeleton className="h-8 w-20" />
+        </div>
+        <div className="flex gap-4">
+          <Skeleton className="h-10 w-16" />
+          <Skeleton className="h-10 w-16" />
+        </div>
+      </div>
+    )
+  }
 
   if (!weddingDate) {
     return (
@@ -284,7 +304,6 @@ const AdminDashboardPage = () => {
     load()
   }, [])
 
-  if (loading) return <div className="p-8 text-white/40">Loading stats...</div>
   if (error) return <div className="p-8 text-red-400">Could not load data. Is the server running?</div>
 
   const attending = rsvps.filter((r) => r.attending === 'Yes').length
@@ -324,19 +343,19 @@ const AdminDashboardPage = () => {
 
         {/* Wedding Countdown */}
         <div className="mb-6">
-          <CountdownWidget weddingDate={weddingDate} />
+          <CountdownWidget weddingDate={weddingDate} loading={loading} />
         </div>
 
         {/* Stats row */}
         <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-          <StatCard label="Total Invitations" value={invitations.length} color="text-white" />
-          <StatCard label="RSVPs" value={rsvps.length} color="text-[#7FA6D9]" />
-          <StatCard label="Attending" value={attending} color="text-emerald-400" />
-          <StatCard label="Not Attending" value={notAttending} color="text-red-400" />
+          <StatCard label="Total Invitations" value={invitations.length} color="text-white" loading={loading} />
+          <StatCard label="RSVPs" value={rsvps.length} color="text-[#7FA6D9]" loading={loading} />
+          <StatCard label="Attending" value={attending} color="text-emerald-400" loading={loading} />
+          <StatCard label="Not Attending" value={notAttending} color="text-red-400" loading={loading} />
           {isDeadlinePassed ? (
-            <StatCard label="No Response" value={noResponse} color="text-rose-400" sub="deadline passed" />
+            <StatCard label="No Response" value={noResponse} color="text-rose-400" sub="deadline passed" loading={loading} />
           ) : (
-            <StatCard label="Pending" value={pending} color="text-[#D8B76A]" sub="awaiting response" />
+            <StatCard label="Pending" value={pending} color="text-[#D8B76A]" sub="awaiting response" loading={loading} />
           )}
         </div>
       </div>
@@ -346,7 +365,22 @@ const AdminDashboardPage = () => {
         <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Breakdown</p>
         <h3 className="font-serif text-2xl text-white mb-6">Guests by Category</h3>
 
-        {activeCategories.length === 0 ? (
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl border border-white/5 bg-white/3 px-4 sm:px-6 py-4 sm:py-5 space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2.5 w-2.5 rounded-full bg-white/10 animate-pulse" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                  <Skeleton className="h-4 w-36" />
+                </div>
+                <Skeleton className="h-1.5 w-full" />
+              </div>
+            ))}
+          </div>
+        ) : activeCategories.length === 0 ? (
           <p className="text-white/30 text-sm">No invitations yet. Create your first one!</p>
         ) : (
           <div className="space-y-4">

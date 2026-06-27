@@ -1267,7 +1267,7 @@ const InvitePage = () => {
 
   if (loading)
     return (
-      <section className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-[#070A13]">
+      <section className="flex min-h-screen min-h-[100svh] items-center justify-center bg-[#070A13]">
         <p className="text-white/40 text-sm tracking-widest uppercase animate-pulse">
           Loading your invitation...
         </p>
@@ -1276,7 +1276,7 @@ const InvitePage = () => {
 
   if (notFound)
     return (
-      <section className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-[#070A13] text-center px-6">
+      <section className="flex min-h-screen min-h-[100svh] items-center justify-center bg-[#070A13] text-center px-6">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-4">
             Not Found
@@ -1392,7 +1392,7 @@ const InvitePage = () => {
     };
   } else if (cardTheme === "navy") {
     cardStyles = {
-      background: "url('/templates/elegant_gold_frame_with_navy_backdrop.png') center/cover no-repeat",
+      background: "url('/templates/elegant_gold_frame_with_navy_backdrop.png') 0% 0% / 100% 100% no-repeat",
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A",
       fontFamily: activeFont,
     };
@@ -1409,7 +1409,7 @@ const InvitePage = () => {
       fontFamily: activeFont,
     };
   } else if (cardTheme === "custom" && customCardBg) {
-    let bg = `url('${customCardBg}') center/cover no-repeat`;
+    let bg = `url('${customCardBg}') 0% 0% / 100% 100% no-repeat`;
     let color = "#1A2E4A";
     
     switch (customCardBg) {
@@ -1573,7 +1573,7 @@ const InvitePage = () => {
   const isTodayWeddingDay = weddingDate && (new Date(weddingDate).toDateString() === new Date().toDateString());
 
   return (
-    <div className={`min-h-screen min-h-[100dvh] relative ${isOpen ? "overflow-x-hidden" : "h-screen h-[100dvh] overflow-hidden"}`} style={{ background: "#070A13" }}>
+    <div className={`min-h-screen min-h-[100svh] relative ${isOpen ? "overflow-x-hidden" : "h-screen h-[100svh] overflow-hidden"}`} style={{ background: "#070A13" }}>
       <style>{`
         .is-exporting .download-exclude,
         .is-exporting #rsvp-open-btn,
@@ -1590,7 +1590,7 @@ const InvitePage = () => {
         </div>
       )}
       {/* Premium page background: deep dark with radial gold bokeh */}
-      <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-[100vh] h-[100lvh] z-0" aria-hidden="true">
         {/* Dark base */}
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)" }} />
         
@@ -1598,7 +1598,7 @@ const InvitePage = () => {
         {couplePhotoUrl && (
           <>
             <div 
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-500"
+              className="absolute inset-0 bg-contain sm:bg-cover bg-center bg-no-repeat transition-all duration-500"
               style={{ backgroundImage: `url(${couplePhotoUrl})` }}
             />
             <div 
@@ -1802,7 +1802,7 @@ const InvitePage = () => {
       {/* ── INVITATION CARD SECTION ── */}
       <div ref={downloadRef} id="main-invitation-container" className="w-full relative z-10">
         {/* Section 1: Invitation Card centered vertically in viewport */}
-        <section className="flex flex-col items-center justify-center py-0 px-4 relative z-10 w-full min-h-screen min-h-[100dvh]">
+        <section className="flex flex-col items-center justify-center py-0 px-4 relative z-10 w-full min-h-screen min-h-[100svh]">
         {/* ═══ THE CARD (this gets downloaded) ═══ */}
         <div 
           className="w-full flex items-start justify-center relative"

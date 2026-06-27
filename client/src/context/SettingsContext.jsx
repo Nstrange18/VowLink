@@ -109,6 +109,7 @@ export const SettingsProvider = ({ children }) => {
   const [coupleOverlayOpacity, setCoupleOverlayOpacity] = useState(storedUser.coupleOverlayOpacity ?? 0.45);
   const [musicUrl, setMusicUrl] = useState(storedUser.musicUrl || "");
   const [galleryPhotos, setGalleryPhotos] = useState(storedUser.galleryPhotos || []);
+  const mediaLoaded = useRef(false); // tracks whether media fields have been fetched from server
 
   // Registry & Honeymoon Fund states
   const [registryEnabled, setRegistryEnabled] = useState(storedUser.registryEnabled || false);
@@ -207,6 +208,7 @@ export const SettingsProvider = ({ children }) => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(settingsSchema),
+    shouldUnregister: false,
     defaultValues: {
       partner1Name: storedUser.partner1Name || "",
       partner2Name: storedUser.partner2Name || "",
@@ -277,6 +279,9 @@ export const SettingsProvider = ({ children }) => {
         if (freshUser.timeline) setTimeline(freshUser.timeline);
         if (freshUser.customShareMessage) setCustomShareMessage(freshUser.customShareMessage);
         if (Array.isArray(freshUser.weddingColors) && freshUser.weddingColors.length) setWeddingColors(freshUser.weddingColors);
+        
+        // Mark media as fully loaded so saves can safely include gallery/photo fields
+        mediaLoaded.current = true;
         
         reset({
           partner1Name: freshUser.partner1Name || "",
@@ -425,13 +430,24 @@ export const SettingsProvider = ({ children }) => {
 
     try {
       const musicUrlToSave = musicUrl && musicUrl.startsWith('data:') ? '' : musicUrl;
+
+      // Only include media fields (gallery, couple photo, page bg) if we've loaded
+      // them from the server first — prevents accidentally overwriting with stale
+      // empty-array/string values sourced only from localStorage.
+      const mediaPayload = mediaLoaded.current
+        ? {
+            galleryPhotos,
+            couplePhotoUrl,
+            pageBgTemplate,
+          }
+        : {};
+
       const res = await api.put("/auth/me", {
         ...data,
         weddingColors,
         cardTheme,
         customCardBg,
-        pageBgTemplate: "",
-        couplePhotoUrl,
+        ...mediaPayload,
         customShareMessage,
         coupleOverlayOpacity,
         customTextColor,
@@ -453,7 +469,6 @@ export const SettingsProvider = ({ children }) => {
         userHasCustomAlignment,
         userHasCustomTextColor,
         musicUrl: musicUrlToSave,
-        galleryPhotos,
         registryEnabled: Boolean(registryEnabled),
         registryBankName,
         registryAccountName,
@@ -554,13 +569,22 @@ export const SettingsProvider = ({ children }) => {
           </button>
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
+              const photoUrl = galleryPhotos[index];
+              // Immediately remove from local state
               setGalleryPhotos((prev) => prev.filter((_, i) => i !== index));
               if (galleryInputRef.current) {
                 galleryInputRef.current.value = "";
               }
               closeToast();
-              toast.success("Gallery photo removed.");
+              // Permanently delete from Cloudinary + DB right away (no save needed)
+              try {
+                await api.delete("/auth/gallery-photo", { data: { photoUrl } });
+                toast.success("Gallery photo permanently deleted. ✓");
+              } catch (err) {
+                console.error("Failed to delete photo from server:", err);
+                toast.error("Photo removed locally but server deletion failed. Please save settings.");
+              }
             }}
             className="px-2 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
           >

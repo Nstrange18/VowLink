@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
+import Skeleton from '../../components/common/Skeleton'
 
 const AdminInvitationsPage = () => {
   const [invitations, setInvitations] = useState([])
@@ -15,6 +16,7 @@ const AdminInvitationsPage = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [categoryFilter, setCategoryFilter] = useState("all")
+  const [senderGroupFilter, setSenderGroupFilter] = useState("all")
 
   const fetchInvitations = async () => {
     try {
@@ -84,6 +86,7 @@ const AdminInvitationsPage = () => {
   const filteredInvitations = invitations.filter((inv) => {
     const matchesSearch = inv.guestName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || (inv.category || "Guest") === categoryFilter;
+    const matchesSenderGroup = senderGroupFilter === "all" || (inv.senderGroup || "general") === senderGroupFilter;
     
     const status = inv.hasRSVPed 
       ? "rsvped" 
@@ -92,7 +95,7 @@ const AdminInvitationsPage = () => {
         : "pending";
     const matchesStatus = statusFilter === "all" || status === statusFilter;
 
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesCategory && matchesStatus && matchesSenderGroup;
   });
 
   return (
@@ -170,7 +173,7 @@ const AdminInvitationsPage = () => {
       </div>
 
       {/* Search and Filters Bar */}
-      <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#0D1220] border border-white/10 rounded-2xl p-4 shadow-lg backdrop-blur-md">
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-4 gap-4 bg-[#0D1220] border border-white/10 rounded-2xl p-4 shadow-lg backdrop-blur-md">
         {/* Search Input */}
         <div className="relative">
           <input
@@ -179,7 +182,8 @@ const AdminInvitationsPage = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs text-white placeholder-white/30 outline-none focus:border-[#D8B76A]/60 transition"
-          />
+          >
+          </input>
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
@@ -217,10 +221,86 @@ const AdminInvitationsPage = () => {
             ))}
           </select>
         </div>
+
+        {/* Send Invite By Filter */}
+        <div>
+          <select
+            value={senderGroupFilter}
+            onChange={(e) => setSenderGroupFilter(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-[#0D1220] px-4 py-2.5 text-xs text-white/80 outline-none focus:border-[#D8B76A]/60 transition"
+          >
+            <option value="all">Send Invite By: All</option>
+            <option value="bride">Send Invite By: Bride</option>
+            <option value="groom">Send Invite By: Groom</option>
+            <option value="both">Send Invite By: Both</option>
+            <option value="general">Send Invite By: General</option>
+          </select>
+        </div>
       </div>
 
       {loading ? (
-        <p className="text-white/40">Loading invitations...</p>
+        <>
+          {/* Skeleton Desktop Table */}
+          <div className="hidden sm:block overflow-x-auto rounded-2xl border border-white/10 bg-[#0D1220]/40">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-left text-xs uppercase tracking-widest text-white/40">
+                  <th className="px-5 py-4">Guest</th>
+                  <th className="px-5 py-4">Category</th>
+                  <th className="px-5 py-4">Guests</th>
+                  <th className="px-5 py-4">RSVP</th>
+                  <th className="px-5 py-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <tr key={i} className="border-b border-white/5 bg-[#0D1220]">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="h-3.5 w-10 rounded-full" />
+                      </div>
+                    </td>
+                    <td className="px-5 py-4"><Skeleton className="h-4 w-16" /></td>
+                    <td className="px-5 py-4"><Skeleton className="h-4 w-8" /></td>
+                    <td className="px-5 py-4"><Skeleton className="h-5 w-16 rounded-full" /></td>
+                    <td className="px-5 py-4">
+                      <div className="flex gap-4">
+                        <Skeleton className="h-4 w-12" />
+                        <Skeleton className="h-4 w-10" />
+                        <Skeleton className="h-4 w-10" />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Skeleton Mobile Cards */}
+          <div className="flex flex-col gap-3 sm:hidden">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl border border-white/10 bg-[#0D1220] p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-8 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3.5 w-32" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </div>
+                <Skeleton className="h-3.5 w-40" />
+                <div className="flex gap-3 pt-1">
+                  <Skeleton className="h-4 w-12" />
+                  <Skeleton className="h-4 w-10" />
+                  <Skeleton className="h-4 w-10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       ) : invitations.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-white/10 p-12 text-center">
           <p className="text-white/40 text-sm">No invitations yet.</p>
@@ -262,7 +342,20 @@ const AdminInvitationsPage = () => {
                       className={`border-b border-white/5 transition hover:bg-white/3 ${i % 2 === 0 ? 'bg-[#0D1220]' : 'bg-transparent'}`}
                     >
                       <td className="px-5 py-4">
-                        <p className="font-medium text-white">{inv.guestName}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-white">{inv.guestName}</p>
+                          {inv.senderGroup && inv.senderGroup !== 'general' && (
+                            <span className={`text-[8px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${
+                              inv.senderGroup === 'bride' 
+                                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
+                                : inv.senderGroup === 'groom' 
+                                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            }`}>
+                              {inv.senderGroup === 'bride' ? 'Bride' : inv.senderGroup === 'groom' ? 'Groom' : 'Both'}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-white/40 mt-0.5">/invite/{inv.slug}</p>
                       </td>
                       <td className="px-5 py-4 text-white/60">{inv.category || 'Guest'}</td>
@@ -316,7 +409,20 @@ const AdminInvitationsPage = () => {
                 <div key={inv._id} className="rounded-2xl border border-white/10 bg-[#0D1220] p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <p className="font-medium text-white">{inv.guestName}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-white">{inv.guestName}</p>
+                        {inv.senderGroup && inv.senderGroup !== 'general' && (
+                          <span className={`text-[8px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full ${
+                            inv.senderGroup === 'bride' 
+                              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
+                              : inv.senderGroup === 'groom' 
+                              ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                          }`}>
+                            {inv.senderGroup === 'bride' ? 'Bride' : inv.senderGroup === 'groom' ? 'Groom' : 'Both'}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-white/40 mt-0.5">{inv.category || 'Guest'} · {inv.allowedGuests} guest{inv.allowedGuests !== 1 ? 's' : ''}</p>
                     </div>
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${getRsvpBadgeClass(inv)}`}>

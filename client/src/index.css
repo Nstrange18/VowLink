@@ -104,3 +104,12 @@ body {
 .animate-pro-btn-glow {
   animation: proBtnGlow 2.5s infinite ease-in-out;
 }
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
