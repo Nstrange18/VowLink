@@ -12,6 +12,18 @@ const createSlug = (name) =>
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-");
 
+const cleanWhatsAppNumber = (phone) => {
+  if (!phone) return "";
+  let cleaned = String(phone).replace(/[\s+\-()]/g, "");
+  if (/^0\d{10}$/.test(cleaned)) {
+    cleaned = "234" + cleaned.substring(1);
+  }
+  if (cleaned.length < 7 || !/^\d+$/.test(cleaned)) {
+    return "";
+  }
+  return cleaned;
+};
+
 router.get("/slug/:slug", async (req, res) => {
   try {
     const invitation = await Invitation.findOne({
@@ -64,7 +76,7 @@ router.get("/slug/:slug/wishes", async (req, res) => {
 // Create invitation
 router.post("/", protect, async (req, res) => {
   try {
-    const { guestName, greeting, customMessage, allowedGuests, category, phoneNumber } =
+    const { guestName, greeting, customMessage, allowedGuests, category, phoneNumber, senderGroup } =
       req.body;
 
     if (!guestName || !greeting || !customMessage) {
@@ -110,6 +122,7 @@ router.post("/", protect, async (req, res) => {
 
     const invitation = await Invitation.create({
       userId: req.user.id,
+      createdBy: req.user.id,
       guestName,
       slug,
       greeting,
@@ -117,6 +130,8 @@ router.post("/", protect, async (req, res) => {
       allowedGuests,
       category,
       phoneNumber: phoneNumber || "",
+      senderGroup: senderGroup || "general",
+      createdByPartner: senderGroup || "general",
     });
 
     res.status(201).json({
@@ -183,14 +198,26 @@ router.post("/bulk", protect, async (req, res) => {
         slug = `${slug}-${now}-${i}`;
       }
 
+      const rawPhone = g.phoneNumber || g.phone || g.whatsappPhone || "";
+      const cleanedPhone = cleanWhatsAppNumber(String(rawPhone).trim());
+      const whatsappStatus = cleanedPhone ? "not_sent" : "missing_number";
+      const senderGroup = ["bride", "groom", "both", "general"].includes(String(g.senderGroup || "").trim().toLowerCase())
+        ? String(g.senderGroup).trim().toLowerCase()
+        : "general";
+
       createdInvitations.push({
         userId: req.user.id,
+        createdBy: req.user.id,
         guestName,
         slug,
         greeting,
         customMessage,
         allowedGuests,
         category,
+        phoneNumber: cleanedPhone,
+        whatsappStatus,
+        senderGroup,
+        createdByPartner: senderGroup,
       });
     }
 
@@ -216,7 +243,15 @@ router.get("/", protect, async (req, res) => {
     const invitations = await Invitation.find({ userId: req.user.id }).sort({
       createdAt: -1,
     });
-    res.status(200).json(invitations);
+    const updatedInvitations = invitations.map(inv => {
+      const doc = inv.toObject();
+      if (!doc.senderGroup) doc.senderGroup = "general";
+      if (!doc.whatsappStatus) {
+        doc.whatsappStatus = doc.phoneNumber ? "not_sent" : "missing_number";
+      }
+      return doc;
+    });
+    res.status(200).json(updatedInvitations);
   } catch (error) {
     res
       .status(500)
@@ -241,6 +276,10 @@ router.put("/:id", protect, async (req, res) => {
       return res.status(400).json({
         message: "Personal message cannot be more than 170 characters.",
       });
+    }
+
+    if (req.body.senderGroup !== undefined) {
+      req.body.createdByPartner = req.body.senderGroup;
     }
 
     const updated = await Invitation.findByIdAndUpdate(
@@ -278,6 +317,91 @@ router.delete("/:id", protect, async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to delete invitation", error: error.message });
+  }
+});
+
+// Update single invitation's WhatsApp status
+router.patch("/:id/whatsapp-status", protect, async (req, res) => {
+  try {
+    const invitation = await Invitation.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+
+    if (!invitation) {
+      return res.status(404).json({ message: "Invitation not found" });
+    }
+
+    const { whatsappStatus, whatsappSentBy } = req.body;
+    
+    if (whatsappStatus) {
+      if (!["not_sent", "ready", "sent", "missing_number"].includes(whatsappStatus)) {
+        return res.status(400).json({ message: "Invalid WhatsApp status value." });
+      }
+      invitation.whatsappStatus = whatsappStatus;
+      if (whatsappStatus === "sent") {
+        invitation.whatsappSentAt = new Date();
+        invitation.whatsappSentBy = whatsappSentBy || req.user.email || "user";
+      } else {
+        invitation.whatsappSentAt = undefined;
+        invitation.whatsappSentBy = undefined;
+      }
+    }
+
+    await invitation.save();
+    res.status(200).json({ message: "WhatsApp status updated successfully", data: invitation });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update WhatsApp status", error: error.message });
+  }
+});
+
+// Update single invitation's sender group
+router.patch("/:id/sender-group", protect, async (req, res) => {
+  try {
+    const invitation = await Invitation.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+
+    if (!invitation) {
+      return res.status(404).json({ message: "Invitation not found" });
+    }
+
+    const { senderGroup } = req.body;
+    if (senderGroup) {
+      if (!["bride", "groom", "both", "general"].includes(senderGroup)) {
+        return res.status(400).json({ message: "Invalid sender group" });
+      }
+      invitation.senderGroup = senderGroup;
+      invitation.createdByPartner = senderGroup;
+    }
+
+    await invitation.save();
+    res.status(200).json({ message: "Sender group updated successfully", data: invitation });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update sender group", error: error.message });
+  }
+});
+
+// Bulk update sender group for selected invitations
+router.post("/bulk-update-sender-group", protect, async (req, res) => {
+  try {
+    const { invitationIds, senderGroup } = req.body;
+    if (!Array.isArray(invitationIds) || invitationIds.length === 0) {
+      return res.status(400).json({ message: "An array of invitation IDs is required." });
+    }
+    if (!["bride", "groom", "both", "general"].includes(senderGroup)) {
+      return res.status(400).json({ message: "Invalid sender group value." });
+    }
+
+    await Invitation.updateMany(
+      { _id: { $in: invitationIds }, userId: req.user.id },
+      { $set: { senderGroup, createdByPartner: senderGroup } }
+    );
+
+    res.status(200).json({ message: `Successfully updated sender group to '${senderGroup}' for ${invitationIds.length} invitations.` });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to bulk update sender group", error: error.message });
   }
 });
 

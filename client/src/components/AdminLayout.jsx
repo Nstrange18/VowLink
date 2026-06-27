@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'
 const navLinks = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: '◈' },
   { to: '/admin/invitations', label: 'Invitations', icon: '✉' },
+  { to: '/admin/whatsapp-bulk', label: 'WhatsApp Sender', icon: '💬' },
   { to: '/admin/rsvps', label: 'RSVPs', icon: '✓' },
   { to: '/admin/seating', label: 'Seating Chart', icon: '🪑' },
   { to: '/admin/venues', label: 'Suggested Venues', icon: '📍' },

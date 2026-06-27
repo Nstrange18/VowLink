@@ -65,6 +65,7 @@ export const invitationSchema = z.object({
   allowedGuests: z.coerce.number().min(1).max(10),
   category: z.string().min(1, "Category is required"),
   phoneNumber: z.string().optional().default(""),
+  senderGroup: z.enum(["bride", "groom", "both", "general"]).optional().default("general"),
 });
 
 // ── Settings ──────────────────────────────────────────────────────────────────

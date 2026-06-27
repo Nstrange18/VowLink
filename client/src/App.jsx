@@ -20,6 +20,7 @@ import AdminBillingPage from './pages/admin/AdminBillingPage'
 import AdminVenuesPage from './pages/admin/AdminVenuesPage'
 import VenueDetailsPage from './pages/admin/VenueDetailsPage'
 import AdminBulkInvitationPage from './pages/admin/AdminBulkInvitationPage'
+import AdminBulkWhatsAppPage from './pages/admin/AdminBulkWhatsAppPage'
 import AdminSeatingPage from './pages/admin/AdminSeatingPage'
 import AdminForgotPasswordPage from './pages/admin/AdminForgotPasswordPage'
 import AdminLayout from './components/AdminLayout'
@@ -85,6 +86,7 @@ function App() {
           <Route path="invitations/new" element={<AdminNewInvitationPage />} />
           <Route path="invitations/edit/:id" element={<AdminEditInvitationPage />} />
           <Route path="invitations/bulk" element={<AdminBulkInvitationPage />} />
+          <Route path="whatsapp-bulk" element={<AdminBulkWhatsAppPage />} />
           <Route path="rsvps" element={<AdminRsvpsPage />} />
           <Route path="billing" element={<AdminBillingPage />} />
           <Route path="venues" element={<AdminVenuesPage />} />

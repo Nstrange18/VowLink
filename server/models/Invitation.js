@@ -7,6 +7,11 @@ const invitationSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
 
     guestName: {
       type: String,
@@ -54,6 +59,32 @@ const invitationSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+    },
+    senderGroup: {
+      type: String,
+      enum: ["bride", "groom", "both", "general"],
+      default: "general",
+      trim: true,
+    },
+    createdByPartner: {
+      type: String,
+      enum: ["bride", "groom", "both", "general"],
+      default: "general",
+      trim: true,
+    },
+    whatsappStatus: {
+      type: String,
+      enum: ["not_sent", "ready", "sent", "missing_number"],
+      default: function () {
+        return this.phoneNumber ? "not_sent" : "missing_number";
+      },
+      trim: true,
+    },
+    whatsappSentAt: {
+      type: Date,
+    },
+    whatsappSentBy: {
+      type: String,
     },
   },
   { timestamps: true }

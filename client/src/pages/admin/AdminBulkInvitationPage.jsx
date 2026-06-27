@@ -83,6 +83,9 @@ const AdminBulkInvitationPage = () => {
           const allowedGuests = parseInt((parts[2] || "").trim()) || 1;
           const customGreeting = (parts[3] || "").replace(/^"|"$/g, '').trim();
           const customMessage = (parts[4] || "").replace(/^"|"$/g, '').trim();
+          const phoneNumber = (parts[5] || "").replace(/^"|"$/g, '').trim();
+          const rawGroup = (parts[6] || "").replace(/^"|"$/g, '').trim().toLowerCase();
+          const senderGroup = ["bride", "groom", "both", "general"].includes(rawGroup) ? rawGroup : "general";
           
           const greeting = customGreeting || defaultGreeting.replace("{name}", guestName);
           const actualMessage = customMessage || defaultMessage;
@@ -92,7 +95,9 @@ const AdminBulkInvitationPage = () => {
             category, 
             allowedGuests, 
             greeting,
-            customMessage: actualMessage
+            customMessage: actualMessage,
+            phoneNumber,
+            senderGroup
           };
           
           return guestObj;
@@ -130,23 +135,23 @@ const AdminBulkInvitationPage = () => {
 
   const loadSampleData = () => {
     const samples = [
-      '"Chidera Okonkwo",Friend,2,"Dear Chidera,","Can\'t wait to dance on our wedding night!"',
-      '"Engr. Tunde & Family",Family,5,"Dear Uncle Tunde & Family,","We hope to see the whole family there!"',
-      '"Senator Marcus",VIP,1,"Dear Senator Marcus,","We would be highly honored by your presence."',
-      '"Adama Traore",Colleague,1,"Dear Adama,","Looking forward to celebrating together!"',
-      '"Kemi Nelson",Friend,2,"Dear Kemi,","Join us for the best night of our lives!"',
+      '"Chidera Okonkwo",Friend,2,"Dear Chidera,","Can\'t wait to dance on our wedding night!",09012345678,general',
+      '"Engr. Tunde & Family",Family,5,"Dear Uncle Tunde & Family,","We hope to see the whole family there!",2348022222222,bride',
+      '"Senator Marcus",VIP,1,"Dear Senator Marcus,","We would be highly honored by your presence.",,groom',
+      '"Adama Traore",Colleague,1,"Dear Adama,","Looking forward to celebrating together!",07011111111,both',
+      '"Kemi Nelson",Friend,2,"Dear Kemi,","Join us for the best night of our lives!",+2349033333333,general',
     ];
     setInputText(samples.join("\n"));
   };
 
   const downloadTemplate = () => {
-    const headers = "Guest Name,Category,Allowed Guests,Personalized Greeting,Personalized Custom Message\n";
+    const headers = "Guest Name,Category,Allowed Guests,Personalized Greeting,Personalized Custom Message,Phone Number,Sender Group\n";
     const rows = [
-      '"Chidera Okonkwo",Friend,2,"Dear Chidera,","Can\'t wait to dance on our wedding night!"',
-      '"Engr. Tunde & Family",Family,5,"Dear Uncle Tunde & Family,","We hope to see the whole family there!"',
-      '"Senator Marcus",VIP,1,"Dear Senator Marcus,","We would be highly honored by your presence."',
-      '"Adama Traore",Colleague,1,"Dear Adama,","Looking forward to celebrating together!"',
-      '"Kemi Nelson",Friend,2,"Dear Kemi,","Join us for the best night of our lives!"'
+      '"Chidera Okonkwo",Friend,2,"Dear Chidera,","Can\'t wait to dance on our wedding night!",09012345678,general',
+      '"Engr. Tunde & Family",Family,5,"Dear Uncle Tunde & Family,","We hope to see the whole family there!",2348022222222,bride',
+      '"Senator Marcus",VIP,1,"Dear Senator Marcus,","We would be highly honored by your presence.",,groom',
+      '"Adama Traore",Colleague,1,"Dear Adama,","Looking forward to celebrating together!",07011111111,both',
+      '"Kemi Nelson",Friend,2,"Dear Kemi,","Join us for the best night of our lives!",+2349033333333,general'
     ].join("\n");
     
     // Prefix with UTF-8 BOM so Excel auto-detects commas and accents correctly
@@ -197,9 +202,9 @@ const AdminBulkInvitationPage = () => {
           <span>📊</span> How to prepare your spreadsheet
         </h3>
         <p className="text-white/60">
-          You can format your guest list in Microsoft Excel, Google Sheets, or any spreadsheet tool. Set up your table with the following 5 columns in order:
+          You can format your guest list in Microsoft Excel, Google Sheets, or any spreadsheet tool. Set up your table with the following 7 columns in order:
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 bg-black/20 p-4 rounded-xl border border-white/5 font-sans">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3 bg-black/20 p-4 rounded-xl border border-white/5 font-sans">
           <div>
             <strong className="text-white block text-[11px]">1. Guest Name <span className="text-red-400 font-normal">(Req)</span></strong>
             <span className="text-white/40 text-[9px] block mt-0.5">The name shown on the invite card. (e.g. "Mr. & Mrs. Adebayo")</span>
@@ -219,6 +224,14 @@ const AdminBulkInvitationPage = () => {
           <div>
             <strong className="text-white block text-[11px]">5. Custom Msg <span className="text-white/40 font-normal">(Opt)</span></strong>
             <span className="text-white/40 text-[9px] block mt-0.5">Specific invite card note. (Max 170 chars)</span>
+          </div>
+          <div>
+            <strong className="text-white block text-[11px]">6. Phone No <span className="text-white/40 font-normal">(Opt)</span></strong>
+            <span className="text-white/40 text-[9px] block mt-0.5">WhatsApp number. (e.g. "09012345678")</span>
+          </div>
+          <div>
+            <strong className="text-white block text-[11px]">7. Send Invite By <span className="text-white/40 font-normal">(Opt)</span></strong>
+            <span className="text-white/40 text-[9px] block mt-0.5">Queue selection. (bride, groom, both, general)</span>
           </div>
         </div>
         <p className="text-[10px] text-white/40 font-normal">
@@ -267,10 +280,10 @@ const AdminBulkInvitationPage = () => {
           <textarea
             rows={10}
             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white placeholder-white/20 outline-none focus:border-[#D8B76A]/60 font-mono resize-y"
-            placeholder={`Format: Guest Name, Category, Seats, Greeting, CustomMessage
+            placeholder={`Format: Guest Name, Category, Seats, Greeting, CustomMessage, PhoneNumber, SendInviteBy
 Example:
-"Chidera Okonkwo", Friend, 2, "Dear Chidera,", "Can't wait to dance!"
-"Uncle Tunde & Family", Family, 5, "Dear Uncle Tunde & Family,", "We hope to see you all!"`}
+"Chidera Okonkwo", Friend, 2, "Dear Chidera,", "Can't wait to dance!", 09012345678, general
+"Uncle Tunde & Family", Family, 5, "Dear Uncle Tunde & Family,", "We hope to see you all!", 2348022222222, bride`}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
           />
@@ -331,8 +344,8 @@ Example:
                 <thead>
                   <tr className="border-b border-white/10 bg-white/5 uppercase tracking-wider text-white/40">
                     <th className="px-4 py-3 font-semibold">Guest Name</th>
-                    <th className="px-4 py-3 font-semibold">Cat. / Seats</th>
-                    <th className="px-4 py-3 font-semibold">Salutation & Message</th>
+                    <th className="px-4 py-3 font-semibold">Cat. / Seats / Queue</th>
+                    <th className="px-4 py-3 font-semibold">Contact & Message</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -343,9 +356,15 @@ Example:
                       </td>
                       <td className="px-4 py-3 text-white/50">
                         <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full block w-fit mb-1">{guest.category}</span>
-                        <span className="text-[10px] text-[#D8B76A] block">Seats: {guest.allowedGuests}</span>
+                        <span className="text-[10px] text-[#D8B76A] block mb-1">Seats: {guest.allowedGuests}</span>
+                        <span className="text-[9px] uppercase tracking-wider bg-white/10 text-white/70 px-2 py-0.5 rounded-full block w-fit">
+                          {guest.senderGroup === "bride" ? "Bride" :
+                           guest.senderGroup === "groom" ? "Groom" :
+                           guest.senderGroup === "both" ? "Both" : "General"}
+                        </span>
                       </td>
                       <td className="px-4 py-3">
+                        {guest.phoneNumber && <div className="text-[#3EC58E] font-mono text-[10px] mb-1">📞 {guest.phoneNumber}</div>}
                         <div className="text-[#D8B76A]/80 font-serif italic text-[11px] leading-tight mb-1">{guest.greeting}</div>
                         <div className="text-white/40 text-[10px] leading-tight line-clamp-2">{guest.customMessage}</div>
                       </td>

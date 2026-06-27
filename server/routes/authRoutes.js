@@ -404,26 +404,31 @@ router.put("/me", protect, async (req, res) => {
       return res.status(400).json({ message: "Current contribution cannot exceed the target goal." });
     }
 
-    // Update basic settings
-    user.partner1Name = partner1Name;
-    user.partner2Name = partner2Name;
-    // If the wedding date changed, reset the email sent tracker
-    const oldDateStr = user.weddingDate ? new Date(user.weddingDate).toDateString() : "";
-    const newDateStr = weddingDate ? new Date(weddingDate).toDateString() : "";
-    if (newDateStr !== oldDateStr) {
-      user.weddingEmailSent = false;
+    // Update basic settings safely (only if defined in request payload)
+    if (partner1Name !== undefined) user.partner1Name = partner1Name;
+    if (partner2Name !== undefined) user.partner2Name = partner2Name;
+    
+    if (weddingDate !== undefined) {
+      const oldDateStr = user.weddingDate ? new Date(user.weddingDate).toDateString() : "";
+      const newDateStr = weddingDate ? new Date(weddingDate).toDateString() : "";
+      if (newDateStr !== oldDateStr) {
+        user.weddingEmailSent = false;
+      }
+      user.weddingDate = weddingDate || null;
     }
-    user.weddingDate = weddingDate || null;
-    user.weddingTime = weddingTime || "18:00";
-    user.rsvpDeadline = rsvpDeadline || null;
-    user.venue = venue || "";
-    user.venueName = venueName || "";
-    user.receptionLocation = receptionLocation || "";
-    user.receptionName = receptionName || "";
-    user.weddingColors = Array.isArray(weddingColors) ? weddingColors : [];
-    user.dressCode = dressCode || "";
-    user.plusOnePolicy = plusOnePolicy === "plus_one_allowed" ? "plus_one_allowed" : "invitation_only";
-    user.kidsAllowed = typeof kidsAllowed === "boolean" ? kidsAllowed : true;
+    
+    if (weddingTime !== undefined) user.weddingTime = weddingTime || "18:00";
+    if (rsvpDeadline !== undefined) user.rsvpDeadline = rsvpDeadline || null;
+    if (venue !== undefined) user.venue = venue || "";
+    if (venueName !== undefined) user.venueName = venueName || "";
+    if (receptionLocation !== undefined) user.receptionLocation = receptionLocation || "";
+    if (receptionName !== undefined) user.receptionName = receptionName || "";
+    if (weddingColors !== undefined) user.weddingColors = Array.isArray(weddingColors) ? weddingColors : [];
+    if (dressCode !== undefined) user.dressCode = dressCode || "";
+    if (plusOnePolicy !== undefined) {
+      user.plusOnePolicy = plusOnePolicy === "plus_one_allowed" ? "plus_one_allowed" : "invitation_only";
+    }
+    if (kidsAllowed !== undefined) user.kidsAllowed = typeof kidsAllowed === "boolean" ? kidsAllowed : true;
 
     // Update registry settings
     if (typeof registryEnabled === "boolean") user.registryEnabled = registryEnabled;
@@ -497,12 +502,15 @@ router.put("/me", protect, async (req, res) => {
         user.cardTheme = "floral"; // Fallback if custom chosen without approved template
         user.customCardBg = "";
       }
-      if (pageBgTemplate && allowedPlusBgs.includes(pageBgTemplate)) {
-        user.pageBgTemplate = pageBgTemplate;
-      } else {
-        user.pageBgTemplate = "";
+      if (pageBgTemplate !== undefined) {
+        if (pageBgTemplate && allowedPlusBgs.includes(pageBgTemplate)) {
+          user.pageBgTemplate = pageBgTemplate;
+        } else if (pageBgTemplate === "") {
+          user.pageBgTemplate = "";
+        }
+        // If pageBgTemplate is sent but not in allowed list, preserve existing value
       }
-      if (Array.isArray(galleryPhotos)) {
+      if (galleryPhotos !== undefined && Array.isArray(galleryPhotos)) {
         user.galleryPhotos = galleryPhotos.slice(0, 5);
       }
       if (musicUrl !== undefined) user.musicUrl = musicUrl;
@@ -513,7 +521,7 @@ router.put("/me", protect, async (req, res) => {
     } else if (user.tier === "pro") {
       // Pro tier unlocks everything
       if (cardTheme) user.cardTheme = cardTheme;
-      if (Array.isArray(galleryPhotos)) {
+      if (galleryPhotos !== undefined && Array.isArray(galleryPhotos)) {
         user.galleryPhotos = galleryPhotos.slice(0, 15);
       }
       if (musicUrl !== undefined) user.musicUrl = musicUrl;
@@ -1054,6 +1062,49 @@ router.post("/paystack/webhook", async (req, res) => {
   } catch (error) {
     console.error("Paystack webhook error:", error.message);
     res.status(500).json({ message: "Webhook handler failed", error: error.message });
+  }
+});
+
+// ── DELETE /api/auth/gallery-photo (Delete a gallery photo from Cloudinary + DB) ──
+router.delete("/gallery-photo", protect, async (req, res) => {
+  try {
+    const { photoUrl } = req.body;
+    if (!photoUrl) {
+      return res.status(400).json({ message: "No photoUrl provided." });
+    }
+
+    // Extract the public_id from the Cloudinary URL
+    // e.g. https://res.cloudinary.com/<cloud>/image/upload/v123/vowlink/couples/abc123.jpg
+    // public_id = "vowlink/couples/abc123"
+    const urlParts = photoUrl.split("/");
+    const uploadIndex = urlParts.indexOf("upload");
+    if (uploadIndex !== -1 && uploadIndex + 2 < urlParts.length) {
+      // Skip the version segment (v12345) if present
+      let afterUpload = urlParts.slice(uploadIndex + 1);
+      if (afterUpload[0] && /^v\d+$/.test(afterUpload[0])) {
+        afterUpload = afterUpload.slice(1);
+      }
+      const publicIdWithExt = afterUpload.join("/");
+      const publicId = publicIdWithExt.replace(/\.[^/.]+$/, ""); // strip extension
+      try {
+        await cloudinary.uploader.destroy(publicId);
+      } catch (cloudErr) {
+        console.warn("Cloudinary destroy warning:", cloudErr.message);
+        // Non-fatal — still remove from DB even if Cloudinary delete fails
+      }
+    }
+
+    // Remove the URL from the user's galleryPhotos array in the DB
+    const user = await User.findById(req.user.id);
+    if (user) {
+      user.galleryPhotos = (user.galleryPhotos || []).filter((p) => p !== photoUrl);
+      await user.save();
+    }
+
+    res.status(200).json({ message: "Photo deleted successfully." });
+  } catch (error) {
+    console.error("❌ Gallery photo delete error:", error);
+    res.status(500).json({ message: "Failed to delete photo.", error: error.message });
   }
 });
 
