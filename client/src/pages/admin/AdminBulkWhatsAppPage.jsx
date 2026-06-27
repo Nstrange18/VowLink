@@ -290,7 +290,7 @@ const AdminBulkWhatsAppPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Template & Presets Column */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto space-y-6 no-scrollbar">
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-5 sm:p-6 space-y-4">
             <h3 className="font-serif text-lg text-[#D8B76A] border-b border-white/5 pb-2">1. Compose Message</h3>
             
