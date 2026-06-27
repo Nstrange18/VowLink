@@ -1267,7 +1267,7 @@ const InvitePage = () => {
 
   if (loading)
     return (
-      <section className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-[#070A13]">
+      <section className="flex min-h-screen min-h-[100svh] items-center justify-center bg-[#070A13]">
         <p className="text-white/40 text-sm tracking-widest uppercase animate-pulse">
           Loading your invitation...
         </p>
@@ -1276,7 +1276,7 @@ const InvitePage = () => {
 
   if (notFound)
     return (
-      <section className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-[#070A13] text-center px-6">
+      <section className="flex min-h-screen min-h-[100svh] items-center justify-center bg-[#070A13] text-center px-6">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-4">
             Not Found
@@ -1537,7 +1537,7 @@ const InvitePage = () => {
   const isTodayWeddingDay = weddingDate && (new Date(weddingDate).toDateString() === new Date().toDateString());
 
   return (
-    <div className={`min-h-screen min-h-[100dvh] relative ${isOpen ? "overflow-x-hidden" : "h-screen h-[100dvh] overflow-hidden"}`} style={{ background: "#070A13" }}>
+    <div className={`min-h-screen min-h-[100svh] relative ${isOpen ? "overflow-x-hidden" : "h-screen h-[100svh] overflow-hidden"}`} style={{ background: "#070A13" }}>
       <style>{`
         .is-exporting .download-exclude,
         .is-exporting #rsvp-open-btn,
@@ -1766,7 +1766,7 @@ const InvitePage = () => {
       {/* ── INVITATION CARD SECTION ── */}
       <div ref={downloadRef} id="main-invitation-container" className="w-full relative z-10">
         {/* Section 1: Invitation Card centered vertically in viewport */}
-        <section className="flex flex-col items-center justify-center py-0 px-4 relative z-10 w-full min-h-screen min-h-[100dvh]">
+        <section className="flex flex-col items-center justify-center py-0 px-4 relative z-10 w-full min-h-screen min-h-[100svh]">
         {/* ═══ THE CARD (this gets downloaded) ═══ */}
         <div 
           className="w-full flex items-start justify-center relative"

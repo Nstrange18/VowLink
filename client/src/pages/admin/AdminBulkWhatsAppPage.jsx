@@ -32,6 +32,8 @@ const AdminBulkWhatsAppPage = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkQueueVal, setBulkQueueVal] = useState("");
+  const [loadingIds, setLoadingIds] = useState(new Set());
+  const [preparingInvites, setPreparingInvites] = useState(false);
 
   // Template settings
   const [messageTemplate, setMessageTemplate] = useState(
@@ -154,6 +156,7 @@ const AdminBulkWhatsAppPage = () => {
   };
 
   const updateWhatsAppStatus = async (id, status) => {
+    setLoadingIds((prev) => new Set(prev).add(id));
     try {
       const res = await api.patch(`/invitations/${id}/whatsapp-status`, {
         whatsappStatus: status,
@@ -165,6 +168,12 @@ const AdminBulkWhatsAppPage = () => {
       toast.success(`Guest updated to ${status.replace("_", " ")}!`);
     } catch {
       toast.error("Failed to update status.");
+    } finally {
+      setLoadingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -174,6 +183,7 @@ const AdminBulkWhatsAppPage = () => {
       return;
     }
     
+    setPreparingInvites(true);
     // Set status of all selected guests to 'ready'
     let successCount = 0;
     for (const id of selectedIds) {
@@ -190,6 +200,7 @@ const AdminBulkWhatsAppPage = () => {
     }
     toast.success(`Prepared ${successCount} WhatsApp invitations successfully!`);
     setSelectedIds([]);
+    setPreparingInvites(false);
   };
 
   const handleOpenWhatsApp = (guest) => {
@@ -388,10 +399,20 @@ const AdminBulkWhatsAppPage = () => {
 
               <button
                 onClick={handlePrepareInvites}
-                disabled={selectedIds.length === 0}
-                className="w-full rounded-full border border-white/15 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest text-white hover:bg-white/10 hover:border-white/25 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                disabled={selectedIds.length === 0 || preparingInvites}
+                className="w-full rounded-full border border-white/15 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest text-white hover:bg-white/10 hover:border-white/25 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center justify-center gap-2"
               >
-                Prepare WhatsApp Invites ({selectedIds.length})
+                {preparingInvites ? (
+                  <>
+                    <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Preparing…
+                  </>
+                ) : (
+                  `Prepare WhatsApp Invites (${selectedIds.length})`
+                )}
               </button>
             </div>
           </div>
@@ -601,16 +622,28 @@ const AdminBulkWhatsAppPage = () => {
                               {guest.whatsappStatus !== "sent" ? (
                                 <button
                                   onClick={() => updateWhatsAppStatus(guest._id, "sent")}
-                                  className="px-2 py-1 rounded border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-[9px] uppercase transition cursor-pointer"
+                                  disabled={loadingIds.has(guest._id)}
+                                  className="px-2 py-1 rounded border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
                                 >
-                                  Sent
+                                  {loadingIds.has(guest._id) ? (
+                                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                  ) : "Sent"}
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => updateWhatsAppStatus(guest._id, "not_sent")}
-                                  className="px-2 py-1 rounded border border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/10 text-yellow-400 font-bold text-[9px] uppercase transition cursor-pointer"
+                                  disabled={loadingIds.has(guest._id)}
+                                  className="px-2 py-1 rounded border border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/10 text-yellow-400 font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
                                 >
-                                  Undo
+                                  {loadingIds.has(guest._id) ? (
+                                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                  ) : "Undo"}
                                 </button>
                               )}
                             </div>
