@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
+import Skeleton from '../../components/common/Skeleton'
 
 const AdminRsvpsPage = () => {
   const [rsvps, setRsvps] = useState([])
@@ -94,7 +95,68 @@ const AdminRsvpsPage = () => {
       </div>
 
       {loading ? (
-        <p className="text-white/40">Loading responses...</p>
+        <>
+          {/* Skeleton Desktop Table */}
+          <div className="hidden sm:block overflow-x-auto rounded-2xl border border-white/10 bg-[#0D1220]/40">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-left text-xs uppercase tracking-widest text-white/40">
+                  <th className="px-4 py-4">Guest</th>
+                  <th className="px-4 py-4">Phone</th>
+                  <th className="px-4 py-4">Attending</th>
+                  <th className="px-4 py-4">Guests</th>
+                  <th className="px-4 py-4">Meal</th>
+                  <th className="px-4 py-4">Message</th>
+                  <th className="px-4 py-4">Submitted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[1, 2, 3, 4].map((i) => (
+                  <tr key={i} className="border-b border-white/5 bg-[#0D1220]">
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                    </td>
+                    <td className="px-4 py-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="px-4 py-4"><Skeleton className="h-5 w-12 rounded-full" /></td>
+                    <td className="px-4 py-4"><Skeleton className="h-4 w-6" /></td>
+                    <td className="px-4 py-4"><Skeleton className="h-5 w-20 rounded-full" /></td>
+                    <td className="px-4 py-4"><Skeleton className="h-4 w-32" /></td>
+                    <td className="px-4 py-4"><Skeleton className="h-4 w-16" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Skeleton Mobile Cards */}
+          <div className="flex flex-col gap-3 sm:hidden">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl border border-white/10 bg-[#0D1220] p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <Skeleton className="h-5 w-12 rounded-full" />
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-white/50 pt-2">
+                  <div className="space-y-1"><Skeleton className="h-3 w-10" /><Skeleton className="h-3.5 w-20" /></div>
+                  <div className="space-y-1"><Skeleton className="h-3 w-10" /><Skeleton className="h-3.5 w-8" /></div>
+                </div>
+                <div className="pt-1">
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
+                <div className="border-t border-white/5 pt-3">
+                  <Skeleton className="h-3.5 w-full" />
+                </div>
+                <Skeleton className="h-3 w-16" />
+              </div>
+            ))}
+          </div>
+        </>
       ) : rsvps.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-white/10 p-12 text-center">
           <p className="text-white/40 text-sm">No RSVPs received yet.</p>

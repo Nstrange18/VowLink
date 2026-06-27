@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
+import Skeleton from "../../components/common/Skeleton";
 
 const cleanPhone = (phone) => {
   if (!phone) return "";
@@ -278,13 +279,7 @@ const AdminBulkWhatsAppPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="p-8 text-center text-white/50">
-        <p>Loading WhatsApp Bulk Sender...</p>
-      </div>
-    );
-  }
+  // Removed early exit for loading to support inline skeletons
 
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto text-white">
@@ -304,6 +299,30 @@ const AdminBulkWhatsAppPage = () => {
         <div className="lg:col-span-4 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto space-y-6 no-scrollbar">
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-5 sm:p-6 space-y-4">
             <h3 className="font-serif text-lg text-[#D8B76A] border-b border-white/5 pb-2">1. Compose Message</h3>
+            
+            {loading ? (
+              <div className="space-y-4">
+                <div>
+                  <Skeleton className="h-3 w-16 mb-2" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-28 w-full" />
+                </div>
+                <div className="space-y-2 pt-4 border-t border-white/5">
+                  <Skeleton className="h-3 w-20 mb-1" />
+                  <Skeleton className="h-10 w-full rounded-full" />
+                  <Skeleton className="h-10 w-full rounded-full" />
+                </div>
+              </div>
+            ) : (
+              <>
             
             {/* Sender Preset Selection */}
             <div>
@@ -415,6 +434,8 @@ const AdminBulkWhatsAppPage = () => {
                 )}
               </button>
             </div>
+            </>
+            )}
           </div>
         </div>
 
@@ -492,7 +513,60 @@ const AdminBulkWhatsAppPage = () => {
 
           {/* Guests Table */}
           <div className="rounded-2xl border border-white/10 bg-[#0d1220] overflow-hidden">
-            {filteredGuests.length === 0 ? (
+            {loading ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/5 uppercase tracking-wider text-white/40">
+                      <th className="px-4 py-3.5 w-10 text-center">
+                        <Skeleton className="h-3.5 w-3.5 rounded mx-auto" />
+                      </th>
+                      <th className="px-4 py-3.5 font-semibold">Guest</th>
+                      <th className="px-4 py-3.5 font-semibold">Queue / Phone</th>
+                      <th className="px-4 py-3.5 font-semibold hidden md:table-cell">Message Preview</th>
+                      <th className="px-4 py-3.5 font-semibold text-center w-24">Status</th>
+                      <th className="px-4 py-3.5 font-semibold text-center w-36">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <tr key={i} className="border-b border-white/5 bg-[#0D1220]">
+                        <td className="px-4 py-4 text-center">
+                          <Skeleton className="h-3.5 w-3.5 rounded mx-auto" />
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="space-y-1.5">
+                            <Skeleton className="h-4 w-28" />
+                            <Skeleton className="h-3 w-16" />
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="space-y-1.5">
+                            <Skeleton className="h-4 w-12 rounded" />
+                            <Skeleton className="h-3.5 w-24" />
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 hidden md:table-cell max-w-xs">
+                          <div className="space-y-1.5">
+                            <Skeleton className="h-3 w-full" />
+                            <Skeleton className="h-3 w-3/4" />
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <Skeleton className="h-5 w-20 rounded-full mx-auto" />
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <div className="flex gap-1.5 justify-center">
+                            <Skeleton className="h-6 w-10 rounded" />
+                            <Skeleton className="h-6 w-10 rounded" />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : filteredGuests.length === 0 ? (
               <div className="p-12 text-center text-white/30 text-xs">
                 No guests in this queue. Assign guests to this group or add them on the bulk guest import page.
               </div>

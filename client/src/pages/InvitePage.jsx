@@ -1392,7 +1392,7 @@ const InvitePage = () => {
     };
   } else if (cardTheme === "navy") {
     cardStyles = {
-      background: "url('/templates/elegant_gold_frame_with_navy_backdrop.png') center/cover no-repeat",
+      background: "url('/templates/elegant_gold_frame_with_navy_backdrop.png') 0% 0% / 100% 100% no-repeat",
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A",
       fontFamily: activeFont,
     };
@@ -1409,7 +1409,7 @@ const InvitePage = () => {
       fontFamily: activeFont,
     };
   } else if (cardTheme === "custom" && customCardBg) {
-    let bg = `url('${customCardBg}') center/cover no-repeat`;
+    let bg = `url('${customCardBg}') 0% 0% / 100% 100% no-repeat`;
     let color = "#1A2E4A";
     
     switch (customCardBg) {
@@ -1554,7 +1554,7 @@ const InvitePage = () => {
         </div>
       )}
       {/* Premium page background: deep dark with radial gold bokeh */}
-      <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-[100vh] h-[100lvh] z-0" aria-hidden="true">
         {/* Dark base */}
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)" }} />
         
