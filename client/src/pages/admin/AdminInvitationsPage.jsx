@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import Skeleton from '../../components/common/Skeleton'
+import { Icon } from '@iconify/react'
 
 const AdminInvitationsPage = () => {
   const [invitations, setInvitations] = useState([])
@@ -47,7 +48,7 @@ const AdminInvitationsPage = () => {
     try {
       await api.delete(`/invitations/${deleteTargetId}`)
       setInvitations((prev) => prev.filter((i) => i._id !== deleteTargetId))
-      toast.success('Invitation deleted successfully. ✓')
+      toast.success('Invitation deleted successfully.')
     } catch {
       toast.error('Failed to delete invitation.')
     } finally {
@@ -87,11 +88,11 @@ const AdminInvitationsPage = () => {
     const matchesSearch = inv.guestName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || (inv.category || "Guest") === categoryFilter;
     const matchesSenderGroup = senderGroupFilter === "all" || (inv.senderGroup || "general") === senderGroupFilter;
-    
-    const status = inv.hasRSVPed 
-      ? "rsvped" 
-      : isDeadlinePassed 
-        ? "no_response" 
+
+    const status = inv.hasRSVPed
+      ? "rsvped"
+      : isDeadlinePassed
+        ? "no_response"
         : "pending";
     const matchesStatus = statusFilter === "all" || status === statusFilter;
 
@@ -120,11 +121,10 @@ const AdminInvitationsPage = () => {
         <div className="flex gap-3">
           <Link
             to="/admin/invitations/bulk"
-            className={`rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition duration-300 whitespace-nowrap ${
-              tier === 'free'
-                ? 'bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed'
-                : 'bg-white/10 text-white hover:bg-white/15'
-            }`}
+            className={`rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition duration-300 whitespace-nowrap ${tier === 'free'
+              ? 'bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed'
+              : 'bg-white/10 text-white hover:bg-white/15'
+              }`}
             onClick={(e) => {
               if (tier === 'free') {
                 e.preventDefault();
@@ -155,17 +155,17 @@ const AdminInvitationsPage = () => {
       {/* Settings customization note */}
       <div className="mb-6 rounded-2xl border border-white/5 bg-white/3 px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <span className="text-lg">🎨</span>
+          <Icon icon="lucide:palette" className="text-lg text-[#D8B76A]" />
           <p className="text-xs text-white/60">
             Want to customize card templates, colors, fonts, music, or couple photos? Customize everything on the{" "}
-            <Link to="/admin/settings" className="text-[#D8B76A] font-semibold underline hover:text-[#D8B76A]/80 transition">
+            <Link to="/admin/settings?tab=design" className="text-[#D8B76A] font-semibold underline hover:text-[#D8B76A]/80 transition">
               Settings page
             </Link>
             .
           </p>
         </div>
         <Link
-          to="/admin/settings"
+          to="/admin/settings?tab=design"
           className="rounded-full bg-[#D8B76A]/10 border border-[#D8B76A]/30 px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] hover:bg-[#D8B76A]/20 transition shrink-0 text-center"
         >
           Go to Settings
@@ -176,20 +176,20 @@ const AdminInvitationsPage = () => {
       <div className="mb-6 grid grid-cols-1 sm:grid-cols-4 gap-4 bg-[#0D1220] border border-white/10 rounded-2xl p-4 shadow-lg backdrop-blur-md">
         {/* Search Input */}
         <div className="relative">
+          <Icon icon="lucide:search" className="absolute left-3.5 top-3.5 text-white/30 w-3.5 h-3.5" />
           <input
             type="text"
-            placeholder="🔍 Search guest name..."
+            placeholder="Search guest name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs text-white placeholder-white/30 outline-none focus:border-[#D8B76A]/60 transition"
-          >
-          </input>
+            className="w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-8 py-2.5 text-xs text-white placeholder-white/30 outline-none focus:border-[#D8B76A]/60 transition"
+          />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
               className="absolute right-3 top-2 text-white/40 hover:text-white text-base"
             >
-              ×
+              <Icon icon="lucide:x" className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -305,7 +305,9 @@ const AdminInvitationsPage = () => {
         <div className="rounded-2xl border border-dashed border-white/10 p-12 text-center">
           <p className="text-white/40 text-sm">No invitations yet.</p>
           <Link to="/admin/invitations/new" className="mt-3 inline-block text-[#D8B76A] text-sm hover:underline">
-            Create your first invitation →
+            <span className="inline-flex items-center gap-1">
+              Create your first invitation <Icon icon="lucide:arrow-right" className="h-3.5 w-3.5" />
+            </span>
           </Link>
         </div>
       ) : (
@@ -345,13 +347,12 @@ const AdminInvitationsPage = () => {
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-white">{inv.guestName}</p>
                           {inv.senderGroup && inv.senderGroup !== 'general' && (
-                            <span className={`text-[8px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${
-                              inv.senderGroup === 'bride' 
-                                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
-                                : inv.senderGroup === 'groom' 
-                                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                            <span className={`text-[8px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${inv.senderGroup === 'bride'
+                              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                              : inv.senderGroup === 'groom'
+                                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                                 : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            }`}>
+                              }`}>
                               {inv.senderGroup === 'bride' ? 'Bride' : inv.senderGroup === 'groom' ? 'Groom' : 'Both'}
                             </span>
                           )}
@@ -368,7 +369,9 @@ const AdminInvitationsPage = () => {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3 flex-wrap">
                           <button onClick={() => handleCopy(inv.slug)} className="text-xs text-[#7FA6D9] hover:text-white transition">
-                            {copied === inv.slug ? '✓ Copied' : 'Copy Link'}
+                            {copied === inv.slug ? (
+                              <span className="inline-flex items-center gap-1"><Icon icon="lucide:check" className="h-3 w-3" /> Copied</span>
+                            ) : 'Copy Link'}
                           </button>
                           <button
                             onClick={() => {
@@ -377,7 +380,7 @@ const AdminInvitationsPage = () => {
                                 ? user.customShareMessage.trim()
                                 : `We are so excited to celebrate our wedding with you. Please view your personal invitation and RSVP here:`;
                               const msg = encodeURIComponent(`Hello ${inv.guestName}! ${msgBody}\n${url}`)
-                              const targetUrl = inv.phoneNumber 
+                              const targetUrl = inv.phoneNumber
                                 ? `https://wa.me/${inv.phoneNumber.trim().replace(/\+/g, '')}?text=${msg}`
                                 : `https://wa.me/?text=${msg}`;
                               window.open(targetUrl, '_blank')
@@ -385,7 +388,7 @@ const AdminInvitationsPage = () => {
                             className="text-xs text-[#25D366] hover:text-white transition font-medium"
                             title={inv.phoneNumber ? `Send direct RSVP reminder to WhatsApp (${inv.phoneNumber})` : "Share via WhatsApp"}
                           >
-                            📲 WhatsApp
+                            <div className="flex items-center gap-1"><Icon icon="ri:whatsapp-line" /> WhatsApp</div>
                           </button>
                           <button onClick={() => handleEdit(inv)} className="text-xs text-white/50 hover:text-white transition">Edit</button>
                           <button onClick={() => handleDeleteClick(inv._id)} className="text-xs text-red-400/70 hover:text-red-400 transition">Delete</button>
@@ -412,13 +415,12 @@ const AdminInvitationsPage = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-medium text-white">{inv.guestName}</p>
                         {inv.senderGroup && inv.senderGroup !== 'general' && (
-                          <span className={`text-[8px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full ${
-                            inv.senderGroup === 'bride' 
-                              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
-                              : inv.senderGroup === 'groom' 
-                              ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                          <span className={`text-[8px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full ${inv.senderGroup === 'bride'
+                            ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                            : inv.senderGroup === 'groom'
+                              ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                               : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                          }`}>
+                            }`}>
                             {inv.senderGroup === 'bride' ? 'Bride' : inv.senderGroup === 'groom' ? 'Groom' : 'Both'}
                           </span>
                         )}
@@ -432,7 +434,9 @@ const AdminInvitationsPage = () => {
                   <p className="text-xs text-white/30 mb-3">/invite/{inv.slug}</p>
                   <div className="flex items-center gap-4 border-t border-white/5 pt-3 flex-wrap">
                     <button onClick={() => handleCopy(inv.slug)} className="text-xs text-[#7FA6D9] hover:text-white transition">
-                      {copied === inv.slug ? '✓ Copied' : 'Copy Link'}
+                      {copied === inv.slug ? (
+                        <span className="inline-flex items-center gap-1"><Icon icon="lucide:check" className="h-3 w-3" /> Copied</span>
+                      ) : 'Copy Link'}
                     </button>
                     <button
                       onClick={() => {
@@ -441,7 +445,7 @@ const AdminInvitationsPage = () => {
                           ? user.customShareMessage.trim()
                           : `We are so excited to celebrate our wedding with you. Please view your personal invitation and RSVP here:`;
                         const msg = encodeURIComponent(`Hello ${inv.guestName}! ${msgBody}\n${url}`)
-                        const targetUrl = inv.phoneNumber 
+                        const targetUrl = inv.phoneNumber
                           ? `https://wa.me/${inv.phoneNumber.trim().replace(/\+/g, '')}?text=${msg}`
                           : `https://wa.me/?text=${msg}`;
                         window.open(targetUrl, '_blank')
@@ -449,7 +453,7 @@ const AdminInvitationsPage = () => {
                       className="text-xs text-[#25D366] hover:text-white transition font-medium"
                       title={inv.phoneNumber ? `Send direct RSVP reminder to WhatsApp (${inv.phoneNumber})` : "Share via WhatsApp"}
                     >
-                      📲 WhatsApp
+                      <span className="inline-flex items-center gap-1"><Icon icon="ri:whatsapp-line" className="h-3.5 w-3.5" /> WhatsApp</span>
                     </button>
                     <button onClick={() => handleEdit(inv)} className="text-xs text-white/50 hover:text-white transition">Edit</button>
                     <button onClick={() => handleDeleteClick(inv._id)} className="text-xs text-red-400/70 hover:text-red-400 transition">Delete</button>
@@ -466,13 +470,13 @@ const AdminInvitationsPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
           <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0D1220] p-6 shadow-2xl space-y-6">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">⚠️</span>
+              <Icon icon="lucide:alert-triangle" className="h-6 w-6 shrink-0 text-amber-400" />
               <div>
                 <h3 className="text-lg font-semibold text-white">Delete Invitation?</h3>
                 <p className="text-white/60 text-xs">This action cannot be undone. All guest responses and RSVPs for this link will be permanently lost.</p>
               </div>
             </div>
-            
+
             <div className="flex justify-end gap-3">
               <button
                 type="button"

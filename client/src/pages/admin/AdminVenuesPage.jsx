@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
+import { Icon } from "@iconify/react";
 
 const AdminVenuesPage = () => {
   const navigate = useNavigate();
@@ -133,12 +134,14 @@ const AdminVenuesPage = () => {
 
         {isFree && (
           <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 max-w-sm flex items-start gap-3">
-            <span className="text-xl">💡</span>
+            <Icon icon="lucide:lightbulb" className="h-5 w-5 shrink-0 text-[#D8B76A]" />
             <div>
               <p className="text-xs font-semibold text-[#D8B76A] uppercase tracking-wider">Free Plan Preview</p>
               <p className="text-white/60 text-[11px] mt-0.5">Upgrade to Plus or Pro to see full addresses, exact pricing, and vendor contacts.</p>
               <Link to="/admin/billing" className="text-xs text-[#D8B76A] underline mt-1.5 inline-block font-semibold">
-                Upgrade Workspace →
+                <span className="inline-flex items-center gap-1">
+                  Upgrade Workspace <Icon icon="lucide:arrow-right" className="h-3 w-3" />
+                </span>
               </Link>
             </div>
           </div>
@@ -194,16 +197,38 @@ const AdminVenuesPage = () => {
                   : "border-white/10 text-white/60 hover:bg-white/5"
               }`}
             >
-              {shortlistedOnly ? "♥ Shortlisted Only" : "♡ Filter Shortlisted"}
+              {shortlistedOnly ? (
+                <span className="flex items-center justify-center gap-1">
+                  <Icon icon="lucide:heart" className="w-3.5 h-3.5 fill-current text-[#070A13]" /> Shortlisted Only
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-1">
+                  <Icon icon="lucide:heart" className="w-3.5 h-3.5 text-white/60" /> Filter Shortlisted
+                </span>
+              )}
             </button>
           </div>
         </div>
       )}
 
       {loading ? (
-        <p className="text-white/40">Loading suggested venues...</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div key={idx} className="rounded-3xl border border-white/10 bg-[#0D1220] p-5 space-y-4">
+              <div className="h-48 w-full rounded-2xl bg-white/5" />
+              <div className="space-y-2">
+                <div className="h-4 w-2/3 bg-white/10 rounded" />
+                <div className="h-3 w-1/2 bg-white/5 rounded" />
+              </div>
+              <div className="pt-4 flex gap-3 border-t border-white/5">
+                <div className="h-8 flex-1 bg-white/5 rounded-xl" />
+                <div className="h-8 flex-1 bg-white/5 rounded-xl" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : filteredVenues.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+        <div className="rounded-2xl border border-dashed border-white/10 p-12 text-center animate-fade-in">
           <p className="text-white/40 text-sm">No venues match your criteria.</p>
         </div>
       ) : (
@@ -227,9 +252,10 @@ const AdminVenuesPage = () => {
                   onClick={() => handleShortlistToggle(venue._id)}
                   className="absolute top-4 right-4 z-10 h-8 w-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-sm transition hover:scale-115"
                 >
-                  <span className={shortlisted ? "text-red-500" : "text-white/60"}>
-                    {shortlisted ? "♥" : "♡"}
-                  </span>
+                  <Icon
+                    icon="lucide:heart"
+                    className={`w-4 h-4 ${shortlisted ? "text-red-500 fill-current" : "text-white/60"}`}
+                  />
                 </button>
 
                 {/* Photo */}
@@ -279,11 +305,11 @@ const AdminVenuesPage = () => {
                     {isFree ? (
                       <div className="space-y-2 py-2 border-t border-white/5">
                         <div className="flex items-center gap-2 text-xs text-white/30">
-                          <span>🔒</span>
+                          <Icon icon="lucide:lock" className="h-3.5 w-3.5 shrink-0" />
                           <span className="blur-xs">Price Range: ₦1,500,000</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-white/30">
-                          <span>🔒</span>
+                          <Icon icon="lucide:lock" className="h-3.5 w-3.5 shrink-0" />
                           <span className="blur-xs">Address: Plot 14 Admiralty Way, Lekki</span>
                         </div>
                       </div>
@@ -322,13 +348,19 @@ const AdminVenuesPage = () => {
                         to={`/admin/venues/${venue._id}`}
                         className="w-full text-center bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-[#D8B76A]/20 transition block"
                       >
-                        🔍 Preview Venue Details
+                        <span className="inline-flex items-center justify-center gap-1.5">
+                          <Icon icon="lucide:search" className="h-3.5 w-3.5" />
+                          Preview Venue Details
+                        </span>
                       </Link>
                       <Link
                         to="/admin/billing"
                         className="w-full text-center bg-linear-to-r from-[#D8B76A] to-[#F2D894] text-[#070A13] py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider hover:shadow-[0_4px_12px_rgba(216,183,106,0.15)] transition block"
                       >
-                        🔒 Unlock Venue Details
+                        <span className="inline-flex items-center justify-center gap-1.5">
+                          <Icon icon="lucide:lock" className="h-3.5 w-3.5" />
+                          Unlock Venue Details
+                        </span>
                       </Link>
                     </div>
                   ) : (
@@ -339,7 +371,8 @@ const AdminVenuesPage = () => {
                           to={`/admin/venues/${venue._id}`}
                           className="text-center bg-[#D8B76A]/10 hover:bg-[#D8B76A]/20 text-[#D8B76A] border border-[#D8B76A]/30 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1"
                         >
-                          🔍 Details
+                          <Icon icon="lucide:search" className="h-3.5 w-3.5" />
+                          Details
                         </Link>
                         {/* WhatsApp Contact */}
                         <a
@@ -350,7 +383,8 @@ const AdminVenuesPage = () => {
                           rel="noopener noreferrer"
                           className="text-center bg-[#25D366] text-[#070A13] py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition flex items-center justify-center gap-1.5"
                         >
-                          📲 Chat
+                          <Icon icon="ri:whatsapp-line" className="h-3.5 w-3.5" />
+                          Chat
                         </a>
                       </div>
 
@@ -363,7 +397,10 @@ const AdminVenuesPage = () => {
                             : "bg-white/5 text-white/30 border border-dashed border-white/10 cursor-not-allowed"
                         }`}
                       >
-                        {isPro ? "📨 Send Direct Inquiry" : "📨 Direct Inquiry (Pro Only)"}
+                        <span className="inline-flex items-center justify-center gap-1.5">
+                          <Icon icon="lucide:send" className="h-3.5 w-3.5" />
+                          {isPro ? "Send Direct Inquiry" : "Direct Inquiry (Pro Only)"}
+                        </span>
                       </button>
                     </div>
                   )}
@@ -382,7 +419,7 @@ const AdminVenuesPage = () => {
               onClick={() => setIsInquiryOpen(false)}
               className="absolute top-5 right-5 text-white/40 hover:text-white transition text-lg"
             >
-              ✕
+              <Icon icon="lucide:x" className="h-4 w-4" />
             </button>
 
             <h3 className="font-serif text-2xl mb-1">Direct Venue Inquiry</h3>

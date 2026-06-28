@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import { Icon } from "@iconify/react";
 
 const formatDate = (dateStr) => {
   if (!dateStr) return null;
@@ -92,15 +93,16 @@ const RsvpResponsePage = () => {
         to="/"
         className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-1 bg-[#070A13] rounded-full py-1.5 sm:py-2 px-2 sm:px-3 text-xs sm:text-sm text-[#D8B76A] hover:text-[#D8B76A]/70 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] transition whitespace-nowrap"
       >
-        <span>←</span>
+        <Icon icon="lucide:arrow-left" className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">View the landing page</span>
         <span className="sm:hidden">Landing page</span>
       </Link>
       <div className="w-full max-w-lg rounded-[28px] border border-[#D8B76A]/40 bg-[#070A13]/80 px-8 py-14 text-center shadow-2xl backdrop-blur-md">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-[#D8B76A]/50 bg-[#D8B76A]/10">
-          <span className="text-2xl text-[#D8B76A]">
-            {isAttending ? "✓" : "✕"}
-          </span>
+          <Icon
+            icon={isAttending ? "lucide:check" : "lucide:x"}
+            className="h-7 w-7 text-[#D8B76A]"
+          />
         </div>
 
         <p className="mb-3 text-xs uppercase tracking-[0.35em] text-[#D8B76A]">
@@ -136,7 +138,10 @@ const RsvpResponsePage = () => {
         {/* Cash Gifting panel */}
         {isAttending && state?.registryEnabled && (
           <div className="mt-8 pt-6 border-t border-white/10 text-left space-y-4">
-            <h3 className="font-serif text-lg text-white text-center tracking-wide">🎁 Gift Registry</h3>
+            <h3 className="font-serif text-lg text-white text-center tracking-wide flex items-center justify-center gap-2">
+              <Icon icon="mdi:gift-outline" className="h-5 w-5 text-[#D8B76A]" />
+              Gift Registry
+            </h3>
             {state?.registryNotes && (
               <p className="text-xs text-white/60 text-center leading-relaxed italic">
                 "{state.registryNotes}"
@@ -146,7 +151,7 @@ const RsvpResponsePage = () => {
             {/* Bank details card */}
             {state?.registryAccountNumber && (
               <div className="rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 p-4 space-y-3 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-2 opacity-10 pointer-events-none text-5xl select-none">🏦</div>
+                <Icon icon="mdi:bank-outline" className="absolute top-2 right-2 h-12 w-12 opacity-10 pointer-events-none text-white" />
                 <p className="text-[10px] uppercase tracking-wider text-[#D8B76A] font-bold">Bank Transfer Info</p>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
@@ -165,7 +170,7 @@ const RsvpResponsePage = () => {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(state.registryAccountNumber);
-                        toast.success("Account number copied! 📋");
+                        toast.success("Account number copied!");
                       }}
                       className="px-2.5 py-1.5 rounded-md bg-[#D8B76A] text-[#070A13] text-[10px] font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition"
                     >

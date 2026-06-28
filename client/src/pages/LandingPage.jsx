@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Icon } from '@iconify/react'
 
 const LandingPage = () => {
   return (
@@ -64,15 +65,15 @@ const LandingPage = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            { icon: '💌', title: 'Personalised Invites', desc: 'Custom greetings and messages for every guest, delivered via a unique link.' },
-            { icon: '⏱', title: 'Live Countdown', desc: 'A real-time countdown timer on every invitation card keeps excitement building.' },
-            { icon: '📲', title: 'WhatsApp Sharing', desc: 'Share invitations directly to WhatsApp with one tap — no copy-pasting needed.' },
-            { icon: '🍽', title: 'Meal Preferences', desc: 'Guests pick their meal when they RSVP — your caterer will thank you.' },
-            { icon: '⬇️', title: 'Downloadable Cards', desc: 'Guests can save their invite as a crisp image to keep or reshare.' },
-            { icon: '📊', title: 'CSV Export', desc: 'Download your full guest list and RSVP responses with one click.' },
+            { icon: 'lucide:mail-heart', title: 'Personalised Invites', desc: 'Custom greetings and messages for every guest, delivered via a unique link.' },
+            { icon: 'lucide:timer', title: 'Live Countdown', desc: 'A real-time countdown timer on every invitation card keeps excitement building.' },
+            { icon: 'mdi:whatsapp', title: 'WhatsApp Sharing', desc: 'Share invitations directly to WhatsApp with one tap — no copy-pasting needed.' },
+            { icon: 'mdi:silverware-fork-knife', title: 'Meal Preferences', desc: 'Guests pick their meal when they RSVP — your caterer will thank you.' },
+            { icon: 'lucide:download', title: 'Downloadable Cards', desc: 'Guests can save their invite as a crisp image to keep or reshare.' },
+            { icon: 'lucide:chart-column', title: 'CSV Export', desc: 'Download your full guest list and RSVP responses with one click.' },
           ].map(({ icon, title, desc }) => (
             <div key={title} className="rounded-2xl border border-white/10 bg-[#0D1220] p-6 hover:border-[#D8B76A]/30 transition-colors duration-300">
-              <span className="text-3xl block mb-4">{icon}</span>
+              <Icon icon={icon} className="mb-4 h-8 w-8 text-[#D8B76A]" />
               <h3 className="font-semibold text-white mb-2">{title}</h3>
               <p className="text-sm text-white/50 leading-relaxed">{desc}</p>
             </div>
@@ -83,7 +84,7 @@ const LandingPage = () => {
       {/* CTA bottom */}
       <section className="px-6 py-20 text-center border-t border-white/5">
         <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#D8B76A]/15 text-2xl">
-          💍
+          <Icon icon="mdi:ring" className="h-7 w-7 text-[#D8B76A]" />
         </div>
         <h2 className="font-serif text-3xl sm:text-4xl text-white mb-4">Ready to start?</h2>
         <p className="text-white/50 mb-8 text-sm">Create your portal in seconds. No credit card required.</p>

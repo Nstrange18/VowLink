@@ -1,4 +1,5 @@
 import React from "react";
+import { Icon } from "@iconify/react";
 
 const VenuePhotosGallery = ({
   photos,
@@ -28,7 +29,7 @@ const VenuePhotosGallery = ({
 
       {/* Upload Controls */}
       <div className="p-6 rounded-2xl border border-dashed border-white/10 bg-white/3 text-center space-y-3">
-        <span className="text-3xl block">📁</span>
+        <Icon icon="mdi:folder-image" className="mx-auto h-8 w-8 text-[#D8B76A]" />
         <p className="text-xs text-white/60">Upload venue cover and hall details photos</p>
         <input
           ref={fileInputRef}

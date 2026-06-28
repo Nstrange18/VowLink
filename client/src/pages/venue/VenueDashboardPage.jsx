@@ -6,9 +6,11 @@ import * as z from "zod";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import VenueSidebar from "../../components/venue/VenueSidebar";
+import { Icon } from "@iconify/react";
 import VenueListingForm from "../../components/venue/VenueListingForm";
 import VenuePhotosGallery from "../../components/venue/VenuePhotosGallery";
 import VenueSubscriptions from "../../components/venue/VenueSubscriptions";
+import Skeleton from "../../components/common/Skeleton";
 
 const detailsSchema = z.object({
   name: z.string().min(3, "Venue name must be at least 3 characters"),
@@ -51,6 +53,68 @@ const loadPaystackScript = () => {
     document.body.appendChild(script);
   });
 };
+
+const VenueDashboardSkeleton = () => (
+  <div className="min-h-screen bg-[#070A13] text-white overflow-x-clip">
+    <header className="fixed inset-x-0 top-0 z-30 border-b border-white/10 bg-[#0D1220]/95 px-3 py-3 shadow-2xl shadow-black/20 backdrop-blur sm:px-8 sm:py-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-9 w-9 rounded-xl md:hidden" />
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="hidden h-5 w-20 rounded-full sm:block" />
+        </div>
+        <div className="flex items-center gap-4">
+          <Skeleton className="hidden h-4 w-48 sm:block" />
+          <Skeleton className="hidden h-8 w-20 rounded-full sm:block" />
+        </div>
+      </div>
+    </header>
+
+    <main className="mx-auto grid w-full max-w-6xl grid-cols-12 gap-8 px-4 pb-4 pt-24 sm:px-8 sm:pb-8 sm:pt-28">
+      <aside className="hidden md:col-span-3 md:flex md:flex-col md:gap-6 md:self-start md:sticky md:top-28 md:max-h-[calc(100vh-7rem)] md:overflow-y-auto">
+        <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-4 space-y-3">
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-3 w-28" />
+            <Skeleton className="h-3 w-10 rounded-full" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Skeleton className="h-20 w-full rounded-xl" />
+            <Skeleton className="h-20 w-full rounded-xl" />
+          </div>
+          <Skeleton className="h-3 w-40" />
+        </div>
+      </aside>
+
+      <section className="col-span-12 space-y-6 md:col-span-9">
+        <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 sm:p-8 space-y-6">
+          <div className="space-y-3">
+            <Skeleton className="h-7 w-52" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={index} className="space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-11 w-full rounded-xl" />
+              </div>
+            ))}
+          </div>
+          <Skeleton className="h-32 w-full rounded-2xl" />
+          <div className="flex justify-end">
+            <Skeleton className="h-10 w-36 rounded-full" />
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+);
 
 const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 
@@ -215,7 +279,7 @@ const VenueDashboardPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.update(toastId, {
-        render: "Upload complete! 🎉",
+        render: "Upload complete!",
         type: "success",
         isLoading: false,
         autoClose: 2000
@@ -254,7 +318,7 @@ const VenueDashboardPage = () => {
         { currentPassword, newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success("Password changed successfully! ✓");
+      toast.success("Password changed successfully!");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmNewPassword("");
@@ -548,7 +612,7 @@ const VenueDashboardPage = () => {
           
           setVenue(res.data.venue);
           setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false });
-          toast.success(`Welcome to ${tier.toUpperCase()} tier! subscription activated! 🚀`);
+          toast.success(`Welcome to ${tier.toUpperCase()} tier! subscription activated!`);
           
           const currentLocal = JSON.parse(localStorage.getItem("venue") || "{}");
           localStorage.setItem("venue", JSON.stringify({ ...currentLocal, subscriptionTier: tier }));
@@ -592,21 +656,16 @@ const VenueDashboardPage = () => {
     try {
       const res = await api.post(`/venues/approve/${venue._id}`);
       setVenue(res.data.venue);
-      toast.success("Venue listing approved successfully! 🎉 It is now visible to couples.");
+      toast.success("Venue listing approved successfully! It is now visible to couples.");
     } catch (err) {
       toast.error("Failed to approve venue listing.");
     }
   };
 
+
+
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#070A13] flex items-center justify-center text-white">
-        <div className="text-center space-y-3">
-          <div className="animate-spin h-8 w-8 border-4 border-[#D8B76A] border-t-transparent rounded-full mx-auto" />
-          <p className="text-xs uppercase tracking-widest text-[#D8B76A]">Loading Venue Dashboard...</p>
-        </div>
-      </div>
-    );
+    return <VenueDashboardSkeleton />;
   }
 
   const tier = venue?.subscriptionTier || "basic";
@@ -622,9 +681,9 @@ const VenueDashboardPage = () => {
   const labelClass = "mb-1.5 block text-[10px] uppercase tracking-wider text-white/50 font-semibold";
 
   return (
-    <div className="min-h-screen bg-[#070A13] text-white flex flex-col overflow-x-auto">
+    <div className="min-h-screen bg-[#070A13] text-white flex flex-col overflow-x-clip">
       {/* Header Bar */}
-      <header className="border-b border-white/10 bg-[#0D1220] py-3 px-3 sm:py-4 sm:px-8 flex justify-between items-center animate-fade-in">
+      <header className="fixed inset-x-0 top-0 z-30 border-b border-white/10 bg-[#0D1220]/95 py-3 px-3 sm:py-4 sm:px-8 flex justify-between items-center animate-fade-in shadow-2xl shadow-black/20 backdrop-blur">
         <div className="flex items-center gap-3">
           {/* Mobile Sidebar Toggle */}
           <button
@@ -641,13 +700,14 @@ const VenueDashboardPage = () => {
             VowLink <span className="hidden sm:inline font-sans text-xs uppercase tracking-widest text-white/40 font-normal">Venues</span>
           </Link>
           {isFeatured && (
-            <span className="hidden sm:inline-block rounded-full bg-linear-to-r from-amber-400 to-yellow-500 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-[#070A13] shadow-md">
-              ⭐ Featured
+            <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-linear-to-r from-amber-400 to-yellow-500 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-[#070A13] shadow-md">
+              <Icon icon="lucide:sparkles" className="h-2.5 w-2.5" />
+              Featured
             </span>
           )}
           {isListed && (
-            <span className="hidden sm:inline-block rounded-full bg-white/10 border border-white/20 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-white/80">
-              ✓ Listed
+            <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-white/10 border border-white/20 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-white/80">
+              <Icon icon="lucide:check" className="w-2.5 h-2.5" /> Listed
             </span>
           )}
         </div>
@@ -682,13 +742,14 @@ const VenueDashboardPage = () => {
             <span className="font-serif text-lg font-bold text-[#D8B76A]">VowLink</span>
             <span className="text-[10px] text-white/40 uppercase font-sans font-normal">Venues</span>
             {isFeatured && (
-              <span className="rounded-full bg-linear-to-r from-amber-400 to-yellow-500 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-widest text-[#070A13] shadow-md">
-                ⭐ Featured
+              <span className="inline-flex items-center gap-1 rounded-full bg-linear-to-r from-amber-400 to-yellow-500 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-widest text-[#070A13] shadow-md">
+                <Icon icon="lucide:sparkles" className="h-2.5 w-2.5" />
+                Featured
               </span>
             )}
             {isListed && (
-              <span className="rounded-full bg-white/10 border border-white/20 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-widest text-white/80">
-                ✓ Listed
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/10 border border-white/20 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-widest text-white/80">
+                <Icon icon="lucide:check" className="w-2.5 h-2.5" /> Listed
               </span>
             )}
           </div>
@@ -696,7 +757,7 @@ const VenueDashboardPage = () => {
             onClick={() => setSidebarOpen(false)}
             className="text-white/40 hover:text-white text-lg p-1"
           >
-            ✕
+            <Icon icon="lucide:x" className="w-4 h-4" />
           </button>
         </div>
 
@@ -730,9 +791,9 @@ const VenueDashboardPage = () => {
       </aside>
 
       {/* Main Body */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-8 grid grid-cols-12 gap-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 pb-4 pt-24 sm:px-8 sm:pb-8 sm:pt-28 grid grid-cols-12 gap-8">
         {/* Left Column: Navigation / Quick Stats */}
-        <div className="hidden md:flex flex-col col-span-12 md:col-span-3 space-y-6">
+        <aside className="hidden md:flex flex-col col-span-12 md:col-span-3 space-y-6 sticky top-28 self-start max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
           <VenueSidebar
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -742,7 +803,7 @@ const VenueDashboardPage = () => {
             isFeatured={isFeatured}
             isListed={isListed}
           />
-        </div>
+        </aside>
 
         {/* Right Column: Tab Content */}
         <div className="col-span-12 md:col-span-9">
@@ -750,7 +811,7 @@ const VenueDashboardPage = () => {
           {!venue?.isApproved && (
             <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-6 space-y-4 mb-6 animate-fade-in">
               <div className="flex items-start gap-3">
-                <span className="text-2xl">⚠️</span>
+                <Icon icon="lucide:alert-triangle" className="text-2xl text-amber-500 shrink-0" />
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-red-400 font-sans">Pending Admin Approval</h3>
                   <p className="text-white/60 text-xs mt-1">
@@ -765,7 +826,7 @@ const VenueDashboardPage = () => {
                   onClick={handleDemoApprove}
                   className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-[10px] font-bold uppercase tracking-wider text-[#070A13] transition cursor-pointer"
                 >
-                  ⚡ Approve Listing
+                  <Icon icon="lucide:zap" className="w-3.5 h-3.5" /> Approve Listing
                 </button>
               </div>
             </div>
@@ -844,7 +905,7 @@ const VenueDashboardPage = () => {
                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 text-xs"
                       >
-                        {showCurrentPassword ? "🙈" : "👁️"}
+                        <Icon icon={showCurrentPassword ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -865,7 +926,7 @@ const VenueDashboardPage = () => {
                         onClick={() => setShowNewPassword(!showNewPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 text-xs"
                       >
-                        {showNewPassword ? "🙈" : "👁️"}
+                        <Icon icon={showNewPassword ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -886,7 +947,7 @@ const VenueDashboardPage = () => {
                         onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 text-xs"
                       >
-                        {showConfirmNewPassword ? "🙈" : "👁️"}
+                        <Icon icon={showConfirmNewPassword ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -927,7 +988,7 @@ const VenueDashboardPage = () => {
                 ) : (
                   <div className="space-y-4 animate-fade-in max-w-md">
                     <p className="text-xs text-red-400 font-semibold">
-                      ⚠️ Are you absolutely sure? This action is irreversible. Enter your password to proceed:
+                      <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5 text-red-400 shrink-0" /> <span>Are you absolutely sure? This action is irreversible. Enter your password to proceed:</span>
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <input
@@ -974,12 +1035,12 @@ const VenueDashboardPage = () => {
               onClick={() => setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false })}
               className="absolute top-5 right-5 text-white/40 hover:text-white transition text-lg"
             >
-              ✕
+              <Icon icon="lucide:x" className="w-4 h-4" />
             </button>
 
             {/* Paystack Header */}
             <div className="text-center space-y-1 mb-6 border-b border-white/5 pb-4">
-              <span className="text-[9px] uppercase tracking-[0.25em] text-[#3EC58E] font-bold">💳 Secured by Paystack</span>
+              <span className="inline-flex items-center justify-center gap-1.5 text-[9px] uppercase tracking-[0.25em] text-[#3EC58E] font-bold"><Icon icon="mdi:credit-card-check-outline" className="w-3.5 h-3.5 shrink-0" />Secured by Paystack</span>
               <h3 className="font-serif text-xl">VowLink Partnership</h3>
               <p className="text-[11px] text-white/50">Live Payment Gateway Session</p>
             </div>
@@ -1012,7 +1073,7 @@ const VenueDashboardPage = () => {
                         );
                         setVenue(res.data.venue);
                         setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false });
-                        toast.success(`[DEV BYPASS] Upgraded venue to ${checkoutModal.tier.toUpperCase()} successfully! 🚀`);
+                        toast.success(`[DEV BYPASS] Upgraded venue to ${checkoutModal.tier.toUpperCase()} successfully!`);
                         const currentLocal = JSON.parse(localStorage.getItem("venue") || "{}");
                         localStorage.setItem("venue", JSON.stringify({ ...currentLocal, subscriptionTier: checkoutModal.tier }));
                         setActiveTab("listing");
@@ -1023,7 +1084,7 @@ const VenueDashboardPage = () => {
                     }}
                     className="w-full py-2.5 rounded-full border border-dashed border-[#D8B76A]/40 text-[#D8B76A] hover:bg-white/5 text-[10px] uppercase font-bold tracking-wider transition"
                   >
-                    ⚡ Dev Bypass Activation
+                    <Icon icon="lucide:zap" className="w-3.5 h-3.5" /> Dev Bypass Activation
                   </button>
                 )}
               </div>

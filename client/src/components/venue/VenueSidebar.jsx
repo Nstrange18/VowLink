@@ -1,4 +1,5 @@
 import React from "react";
+import { Icon } from "@iconify/react";
 
 const VenueSidebar = ({
   activeTab,
@@ -20,13 +21,14 @@ const VenueSidebar = ({
             setActiveTab("listing");
             if (setSidebarOpen) setSidebarOpen(false);
           }}
-          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition ${
+          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition flex items-center gap-2 ${
             activeTab === "listing"
               ? "bg-[#D8B76A] text-[#070A13]"
               : "text-white/60 hover:bg-white/5"
           }`}
         >
-          🏢 Listing Details
+          <Icon icon="lucide:building-2" className="w-4 h-4 shrink-0" />
+          <span>Listing Details</span>
         </button>
         <button
           onClick={() => {
@@ -39,7 +41,10 @@ const VenueSidebar = ({
               : "text-white/60 hover:bg-white/5"
           }`}
         >
-          <span>📷 Gallery Photos</span>
+          <span className="flex items-center gap-2">
+            <Icon icon="lucide:camera" className="w-4 h-4 shrink-0" />
+            <span>Gallery Photos</span>
+          </span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white font-mono">
             {photosLength}
           </span>
@@ -49,26 +54,28 @@ const VenueSidebar = ({
             setActiveTab("billing");
             if (setSidebarOpen) setSidebarOpen(false);
           }}
-          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition ${
+          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition flex items-center gap-2 ${
             activeTab === "billing"
               ? "bg-[#D8B76A] text-[#070A13]"
               : "text-white/60 hover:bg-white/5"
           }`}
         >
-          💳 Subscriptions
+          <Icon icon="lucide:credit-card" className="w-4 h-4 shrink-0" />
+          <span>Subscriptions</span>
         </button>
         <button
           onClick={() => {
             setActiveTab("security");
             if (setSidebarOpen) setSidebarOpen(false);
           }}
-          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition ${
+          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition flex items-center gap-2 ${
             activeTab === "security"
               ? "bg-[#D8B76A] text-[#070A13]"
               : "text-white/60 hover:bg-white/5"
           }`}
         >
-          🔒 Security & Danger Zone
+          <Icon icon="lucide:lock" className="w-4 h-4 shrink-0" />
+          <span>Security & Danger Zone</span>
         </button>
       </div>
 

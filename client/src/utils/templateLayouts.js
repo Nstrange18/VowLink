@@ -140,6 +140,12 @@ export const getTemplateLayout = (theme, customCardBg) => {
         });
       }
     }
+    // AI-generated Cloudinary backgrounds — use Pro-tier preset with ivory/gold text (AI backgrounds are typically rich)
+    if (customCardBg.startsWith("https://res.cloudinary.com") && customCardBg.includes("ai_backgrounds")) {
+      return createPreset("pro", "center", 100, 100, 55, 55, "0 2px 6px rgba(0,0,0,0.5)", "gold-royal", "gold-royal", "78%", {}, {
+        title: "#F5EBD6", subtitle: "#D8B76A", coupleNames: "#FFFFFF", greeting: "#FFF5E0", message: "#EADFC8", details: "#D8B76A", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
+      }, { textShadow: "0 1px 3px rgba(0,0,0,0.7)" });
+    }
   }
 
   // Layout parameters for premium pre-made background designs

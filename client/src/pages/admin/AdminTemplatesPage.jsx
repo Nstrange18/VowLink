@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { SettingsProvider, useSettings } from "../../context/SettingsContext";
 import { PREMADE_TEMPLATES, getTemplateLayout } from "../../utils/templateLayouts";
+import AiBackgroundGenerator from "../../components/settings/AiBackgroundGenerator";
+import { Icon } from "@iconify/react";
 
 const AdminTemplatesPageContent = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     storedUser,
     tier,
@@ -30,6 +33,18 @@ const AdminTemplatesPageContent = () => {
     isSubmitting,
   } = useSettings();
 
+  React.useEffect(() => {
+    if (location.hash === "#ai-backgrounds") {
+      // Small timeout to ensure DOM is fully rendered before scrolling
+      const timer = setTimeout(() => {
+        const element = document.getElementById("ai-backgrounds");
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [location.hash]);
 
   // Modal state for locked upgrade prompt
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
@@ -63,7 +78,7 @@ const AdminTemplatesPageContent = () => {
       setUserHasCustomAlignment(false); // Reset custom alignment override to use layout config defaults
     }
 
-    toast.info(`✨ Selected "${template.name}". Click Save below to apply to invitation!`, {
+    toast.info(`Selected "${template.name}". Click Save below to apply to invitation!`, {
       toastId: "template-selected",
     });
   };
@@ -166,7 +181,7 @@ const AdminTemplatesPageContent = () => {
           {/* Locked State Overlay */}
           {isLocked && (
             <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-xs flex flex-col items-center justify-center text-center p-4">
-              <span className="text-3xl mb-2 animate-bounce">🔒</span>
+              <Icon icon="lucide:lock" className="text-3xl text-amber-400 mb-2 animate-bounce" />
               <p className="text-sm font-serif text-[#D8B76A] font-bold uppercase tracking-wider">
                 {t.tier === "pro" ? "Pro Plan Only" : "Plus / Pro Plan"}
               </p>
@@ -199,7 +214,9 @@ const AdminTemplatesPageContent = () => {
           {isCurrentlySaved ? (
             <div className="w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest text-[#D8B76A] border border-[#D8B76A]/30 bg-[#D8B76A]/10 flex items-center justify-center gap-2 select-none">
               <span className="w-1.5 h-1.5 rounded-full bg-[#D8B76A] animate-ping" />
-              <span>In Use ✓</span>
+              <span className="inline-flex items-center gap-1">
+                In Use <Icon icon="lucide:check" className="h-3.5 w-3.5" />
+              </span>
             </div>
           ) : isSelectedPendingSave ? (
             <button
@@ -219,7 +236,11 @@ const AdminTemplatesPageContent = () => {
                   : "bg-white/5 border border-white/10 hover:bg-white/10 text-white"
               }`}
             >
-              {isLocked ? "Unlock Design 🔒" : "Use Template"}
+              {isLocked ? (
+                <span className="inline-flex items-center justify-center gap-1.5">
+                  Unlock Design <Icon icon="lucide:lock" className="h-3.5 w-3.5" />
+                </span>
+              ) : "Use Template"}
             </button>
           )}
         </div>
@@ -260,7 +281,7 @@ const AdminTemplatesPageContent = () => {
   ];
 
   return (
-    <div className="p-4 sm:p-8 max-w-6xl mx-auto text-white pb-64">
+    <div className="p-4 sm:p-8 max-w-6xl mx-auto text-white pb-10">
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -268,7 +289,7 @@ const AdminTemplatesPageContent = () => {
             to="/admin/settings"
             className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] hover:underline flex items-center gap-1.5 mb-2"
           >
-            <span>←</span> Back to Settings
+            <Icon icon="lucide:arrow-left" className="w-3 h-3 text-[#D8B76A]" /> Back to Settings
           </Link>
           <h2 className="font-serif text-3xl sm:text-4xl">Themes & Templates Gallery</h2>
           <p className="text-white/40 text-xs sm:text-sm mt-1 leading-relaxed">
@@ -295,7 +316,7 @@ const AdminTemplatesPageContent = () => {
         <div className="space-y-4">
           <div className="border-b border-white/5 pb-2">
             <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] flex items-center gap-2">
-              <span>🌸</span> Free Tier Templates
+              <Icon icon="lucide:flower" className="w-4 h-4 text-emerald-400 shrink-0" /> Free Tier Templates
               <span className="text-[9px] lowercase font-normal tracking-wide text-white/40">
                 (Unlocked for everyone)
               </span>
@@ -310,7 +331,7 @@ const AdminTemplatesPageContent = () => {
         <div className="space-y-4">
           <div className="border-b border-white/5 pb-2">
             <h3 className="text-sm font-semibold uppercase tracking-widest text-[#7FA6D9] flex items-center gap-2">
-              <span>⭐</span> Plus Tier Templates
+              <Icon icon="lucide:star" className="w-4 h-4 text-blue-400 shrink-0" /> Plus Tier Templates
               {isFree && (
                 <span className="text-[9px] uppercase font-bold tracking-wider text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded border border-blue-400/20">
                   Upgrade to Unlock
@@ -327,7 +348,7 @@ const AdminTemplatesPageContent = () => {
         <div className="space-y-4">
           <div className="border-b border-white/5 pb-2">
             <h3 className="text-sm font-semibold uppercase tracking-widest text-[#F2D894] flex items-center gap-2">
-              <span>💎</span> Pro Tier Luxury Templates
+              <Icon icon="lucide:gem" className="w-4 h-4 text-amber-400 shrink-0" /> Pro Tier Luxury Templates
               {(isFree || isPlus) && (
                 <span className="text-[9px] uppercase font-bold tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
                   Upgrade to Unlock
@@ -339,10 +360,23 @@ const AdminTemplatesPageContent = () => {
             {proTemplates.map(renderTemplateCard)}
           </div>
         </div>
+
+        {/* AI Invitation Background Generator */}
+        <div className="space-y-4" id="ai-backgrounds">
+          <div className="border-b border-white/5 pb-2">
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] flex items-center gap-2">
+              <Icon icon="lucide:sparkles" className="w-4 h-4 text-[#D8B76A] shrink-0 animate-pulse" /> AI Generated Backgrounds
+              <span className="text-[9px] lowercase font-normal tracking-wide text-white/40">
+                (Plus & Pro feature — unique to your wedding)
+              </span>
+            </h3>
+          </div>
+          <AiBackgroundGenerator />
+        </div>
       </div>
 
       {/* Spacer to prevent floating action bar from blocking content */}
-      <div className="h-64 w-full" />
+      <div className="h-10 w-full" />
 
       {/* Floating Save/Cancel changes bar */}
       {hasUnsavedChanges && (
@@ -368,7 +402,7 @@ const AdminTemplatesPageContent = () => {
             >
               {isSubmitting ? (
                 <>
-                  <span className="animate-spin text-sm">🌀</span>
+                  <Icon icon="lucide:loader-2" className="animate-spin text-sm" />
                   <span>Saving...</span>
                 </>
               ) : (
@@ -388,11 +422,13 @@ const AdminTemplatesPageContent = () => {
               onClick={() => setUpgradeModalOpen(false)}
               className="absolute top-4 right-4 text-white/40 hover:text-white text-lg cursor-pointer"
             >
-              ✕
+              <Icon icon="lucide:x" className="h-4 w-4" />
             </button>
 
             <div className="text-center">
-              <span className="text-4xl">👑</span>
+              <div className="flex justify-center">
+                <Icon icon="lucide:crown" className="text-4xl text-[#D8B76A] mb-2 animate-pulse" />
+              </div>
               <h3 className="font-serif text-2xl text-[#D8B76A] mt-3 uppercase tracking-wide">
                 Unlock Premium Template
               </h3>
@@ -404,14 +440,15 @@ const AdminTemplatesPageContent = () => {
             {/* Premium details list */}
             <div className="mt-5 space-y-2.5 bg-white/5 border border-white/5 p-4 rounded-xl text-left">
               {[
-                "🎵 Full-Length Soundtrack Music Integration",
-                "📸 Portrait Backdrop Image Overlay & Opacity Slider",
-                "⏳ Interactive, Beautiful Event Day Timeline Stepper",
-                "🎁 Gift Registry Transfer Details Integration",
-                "🔧 Complete Design Font & Text Fine-Tuning Controls",
+                { label: "Full-Length Soundtrack Music Integration", icon: "lucide:music" },
+                { label: "Portrait Backdrop Image Overlay & Opacity Slider", icon: "lucide:image" },
+                { label: "Interactive, Beautiful Event Day Timeline Stepper", icon: "lucide:clock" },
+                { label: "Gift Registry Transfer Details Integration", icon: "lucide:gift" },
+                { label: "Complete Design Font & Text Fine-Tuning Controls", icon: "lucide:sliders" },
               ].map((feat) => (
-                <div key={feat} className="flex items-center gap-2 text-left">
-                  <span className="text-[10px] leading-relaxed text-white/80">{feat}</span>
+                <div key={feat.label} className="flex items-center gap-2 text-left">
+                  <Icon icon={feat.icon} className="w-3.5 h-3.5 text-[#D8B76A] shrink-0" />
+                  <span className="text-[10px] leading-relaxed text-white/80">{feat.label}</span>
                 </div>
               ))}
             </div>
@@ -425,7 +462,9 @@ const AdminTemplatesPageContent = () => {
                 }}
                 className="w-full py-3 rounded-xl bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-xs font-bold uppercase tracking-widest text-[#070A13] shadow-lg transition cursor-pointer"
               >
-                Upgrade Plan Now 🚀
+                <span className="inline-flex items-center justify-center gap-1.5">
+                  Upgrade Plan Now <Icon icon="lucide:arrow-right" className="h-3.5 w-3.5" />
+                </span>
               </button>
               <button
                 type="button"

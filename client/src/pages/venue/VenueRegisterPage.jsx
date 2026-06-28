@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
+import { Icon } from "@iconify/react";
 
 const registerSchema = z.object({
   name: z.string().min(3, "Venue name must be at least 3 characters"),
@@ -240,7 +241,7 @@ const VenueRegisterPage = () => {
           </div>
 
           <div className="bg-[#D8B76A]/5 border border-[#D8B76A]/20 p-3 rounded-xl flex items-start gap-2">
-            <span className="text-xs mt-0.5">⚠️</span>
+            <Icon icon="lucide:alert-triangle" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#D8B76A]" />
             <p className="text-[10px] text-white/70 leading-relaxed">
               <strong className="text-[#D8B76A]">Location Precision:</strong> Please make sure your address and Google Maps links are as precise and accurate as possible. Couples and their guests rely heavily on this information to reach your venue without navigation errors.
             </p>
@@ -261,7 +262,10 @@ const VenueRegisterPage = () => {
           {/* Trust & Safety Checklist */}
           <div className="border-t border-white/10 pt-4 mt-2 space-y-3">
             <div>
-              <h3 className="text-xs font-semibold text-[#D8B76A] uppercase tracking-wider">🛡️ Trust & Safety Verification Declaration</h3>
+              <h3 className="flex items-center gap-1.5 text-xs font-semibold text-[#D8B76A] uppercase tracking-wider">
+                <Icon icon="mdi:shield-check-outline" className="h-3.5 w-3.5 shrink-0" />
+                Trust & Safety Verification Declaration
+              </h3>
               <p className="text-[10px] text-white/50">
                 Please declare the safety standards your venue holds. You will need to present proof of these declarations to the site administrator for verification before they are published to couples.
               </p>

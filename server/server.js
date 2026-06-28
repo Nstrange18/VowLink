@@ -1,4 +1,4 @@
-// Force IPv4 DNS resolution — prevents ENETUNREACH on Render (IPv6 not available)
+﻿// Force IPv4 DNS resolution — prevents ENETUNREACH on Render (IPv6 not available)
 const dns = require("dns");
 dns.setDefaultResultOrder("ipv4first");
 
@@ -105,7 +105,7 @@ app.listen(PORT, async () => {
       setInterval(checkWeddingDaysToday, 12 * 60 * 60 * 1000);
     } catch (localError) {
       console.log("Local MongoDB fallback failed:", localError.message);
-      console.log("⚠️ Server is running but database connection is offline!");
+      console.log("Server is running but database connection is offline!");
     }
   }
 });

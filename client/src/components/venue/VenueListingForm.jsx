@@ -1,4 +1,5 @@
 import React from "react";
+import { Icon } from "@iconify/react";
 
 const inputBase =
   "w-full rounded-xl border bg-white/5 px-4 py-2.5 text-xs text-white placeholder-white/30 outline-none transition";
@@ -173,7 +174,7 @@ const VenueListingForm = ({
 
         {/* Warning Badge for Precision Location */}
         <div className="bg-[#D8B76A]/5 border border-[#D8B76A]/20 p-3 rounded-xl flex items-start gap-2">
-          <span className="text-xs mt-0.5">⚠️</span>
+          <Icon icon="lucide:alert-triangle" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#D8B76A]" />
           <p className="text-[10px] text-white/70 leading-relaxed">
             <strong className="text-[#D8B76A]">Location Precision:</strong> Please make sure your address and Google Maps links are as precise and accurate as possible. Couples and their guests rely heavily on this information to reach your venue without navigation errors.
           </p>
@@ -182,7 +183,10 @@ const VenueListingForm = ({
         {/* Trust & Safety Checklist */}
         <div className="border-t border-white/10 pt-6 mt-6 space-y-4">
           <div>
-            <h3 className="text-xs font-semibold text-[#D8B76A] uppercase tracking-wider">🛡️ Trust & Safety Verification Checklist</h3>
+            <h3 className="text-xs font-semibold text-[#D8B76A] uppercase tracking-wider flex items-center gap-1.5">
+              <Icon icon="mdi:shield-check-outline" className="h-3.5 w-3.5 shrink-0" />
+              Trust & Safety Verification Checklist
+            </h3>
             <p className="text-[10px] text-white/40 mt-1">
               Select all safety standards that your venue currently holds. You will need to present proof of these declarations to the site administrator for verification before they are published to couples.
             </p>
@@ -254,7 +258,11 @@ const VenueListingForm = ({
           <div className="border-t border-white/10 pt-4 mt-4 space-y-3">
             <div>
               <h4 className="text-[10px] font-semibold text-[#D8B76A] uppercase tracking-wider">
-                📁 Verification Proof Documents <span className="text-white/40 normal-case font-normal">(PDF or Image, max 5 files · 5MB each)</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Icon icon="mdi:folder-open-outline" className="h-3.5 w-3.5 shrink-0" />
+                  Verification Proof Documents
+                </span>{" "}
+                <span className="text-white/40 normal-case font-normal">(PDF or Image, max 5 files · 5MB each)</span>
               </h4>
               <p className="text-[9px] text-white/40 mt-0.5">
                 Upload certificates, structural test results, or insurance policy documents as proof for the Super Admin to review.
@@ -271,14 +279,15 @@ const VenueListingForm = ({
                       className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 px-3 py-2 rounded-xl"
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-base shrink-0">📄</span>
+                        <Icon icon="mdi:file-document-outline" className="h-4 w-4 shrink-0 text-[#D8B76A]" />
                         <a
                           href={url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[10px] text-[#D8B76A] hover:underline truncate"
                         >
-                          Document {idx + 1} — Open / View →
+                          Document {idx + 1} - Open / View
+                          <Icon icon="lucide:arrow-right" className="ml-1 inline h-3 w-3" />
                         </a>
                       </div>
                       <button
@@ -286,7 +295,10 @@ const VenueListingForm = ({
                         onClick={() => removeProofUrl(idx)}
                         className="shrink-0 text-[10px] text-red-400 hover:text-red-300 border border-red-400/20 hover:border-red-400/50 px-2 py-1 rounded-lg transition"
                       >
-                        ✕ Remove
+                        <span className="inline-flex items-center gap-1">
+                          <Icon icon="lucide:x" className="h-3 w-3" />
+                          Remove
+                        </span>
                       </button>
                     </div>
                   ))}
@@ -318,7 +330,10 @@ const VenueListingForm = ({
 
               {proofUrls.length >= 5 && (
                 <p className="text-[10px] text-amber-400 italic text-center pt-2 border-t border-white/5">
-                  ✓ Maximum of 5 proof documents reached.
+                  <span className="inline-flex items-center justify-center gap-1">
+                    <Icon icon="lucide:check" className="h-3 w-3" />
+                    Maximum of 5 proof documents reached.
+                  </span>
                 </p>
               )}
             </div>

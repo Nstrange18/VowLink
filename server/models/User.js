@@ -205,6 +205,25 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // AI image generation credit tracking and saved images
+    aiImageCreditsUsed: {
+      type: Number,
+      default: 0,
+    },
+    aiGeneratedImages: [
+      {
+        imageUrl: { type: String, required: true },
+        cloudinaryPublicId: { type: String, default: "" },
+        prompt: { type: String, default: "" },
+        stylePreset: { type: String, default: "" },
+        colors: { type: String, default: "" },
+        mood: { type: String, default: "" },
+        floralPreference: { type: String, default: "" },
+        culturalInfluence: { type: String, default: "" },
+        createdAt: { type: Date, default: Date.now },
+        usedAsBackground: { type: Boolean, default: false },
+      },
+    ],
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
 

@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const axios = require("axios");
 const sgMail = require("@sendgrid/mail");
 const cloudinary = require("cloudinary").v2;
@@ -34,7 +34,7 @@ const seedVenues = async () => {
   try {
     const count = await Venue.countDocuments();
     if (count === 0) {
-      console.log("🌱 Database: No venues found. Seeding default suggested venues...");
+      console.log("Database: No venues found. Seeding default suggested venues...");
       await Venue.create([
         {
           name: "The Grand Ballroom",
@@ -127,10 +127,10 @@ const seedVenues = async () => {
           inquiries: 5,
         },
       ]);
-      console.log("✅ Database: Default venues seeded successfully.");
+      console.log("Database: Default venues seeded successfully.");
     }
   } catch (error) {
-    console.error("❌ Database: Seeding venues failed:", error.message);
+    console.error("Database: Seeding venues failed:", error.message);
   }
 };
 
@@ -274,12 +274,12 @@ router.post("/inquire", protect, async (req, res) => {
           subject: `VowLink Venue Inquiry: ${user.partner1Name} & ${user.partner2Name}`,
           html: emailContent,
         });
-        console.log(`📧 Direct inquiry email sent successfully to ${targetEmail}`);
+        console.log(`Direct inquiry email sent successfully to ${targetEmail}`);
       } catch (err) {
-        console.error("❌ SendGrid error sending inquiry:", err.response ? err.response.body : err);
+        console.error("SendGrid error sending inquiry:", err.response ? err.response.body : err);
       }
     } else {
-      console.warn("⚠️ SendGrid not configured or target email missing for venue inquiry");
+      console.warn("SendGrid not configured or target email missing for venue inquiry");
     }
 
     // Save inquiry to database log
@@ -418,7 +418,7 @@ router.post("/auth/register", async (req, res) => {
     });
     
     res.status(201).json({
-      message: "Venue registered successfully! 🎉 Welcome to VowLink Venues. Your listing is pending admin review.",
+      message: "Venue registered successfully! Welcome to VowLink Venues. Your listing is pending admin review.",
       token: generateVenueToken(newVenue),
       venue: {
         id: newVenue._id,
@@ -452,7 +452,7 @@ router.post("/auth/login", async (req, res) => {
     }
 
     res.status(200).json({
-      message: "Logged in successfully! ✓ Welcome back.",
+      message: "Logged in successfully! Welcome back.",
       token: generateVenueToken(venue),
       venue: {
         id: venue._id,
@@ -557,7 +557,7 @@ router.put("/auth/me", protectVenue, async (req, res) => {
 
     await venue.save();
     res.status(200).json({
-      message: "Venue listing updated successfully! ✓",
+      message: "Venue listing updated successfully!",
       venue,
     });
   } catch (error) {
@@ -582,7 +582,7 @@ router.put("/auth/change-password", protectVenue, async (req, res) => {
     }
     venue.ownerPassword = newPassword;
     await venue.save();
-    res.status(200).json({ message: "Password updated successfully! ✓" });
+    res.status(200).json({ message: "Password updated successfully!" });
   } catch (error) {
     res.status(500).json({ message: "Password change failed", error: error.message });
   }
@@ -660,7 +660,7 @@ router.post("/subscribe/verify", protectVenue, async (req, res) => {
       venue.subscriptionExpiry = expiry;
       await venue.save();
       return res.status(200).json({
-        message: `[DEV BYPASS] Payment verified! Subscription upgraded to ${tier.toUpperCase()} successfully! 🚀`,
+        message: `[DEV BYPASS] Payment verified! Subscription upgraded to ${tier.toUpperCase()} successfully! `,
         venue,
       });
     }
@@ -707,7 +707,7 @@ router.post("/subscribe/verify", protectVenue, async (req, res) => {
     await venue.save();
 
     res.status(200).json({
-      message: `Payment verified! Subscription upgraded to ${tier.toUpperCase()} successfully! 🚀`,
+      message: `Payment verified! Subscription upgraded to ${tier.toUpperCase()} successfully! `,
       venue,
     });
   } catch (error) {
@@ -772,7 +772,7 @@ router.post("/approve/:id", async (req, res) => {
     await venue.save();
 
     res.status(200).json({
-      message: "Venue listing approved successfully! 🎉 It is now visible to couples.",
+      message: "Venue listing approved successfully! It is now visible to couples.",
       venue,
     });
   } catch (error) {
@@ -795,7 +795,7 @@ router.post("/auth/upload", protectVenue, async (req, res) => {
 
     res.status(200).json({ url: result.secure_url });
   } catch (error) {
-    console.error("❌ Cloudinary venue upload error:", error);
+    console.error("Cloudinary venue upload error:", error);
     res.status(500).json({ message: "Upload to Cloudinary failed", error: error.message });
   }
 });

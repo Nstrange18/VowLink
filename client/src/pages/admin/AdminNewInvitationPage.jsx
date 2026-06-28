@@ -7,6 +7,7 @@ import api from '../../utils/api'
 import CustomSelect from '../../components/CustomSelect'
 import { invitationSchema } from '../../utils/schemas'
 import AiMessageAssist from '../../components/AiMessageAssist'
+import { Icon } from '@iconify/react'
 
 const CATEGORIES = [
   { value: 'Guest', label: 'Guest' },
@@ -65,7 +66,7 @@ const AdminNewInvitationPage = () => {
       const res = await api.post('/invitations', { ...data, allowedGuests: Number(data.allowedGuests) })
       const slug = res.data.data.slug
       const link = `${window.location.origin}/invite/${slug}`
-      toast.success('Invitation created! 💌')
+      toast.success('Invitation created!')
       navigate('/admin/invitations', { state: { newLink: link } })
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create invitation.')
@@ -79,7 +80,7 @@ const AdminNewInvitationPage = () => {
 
       {/* Global personalization settings reminder */}
       <div className="mb-6 rounded-xl border border-white/5 bg-white/3 px-4 py-3 flex items-start gap-2.5 text-xs text-white/50 leading-relaxed">
-        <span className="text-sm mt-0.5">💡</span>
+        <Icon icon="lucide:lightbulb" className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
         <span>
           Designs, background templates, custom fonts, colors, and music are applied globally. Visit the{" "}
           <Link to="/admin/settings" className="text-[#D8B76A] font-semibold underline hover:text-[#D8B76A]/80 transition">

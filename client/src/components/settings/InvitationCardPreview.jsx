@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { WEDDING_COLORS } from "../ColorPicker";
 import { useSettings } from "../../context/SettingsContext";
 import { getTemplateLayout, getBlockStyles } from "../../utils/templateLayouts";
+import { Icon } from "@iconify/react";
 const isDarkColor = (hex) => {
   if (!hex || hex === '#999') return false;
   const c = hex.replace('#', '');
@@ -96,8 +97,8 @@ export const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
         <svg className="absolute top-0 left-0 w-full h-12 opacity-80" viewBox="0 0 100 20" preserveAspectRatio="none">
           <path d="M0,0 Q10,8 20,2 Q30,12 40,4" stroke={sec} strokeWidth="1.2" fill="none" />
         </svg>
-        <div className="absolute top-4 left-1/4 text-[10px]" style={{ animation: "preview-forest-bounce 6s infinite", color: pri }}>🍃</div>
-        <div className="absolute top-8 left-2/3 text-[10px]" style={{ animation: "preview-forest-bounce 8s infinite", animationDelay: "2s", color: sec }}>🍂</div>
+        <Icon icon="mdi:leaf" className="absolute top-4 left-1/4 h-3 w-3" style={{ animation: "preview-forest-bounce 6s infinite", color: pri }} />
+        <Icon icon="mdi:leaf-maple" className="absolute top-8 left-2/3 h-3 w-3" style={{ animation: "preview-forest-bounce 8s infinite", animationDelay: "2s", color: sec }} />
       </div>
     );
   }
@@ -107,7 +108,7 @@ export const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
 
 const renderFrameBorder = (frameBorder) => {
   if (!frameBorder) return null;
-  
+
   if (frameBorder === "gold-royal") {
     return (
       <div className="absolute inset-5 border-2 border-[#D8B76A]/40 pointer-events-none rounded-xl z-0">
@@ -120,7 +121,7 @@ const renderFrameBorder = (frameBorder) => {
       </div>
     );
   }
-  
+
   if (frameBorder === "lace") {
     return (
       <div className="absolute inset-4 border border-[#B8963A]/25 pointer-events-none rounded-xl z-0">
@@ -129,19 +130,19 @@ const renderFrameBorder = (frameBorder) => {
       </div>
     );
   }
-  
+
   if (frameBorder === "dashed-gold") {
     return (
       <div className="absolute inset-6 border border-dashed border-[#D8B76A]/35 pointer-events-none rounded-lg z-0" />
     );
   }
-  
+
   if (frameBorder === "gold-thin") {
     return (
       <div className="absolute inset-4 border border-[#D8B76A]/25 pointer-events-none rounded-xl z-0" />
     );
   }
-  
+
   if (frameBorder === "eucalyptus") {
     return (
       <div className="absolute inset-5 border border-[#A3B899]/20 pointer-events-none rounded-2xl z-0" />
@@ -167,35 +168,34 @@ const renderFrameBorder = (frameBorder) => {
 
 const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary = false) => {
   const lineStyle = { background: color, opacity: isSecondary ? 0.3 : 0.4 };
-  const char = isSecondary ? "✦" : "❧";
-  
-  // Choose character based on divider type
-  let finalChar = char;
-  if (dividerType === "floral-rose") finalChar = isSecondary ? "🥀" : "🌸";
-  else if (dividerType === "leaf-right") finalChar = isSecondary ? "🌿" : "🍃";
-  else if (dividerType === "eucalyptus") finalChar = "🌿";
-  else if (dividerType === "lace") finalChar = isSecondary ? "✧" : "✦";
-  else if (dividerType === "gold-royal") finalChar = isSecondary ? "✦" : "👑";
-  else if (dividerType === "gold-foil") finalChar = "✦";
-  else if (dividerType === "starry") finalChar = isSecondary ? "✦" : "✨";
-  else if (dividerType === "glitter") finalChar = isSecondary ? "✧" : "✨";
-  else if (dividerType === "filigree") finalChar = isSecondary ? "✥" : "❦";
-  else if (dividerType === "charcoal-gold") finalChar = isSecondary ? "✦" : "✧";
-  
+  const getDividerIcon = () => {
+    if (dividerType === "floral-rose") return isSecondary ? "mdi:flower-tulip-outline" : "mdi:flower";
+    if (dividerType === "leaf-right" || dividerType === "eucalyptus") return "mdi:leaf";
+    if (dividerType === "gold-royal") return isSecondary ? "lucide:sparkle" : "mdi:crown-outline";
+    if (dividerType === "starry" || dividerType === "glitter") return isSecondary ? "lucide:sparkle" : "lucide:sparkles";
+    if (dividerType === "filigree") return "mdi:ornament";
+    return isSecondary ? "lucide:sparkle" : "mdi:flower-pollen-outline";
+  };
+  const dividerIcon = getDividerIcon();
+
   if (dividerType === "gold-royal") {
     return (
       <div className={`flex items-center gap-2 select-none ${spacing}`}>
         <div className="h-[1.5px] w-12 bg-linear-to-r from-transparent to-[#D8B76A]" />
-        <span className="text-[#D8B76A] text-[11px] font-bold">{finalChar}</span>
+        <Icon icon={dividerIcon} className="h-3.5 w-3.5 text-[#D8B76A]" />
         <div className="h-[1.5px] w-12 bg-linear-to-l from-transparent to-[#D8B76A]" />
       </div>
     );
   }
-  
+
   return (
     <div className={`flex items-center gap-2 select-none ${spacing}`}>
       <div className="h-px w-10" style={lineStyle} />
-      <span style={{ color: dividerType?.includes("gold") || dividerType === "glitter" ? "#D8B76A" : color }} className="text-[11px]">{finalChar}</span>
+      <Icon
+        icon={dividerIcon}
+        className="h-3.5 w-3.5"
+        style={{ color: dividerType?.includes("gold") || dividerType === "glitter" ? "#D8B76A" : color }}
+      />
       <div className="h-px w-10" style={lineStyle} />
     </div>
   );
@@ -673,17 +673,17 @@ const InvitationCardPreview = () => {
       userHasCustomTextColor,
       customTextSizesObj
     );
-    
+
     let className = "";
     const style = { ...blockStyles };
-    
+
     if (isPlusTemplate) {
       className = "animate-plus-fade-up";
     } else if (isProTemplate) {
       className = "animate-pro-text-reveal";
       style.animationDelay = delay;
     }
-    
+
     return { className, style };
   };
 
@@ -741,7 +741,7 @@ const InvitationCardPreview = () => {
     <div className="col-span-12 lg:col-span-6 lg:sticky lg:top-8 space-y-4 animate-fade-in">
       <p className="text-xs uppercase tracking-[0.25em] text-[#D8B76A] font-bold">Live Invitation Card Preview</p>
 
-      <div 
+      <div
         ref={containerRef}
         id="live-card-preview"
         className={previewContainerClass}
@@ -753,21 +753,20 @@ const InvitationCardPreview = () => {
         {/* Page Background (Couple Photo) */}
         {!shouldHideBg && couplePhotoUrl ? (
           <>
-            <div 
-              className={`absolute inset-0 z-0 bg-cover bg-center transition-all duration-500 hidden md:block lg:hidden ${
-                isPlusTemplate ? "animate-plus-fade-in" : ""
-              } ${isProTemplate ? "animate-pro-float" : ""}`}
+            <div
+              className={`absolute inset-0 z-0 bg-cover bg-center transition-all duration-500 hidden md:block lg:hidden ${isPlusTemplate ? "animate-plus-fade-in" : ""
+                } ${isProTemplate ? "animate-pro-float" : ""}`}
               style={{ backgroundImage: `url(${couplePhotoUrl})` }}
             />
-            <div 
+            <div
               className="absolute inset-0 z-0 transition-all duration-300 hidden md:block lg:hidden"
               style={{ backgroundColor: `rgba(0, 0, 0, ${coupleOverlayOpacity})` }}
             />
           </>
         ) : !shouldHideBg ? (
           /* Gold shimmer / dark gradient fallback background */
-          <div 
-            className="absolute inset-0 z-0 opacity-40 hidden md:block lg:hidden" 
+          <div
+            className="absolute inset-0 z-0 opacity-40 hidden md:block lg:hidden"
             style={{ background: "radial-gradient(circle at 50% 30%, #1A2E4A 0%, #070A13 80%)" }}
           />
         ) : null}
@@ -776,11 +775,9 @@ const InvitationCardPreview = () => {
         <div
           ref={cardRef}
           key={customCardBg || cardTheme}
-          className={`relative z-10 w-[608px] flex-none rounded-2xl overflow-hidden transition-all duration-300 ${
-            isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
-          } ${
-            isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-2xl"
-          }`}
+          className={`relative z-10 w-[608px] flex-none rounded-2xl overflow-hidden transition-all duration-300 ${isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
+            } ${isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-2xl"
+            }`}
           style={{
             transform: `scale(${cardScale})`,
             transformOrigin: "top center",
@@ -800,208 +797,206 @@ const InvitationCardPreview = () => {
             {renderFrameBorder(layout.frameBorder)}
 
             <div
-              className={`relative z-10 flex flex-col justify-center w-full min-h-[620px] transition-all ${
-                textAlignment === "left"
-                  ? "items-start text-left"
-                  : textAlignment === "right"
-                  ? "items-end text-right"
-                : "items-center text-center"
-            }`}
-            style={{
-              /* fontSize intentionally NOT set here — applied per-block via getBlockStyles */
-              fontWeight: baseWeight,
-              paddingTop: `calc(${layout.pt}px + ${customVerticalOffset}px)`,
-              paddingBottom: `calc(${layout.pb}px - ${customVerticalOffset}px)`,
-              paddingLeft: `${scalePadding(layout.pl)}px`,
-              paddingRight: `${scalePadding(layout.pr)}px`,
-              transform: `translateX(${customHorizontalOffset || 0}px)`,
-              ...(layout?.contrastHelpers?.overlayBehindText ? {
-                background: layout.contrastHelpers.overlayBehindText === true
-                  ? (layout.tier === "free" ? "rgba(255, 255, 255, 0.25)" : "rgba(0, 0, 0, 0.2)")
-                  : layout.contrastHelpers.overlayBehindText,
-                borderRadius: "16px",
-                backdropFilter: "blur(4px)",
-                boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)",
-                padding: "16px",
-                width: "90%",
-                margin: "0 auto",
-              } : {})
-            }}
-          >
-            <div
-              className={`w-full flex flex-col justify-center transition-all ${
-                textAlignment === "left"
-                  ? "items-start text-left"
-                  : textAlignment === "right"
+              className={`relative z-10 flex flex-col justify-center w-full min-h-[620px] transition-all ${textAlignment === "left"
+                ? "items-start text-left"
+                : textAlignment === "right"
                   ? "items-end text-right"
                   : "items-center text-center"
-              }`}
+                }`}
               style={{
-                maxWidth: layout.layoutConfig?.safeArea?.maxWidth || "85%",
-                margin: textAlignment === "left" ? "0 auto 0 0" : textAlignment === "right" ? "0 0 0 auto" : "0 auto",
+                /* fontSize intentionally NOT set here — applied per-block via getBlockStyles */
+                fontWeight: baseWeight,
+                paddingTop: `calc(${layout.pt}px + ${customVerticalOffset}px)`,
+                paddingBottom: `calc(${layout.pb}px - ${customVerticalOffset}px)`,
+                paddingLeft: `${scalePadding(layout.pl)}px`,
+                paddingRight: `${scalePadding(layout.pr)}px`,
+                transform: `translateX(${customHorizontalOffset || 0}px)`,
+                ...(layout?.contrastHelpers?.overlayBehindText ? {
+                  background: layout.contrastHelpers.overlayBehindText === true
+                    ? (layout.tier === "free" ? "rgba(255, 255, 255, 0.25)" : "rgba(0, 0, 0, 0.2)")
+                    : layout.contrastHelpers.overlayBehindText,
+                  borderRadius: "16px",
+                  backdropFilter: "blur(4px)",
+                  boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)",
+                  padding: "16px",
+                  width: "90%",
+                  margin: "0 auto",
+                } : {})
               }}
             >
-              <h2 
-                {...getBlockProps("title", "100ms")}
+              <div
+                className={`w-full flex flex-col justify-center transition-all ${textAlignment === "left"
+                  ? "items-start text-left"
+                  : textAlignment === "right"
+                    ? "items-end text-right"
+                    : "items-center text-center"
+                  }`}
                 style={{
-                  ...getBlockProps("title", "100ms").style,
-                  fontFamily: activeFont,
-                  fontWeight: headingWeight,
+                  maxWidth: layout.layoutConfig?.safeArea?.maxWidth || "85%",
+                  margin: textAlignment === "left" ? "0 auto 0 0" : textAlignment === "right" ? "0 0 0 auto" : "0 auto",
                 }}
               >
-                Wedding Invitation
-              </h2>
-
-              <div {...getBlockProps("divider1", "300ms")} className={`${getBlockProps("divider1", "300ms").className} flex justify-center w-full`}>
-                {renderOrnamentDivider(layout.dividerType, getBlockProps("divider1").style.color, "my-3")}
-              </div>
-
-              <p 
-                {...getBlockProps("subtitle", "500ms")}
-                style={{
-                  ...getBlockProps("subtitle", "500ms").style,
-                  fontStyle: "italic",
-                }}
-              >
-                Marriage between
-              </p>
-
-              <h1 
-                {...getBlockProps("coupleNames", "700ms")}
-                className={`${getBlockProps("coupleNames", "700ms").className} leading-tight`}
-                style={{ 
-                  ...getBlockProps("coupleNames", "700ms").style,
-                  fontFamily: activeFont, 
-                  fontWeight: headingWeight, 
-                  backgroundImage: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "linear-gradient(135deg, #FFF 0%, #D8B76A 60%, #A37F28 100%)" : "none",
-                  WebkitBackgroundClip: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "text" : "border-box",
-                  WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "transparent" : "initial",
-                  display: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "inline-block" : "block"
-                }}
-              >
-                {p1 || "Partner 1"}{" "}
-                <span style={{ 
-                  color: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : getBlockProps("coupleNames").style.color,
-                  WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : "initial",
-                  opacity: 0.9 
-                }}>
-                  and
-                </span>{" "}
-                {p2 || "Partner 2"}
-              </h1>
-
-              <div {...getBlockProps("divider2", "900ms")} className={`${getBlockProps("divider2", "900ms").className} flex justify-center w-full`}>
-                {renderOrnamentDivider(layout.dividerType, getBlockProps("divider2").style.color, "my-3", true)}
-              </div>
-
-              <p 
-                {...getBlockProps("greeting", "1100ms")}
-                style={{
-                  ...getBlockProps("greeting", "1100ms").style,
-                }}
-              >
-                Dear Guest Name,
-              </p>
-
-              <p 
-                {...getBlockProps("message", "1300ms")}
-                className={`${getBlockProps("message", "1300ms").className} opacity-90`}
-                style={{
-                  ...getBlockProps("message", "1300ms").style,
-                }}
-              >
-                We request the honor of your presence as we celebrate our love and write a new chapter of our lives together.
-              </p>
-
-              {formattedDate && (
-                <p 
-                  {...getBlockProps("details", "1500ms")}
+                <h2
+                  {...getBlockProps("title", "100ms")}
                   style={{
-                    ...getBlockProps("details", "1500ms").style,
+                    ...getBlockProps("title", "100ms").style,
+                    fontFamily: activeFont,
+                    fontWeight: headingWeight,
                   }}
                 >
-                  Date: {formattedDate}
+                  Wedding Invitation
+                </h2>
+
+                <div {...getBlockProps("divider1", "300ms")} className={`${getBlockProps("divider1", "300ms").className} flex justify-center w-full`}>
+                  {renderOrnamentDivider(layout.dividerType, getBlockProps("divider1").style.color, "my-3")}
+                </div>
+
+                <p
+                  {...getBlockProps("subtitle", "500ms")}
+                  style={{
+                    ...getBlockProps("subtitle", "500ms").style,
+                    fontStyle: "italic",
+                  }}
+                >
+                  Marriage between
                 </p>
-              )}
 
-              {formattedTime && (
-                <p 
-                  {...getBlockProps("details", "1600ms")}
+                <h1
+                  {...getBlockProps("coupleNames", "700ms")}
+                  className={`${getBlockProps("coupleNames", "700ms").className} leading-tight`}
                   style={{
-                    ...getBlockProps("details", "1600ms").style,
+                    ...getBlockProps("coupleNames", "700ms").style,
+                    fontFamily: activeFont,
+                    fontWeight: headingWeight,
+                    backgroundImage: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "linear-gradient(135deg, #FFF 0%, #D8B76A 60%, #A37F28 100%)" : "none",
+                    WebkitBackgroundClip: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "text" : "border-box",
+                    WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "transparent" : "initial",
+                    display: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "inline-block" : "block"
                   }}
                 >
-                  Time: {formattedTime}
+                  {p1 || "Partner 1"}{" "}
+                  <span style={{
+                    color: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : getBlockProps("coupleNames").style.color,
+                    WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : "initial",
+                    opacity: 0.9
+                  }}>
+                    and
+                  </span>{" "}
+                  {p2 || "Partner 2"}
+                </h1>
+
+                <div {...getBlockProps("divider2", "900ms")} className={`${getBlockProps("divider2", "900ms").className} flex justify-center w-full`}>
+                  {renderOrnamentDivider(layout.dividerType, getBlockProps("divider2").style.color, "my-3", true)}
+                </div>
+
+                <p
+                  {...getBlockProps("greeting", "1100ms")}
+                  style={{
+                    ...getBlockProps("greeting", "1100ms").style,
+                  }}
+                >
+                  Dear Guest Name,
                 </p>
-              )}
 
-              {venue && (
-                <p 
-                  {...getBlockProps("details", "1700ms")}
+                <p
+                  {...getBlockProps("message", "1300ms")}
+                  className={`${getBlockProps("message", "1300ms").className} opacity-90`}
                   style={{
-                    ...getBlockProps("details", "1700ms").style,
+                    ...getBlockProps("message", "1300ms").style,
                   }}
                 >
-                  Location: {venueName || venue}
+                  We request the honor of your presence as we celebrate our love and write a new chapter of our lives together.
                 </p>
-              )}
 
-              {receptionLocation && (
-                <p 
-                  {...getBlockProps("reception", "1800ms")}
-                  style={{
-                    ...getBlockProps("reception", "1800ms").style,
-                  }}
-                >
-                  Reception: {receptionName || receptionLocation}
-                </p>
-              )}
-
-              {weddingColors.length > 0 && (
-                <div 
-                  {...getBlockProps("colors", "2000ms")}
-                  style={{
-                    ...getBlockProps("colors", "2000ms").style,
-                  }}
-                >
-                  <p className="uppercase tracking-widest mb-2" style={{ color: getBlockProps("colors").style.color, opacity: 0.8, textShadow: getBlockProps("colors").style.textShadow }}>
-                    Colour of the Day
+                {formattedDate && (
+                  <p
+                    {...getBlockProps("details", "1500ms")}
+                    style={{
+                      ...getBlockProps("details", "1500ms").style,
+                    }}
+                  >
+                    Date: {formattedDate}
                   </p>
-                  <div className="flex flex-wrap gap-1.5 justify-center">
-                    {weddingColors.map((name, i) => {
-                      const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || "#999";
-                      const blockStyles = getBlockProps("colors").style;
-                      const isDark = isDarkColor(hex);
-                      return (
-                        <div
-                          key={i}
-                          className="flex items-center gap-1.5 rounded-full px-2.5 py-0.75 border text-[1.2em] font-extrabold shadow-md whitespace-nowrap"
-                          style={{
-                            borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
-                            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
-                          }}
-                        >
-                          <div className={`h-3 w-3 rounded-full shrink-0 shadow-xs border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ backgroundColor: hex }} />
-                          <span style={{ color: blockStyles.color }} className="text-[1.05em] font-bold">{name}</span>
-                        </div>
-                      );
-                    })}
+                )}
+
+                {formattedTime && (
+                  <p
+                    {...getBlockProps("details", "1600ms")}
+                    style={{
+                      ...getBlockProps("details", "1600ms").style,
+                    }}
+                  >
+                    Time: {formattedTime}
+                  </p>
+                )}
+
+                {venue && (
+                  <p
+                    {...getBlockProps("details", "1700ms")}
+                    style={{
+                      ...getBlockProps("details", "1700ms").style,
+                    }}
+                  >
+                    Location: {venueName || venue}
+                  </p>
+                )}
+
+                {receptionLocation && (
+                  <p
+                    {...getBlockProps("reception", "1800ms")}
+                    style={{
+                      ...getBlockProps("reception", "1800ms").style,
+                    }}
+                  >
+                    Reception: {receptionName || receptionLocation}
+                  </p>
+                )}
+
+                {weddingColors.length > 0 && (
+                  <div
+                    {...getBlockProps("colors", "2000ms")}
+                    style={{
+                      ...getBlockProps("colors", "2000ms").style,
+                    }}
+                  >
+                    <p className="uppercase tracking-widest mb-2" style={{ color: getBlockProps("colors").style.color, opacity: 0.8, textShadow: getBlockProps("colors").style.textShadow }}>
+                      Colour of the Day
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 justify-center">
+                      {weddingColors.map((name, i) => {
+                        const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || "#999";
+                        const blockStyles = getBlockProps("colors").style;
+                        const isDark = isDarkColor(hex);
+                        return (
+                          <div
+                            key={i}
+                            className="flex items-center gap-1.5 rounded-full px-2.5 py-0.75 border text-[1.2em] font-extrabold shadow-md whitespace-nowrap"
+                            style={{
+                              borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
+                              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
+                            }}
+                          >
+                            <div className={`h-3 w-3 rounded-full shrink-0 shadow-xs border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ backgroundColor: hex }} />
+                            <span style={{ color: blockStyles.color }} className="text-[1.05em] font-bold">{name}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
+                )}
+              </div>
+
+              {isFree && (
+                <div className="absolute bottom-2.5 left-0 right-0 text-center select-none pointer-events-none opacity-45 z-20">
+                  <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: cardStyles.color || "#000000" }}>
+                    Powered by VowLink
+                  </span>
                 </div>
               )}
             </div>
-            
-            {isFree && (
-              <div className="absolute bottom-2.5 left-0 right-0 text-center select-none pointer-events-none opacity-45 z-20">
-                <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: cardStyles.color || "#000000" }}>
-                  Powered by VowLink
-                </span>
-              </div>
-            )}
           </div>
         </div>
       </div>
-    </div>
 
       {/* Quick Upload Own Card Action (Pro Only) */}
       {isPro && (
@@ -1017,7 +1012,12 @@ const InvitationCardPreview = () => {
             }}
             className="w-full py-2.5 rounded-xl bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-xs font-bold uppercase tracking-wider text-[#070A13] transition flex items-center justify-center gap-2"
           >
-            <span>📷</span> {customCardBg ? "Change Your Card Background" : "Add Your Own Card Design"}
+            <Icon
+              icon={customCardBg ? "mdi:image-edit" : "mdi:image-plus"}
+              className="h-4 w-4 shrink-0"
+              aria-hidden="true"
+            />
+            <span>{customCardBg ? "Change Your Card Background" : "Add Your Own Card Design"}</span>
           </button>
           <p className="text-[8px] text-white/40 text-center">Select custom card theme to preview your own card design.</p>
         </div>

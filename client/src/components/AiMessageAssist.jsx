@@ -2,14 +2,15 @@ import { useState, useEffect, useCallback } from "react";
 import api from "../utils/api";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import { Icon } from "@iconify/react";
 
 const TONES = [
-  { value: "elegant",     label: "✨ Elegant" },
-  { value: "romantic",    label: "💕 Romantic" },
-  { value: "formal",      label: "🎩 Formal" },
-  { value: "friendly",    label: "😊 Friendly" },
-  { value: "traditional", label: "📜 Traditional" },
-  { value: "short",       label: "⚡ Short & Sweet" },
+  { value: "elegant",     label: "Elegant" },
+  { value: "romantic",    label: "Romantic" },
+  { value: "formal",      label: "Formal" },
+  { value: "friendly",    label: "Friendly" },
+  { value: "traditional", label: "Traditional" },
+  { value: "short",       label: "Short & Sweet" },
 ];
 
 const inputBase =
@@ -40,7 +41,7 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
   const fetchCredits = useCallback(async () => {
     try {
       const res = await api.get("/ai/credits");
-      if (res.data.success) setCredits(res.data);
+      if (res.data.success) setCredits(res.data.textCredits);
     } catch {
       // Non-fatal — just won't show the credits badge
     }
@@ -105,7 +106,7 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
     setIsOpen(false);
     setGeneratedText("");
     setExtraNotes("");
-    toast.success("AI message applied! ✨ Feel free to edit it before saving.");
+    toast.success("AI message applied! Feel free to edit it before saving.");
   };
 
   const creditsExhausted = credits && credits.remaining === 0;
@@ -119,7 +120,7 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
         onClick={() => setIsOpen((o) => !o)}
         className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] hover:bg-[#D8B76A]/20 text-[10px] font-bold uppercase tracking-wider transition cursor-pointer"
       >
-        <span>✨</span>
+        <Icon icon="lucide:sparkles" className="w-3.5 h-3.5" />
         <span>AI Assist</span>
         {credits && (
           <span className={`ml-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
@@ -130,7 +131,7 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
             {creditsExhausted ? "No credits" : `${credits.remaining} left`}
           </span>
         )}
-        <span className="ml-auto text-[#D8B76A]/50 text-xs">{isOpen ? "▲" : "▼"}</span>
+        <Icon icon={isOpen ? "lucide:chevron-up" : "lucide:chevron-down"} className="ml-auto w-3 h-3 text-[#D8B76A]/70" />
       </button>
 
       {/* Panel */}
@@ -139,7 +140,9 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h4 className="text-sm font-semibold text-[#D8B76A]">✨ AI Assist</h4>
+              <h4 className="text-sm font-semibold text-[#D8B76A] flex items-center gap-1.5">
+                <Icon icon="lucide:sparkles" className="w-4 h-4 text-[#D8B76A]" /> AI Assist
+              </h4>
               <p className="text-[10px] text-white/40 mt-0.5 leading-relaxed">
                 Generate elegant invitation wording based on your wedding details.
               </p>
@@ -155,7 +158,9 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
                     to="/admin/billing"
                     className="text-[9px] text-amber-400 underline hover:text-amber-300 transition"
                   >
-                    Upgrade →
+                    <span className="inline-flex items-center gap-1">
+                      Upgrade <Icon icon="lucide:arrow-right" className="h-3 w-3" />
+                    </span>
                   </Link>
                 )}
               </div>
@@ -220,7 +225,9 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
                 to="/admin/billing"
                 className="inline-block mt-1 px-5 py-2 rounded-xl bg-amber-400/10 border border-amber-400/30 text-amber-400 text-xs font-bold uppercase tracking-wider hover:bg-amber-400/20 transition"
               >
-                Upgrade Plan →
+                <span className="inline-flex items-center gap-1">
+                  Upgrade Plan <Icon icon="lucide:arrow-right" className="h-3 w-3" />
+                </span>
               </Link>
             </div>
           ) : (
@@ -232,9 +239,9 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
                 className="flex-1 py-2.5 px-3 rounded-xl bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] hover:bg-[#D8B76A]/20 text-[10px] font-bold uppercase tracking-wider transition disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
               >
                 {loading ? (
-                  <><span className="animate-spin">✦</span><span>Generating…</span></>
+                  <><Icon icon="lucide:loader-2" className="h-3.5 w-3.5 animate-spin" /><span>Generating...</span></>
                 ) : (
-                  <><span>✨</span><span>Generate with AI</span></>
+                  <><Icon icon="lucide:sparkles" className="w-3.5 h-3.5" /><span>Generate with AI</span></>
                 )}
               </button>
               <button
@@ -244,7 +251,7 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
                 title={!currentMessage?.trim() ? "Write a message first, then rewrite it with AI" : "Rewrite current message"}
                 className="flex-1 py-2.5 px-3 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white text-[10px] font-bold uppercase tracking-wider transition disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
               >
-                <span>↺</span>
+                <Icon icon="lucide:rotate-ccw" className="w-3.5 h-3.5" />
                 <span>Rewrite Current</span>
               </button>
             </div>
@@ -279,9 +286,9 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
                 type="button"
                 onClick={handleApply}
                 disabled={!generatedText.trim() || charCount > 170}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#D8B76A] to-[#F2D894] text-[#070A13] text-xs font-bold uppercase tracking-wider hover:opacity-95 disabled:opacity-50 transition cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#D8B76A] to-[#F2D894] text-[#070A13] text-xs font-bold uppercase tracking-wider hover:opacity-95 disabled:opacity-50 transition cursor-pointer flex items-center justify-center gap-1.5"
               >
-                Apply to Invitation ✓
+                <Icon icon="lucide:check" className="w-3.5 h-3.5" /> Apply to Invitation
               </button>
             </div>
           )}

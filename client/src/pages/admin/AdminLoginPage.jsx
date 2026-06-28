@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { loginSchema } from "../../utils/schemas";
+import { Icon } from "@iconify/react";
 
 const EyeIcon = ({ open }) => (
   <svg
@@ -52,7 +53,7 @@ const AdminLoginPage = () => {
       localStorage.setItem("token", res.data.accessToken);
       localStorage.setItem("refreshToken", res.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      toast.success("Welcome back! 🎉");
+      toast.success("Welcome back!");
       if (res.data.user?.role === "admin" && res.data.user?.email?.toLowerCase() === "nwubachukwuemelie@gmail.com") {
         navigate("/super-admin/dashboard");
       } else {
@@ -164,7 +165,9 @@ const AdminLoginPage = () => {
         <div className="mt-6 pt-5 border-t border-white/5 text-center">
           <p className="text-[11px] text-white/30">Are you a wedding venue owner?</p>
           <Link to="/venue/login" className="text-[#D8B76A] hover:underline text-xs font-semibold mt-1 inline-block">
-            Access Venue Partner Portal →
+            <span className="inline-flex items-center gap-1">
+              Access Venue Partner Portal <Icon icon="lucide:arrow-right" className="h-3 w-3" />
+            </span>
           </Link>
         </div>
       </div>

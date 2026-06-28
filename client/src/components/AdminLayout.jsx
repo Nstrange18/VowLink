@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import { Icon } from '@iconify/react'
 
 const navLinks = [
-  { to: '/admin/dashboard', label: 'Dashboard', icon: '◈' },
-  { to: '/admin/invitations', label: 'Invitations', icon: '✉' },
-  { to: '/admin/whatsapp-bulk', label: 'WhatsApp Sender', icon: '💬' },
-  { to: '/admin/rsvps', label: 'RSVPs', icon: '✓' },
-  { to: '/admin/seating', label: 'Seating Chart', icon: '🪑' },
-  { to: '/admin/venues', label: 'Suggested Venues', icon: '📍' },
-  { to: '/admin/billing', label: 'Billing & Tiers', icon: '💳' },
-  { to: '/admin/settings', label: 'Settings', icon: '⚙' },
+  { to: '/admin/dashboard', label: 'Dashboard', icon: 'lucide:layout-dashboard' },
+  { to: '/admin/invitations', label: 'Invitations', icon: 'lucide:mail' },
+  { to: '/admin/whatsapp-bulk', label: 'WhatsApp Sender', icon: 'lucide:message-square' },
+  { to: '/admin/rsvps', label: 'RSVPs', icon: 'lucide:check-square' },
+  { to: '/admin/seating', label: 'Seating Chart', icon: 'lucide:grid' },
+  { to: '/admin/venues', label: 'Suggested Venues', icon: 'lucide:map-pin' },
+  { to: '/admin/billing', label: 'Billing & Tiers', icon: 'lucide:credit-card' },
+  { to: '/admin/settings', label: 'Settings', icon: 'lucide:settings' },
 ]
 
 const getInitials = (name) =>
@@ -115,7 +116,9 @@ const AdminLayout = () => {
               }`
             }
           >
-            <span className="text-base">{icon}</span>
+            <span className="text-base flex items-center justify-center">
+              <Icon icon={icon} className="w-4 h-4 shrink-0" />
+            </span>
             {label}
           </NavLink>
         ))}
@@ -129,7 +132,7 @@ const AdminLayout = () => {
               to="/super-admin/dashboard"
               className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-amber-400 bg-amber-400/10 border border-amber-400/20 hover:bg-amber-400/20 transition-all duration-200"
             >
-              <span className="text-base">⚡</span>
+              <Icon icon="lucide:shield-alert" className="w-4 h-4 shrink-0" />
               Super Admin Panel
             </Link>
           </div>
@@ -140,7 +143,7 @@ const AdminLayout = () => {
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm text-white/50 transition hover:bg-white/5 hover:text-white"
           >
-            <span>⎋</span> Logout
+            <Icon icon="lucide:log-out" className="w-4 h-4 shrink-0" /> Logout
           </button>
         </div>
       </div>
