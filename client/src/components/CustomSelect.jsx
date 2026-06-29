@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Icon } from '@iconify/react'
 
 /**
  * CustomSelect — a fully styled dropdown that matches the dark admin theme.
@@ -40,9 +41,10 @@ const CustomSelect = ({ name, value, onChange, options = [], className = '' }) =
         className="w-full flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30 transition"
       >
         <span>{selectedLabel}</span>
-        <span className={`text-white/40 text-xs transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
-          ▼
-        </span>
+        <Icon
+          icon="lucide:chevron-down"
+          className={`h-4 w-4 text-white/40 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {/* Dropdown panel */}

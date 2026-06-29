@@ -1,3 +1,5 @@
+import { Icon } from "@iconify/react";
+
 /**
  * ColorPicker — name-based wedding colour selector
  * Stores human-readable colour names (e.g. "Champagne Gold"), not hex codes.
@@ -72,7 +74,7 @@ const ColorPicker = ({ value = [], onChange }) => {
                 <span className="text-xs text-white/80">{name}</span>
                 <button type="button" onClick={() => toggle(name)}
                   className="ml-1 text-white/20 hover:text-red-400 transition text-xs leading-none">
-                  ✕
+                  <Icon icon="lucide:x" className="h-3 w-3" />
                 </button>
               </div>
             )
@@ -108,7 +110,7 @@ const ColorPicker = ({ value = [], onChange }) => {
               {/* Selected tick */}
               {selected && (
                 <div className="absolute top-1 right-1 h-3.5 w-3.5 rounded-full bg-[#D8B76A] flex items-center justify-center">
-                  <span className="text-[8px] text-[#070A13] font-bold leading-none">✓</span>
+                  <Icon icon="lucide:check" className="h-2.5 w-2.5 text-[#070A13]" />
                 </div>
               )}
               {/* Name */}

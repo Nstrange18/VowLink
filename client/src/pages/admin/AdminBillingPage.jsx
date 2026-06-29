@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
+import { Icon } from "@iconify/react";
 
 const PLANS = [
   {
@@ -171,7 +172,7 @@ const AdminBillingPage = () => {
           localStorage.setItem("token", res.data.accessToken);
           localStorage.setItem("user", JSON.stringify(res.data.user));
           setUser(res.data.user);
-          toast.success(`Successfully upgraded to ${plan.name}! 🚀`);
+          toast.success(`Successfully upgraded to ${plan.name}!`);
           window.location.reload();
         } catch (err) {
           toast.error(err.response?.data?.message || "Verification failed. Please contact support.");
@@ -275,7 +276,7 @@ const AdminBillingPage = () => {
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-start gap-2.5 text-sm">
                       <span className={`text-base leading-none select-none ${feature.enabled ? "text-[#D8B76A]" : "text-white/20"}`}>
-                        {feature.enabled ? "✓" : "×"}
+                        <Icon icon={feature.enabled ? "lucide:check" : "lucide:x"} className="h-4 w-4" />
                       </span>
                       <span className={feature.enabled ? "text-white/80" : "text-white/30 line-through decoration-white/10"}>
                         {feature.text}
@@ -308,13 +309,16 @@ const AdminBillingPage = () => {
                       api.post("/auth/upgrade", { tier: plan.id }).then((res) => {
                         localStorage.setItem("token", res.data.accessToken);
                         localStorage.setItem("user", JSON.stringify(res.data.user));
-                        toast.success(`[DEV BYPASS] Instantly activated ${plan.name}! ⚡`);
+                        toast.success(`[DEV BYPASS] Instantly activated ${plan.name}!`);
                         window.location.reload();
                       });
                     }}
                     className="w-full text-center text-[10px] text-[#D8B76A]/50 hover:text-[#D8B76A] py-1 border border-dashed border-white/10 rounded-full hover:border-[#D8B76A]/30 transition"
                   >
-                    ⚡ Dev Bypass Activation
+                    <span className="inline-flex items-center justify-center gap-1.5">
+                      <Icon icon="lucide:zap" className="h-3.5 w-3.5" />
+                      Dev Bypass Activation
+                    </span>
                   </button>
                 )}
               </div>

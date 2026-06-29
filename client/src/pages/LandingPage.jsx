@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Icon } from '@iconify/react'
 
 const featureCards = [
   { icon: '01', title: 'Personalized Invites', desc: 'Create unique guest links with custom greetings, guest categories, seating counts, and private RSVP tracking.' },

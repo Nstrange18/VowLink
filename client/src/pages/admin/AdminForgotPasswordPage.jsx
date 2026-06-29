@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import { forgotPasswordSchema } from '../../utils/schemas'
+import { Icon } from '@iconify/react'
 
 const AdminForgotPasswordPage = () => {
   const [loading, setLoading] = useState(false)
@@ -38,7 +39,10 @@ const AdminForgotPasswordPage = () => {
 
         {sent ? (
           <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-6 py-5 text-center">
-            <p className="text-emerald-400 text-sm mb-2">✓ Email sent!</p>
+            <p className="flex items-center justify-center gap-1.5 text-emerald-400 text-sm mb-2">
+              <Icon icon="lucide:check" className="h-4 w-4" />
+              Email sent!
+            </p>
             <p className="text-white/50 text-xs">Check your inbox. The link expires in 1 hour.</p>
           </div>
         ) : (

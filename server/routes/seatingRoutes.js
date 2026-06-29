@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const Table = require("../models/Table");
 const { protect } = require("../middleware/auth");
 
@@ -30,7 +30,7 @@ router.post("/", protect, async (req, res) => {
       assignedGuests: assignedGuests || [],
     });
 
-    res.status(201).json({ message: "Table created successfully! ✓", table: newTable });
+    res.status(201).json({ message: "Table created successfully! ", table: newTable });
   } catch (error) {
     res.status(500).json({ message: "Failed to create table", error: error.message });
   }
@@ -51,7 +51,7 @@ router.put("/:id", protect, async (req, res) => {
     if (assignedGuests !== undefined) table.assignedGuests = assignedGuests;
 
     await table.save();
-    res.status(200).json({ message: "Table updated successfully! ✓", table });
+    res.status(200).json({ message: "Table updated successfully! ", table });
   } catch (error) {
     res.status(500).json({ message: "Failed to update table", error: error.message });
   }
@@ -65,7 +65,7 @@ router.delete("/:id", protect, async (req, res) => {
       return res.status(404).json({ message: "Table not found." });
     }
 
-    res.status(200).json({ message: "Table deleted successfully! ✓" });
+    res.status(200).json({ message: "Table deleted successfully! " });
   } catch (error) {
     res.status(500).json({ message: "Failed to delete table", error: error.message });
   }

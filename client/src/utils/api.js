@@ -1,4 +1,4 @@
-import axios from 'axios'
+﻿import axios from 'axios'
 
 const getBaseURL = () => {
   if (import.meta.env.VITE_API_URL) {
@@ -54,7 +54,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !original._retry && !isAuthPageRequest && !isVenueRequest) {
       const refreshToken = localStorage.getItem('refreshToken')
 
-      // No refresh token → force logout
+      // No refresh token -> force logout
       if (!refreshToken) {
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
@@ -97,7 +97,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null)
 
-        // Refresh token expired → force logout
+        // Refresh token expired -> force logout
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('user')

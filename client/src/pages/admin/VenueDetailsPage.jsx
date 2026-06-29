@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
+import { Icon } from "@iconify/react";
 
 const VenueDetailsPage = () => {
   const { id } = useParams();
@@ -9,7 +10,7 @@ const VenueDetailsPage = () => {
   const [venue, setVenue] = useState(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
-  
+
   // Slideshow state
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
@@ -110,7 +111,7 @@ const VenueDetailsPage = () => {
           to="/admin/venues"
           className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-[#D8B76A] hover:text-[#F2D894] transition"
         >
-          <span>←</span> Back to Suggested Venues
+          <Icon icon="lucide:arrow-left" className="w-3.5 h-3.5" /> Back to Suggested Venues
         </Link>
       </div>
 
@@ -130,12 +131,14 @@ const VenueDetailsPage = () => {
 
         {isFree && (
           <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 flex items-center gap-3">
-            <span className="text-xl">💡</span>
+            <Icon icon="lucide:lightbulb" className="text-xl text-amber-400 shrink-0" />
             <div>
               <p className="text-xs font-semibold text-[#D8B76A] uppercase tracking-wider">Free Preview Mode</p>
               <p className="text-white/60 text-[10px] mt-0.5">Upgrade to unlock exact address, maps & manager contacts.</p>
               <Link to="/admin/billing" className="text-xs text-[#D8B76A] underline font-bold mt-1 inline-block">
-                Upgrade Workspace →
+                <span className="inline-flex items-center gap-1">
+                  Upgrade Workspace <Icon icon="lucide:arrow-right" className="h-3 w-3" />
+                </span>
               </Link>
             </div>
           </div>
@@ -144,10 +147,10 @@ const VenueDetailsPage = () => {
 
       {/* Main Details Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* Left Column: Photo Slideshow & Specifications */}
         <div className="lg:col-span-8 space-y-6">
-          
+
           {/* Photo Slideshow */}
           <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-4 space-y-4">
             <div className="h-64 sm:h-96 w-full rounded-2xl overflow-hidden bg-white/5 relative">
@@ -170,9 +173,8 @@ const VenueDetailsPage = () => {
                   <button
                     key={index}
                     onClick={() => setActivePhotoIndex(index)}
-                    className={`h-16 w-20 rounded-xl overflow-hidden border-2 bg-white/5 transition duration-200 ${
-                      activePhotoIndex === index ? "border-[#D8B76A] scale-95" : "border-white/10 hover:border-white/30"
-                    }`}
+                    className={`h-16 w-20 rounded-xl overflow-hidden border-2 bg-white/5 transition duration-200 ${activePhotoIndex === index ? "border-[#D8B76A] scale-95" : "border-white/10 hover:border-white/30"
+                      }`}
                   >
                     <img
                       src={photo}
@@ -193,7 +195,7 @@ const VenueDetailsPage = () => {
           <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 space-y-4">
             <h3 className="font-serif text-xl text-white">About the Venue</h3>
             <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap">{venue.description}</p>
-            
+
             {venue.tags && venue.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-3 border-t border-white/5">
                 {venue.tags.map((t, idx) => (
@@ -211,7 +213,7 @@ const VenueDetailsPage = () => {
           {/* Specifications Grid */}
           <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 space-y-4">
             <h3 className="font-serif text-xl text-white">Specifications</h3>
-            
+
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-center">
                 <span className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] block mb-1">Style</span>
@@ -223,8 +225,12 @@ const VenueDetailsPage = () => {
               </div>
               <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-center">
                 <span className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] block mb-1">Price Range</span>
-                <span className="text-sm font-semibold text-emerald-400">
-                  {isFree ? "🔒 Locked" : venue.priceRange}
+                <span className="text-sm font-semibold text-emerald-400 inline-flex items-center gap-1">
+                  {isFree ? (
+                    <span className="inline-flex items-center gap-1.5 text-white/40">
+                      <Icon icon="lucide:lock" className="w-3.5 h-3.5 text-[#D8B76A]/70" /> Locked
+                    </span>
+                  ) : venue.priceRange}
                 </span>
               </div>
               <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-center">
@@ -236,19 +242,18 @@ const VenueDetailsPage = () => {
         </div>
 
         {/* Right Column: Contact, Trust/Safety & Direct Inquiry */}
-        <div className="lg:col-span-4 space-y-6">
-          
+        <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
+
           {/* Trust Score & Safety Checklist */}
           <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="font-serif text-lg text-white">Trust & Safety</h3>
-              <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full ${
-                trustVerified
+              <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full ${trustVerified
                   ? trustScore >= 7
                     ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
                     : "bg-amber-500/10 border border-amber-500/30 text-amber-400"
                   : "bg-white/5 border border-white/15 text-white/40"
-              }`}>
+                }`}>
                 <span className="text-[10px] uppercase font-bold tracking-wider">Score</span>
                 <span className="text-xs font-bold font-mono">{trustVerified ? `${trustScore}/10` : "—"}</span>
               </div>
@@ -259,17 +264,17 @@ const VenueDetailsPage = () => {
               <p className="text-xs text-white/50 leading-relaxed">
                 VowLink safety standards checklist verified by administration:
               </p>
-              
+
               <div className="space-y-3">
                 {safetyChecklist.map((item, idx) => (
                   <div key={idx} className={`flex items-start gap-2.5 ${item.checked ? "" : "opacity-40"}`}>
                     {item.checked ? (
-                      <span className="h-4 w-4 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9px] flex items-center justify-center font-bold mt-0.5 shrink-0">
-                        ✓
+                      <span className="h-4 w-4 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold mt-0.5 shrink-0">
+                        <Icon icon="lucide:check" className="w-2.5 h-2.5" />
                       </span>
                     ) : (
-                      <span className="h-4 w-4 rounded-full bg-white/5 border border-white/10 text-white/30 text-[9px] flex items-center justify-center font-bold mt-0.5 shrink-0">
-                        ✕
+                      <span className="h-4 w-4 rounded-full bg-white/5 border border-white/10 text-white/30 flex items-center justify-center font-bold mt-0.5 shrink-0">
+                        <Icon icon="lucide:x" className="w-2.5 h-2.5" />
                       </span>
                     )}
                     <span className={`text-xs leading-snug ${item.checked ? "text-white/80" : "text-white/50 line-through decoration-white/20"}`}>{item.name}</span>
@@ -286,8 +291,8 @@ const VenueDetailsPage = () => {
             {isFree ? (
               // Locked View
               <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-white/5 border border-dashed border-white/10 text-center space-y-3">
-                  <span className="text-2xl block">🔒</span>
+                <div className="p-4 rounded-2xl bg-white/5 border border-dashed border-white/10 text-center space-y-3 flex flex-col items-center">
+                  <Icon icon="lucide:lock" className="w-8 h-8 text-[#D8B76A] mb-1" />
                   <p className="text-xs text-white/60">
                     Contact numbers, WhatsApp chats, full address and Google maps references are locked on the Free Plan.
                   </p>
@@ -307,8 +312,9 @@ const VenueDetailsPage = () => {
                     <span className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] block mb-1">Full Address</span>
                     {/* Guard: if fullAddress looks like an email, the owner likely entered it in the wrong field */}
                     {venue.fullAddress && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(venue.fullAddress.trim()) ? (
-                      <p className="text-xs text-amber-400/80 italic leading-relaxed">
-                        ⚠️ Address not set yet — please contact the venue directly for directions.
+                      <p className="text-xs text-amber-400/80 italic leading-relaxed flex items-center gap-1.5">
+                        <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <span>Address not set yet — please contact the venue directly for directions.</span>
                       </p>
                     ) : (
                       <p className="text-xs text-white/80 leading-relaxed">
@@ -354,9 +360,9 @@ const VenueDetailsPage = () => {
                     rel="noopener noreferrer"
                     className="text-center bg-white/5 hover:bg-white/10 text-white border border-white/10 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5"
                   >
-                    🗺 Directions
+                    <Icon icon="lucide:map" className="w-3.5 h-3.5" /> Directions
                   </a>
-                  
+
                   <a
                     href={`https://wa.me/${venue.whatsapp}?text=${encodeURIComponent(
                       `Hi! We are viewing ${venue.name} on VowLink and would love to check rates and available dates.`
@@ -365,13 +371,13 @@ const VenueDetailsPage = () => {
                     rel="noopener noreferrer"
                     className="text-center bg-[#25D366] text-[#070A13] py-2.5 rounded-xl text-xs font-semibold hover:opacity-90 transition flex items-center justify-center gap-1.5"
                   >
-                    📲 WhatsApp
+                    <Icon icon="mdi:whatsapp" className="w-3.5 h-3.5" /> WhatsApp
                   </a>
                 </div>
 
                 {/* Maps Frame / Embed Map Placeholder */}
                 <div className="rounded-xl overflow-hidden border border-white/10 h-36 bg-[#070A13] flex flex-col items-center justify-center text-center p-4 relative group">
-                  <span className="text-2xl mb-1 text-white/40">📍</span>
+                  <Icon icon="lucide:map-pin" className="w-6 h-6 text-white/40 mb-1" />
                   <span className="text-[10px] text-white/50 max-w-40 leading-snug">Interactive Navigation Maps Link Connected</span>
                   <a
                     href={venue.mapLink}
@@ -391,8 +397,8 @@ const VenueDetailsPage = () => {
             <h3 className="font-serif text-lg text-white">Direct Inquiry</h3>
 
             {!isPro ? (
-              <div className="p-4 rounded-2xl bg-white/5 border border-dashed border-white/10 text-center space-y-3">
-                <span className="text-xl block">✉️</span>
+              <div className="p-4 rounded-2xl bg-white/5 border border-dashed border-white/10 text-center space-y-3 flex flex-col items-center">
+                <Icon icon="lucide:mail" className="w-8 h-8 text-white/40 mb-1" />
                 <p className="text-[11px] text-white/50 leading-relaxed">
                   Direct lead communication and quotes submission requires a Pro Subscription.
                 </p>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../utils/api'
 import Skeleton from '../../components/common/Skeleton'
+import { Icon } from '@iconify/react'
 
 const CATEGORIES = ['VIP', 'Family', 'Friend', 'Colleague', 'Guest']
 
@@ -68,13 +69,15 @@ const CountdownWidget = ({ weddingDate, loading }) => {
   if (!weddingDate) {
     return (
       <div className="rounded-2xl border border-dashed border-[#D8B76A]/20 bg-[#D8B76A]/5 px-6 py-8 text-center">
-        <p className="text-3xl mb-3">💍</p>
+        <Icon icon="mdi:ring" className="mx-auto mb-3 h-8 w-8 text-[#D8B76A]" />
         <p className="text-white/60 text-sm mb-3">Your wedding date isn't set yet.</p>
         <Link
           to="/admin/settings"
           className="inline-block rounded-full bg-[#D8B76A]/20 border border-[#D8B76A]/30 px-5 py-2 text-xs font-semibold uppercase tracking-wider text-[#D8B76A] hover:bg-[#D8B76A]/30 transition"
         >
-          Set Your Date →
+          <span className="inline-flex items-center gap-1">
+            Set Your Date <Icon icon="lucide:arrow-right" className="h-3.5 w-3.5" />
+          </span>
         </Link>
       </div>
     )
@@ -110,7 +113,9 @@ const CountdownWidget = ({ weddingDate, loading }) => {
         {/* Soft gold glow overlay */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ background: '#D8B76A' }} />
 
-        <div className="relative z-10 mb-3 text-5xl">🎉</div>
+        <div className="relative z-10 mb-3 flex justify-center">
+          <Icon icon="lucide:party-popper" className="text-5xl text-[#D8B76A]" />
+        </div>
         <div className="relative z-10 space-y-1">
           <h3 className="font-serif text-2xl text-white font-light">You're Married!</h3>
           <p className="text-[#D8B76A] font-serif text-lg font-light">{coupleNames}</p>
@@ -201,9 +206,9 @@ const CountdownWidget = ({ weddingDate, loading }) => {
         })}
 
         {/* Floating Heart / Ring */}
-        <div className="relative z-10 mb-4 animate-[heartBeat_2.5s_infinite_ease-in-out]">
-          <span className="text-6xl filter drop-shadow-[0_0_12px_rgba(216,183,106,0.5)]">💍</span>
-        </div>
+          <div className="flex justify-center">
+            <Icon icon="ph:rings-bold" className="text-6xl text-[#D8B76A] filter drop-shadow-[0_0_12px_rgba(216,183,106,0.5)]" />
+          </div>
 
         <div className="relative z-10 space-y-2">
           <span className="text-[10px] uppercase tracking-[0.4em] text-[#D8B76A] font-bold block mb-1">Happy Wedding Day!</span>
@@ -214,7 +219,11 @@ const CountdownWidget = ({ weddingDate, loading }) => {
             {coupleNames}
           </p>
           <p className="text-white/40 text-xs font-mono uppercase tracking-wider mt-2">
-            ✨ {formattedDate} ✨
+            <span className="inline-flex items-center justify-center gap-1.5">
+              <Icon icon="lucide:sparkles" className="h-3.5 w-3.5" />
+              {formattedDate}
+              <Icon icon="lucide:sparkles" className="h-3.5 w-3.5" />
+            </span>
           </p>
         </div>
       </div>
@@ -332,11 +341,11 @@ const AdminDashboardPage = () => {
 
         {/* Customization Tip Banner */}
         <div className="mb-6 rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-5 py-4 flex items-start gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.15)] animate-fade-in">
-          <span className="text-xl mt-0.5">🎨</span>
+          <Icon icon="lucide:palette" className="text-xl text-[#D8B76A] mt-0.5 shrink-0" />
           <div className="flex-1 space-y-1">
             <h4 className="text-xs font-bold uppercase tracking-wider text-[#D8B76A]">Personalize Your Invitation</h4>
             <p className="text-white/60 text-xs leading-relaxed">
-              Want to customize your card design, change theme templates, upload a couple photo overlay, pick background music, or fine-tune fonts? Head over to the <Link to="/admin/settings" className="text-[#D8B76A] font-semibold underline hover:text-[#D8B76A]/80 transition">Settings Page</Link> to customize your VowLink experience!
+              Want to customize your card design, change theme templates, upload a couple photo overlay, pick background music, or fine-tune fonts? Head over to the <Link to="/admin/settings?tab=design" className="text-[#D8B76A] font-semibold underline hover:text-[#D8B76A]/80 transition">Settings Page</Link> to customize your VowLink experience!
             </p>
           </div>
         </div>
@@ -430,7 +439,7 @@ const AdminDashboardPage = () => {
                       >
                         <span className={`h-1.5 w-1.5 rounded-full ${g.hasRSVPed ? 'bg-emerald-400' : 'bg-white/20'}`} />
                         {g.guestName}
-                        {g.hasRSVPed && <span className="ml-0.5">✓</span>}
+                        {g.hasRSVPed && <Icon icon="lucide:check" className="ml-0.5 h-3 w-3" />}
                       </span>
                     ))}
                   </div>

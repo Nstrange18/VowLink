@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
+import { Icon } from "@iconify/react";
 
 // Robust CSV parser supporting quotes and escaped quotes
 const parseCSVLine = (line) => {
@@ -164,7 +165,7 @@ const AdminBulkInvitationPage = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("Excel-compatible CSV template downloaded! 📋");
+    toast.success("Excel-compatible CSV template downloaded!");
   };
 
   const handleCsvUpload = (e) => {
@@ -178,7 +179,7 @@ const AdminBulkInvitationPage = () => {
     reader.onload = (ev) => {
       const text = ev.target.result;
       setInputText(text.trim());
-      toast.success(`✓ ${file.name} loaded — ${text.trim().split(/\r?\n/).filter(Boolean).length} rows detected.`);
+      toast.success(`${file.name} loaded successfully — ${text.trim().split(/\r?\n/).filter(Boolean).length} rows detected.`);
     };
     reader.onerror = () => toast.error("Failed to read the file.");
     reader.readAsText(file);
@@ -199,7 +200,7 @@ const AdminBulkInvitationPage = () => {
       {/* Spreadsheet Instructions Banner */}
       <div className="mb-6 p-5 rounded-2xl border border-white/10 bg-[#0D1220]/60 text-xs text-white/80 space-y-4 leading-relaxed animate-fade-in backdrop-blur-md">
         <h3 className="font-serif text-sm text-[#D8B76A] font-semibold flex items-center gap-1.5">
-          <span>📊</span> How to prepare your spreadsheet
+          <Icon icon="lucide:file-spreadsheet" className="w-4 h-4 text-[#D8B76A]" /> How to prepare your spreadsheet
         </h3>
         <p className="text-white/60">
           You can format your guest list in Microsoft Excel, Google Sheets, or any spreadsheet tool. Set up your table with the following 7 columns in order:
@@ -234,8 +235,9 @@ const AdminBulkInvitationPage = () => {
             <span className="text-white/40 text-[9px] block mt-0.5">Queue selection. (bride, groom, both, general)</span>
           </div>
         </div>
-        <p className="text-[10px] text-white/40 font-normal">
-          💡 Tip: Click the <strong>Download Template</strong> button below to get a pre-formatted Excel-compatible CSV file. Save your file as <strong>CSV (Comma delimited, .csv)</strong> when editing in Excel. If names or messages contain commas, Excel will automatically wrap them in double quotes.
+        <p className="text-[10px] text-white/40 font-normal flex items-start gap-1.5">
+          <Icon icon="lucide:lightbulb" className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+          <span>Tip: Click the <strong>Download Template</strong> button below to get a pre-formatted Excel-compatible CSV file. Save your file as <strong>CSV (Comma delimited, .csv)</strong> when editing in Excel. If names or messages contain commas, Excel will automatically wrap them in double quotes.</span>
         </p>
       </div>
 
@@ -258,21 +260,21 @@ const AdminBulkInvitationPage = () => {
                 onClick={() => csvInputRef.current?.click()}
                 className="text-[10px] uppercase font-semibold text-[#7FA6D9] hover:underline flex items-center gap-1"
               >
-                📂 Upload CSV
+                <Icon icon="lucide:folder-open" className="w-3.5 h-3.5" /> Upload CSV
               </button>
               <button
                 type="button"
                 onClick={downloadTemplate}
                 className="text-[10px] uppercase font-semibold text-[#3EC58E] hover:underline flex items-center gap-1"
               >
-                📥 Download Template
+                <Icon icon="lucide:download" className="w-3.5 h-3.5" /> Download Template
               </button>
               <button
                 type="button"
                 onClick={loadSampleData}
-                className="text-[10px] uppercase font-semibold text-[#D8B76A] hover:underline"
+                className="text-[10px] uppercase font-semibold text-[#D8B76A] hover:underline flex items-center gap-1"
               >
-                ⚡ Load Sample
+                <Icon icon="lucide:sparkles" className="w-3.5 h-3.5" /> Load Sample
               </button>
             </div>
           </div>
@@ -364,7 +366,12 @@ Example:
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        {guest.phoneNumber && <div className="text-[#3EC58E] font-mono text-[10px] mb-1">📞 {guest.phoneNumber}</div>}
+                        {guest.phoneNumber && (
+                          <div className="text-[#3EC58E] font-mono text-[10px] mb-1 flex items-center gap-1">
+                            <Icon icon="lucide:phone" className="w-3 h-3 text-[#3EC58E]" />
+                            <span>{guest.phoneNumber}</span>
+                          </div>
+                        )}
                         <div className="text-[#D8B76A]/80 font-serif italic text-[11px] leading-tight mb-1">{guest.greeting}</div>
                         <div className="text-white/40 text-[10px] leading-tight line-clamp-2">{guest.customMessage}</div>
                       </td>

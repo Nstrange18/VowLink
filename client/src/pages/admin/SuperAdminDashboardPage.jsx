@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
+import { Icon } from "@iconify/react";
 
 const SuperAdminDashboardPage = () => {
   const navigate = useNavigate();
@@ -202,7 +203,7 @@ const SuperAdminDashboardPage = () => {
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setVenueToDelete(null)} />
           <div className="relative z-10 w-full max-w-md rounded-3xl border border-red-500/25 bg-[#0D1220] p-8 shadow-2xl space-y-5">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">🗑️</span>
+              <Icon icon="lucide:trash-2" className="text-2xl text-red-500 shrink-0" />
               <h2 className="font-serif text-xl text-white">Delete Venue?</h2>
             </div>
             <p className="text-sm text-white/60 leading-relaxed">
@@ -234,7 +235,7 @@ const SuperAdminDashboardPage = () => {
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setCoupleToDelete(null)} />
           <div className="relative z-10 w-full max-w-md rounded-3xl border border-red-500/25 bg-[#0D1220] p-8 shadow-2xl space-y-5">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">⚠️</span>
+              <Icon icon="lucide:alert-triangle" className="text-2xl text-red-500 shrink-0" />
               <h2 className="font-serif text-xl text-white">Delete Couple Account?</h2>
             </div>
             <p className="text-sm text-white/60 leading-relaxed">
@@ -245,7 +246,10 @@ const SuperAdminDashboardPage = () => {
               <li>Guest RSVP records</li>
               <li>All inquiry logs to venues</li>
             </ul>
-            <p className="text-red-400/90 font-bold text-sm">⚠️ This action CANNOT be undone.</p>
+            <p className="text-red-400/90 font-bold text-sm flex items-center gap-1.5">
+              <Icon icon="lucide:alert-triangle" className="w-4 h-4 text-red-500 shrink-0" />
+              <span>This action CANNOT be undone.</span>
+            </p>
             <div className="flex gap-3 justify-end pt-2">
               <button
                 onClick={() => setCoupleToDelete(null)}
@@ -276,14 +280,15 @@ const SuperAdminDashboardPage = () => {
             onClick={() => navigate("/admin/dashboard")}
             className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] text-xs font-semibold tracking-wider hover:bg-[#D8B76A]/20 transition cursor-pointer"
           >
-            <span>💍</span> My Couple Workspace
+            <Icon icon="ph:rings-bold" className="w-4 h-4" /> My Couple Workspace
           </button>
           <button
             onClick={fetchData}
             disabled={loading}
-            className="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold tracking-wider hover:bg-white/10 transition cursor-pointer"
+            className="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold tracking-wider hover:bg-white/10 transition cursor-pointer flex items-center gap-1.5"
           >
-            {loading ? "Refreshing..." : "🔄 Refresh Data"}
+            <Icon icon="lucide:refresh-cw" className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh Data</span>
           </button>
         </div>
       </div>
@@ -293,7 +298,7 @@ const SuperAdminDashboardPage = () => {
         {/* Total Couples */}
         <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-4 sm:p-6 backdrop-blur-md">
           <div className="flex flex-col xs:flex-row justify-between items-start gap-2">
-            <span className="text-2xl">💍</span>
+            <Icon icon="ph:rings-bold" className="text-2xl text-emerald-400 shrink-0" />
             <span className="text-[9px] sm:text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">Active</span>
           </div>
           <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalCouples}</p>
@@ -304,7 +309,7 @@ const SuperAdminDashboardPage = () => {
         {/* Total Venues */}
         <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-4 sm:p-6 backdrop-blur-md">
           <div className="flex flex-col xs:flex-row justify-between items-start gap-2">
-            <span className="text-2xl">🏰</span>
+            <Icon icon="lucide:building-2" className="text-2xl text-[#D8B76A] shrink-0" />
             <span className="text-[9px] sm:text-[10px] bg-[#D8B76A]/10 border border-[#D8B76A]/20 text-[#D8B76A] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">Marketplace</span>
           </div>
           <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalVenues}</p>
@@ -315,7 +320,7 @@ const SuperAdminDashboardPage = () => {
         {/* Sponsored / Featured Listings */}
         <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-4 sm:p-6 backdrop-blur-md">
           <div className="flex flex-col xs:flex-row justify-between items-start gap-2">
-            <span className="text-2xl">✨</span>
+            <Icon icon="lucide:sparkles" className="text-2xl text-amber-400 shrink-0" />
             <span className="text-[9px] sm:text-[10px] bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">Featured</span>
           </div>
           <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.featuredVenues}</p>
@@ -326,7 +331,7 @@ const SuperAdminDashboardPage = () => {
         {/* Direct leads inquiries */}
         <div className="rounded-3xl border border-white/10 bg-[#0D1220]/60 p-4 sm:p-6 backdrop-blur-md">
           <div className="flex flex-col xs:flex-row justify-between items-start gap-2">
-            <span className="text-2xl">✉️</span>
+            <Icon icon="lucide:mail" className="text-2xl text-[#7FA6D9] shrink-0" />
             <span className="text-[9px] sm:text-[10px] bg-[#7FA6D9]/10 border border-[#7FA6D9]/20 text-[#7FA6D9] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">Leads</span>
           </div>
           <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalInquiries}</p>
@@ -343,7 +348,9 @@ const SuperAdminDashboardPage = () => {
             activeTab === "analytics" ? "text-[#D8B76A] border-b-2 border-[#D8B76A]" : "text-white/40 hover:text-white"
           }`}
         >
-          📈 Stats Overview
+          <span className="flex items-center gap-1.5">
+            <Icon icon="lucide:line-chart" className="w-3.5 h-3.5" /> Stats Overview
+          </span>
         </button>
         <button
           onClick={() => setActiveTab("venues")}
@@ -351,7 +358,9 @@ const SuperAdminDashboardPage = () => {
             activeTab === "venues" ? "text-[#D8B76A] border-b-2 border-[#D8B76A]" : "text-white/40 hover:text-white"
           }`}
         >
-          🏰 Venues ({stats.pendingVenues} Pending)
+          <span className="flex items-center gap-1.5">
+            <Icon icon="lucide:building-2" className="w-3.5 h-3.5" /> Venues ({stats.pendingVenues} Pending)
+          </span>
         </button>
         <button
           onClick={() => setActiveTab("couples")}
@@ -359,7 +368,9 @@ const SuperAdminDashboardPage = () => {
             activeTab === "couples" ? "text-[#D8B76A] border-b-2 border-[#D8B76A]" : "text-white/40 hover:text-white"
           }`}
         >
-          💍 Couples ({stats.totalCouples})
+          <span className="flex items-center gap-1.5">
+            <Icon icon="ph:rings-bold" className="w-3.5 h-3.5" /> Couples ({stats.totalCouples})
+          </span>
         </button>
         <button
           onClick={() => setActiveTab("inquiries")}
@@ -367,15 +378,52 @@ const SuperAdminDashboardPage = () => {
             activeTab === "inquiries" ? "text-[#D8B76A] border-b-2 border-[#D8B76A]" : "text-white/40 hover:text-white"
           }`}
         >
-          ✉️ Direct inquiries ({stats.totalInquiries})
+          <span className="flex items-center gap-1.5">
+            <Icon icon="lucide:mail" className="w-3.5 h-3.5" /> Direct inquiries ({stats.totalInquiries})
+          </span>
         </button>
       </div>
 
       {/* Tab Panels */}
       {loading ? (
-        <div className="py-20 text-center space-y-4">
-          <div className="h-10 w-10 border-4 border-white/10 border-t-[#D8B76A] rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-white/40">Loading platform data...</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
+          {/* Couple stats card skeleton */}
+          <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 space-y-6">
+            <div className="h-5 bg-white/10 rounded w-1/2" />
+            <div className="space-y-3">
+              <div className="h-4 bg-white/5 rounded w-full" />
+              <div className="h-4 bg-white/5 rounded w-full" />
+              <div className="h-4 bg-white/5 rounded w-full" />
+            </div>
+            <div className="pt-4 border-t border-white/5 flex justify-between">
+              <div className="h-4 bg-white/5 rounded w-1/4" />
+              <div className="h-4 bg-white/10 rounded w-12" />
+            </div>
+          </div>
+
+          {/* Venue stats card skeleton */}
+          <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 space-y-6">
+            <div className="h-5 bg-white/10 rounded w-1/2" />
+            <div className="space-y-3">
+              <div className="h-4 bg-white/5 rounded w-full" />
+              <div className="h-4 bg-white/5 rounded w-full" />
+              <div className="h-4 bg-white/5 rounded w-full" />
+            </div>
+            <div className="pt-4 border-t border-white/5 flex justify-between">
+              <div className="h-4 bg-white/5 rounded w-1/4" />
+              <div className="h-4 bg-white/10 rounded w-12" />
+            </div>
+          </div>
+
+          {/* Large bottom table skeleton */}
+          <div className="col-span-1 md:col-span-2 rounded-3xl border border-white/10 bg-[#0D1220] p-6 space-y-4">
+            <div className="h-5 bg-white/10 rounded w-1/4" />
+            <div className="space-y-2">
+              <div className="h-10 bg-[#070A13] rounded-xl w-full" />
+              <div className="h-10 bg-[#070A13] rounded-xl w-full" />
+              <div className="h-10 bg-[#070A13] rounded-xl w-full" />
+            </div>
+          </div>
         </div>
       ) : (
         <div className="space-y-6">
@@ -432,9 +480,9 @@ const SuperAdminDashboardPage = () => {
                 {[
                   { key: "all",      label: "All",      count: venues.length },
                   { key: "approved", label: "Approved", count: venues.filter(v => v.isApproved).length },
-                  { key: "featured", label: "★ Featured", count: venues.filter(v => v.isFeatured).length },
+                  { key: "featured", label: "Featured", icon: "mdi:star", count: venues.filter(v => v.isFeatured).length },
                   { key: "pending",  label: "Pending",  count: venues.filter(v => !v.isApproved).length },
-                ].map(({ key, label, count }) => (
+                ].map(({ key, label, icon, count }) => (
                   <button
                     key={key}
                     onClick={() => setVenueFilter(key)}
@@ -448,7 +496,8 @@ const SuperAdminDashboardPage = () => {
                         : "bg-white/5 border-white/10 text-white/40 hover:text-white hover:border-white/20"
                     }`}
                   >
-                    {label}
+                    {icon && <Icon icon={icon} className="w-3 h-3 shrink-0" />}
+                    <span>{label}</span>
                     <span className="bg-white/10 rounded-full px-1.5 py-0.5 font-mono text-[9px]">{count}</span>
                   </button>
                 ))}
@@ -500,7 +549,10 @@ const SuperAdminDashboardPage = () => {
                           </span>
                           {venue.isFeatured && (
                             <span className="text-[9px] font-bold text-[#070A13] bg-[#D8B76A] px-2 py-0.5 rounded-full uppercase tracking-wider">
-                              ★ Featured
+                              <span className="inline-flex items-center gap-1">
+                                <Icon icon="mdi:star" className="w-3 h-3 shrink-0" />
+                                Featured
+                              </span>
                             </span>
                           )}
                         </div>
@@ -511,11 +563,25 @@ const SuperAdminDashboardPage = () => {
                           <p className="text-xs text-white/40">{venue.city} • {venue.style}</p>
                           
                           <div className="mt-3 space-y-1 text-[11px] text-white/60 font-mono">
-                            <p>📧 Owner: {venue.ownerEmail}</p>
-                            <p>📞 Phone: {venue.phone}</p>
-                            <p>💰 Price Range: {venue.priceRange}</p>
-                            <p>🎟️ Inquiries: {venue.inquiries || 0} leads | Views: {venue.views || 0}</p>
-                            <p>🛡️ Safety: {
+                            <p className="flex items-center gap-1.5">
+                              <Icon icon="mdi:email-outline" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                              <span>Owner: {venue.ownerEmail}</span>
+                            </p>
+                            <p className="flex items-center gap-1.5">
+                              <Icon icon="mdi:phone-outline" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                              <span>Phone: {venue.phone}</span>
+                            </p>
+                            <p className="flex items-center gap-1.5">
+                              <Icon icon="mdi:cash-multiple" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                              <span>Price Range: {venue.priceRange}</span>
+                            </p>
+                            <p className="flex items-center gap-1.5">
+                              <Icon icon="mdi:ticket-confirmation-outline" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                              <span>Inquiries: {venue.inquiries || 0} leads | Views: {venue.views || 0}</span>
+                            </p>
+                            <p className="flex items-center gap-1.5">
+                              <Icon icon="mdi:shield-check-outline" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                              <span>Safety: {
                               [
                                 venue.safetyFireExits && "Fire Exits",
                                 venue.safetySecurity && "Security",
@@ -523,10 +589,17 @@ const SuperAdminDashboardPage = () => {
                                 venue.safetyInsurance && "Insurance",
                                 venue.safetyCctv && "CCTV"
                               ].filter(Boolean).join(", ") || "None Verified"
-                            }</p>
-                            <p>⭐ Trust Score: {venue.trustScore !== undefined && venue.trustScore > 0 ? `${venue.trustScore}/10` : "— (not verified yet)"}</p>
+                            }</span>
+                            </p>
+                            <p className="flex items-center gap-1.5">
+                              <Icon icon="mdi:star-outline" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                              <span>Trust Score: {venue.trustScore !== undefined && venue.trustScore > 0 ? `${venue.trustScore}/10` : "— (not verified yet)"}</span>
+                            </p>
                             {venue.verificationNotes && (
-                              <p className="text-[#D8B76A] italic">📝 Admin Notes: {venue.verificationNotes}</p>
+                              <p className="text-[#D8B76A] italic flex items-center gap-1.5">
+                                <Icon icon="mdi:note-edit-outline" className="w-3.5 h-3.5 shrink-0" />
+                                <span>Admin Notes: {venue.verificationNotes}</span>
+                              </p>
                             )}
                           </div>
                         </div>
@@ -545,7 +618,10 @@ const SuperAdminDashboardPage = () => {
                             ];
                             return allProofs.length > 0 ? (
                               <div className="space-y-1.5">
-                                <span className="text-[9px] uppercase tracking-wider font-bold text-[#D8B76A] block">📂 Submitted Proof Documents ({allProofs.length})</span>
+                                <span className="text-[9px] uppercase tracking-wider font-bold text-[#D8B76A] flex items-center gap-1.5">
+                                  <Icon icon="mdi:folder-open-outline" className="w-3.5 h-3.5 shrink-0" />
+                                  Submitted Proof Documents ({allProofs.length})
+                                </span>
                                 {allProofs.map((url, idx) => (
                                   <a
                                     key={idx}
@@ -554,7 +630,9 @@ const SuperAdminDashboardPage = () => {
                                     rel="noopener noreferrer"
                                     className="mt-0.5 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#D8B76A]/10 text-[#D8B76A] hover:bg-[#D8B76A]/20 border border-[#D8B76A]/20 text-[10px] font-bold uppercase tracking-wider transition w-full justify-center"
                                   >
-                                    📄 Document {idx + 1} — Open / View →
+                                    <Icon icon="mdi:file-document-outline" className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Document {idx + 1} - Open / View</span>
+                                    <Icon icon="lucide:arrow-right" className="w-3 h-3 shrink-0" />
                                   </a>
                                 ))}
                               </div>
@@ -569,11 +647,26 @@ const SuperAdminDashboardPage = () => {
                           <div className="bg-white/5 border border-white/10 p-3 rounded-xl space-y-1.5 text-[11px] text-white/70">
                             <span className="font-bold text-[#D8B76A] block uppercase text-[9px] tracking-wider mb-0.5">Declared by Venue Owner:</span>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-                              <div>🔥 Fire Exits: <span className={venue.claimedFireExits ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedFireExits ? "Yes" : "No"}</span></div>
-                              <div>📹 CCTV: <span className={venue.claimedCctv ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedCctv ? "Yes" : "No"}</span></div>
-                              <div>🛡️ Security: <span className={venue.claimedSecurity ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedSecurity ? "Yes" : "No"}</span></div>
-                              <div>🏗️ Structural: <span className={venue.claimedStructural ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedStructural ? "Yes" : "No"}</span></div>
-                              <div className="sm:col-span-2">💼 Insurance: <span className={venue.claimedInsurance ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedInsurance ? "Yes" : "No"}</span></div>
+                              <div className="flex items-center gap-1.5">
+                                <Icon icon="mdi:fire-extinguisher" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                                <span>Fire Exits: <span className={venue.claimedFireExits ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedFireExits ? "Yes" : "No"}</span></span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Icon icon="mdi:cctv" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                                <span>CCTV: <span className={venue.claimedCctv ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedCctv ? "Yes" : "No"}</span></span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Icon icon="mdi:shield-lock-outline" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                                <span>Security: <span className={venue.claimedSecurity ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedSecurity ? "Yes" : "No"}</span></span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Icon icon="mdi:crane" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                                <span>Structural: <span className={venue.claimedStructural ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedStructural ? "Yes" : "No"}</span></span>
+                              </div>
+                              <div className="sm:col-span-2 flex items-center gap-1.5">
+                                <Icon icon="mdi:briefcase-check-outline" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                                <span>Insurance: <span className={venue.claimedInsurance ? "text-emerald-400 font-bold" : "text-white/40"}>{venue.claimedInsurance ? "Yes" : "No"}</span></span>
+                              </div>
                             </div>
                           </div>
 
@@ -695,7 +788,10 @@ const SuperAdminDashboardPage = () => {
                                   venue.isFeatured ? "border-[#D8B76A] text-[#D8B76A] bg-[#D8B76A]/10 hover:bg-[#D8B76A]/20" : "border-white/20 text-white hover:bg-white/5"
                                 }`}
                               >
-                                {venue.isFeatured ? "Unfeature" : "Feature ★"}
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Icon icon="mdi:star" className="w-3.5 h-3.5 shrink-0" />
+                                  {venue.isFeatured ? "Unfeature" : "Feature"}
+                                </span>
                               </button>
                             </>
                           )}
@@ -703,7 +799,10 @@ const SuperAdminDashboardPage = () => {
                             onClick={() => startVerificationEdit(venue)}
                             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/35 transition cursor-pointer"
                           >
-                            Edit Verification 🛡️
+                            <span className="inline-flex items-center gap-1.5">
+                              <Icon icon="mdi:shield-edit-outline" className="w-3.5 h-3.5 shrink-0" />
+                              Edit Verification
+                            </span>
                           </button>
                         </div>
 
@@ -711,7 +810,10 @@ const SuperAdminDashboardPage = () => {
                           onClick={() => handleDeleteVenue(venue._id)}
                           className="px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-bold transition cursor-pointer"
                         >
-                          Delete 🗑️
+                          <span className="inline-flex items-center gap-1.5">
+                            <Icon icon="mdi:trash-can-outline" className="w-3.5 h-3.5 shrink-0" />
+                            Delete
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -766,7 +868,10 @@ const SuperAdminDashboardPage = () => {
                               onClick={() => handleDeleteCouple(couple._id)}
                               className="px-2.5 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 transition text-[11px] font-bold cursor-pointer"
                             >
-                              Delete Account 🗑️
+                              <span className="inline-flex items-center gap-1.5">
+                                <Icon icon="mdi:trash-can-outline" className="w-3.5 h-3.5 shrink-0" />
+                                Delete Account
+                              </span>
                             </button>
                           </td>
                         </tr>
@@ -790,7 +895,10 @@ const SuperAdminDashboardPage = () => {
                       <div className="flex justify-between items-start flex-wrap gap-2">
                         <div>
                           <p className="font-semibold text-white/80">
-                            💍 {inq.user ? `${inq.user.partner1Name} & ${inq.user.partner2Name}` : "[Deleted Couple]"}
+                            <span className="inline-flex items-center gap-1.5">
+                              <Icon icon="mdi:ring" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                              {inq.user ? `${inq.user.partner1Name} & ${inq.user.partner2Name}` : "[Deleted Couple]"}
+                            </span>
                           </p>
                           <p className="text-[10px] text-white/40 mt-0.5">
                             Email: {inq.user?.email || "N/A"} • Date: {inq.user?.weddingDate ? new Date(inq.user.weddingDate).toLocaleDateString() : "N/A"}
@@ -798,7 +906,10 @@ const SuperAdminDashboardPage = () => {
                         </div>
                         <div className="text-right">
                           <p className="font-serif text-[#D8B76A] font-semibold text-sm">
-                            🏰 {inq.venue ? inq.venue.name : "[Deleted Venue]"}
+                            <span className="inline-flex items-center justify-end gap-1.5">
+                              <Icon icon="mdi:castle" className="w-3.5 h-3.5 shrink-0" />
+                              {inq.venue ? inq.venue.name : "[Deleted Venue]"}
+                            </span>
                           </p>
                           <p className="text-[10px] text-white/40 mt-0.5">
                             City: {inq.venue?.city || "N/A"}

@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -178,10 +178,10 @@ const userPublic = (user) => ({
 
 // ── Email helper ──────────────────────────────────────────────────────────────
 const sendResetEmail = async (email, resetUrl) => {
-  console.log("📧 [sendResetEmail] Attempting to send reset email to:", email);
+  console.log("[sendResetEmail] Attempting to send reset email to:", email);
 
   if (!process.env.SENDGRID_API_KEY) {
-    console.error("❌ [sendResetEmail] SendGrid API key missing");
+    console.error("[sendResetEmail] SendGrid API key missing");
     throw new Error("SendGrid API key not configured");
   }
 
@@ -202,10 +202,10 @@ const sendResetEmail = async (email, resetUrl) => {
       `,
     });
 
-    console.log("✅ [sendResetEmail] Email sent successfully to:", email);
+    console.log("[sendResetEmail] Email sent successfully to:", email);
   } catch (error) {
-    console.error("❌ [sendResetEmail] Failed to send email");
-    console.error("❌ [sendResetEmail] Error:", error.message);
+    console.error("[sendResetEmail] Failed to send email");
+    console.error("[sendResetEmail] Error:", error.message);
     throw error;
   }
 };
@@ -460,7 +460,7 @@ router.put("/me", protect, async (req, res) => {
         "/templates/Cream Floral Elegance.png"
       ];
       // Free users can use floral or custom theme with free background templates
-      if (cardTheme === "custom" && customCardBg && allowedFreeBgs.includes(customCardBg)) {
+      if (cardTheme === "custom" && customCardBg && (allowedFreeBgs.includes(customCardBg) || customCardBg.startsWith("/Free Plan Vowlink/"))) {
         user.cardTheme = "custom";
         user.customCardBg = customCardBg;
       } else if (cardTheme === "plain") {
@@ -495,7 +495,7 @@ router.put("/me", protect, async (req, res) => {
       if (cardTheme && cardTheme !== "custom" && ["floral", "minimalist", "navy", "plain"].includes(cardTheme)) {
         user.cardTheme = cardTheme;
         user.customCardBg = "";
-      } else if (cardTheme === "custom" && customCardBg && allowedPlusBgs.includes(customCardBg)) {
+      } else if (cardTheme === "custom" && customCardBg && (allowedPlusBgs.includes(customCardBg) || customCardBg.startsWith("/Free Plan Vowlink/") || customCardBg.startsWith("/Plus Plans Vowlink/"))) {
         user.cardTheme = "custom";
         user.customCardBg = customCardBg;
       } else {
@@ -599,7 +599,7 @@ router.post("/upgrade", protect, async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: `Successfully upgraded to ${tier.toUpperCase()} tier! 🚀`,
+      message: `Successfully upgraded to ${tier.toUpperCase()} tier! `,
       accessToken: generateAccessToken(user),
       user: userPublic(user),
     });
@@ -622,7 +622,7 @@ router.post("/make-admin-dev", async (req, res) => {
     
     user.role = "admin";
     await user.save();
-    res.status(200).json({ message: `${email} is now a Super Admin! ✓`, user });
+    res.status(200).json({ message: `${email} is now a Super Admin! `, user });
   } catch (error) {
     res.status(500).json({ message: "Seeding failed", error: error.message });
   }
@@ -635,15 +635,15 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
     const email = String(req.body?.email || "")
       .trim()
       .toLowerCase();
-    console.log("📬 [forgot-password] Request received for email:", email);
+    console.log("[forgot-password] Request received for email:", email);
 
     if (!email) return res.status(400).json({ message: "Email is required." });
 
     const user = await User.findOne({ email });
-    console.log("🔍 [forgot-password] User found:", !!user);
+    console.log("[forgot-password] User found:", !!user);
 
     if (!user) {
-      console.log("⚠️ [forgot-password] Email not in database:", email);
+      console.log("[forgot-password] Email not in database:", email);
       return res
         .status(200)
         .json({ message: "If that email exists, a reset link has been sent." });
@@ -653,28 +653,28 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
     user.resetPasswordToken = token;
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
     await user.save();
-    console.log("💾 [forgot-password] Reset token saved to database");
+    console.log("[forgot-password] Reset token saved to database");
 
     const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
     const resetUrl = `${clientUrl}/admin/reset-password/${token}`;
-    console.log("🔗 [forgot-password] Reset URL:", resetUrl);
+    console.log("[forgot-password] Reset URL:", resetUrl);
 
     if (!process.env.SENDGRID_API_KEY) {
       console.log(
-        `⚠️ [forgot-password] SendGrid not configured. Reset link for ${email}: ${resetUrl}`,
+        `[forgot-password] SendGrid not configured. Reset link for ${email}: ${resetUrl}`,
       );
     } else {
       try {
-        console.log("📧 [forgot-password] Calling sendResetEmail()...");
+        console.log("[forgot-password] Calling sendResetEmail()...");
         await sendResetEmail(email, resetUrl);
-        console.log("✅ [forgot-password] Email sent successfully");
+        console.log("[forgot-password] Email sent successfully");
       } catch (mailError) {
         console.error(
-          "❌ [forgot-password] Failed to send reset email for",
+          "[forgot-password] Failed to send reset email for",
           email,
         );
         console.error(
-          "❌ [forgot-password] Error:",
+          "[forgot-password] Error:",
           mailError?.message || mailError,
         );
       }
@@ -684,7 +684,7 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
       .status(200)
       .json({ message: "If that email exists, a reset link has been sent." });
   } catch (error) {
-    console.error("❌ [forgot-password] Unexpected error:", error);
+    console.error("[forgot-password] Unexpected error:", error);
     res
       .status(500)
       .json({ message: "Failed to process request.", error: error.message });
@@ -745,7 +745,7 @@ router.put("/change-password", protect, async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 12);
     await user.save();
 
-    res.status(200).json({ message: "Password changed successfully! ✓" });
+    res.status(200).json({ message: "Password changed successfully!" });
   } catch (error) {
     res.status(500).json({ message: "Failed to change password", error: error.message });
   }
@@ -809,7 +809,7 @@ router.post("/upgrade/verify", protect, async (req, res) => {
       user.tier = tier;
       await user.save();
       return res.status(200).json({
-        message: `[DEV BYPASS] Successfully verified and upgraded to ${tier.toUpperCase()} tier! 🚀`,
+        message: `[DEV BYPASS] Successfully verified and upgraded to ${tier.toUpperCase()} tier! `,
         accessToken: generateAccessToken(user),
         user: userPublic(user),
       });
@@ -875,7 +875,7 @@ router.post("/upgrade/verify", protect, async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: `Successfully verified and upgraded to ${tier.toUpperCase()} tier! 🚀`,
+      message: `Successfully verified and upgraded to ${tier.toUpperCase()} tier! `,
       accessToken: generateAccessToken(user),
       user: userPublic(user),
     });
@@ -955,7 +955,7 @@ router.post("/registry/verify", async (req, res) => {
     }
 
     res.status(200).json({
-      message: "Contribution successfully verified and recorded! 🎉",
+      message: "Contribution successfully verified and recorded! ",
       gift,
       couple,
     });
@@ -1103,7 +1103,7 @@ router.delete("/gallery-photo", protect, async (req, res) => {
 
     res.status(200).json({ message: "Photo deleted successfully." });
   } catch (error) {
-    console.error("❌ Gallery photo delete error:", error);
+    console.error("Gallery photo delete error:", error);
     res.status(500).json({ message: "Failed to delete photo.", error: error.message });
   }
 });
@@ -1123,7 +1123,7 @@ router.post("/upload", protect, async (req, res) => {
 
     res.status(200).json({ url: result.secure_url });
   } catch (error) {
-    console.error("❌ Cloudinary upload error:", error);
+    console.error("Cloudinary upload error:", error);
     res.status(500).json({ message: "Upload to Cloudinary failed", error: error.message });
   }
 });

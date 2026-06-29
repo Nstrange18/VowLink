@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Icon } from "@iconify/react";
 
 const ImageEditorModal = ({
   isOpen,
@@ -183,7 +184,7 @@ const ImageEditorModal = ({
             onClick={onClose}
             className="text-white/40 hover:text-white text-sm transition"
           >
-            ✕
+            <Icon icon="lucide:x" className="h-4 w-4" />
           </button>
         </div>
 
@@ -311,14 +312,14 @@ const ImageEditorModal = ({
                   onClick={() => setRotation((prev) => (prev - 90) % 360)}
                   className="flex-1 py-1.5 rounded-lg border border-white/10 bg-white/3 hover:bg-white/5 text-[10px] text-white/80 font-bold transition cursor-pointer flex items-center justify-center gap-1"
                 >
-                  <span>↺</span> 90° Left
+                  <Icon icon="lucide:rotate-ccw" className="h-3.5 w-3.5" /> 90° Left
                 </button>
                 <button
                   type="button"
                   onClick={() => setRotation((prev) => (prev + 90) % 360)}
                   className="flex-1 py-1.5 rounded-lg border border-white/10 bg-white/3 hover:bg-white/5 text-[10px] text-white/80 font-bold transition cursor-pointer flex items-center justify-center gap-1"
                 >
-                  <span>↻</span> 90° Right
+                  <Icon icon="lucide:rotate-cw" className="h-3.5 w-3.5" /> 90° Right
                 </button>
               </div>
             </div>
@@ -342,7 +343,7 @@ const ImageEditorModal = ({
           >
             {loading ? (
               <>
-                <span className="animate-spin text-sm">🌀</span>
+                <Icon icon="lucide:loader-2" className="h-4 w-4 animate-spin" />
                 <span>Saving Crop...</span>
               </>
             ) : (

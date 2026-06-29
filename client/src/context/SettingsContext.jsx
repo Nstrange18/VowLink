@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, useEffect } from "react";
+﻿import React, { createContext, useContext, useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
@@ -65,7 +65,6 @@ export const SettingsProvider = ({ children }) => {
   const isPro = tier === "pro";
 
   const [weddingColors, setWeddingColors] = useState(storedUser.weddingColors || []);
-
   // Refs for file inputs
   const galleryInputRef = useRef(null);
   const customBgInputRef = useRef(null);
@@ -84,6 +83,9 @@ export const SettingsProvider = ({ children }) => {
   const [cardTheme, setCardTheme] = useState(storedUser.cardTheme || "floral");
   const [pageBgTemplate, setPageBgTemplate] = useState(storedUser.pageBgTemplate || "");
   const [customCardBg, setCustomCardBg] = useState(storedUser.customCardBg || "");
+  const [savedCardBg, setSavedCardBg] = useState(storedUser.customCardBg || "");
+  const [savedCardTheme, setSavedCardTheme] = useState(storedUser.cardTheme || "floral");
+
   const [customTextColor, setCustomTextColor] = useState(storedUser.customTextColor || "#1A2E4A");
   const [customFontFamily, setCustomFontFamily] = useState(storedUser.customFontFamily || "classic");
   const [customVerticalOffset, setCustomVerticalOffset] = useState(storedUser.customVerticalOffset || 0);
@@ -241,11 +243,13 @@ export const SettingsProvider = ({ children }) => {
         const res = await api.get("/auth/me");
         const freshUser = res.data;
         if (freshUser.galleryPhotos?.length) setGalleryPhotos(freshUser.galleryPhotos);
-        if (freshUser.customCardBg) setCustomCardBg(freshUser.customCardBg);
+        setCustomCardBg(freshUser.customCardBg || "");
+        setSavedCardBg(freshUser.customCardBg || "");
         if (freshUser.couplePhotoUrl) setCouplePhotoUrl(freshUser.couplePhotoUrl);
         if (freshUser.pageBgTemplate) setPageBgTemplate(freshUser.pageBgTemplate);
         if (freshUser.musicUrl) setMusicUrl(freshUser.musicUrl);
-        if (freshUser.cardTheme) setCardTheme(freshUser.cardTheme);
+        setCardTheme(freshUser.cardTheme || "floral");
+        setSavedCardTheme(freshUser.cardTheme || "floral");
         if (freshUser.customTextColor) setCustomTextColor(freshUser.customTextColor);
         if (freshUser.customFontFamily) setCustomFontFamily(freshUser.customFontFamily);
         if (typeof freshUser.coupleOverlayOpacity === "number") setCoupleOverlayOpacity(freshUser.coupleOverlayOpacity);
@@ -317,7 +321,7 @@ export const SettingsProvider = ({ children }) => {
     try {
       setSubmittingPassword(true);
       await api.put("/auth/change-password", { currentPassword, newPassword });
-      toast.success("Password changed successfully! ✓");
+      toast.success("Password changed successfully!");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmNewPassword("");
@@ -411,7 +415,7 @@ export const SettingsProvider = ({ children }) => {
       const isProTemplate = cardTheme === "custom" && proTemplates.includes(customCardBg);
       const isProTheme = ["stardust", "forest"].includes(cardTheme);
       const targetReq = (isCustomUpload || isProTemplate || isProTheme) ? "Pro" : "Plus / Pro";
-      toast.error(`❌ Saved failed: You have selected a premium design that is locked on the ${tier.toUpperCase()} plan. Please upgrade to ${targetReq} to save this configuration!`, { toastId: "upgrade-to-save" });
+      toast.error(`Saved failed: You have selected a premium design that is locked on the ${tier.toUpperCase()} plan. Please upgrade to ${targetReq} to save this configuration!`, { toastId: "upgrade-to-save" });
       return;
     }
 
@@ -477,7 +481,7 @@ export const SettingsProvider = ({ children }) => {
 
       localStorage.setItem("token", res.data.accessToken);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      toast.success("Settings saved successfully! ✓ Updates applied to invitation cards.");
+      toast.success("Settings saved successfully!  Updates applied to invitation cards.");
       window.location.reload();
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed. Please try again.");
@@ -489,7 +493,7 @@ export const SettingsProvider = ({ children }) => {
     const firstErrorField = Object.keys(errors)[0];
     if (firstErrorField) {
       const msg = errors[firstErrorField]?.message || "Validation failed.";
-      toast.error(`Validation Error: ${msg} ❌`);
+      toast.error(`Validation Error: ${msg}`);
     } else {
       toast.error("Please check the form for validation errors.");
     }
@@ -500,7 +504,7 @@ export const SettingsProvider = ({ children }) => {
     try {
       const res = await api.post("/auth/upload", { file: base64Str });
       toast.update(toastId, {
-        render: "Upload complete! 🎉",
+        render: "Upload complete! ",
         type: "success",
         isLoading: false,
         autoClose: 2000
@@ -576,7 +580,7 @@ export const SettingsProvider = ({ children }) => {
               // Permanently delete from Cloudinary + DB right away (no save needed)
               try {
                 await api.delete("/auth/gallery-photo", { data: { photoUrl } });
-                toast.success("Gallery photo permanently deleted. ✓");
+                toast.success("Gallery photo permanently deleted.");
               } catch (err) {
                 console.error("Failed to delete photo from server:", err);
                 toast.error("Photo removed locally but server deletion failed. Please save settings.");
@@ -636,7 +640,7 @@ export const SettingsProvider = ({ children }) => {
           const url = await uploadToCloudinary(croppedDataUrl);
           setCouplePhotoUrl(url);
           setPageBgTemplate("");
-          toast.success("Couple photo uploaded! 💑 It will appear as the page background.");
+          toast.success("Couple photo uploaded! It will appear as the page background.");
         }
       };
       setCropperQueue((prev) => [...prev, newItem]);
@@ -665,7 +669,7 @@ export const SettingsProvider = ({ children }) => {
         setLocalAudioUrl(url);
         setLocalAudioName(file.name);
         setMusicUrl(url);
-        toast.success(`🎵 "${file.name}" uploaded and hosted successfully! Guests can now play this soundtrack.`);
+        toast.success(`"${file.name}" uploaded and hosted successfully! Guests can now play this soundtrack.`);
       } catch (err) {}
     };
     reader.readAsDataURL(file);
@@ -749,25 +753,25 @@ export const SettingsProvider = ({ children }) => {
         setWeddingColors(["Burgundy", "Gold", "Ivory"]);
         setCustomTextColor("#D4AF37");
         setCustomFontFamily("serif");
-        toast.success("🪄 AI Matcher applied 'Royal Velvet': Deep Burgundy & Gold layout with elegant typography.");
+        toast.success("AI Matcher applied 'Royal Velvet': Deep Burgundy & Gold layout with elegant typography.");
       } else if (aiVibe === "Vintage Rose") {
         setCardTheme("floral");
         setWeddingColors(["Blush Pink", "Sage Green", "Cream"]);
         setCustomTextColor("#8A4F58");
         setCustomFontFamily("script");
-        toast.success("🪄 AI Matcher applied 'Vintage Rose': Soft blush elements & romantic script.");
+        toast.success("AI Matcher applied 'Vintage Rose': Soft blush elements & romantic script.");
       } else if (aiVibe === "Starry Midnight") {
         setCardTheme("stardust");
         setWeddingColors(["Midnight Black", "Silver", "White"]);
         setCustomTextColor("#FFFFFF");
         setCustomFontFamily("modern");
-        toast.success("🪄 AI Matcher applied 'Starry Midnight': Dark cosmic backdrop with metallic silver accents.");
+        toast.success("AI Matcher applied 'Starry Midnight': Dark cosmic backdrop with metallic silver accents.");
       } else if (aiVibe === "Emerald Garden") {
         setCardTheme("forest");
         setWeddingColors(["Emerald Green", "Gold", "White"]);
         setCustomTextColor("#D4AF37");
         setCustomFontFamily("serif");
-        toast.success("🪄 AI Matcher applied 'Emerald Garden': Deep green forest backdrop with gold accents.");
+        toast.success("AI Matcher applied 'Emerald Garden': Deep green forest backdrop with gold accents.");
       }
     }, 1500);
   };
@@ -776,6 +780,15 @@ export const SettingsProvider = ({ children }) => {
     if (["navy", "stardust", "forest"].includes(theme)) return "#F5EBD6";
     if (["floral", "minimalist"].includes(theme)) return "#1A2E4A";
     if (theme === "custom" && cardBg) {
+      if (cardBg.startsWith("/Free Plan Vowlink/")) return "#1A2E4A";
+      if (cardBg.startsWith("/Plus Plans Vowlink/")) {
+        const isDark = cardBg.includes("Midnight") || cardBg.includes("Velvet") || cardBg.includes("Dark") || cardBg.includes("Onyx") || cardBg.includes("Black") || cardBg.includes("Navy");
+        return isDark ? "#F5EBD6" : "#1A2E4A";
+      }
+      if (cardBg.startsWith("/Pro Plans Vowlink/")) {
+        const isDark = cardBg.includes("Midnight") || cardBg.includes("Velvet") || cardBg.includes("Dark") || cardBg.includes("Onyx") || cardBg.includes("Black") || cardBg.includes("Navy") || cardBg.includes("Purple") || cardBg.includes("Blue") || cardBg.includes("Emerald") || cardBg.includes("Celestial") || cardBg.includes("(1).png") || cardBg.includes("(2).png") || cardBg.includes("(3).png") || cardBg.includes("(5).png") || cardBg.includes("(6).png") || cardBg.includes("(7).png") || cardBg.includes("(10).png");
+        return isDark ? "#F5EBD6" : "#1A2E4A";
+      }
       const darkTemplates = [
         "/templates/elegant_gold_frame_with_navy_backdrop.png",
         "/templates/Emerald Eucalyptus Frame.png",
@@ -787,6 +800,10 @@ export const SettingsProvider = ({ children }) => {
         "/templates/template_pro_6.png",
         "/templates/template_pro_7.png",
         "/templates/Midnight Black Floral2.png",
+        "/templates/template_plus_2.png",
+        "/templates/template_pro_1.png",
+        "/templates/template_pro_3.png",
+        "/templates/template_pro_4.png",
       ];
       const lightTemplates = [
         "/templates/template_free_1.png",
@@ -795,6 +812,10 @@ export const SettingsProvider = ({ children }) => {
         "/templates/Blush Pink & Rose Gold Glitter.png",
         "/templates/template_pro_5.png",
         "/templates/Elegant purple and silver floral.png",
+        "/templates/template_free_2.png",
+        "/templates/template_free_3.png",
+        "/templates/template_plus_1.png",
+        "/templates/template_pro_2.png",
       ];
       if (darkTemplates.includes(cardBg)) return "#F5EBD6";
       if (lightTemplates.includes(cardBg)) return "#1A2E4A";
@@ -809,6 +830,12 @@ export const SettingsProvider = ({ children }) => {
     const leftAlignTemplates = [
       "/templates/Royal Navy Lace Accent.png",
       "/templates/template_plus_3.png",
+      "/templates/template_pro_3.png",
+    ];
+
+    const rightAlignTemplates = [
+      "/templates/template_pro_4.png",
+      "/templates/template_pro_5.png",
     ];
 
     if (leftAlignTemplates.includes(templateUrl)) {
@@ -816,7 +843,15 @@ export const SettingsProvider = ({ children }) => {
       setCustomHorizontalOffset(25);
       setCustomVerticalOffset(15);
       setCustomTextSize(0.9);
-      toast.info("🪄 Smart layout optimized: Left alignment, 25px margin & 0.9x text size applied to prevent design overlap!", {
+      toast.info("Smart layout optimized: Left alignment, 25px margin & 0.9x text size applied to prevent design overlap!", {
+        toastId: "smart-align-toast"
+      });
+    } else if (rightAlignTemplates.includes(templateUrl)) {
+      setCustomTextAlign("right");
+      setCustomHorizontalOffset(-25);
+      setCustomVerticalOffset(15);
+      setCustomTextSize(0.9);
+      toast.info("Smart layout optimized: Right alignment, -25px margin & 0.9x text size applied to prevent design overlap!", {
         toastId: "smart-align-toast"
       });
     } else if (templateUrl === "/templates/Emerald Eucalyptus Frame.png") {
@@ -825,7 +860,7 @@ export const SettingsProvider = ({ children }) => {
       setCustomHorizontalOffset(0);
       setCustomVerticalOffset(25);
       setCustomTextSize(0.95);
-      toast.info("🪄 Smart layout optimized: Centered alignment & +25px vertical offset to avoid top frame overlay!", {
+      toast.info("Smart layout optimized: Centered alignment & +25px vertical offset to avoid top frame overlay!", {
         toastId: "smart-align-toast"
       });
     } else if (
@@ -835,7 +870,8 @@ export const SettingsProvider = ({ children }) => {
       templateUrl === "/templates/Burgundy Velvet Filigree.png" ||
       templateUrl === "/templates/Royal Emerald Gold Frame.png" ||
       templateUrl === "/templates/Blush Pink & Rose Gold Glitter.png" ||
-      templateUrl === "/templates/template_pro_5.png" ||
+      templateUrl === "/templates/template_pro_1.png" ||
+      templateUrl === "/templates/template_pro_2.png" ||
       templateUrl === "/templates/template_pro_6.png" ||
       templateUrl === "/templates/template_pro_7.png"
     ) {
@@ -844,7 +880,7 @@ export const SettingsProvider = ({ children }) => {
       setCustomHorizontalOffset(0);
       setCustomVerticalOffset(15);
       setCustomTextSize(0.9);
-      toast.info("🪄 Smart layout optimized: Centered alignment & 0.9x text size to fit beautifully inside borders!", {
+      toast.info("Smart layout optimized: Centered alignment & 0.9x text size to fit beautifully inside borders!", {
         toastId: "smart-align-toast"
       });
     } else {
@@ -922,11 +958,23 @@ export const SettingsProvider = ({ children }) => {
       case "/templates/template_free_1.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
         break;
+      case "/templates/template_free_2.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#4A5D4E";
+        break;
+      case "/templates/template_free_3.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6E5B4F";
+        break;
       case "/templates/Blush Pink Watercolor.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3D2124";
         break;
       case "/templates/Cream Floral Elegance.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
+        break;
+      case "/templates/template_plus_1.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#B8963A";
+        break;
+      case "/templates/template_plus_2.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#800020";
         break;
       case "/templates/Emerald Eucalyptus Frame.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
@@ -939,6 +987,18 @@ export const SettingsProvider = ({ children }) => {
         break;
       case "/templates/Elegant purple and silver floral.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3C2A4D";
+        break;
+      case "/templates/template_pro_1.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D4AF37";
+        break;
+      case "/templates/template_pro_2.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
+        break;
+      case "/templates/template_pro_3.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        break;
+      case "/templates/template_pro_4.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D4AF37";
         break;
       case "/templates/template_plus_3.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
@@ -1008,6 +1068,7 @@ export const SettingsProvider = ({ children }) => {
         cardTheme, setCardTheme,
         pageBgTemplate, setPageBgTemplate,
         customCardBg, setCustomCardBg,
+        savedCardBg, savedCardTheme,
         customTextColor, setCustomTextColor,
         customFontFamily, setCustomFontFamily,
         customVerticalOffset, setCustomVerticalOffset,

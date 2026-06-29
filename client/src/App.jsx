@@ -17,6 +17,7 @@ import AdminEditInvitationPage from './pages/admin/AdminEditInvitationPage'
 import AdminRsvpsPage from './pages/admin/AdminRsvpsPage'
 import SignupPage from './pages/admin/SignupPage'
 import AdminSettingsPage from './pages/admin/AdminSettingsPage'
+import AdminTemplatesPage from './pages/admin/AdminTemplatesPage'
 import AdminBillingPage from './pages/admin/AdminBillingPage'
 import AdminVenuesPage from './pages/admin/AdminVenuesPage'
 import VenueDetailsPage from './pages/admin/VenueDetailsPage'
@@ -108,6 +109,7 @@ function App() {
           <Route path="venues/:id" element={<VenueDetailsPage />} />
           <Route path="seating" element={<AdminSeatingPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
+          <Route path="templates" element={<AdminTemplatesPage />} />
         </Route>
 
         {/* Super admin route */}

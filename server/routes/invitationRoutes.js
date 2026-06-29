@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const Invitation = require("../models/Invitation");
 const RSVP = require("../models/RSVP");
 const User = require("../models/User");
@@ -229,7 +229,7 @@ router.post("/bulk", protect, async (req, res) => {
     const result = await Invitation.insertMany(createdInvitations);
 
     res.status(201).json({
-      message: `Successfully imported ${result.length} invitations! 💌`,
+      message: `Successfully imported ${result.length} invitations!`,
       count: result.length,
       data: result,
     });

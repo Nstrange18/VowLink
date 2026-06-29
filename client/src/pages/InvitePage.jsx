@@ -8,6 +8,7 @@ import { getTemplateLayout, getBlockStyles } from "../utils/templateLayouts";
 import api from "../utils/api";
 import { rsvpSchema } from "../utils/schemas";
 import { WEDDING_COLORS } from "../components/ColorPicker";
+import { Icon } from "@iconify/react";
 
 const getSpotifyEmbedUrl = (url) => {
   if (!url) return "";
@@ -158,9 +159,9 @@ const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
           <circle cx="68" cy="8" r="2" fill={sec} />
           <circle cx="88" cy="6" r="1.8" fill={pri} />
         </svg>
-        <div className="absolute top-5 left-1/4 text-sm" style={{ animation: "invite-forest-bounce 6s infinite", color: pri }}>🍃</div>
-        <div className="absolute top-12 left-2/3 text-sm" style={{ animation: "invite-forest-bounce 8s infinite", animationDelay: "2s", color: sec }}>🍂</div>
-        <div className="absolute top-20 right-10 text-sm" style={{ animation: "invite-forest-bounce 5s infinite", animationDelay: "1s", color: pri }}>🍃</div>
+        <Icon icon="mdi:leaf" className="absolute top-5 left-1/4 h-4 w-4" style={{ animation: "invite-forest-bounce 6s infinite", color: pri }} />
+        <Icon icon="mdi:leaf-maple" className="absolute top-12 left-2/3 h-4 w-4" style={{ animation: "invite-forest-bounce 8s infinite", animationDelay: "2s", color: sec }} />
+        <Icon icon="mdi:leaf" className="absolute top-20 right-10 h-4 w-4" style={{ animation: "invite-forest-bounce 5s infinite", animationDelay: "1s", color: pri }} />
       </div>
     );
   }
@@ -230,10 +231,10 @@ const WeddingDayParticles = () => {
     const size = `${Math.random() * 15 + 10}px`;
     const delay = `${Math.random() * 5}s`;
     const duration = `${Math.random() * 4 + 4}s`;
-    const emoji = ["💖", "✨", "💍", "🌸", "🥂"][Math.floor(Math.random() * 5)];
+    const icon = ["mdi:heart", "lucide:sparkles", "mdi:ring", "mdi:flower", "mdi:glass-cocktail"][Math.floor(Math.random() * 5)];
     return {
       id: i,
-      emoji,
+      icon,
       style: {
         left,
         fontSize: size,
@@ -261,7 +262,7 @@ const WeddingDayParticles = () => {
         }
       `}} />
       {pieces.map((p) => (
-        <div key={p.id} style={p.style}>{p.emoji}</div>
+        <Icon key={p.id} icon={p.icon} style={p.style} />
       ))}
     </div>
   );
@@ -329,26 +330,21 @@ const renderFrameBorder = (frameBorder) => {
 
 const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary = false) => {
   const lineStyle = { background: color, opacity: isSecondary ? 0.3 : 0.4 };
-  const char = isSecondary ? "✦" : "❧";
-  
-  // Choose character based on divider type
-  let finalChar = char;
-  if (dividerType === "floral-rose") finalChar = isSecondary ? "🥀" : "🌸";
-  else if (dividerType === "leaf-right") finalChar = isSecondary ? "🌿" : "🍃";
-  else if (dividerType === "eucalyptus") finalChar = "🌿";
-  else if (dividerType === "lace") finalChar = isSecondary ? "✧" : "✦";
-  else if (dividerType === "gold-royal") finalChar = isSecondary ? "✦" : "👑";
-  else if (dividerType === "gold-foil") finalChar = "✦";
-  else if (dividerType === "starry") finalChar = isSecondary ? "✦" : "✨";
-  else if (dividerType === "glitter") finalChar = isSecondary ? "✧" : "✨";
-  else if (dividerType === "filigree") finalChar = isSecondary ? "✥" : "❦";
-  else if (dividerType === "charcoal-gold") finalChar = isSecondary ? "✦" : "✧";
+  const getDividerIcon = () => {
+    if (dividerType === "floral-rose") return isSecondary ? "mdi:flower-tulip-outline" : "mdi:flower";
+    if (dividerType === "leaf-right" || dividerType === "eucalyptus") return "mdi:leaf";
+    if (dividerType === "gold-royal") return isSecondary ? "lucide:sparkle" : "mdi:crown-outline";
+    if (dividerType === "starry" || dividerType === "glitter") return isSecondary ? "lucide:sparkle" : "lucide:sparkles";
+    if (dividerType === "filigree") return "mdi:ornament";
+    return isSecondary ? "lucide:sparkle" : "mdi:flower-pollen-outline";
+  };
+  const dividerIcon = getDividerIcon();
   
   if (dividerType === "gold-royal") {
     return (
       <div className={`flex items-center gap-2 select-none ${spacing}`}>
         <div className="h-[1.5px] w-12 bg-linear-to-r from-transparent to-[#D8B76A]" />
-        <span className="text-[#D8B76A] text-[11px] font-bold">{finalChar}</span>
+        <Icon icon={dividerIcon} className="h-3.5 w-3.5 text-[#D8B76A]" />
         <div className="h-[1.5px] w-12 bg-linear-to-l from-transparent to-[#D8B76A]" />
       </div>
     );
@@ -357,7 +353,11 @@ const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary
   return (
     <div className={`flex items-center gap-2 select-none ${spacing}`}>
       <div className="h-px w-10" style={lineStyle} />
-      <span style={{ color: dividerType?.includes("gold") || dividerType === "glitter" ? "#D8B76A" : color }} className="text-[11px]">{finalChar}</span>
+      <Icon
+        icon={dividerIcon}
+        className="h-3.5 w-3.5"
+        style={{ color: dividerType?.includes("gold") || dividerType === "glitter" ? "#D8B76A" : color }}
+      />
       <div className="h-px w-10" style={lineStyle} />
     </div>
   );
@@ -1063,7 +1063,7 @@ const InvitePage = () => {
               honeymoonFundCurrent: res.data.couple.honeymoonFundCurrent
             }
           }));
-          toast.success("Thank you for your generous contribution! 🎁❤️");
+          toast.success("Thank you for your generous contribution!");
           setShowGiftModal(false);
           setGiftAmount("");
           setGiftMessage("");
@@ -1416,11 +1416,23 @@ const InvitePage = () => {
       case "/templates/template_free_1.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
         break;
+      case "/templates/template_free_2.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#4A5D4E";
+        break;
+      case "/templates/template_free_3.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6E5B4F";
+        break;
       case "/templates/Blush Pink Watercolor.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3D2124";
         break;
       case "/templates/Cream Floral Elegance.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
+        break;
+      case "/templates/template_plus_1.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#B8963A";
+        break;
+      case "/templates/template_plus_2.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#800020";
         break;
       case "/templates/Emerald Eucalyptus Frame.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
@@ -1433,6 +1445,18 @@ const InvitePage = () => {
         break;
       case "/templates/Elegant purple and silver floral.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3C2A4D";
+        break;
+      case "/templates/template_pro_1.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D4AF37";
+        break;
+      case "/templates/template_pro_2.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
+        break;
+      case "/templates/template_pro_3.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        break;
+      case "/templates/template_pro_4.png":
+        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D4AF37";
         break;
       case "/templates/template_plus_3.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
@@ -1462,7 +1486,22 @@ const InvitePage = () => {
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
       default:
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+        if (customCardBg.startsWith("/Free Plan Vowlink/")) {
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+        } else if (customCardBg.startsWith("/Plus Plans Vowlink/")) {
+          const isDark = customCardBg.includes("Midnight") || customCardBg.includes("Velvet") || customCardBg.includes("Dark") || customCardBg.includes("Onyx") || customCardBg.includes("Black") || customCardBg.includes("Navy");
+          const defaultColor = isDark ? "#F5EBD6" : "#1A2E4A";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : defaultColor;
+        } else if (customCardBg.startsWith("/Pro Plans Vowlink/")) {
+          const isDark = customCardBg.includes("Midnight") || customCardBg.includes("Velvet") || customCardBg.includes("Dark") || customCardBg.includes("Onyx") || customCardBg.includes("Black") || customCardBg.includes("Navy") || customCardBg.includes("Purple") || customCardBg.includes("Blue") || customCardBg.includes("Emerald") || customCardBg.includes("Celestial") || customCardBg.includes("(1).png") || customCardBg.includes("(2).png") || customCardBg.includes("(3).png") || customCardBg.includes("(5).png") || customCardBg.includes("(6).png") || customCardBg.includes("(7).png") || customCardBg.includes("(10).png");
+          const defaultColor = isDark ? "#F5EBD6" : "#1A2E4A";
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : defaultColor;
+        } else if (customCardBg.startsWith("https://res.cloudinary.com") && customCardBg.includes("ai_backgrounds")) {
+          // AI-generated backgrounds — default to light/ivory text since AI-generated backgrounds are typically rich/dark
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        } else {
+          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+        }
     }
     cardStyles = {
       background: bg,
@@ -1548,9 +1587,9 @@ const InvitePage = () => {
       {isTodayWeddingDay && <WeddingDayParticles />}
       {isTodayWeddingDay && (
         <div className="bg-linear-to-r from-[#D8B76A] via-[#F2D894] to-[#D8B76A] text-[#070A13] px-4 py-3 text-center text-xs font-bold uppercase tracking-widest relative z-35 shadow-lg flex items-center justify-center gap-2">
-          <span>💍</span>
+          <Icon icon="mdi:ring" className="h-4 w-4" />
           <span>Happy Wedding Day! Today is the Big Day for {invitation.userId?.partner1Name} & {invitation.userId?.partner2Name}!</span>
-          <span>✨</span>
+          <Icon icon="lucide:sparkles" className="h-4 w-4" />
         </div>
       )}
       {/* Premium page background: deep dark with radial gold bokeh */}
@@ -1655,7 +1694,7 @@ const InvitePage = () => {
                 }} 
               />
               <div className="absolute inset-2 rounded-full border border-dashed opacity-40" style={{ borderColor: isEnvelopeDark ? "#FFFFFF" : "#070A13" }} />
-              <span className="text-2xl mb-1 z-10">✉</span>
+              <Icon icon="lucide:mail" className="mb-1 h-6 w-6 z-10" />
               <span className="text-[10px] uppercase font-bold tracking-widest z-10">Open</span>
             </button>
             
@@ -1665,8 +1704,8 @@ const InvitePage = () => {
             {/* Music buffering hint — only visible while audio is still loading */}
             {isDirectAudio && !audioReady && (
               <p className="mt-2 text-[9px] uppercase tracking-widest opacity-30 flex items-center gap-1" style={{ color: envelopeTextColor }}>
-                <span className="inline-block animate-spin" style={{ animationDuration: "1.5s" }}>♪</span>
-                Loading music…
+                <Icon icon="lucide:loader-2" className="h-3 w-3 animate-spin" />
+                Loading music...
               </p>
             )}
           </div>
@@ -1708,9 +1747,9 @@ const InvitePage = () => {
       {cardTheme === "forest" && (
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 bg-[#09150E]" />
-          <div className="absolute top-10 left-10 text-xs text-amber-500/20 rotate-45 select-none text-[30px]">🍃</div>
-          <div className="absolute top-40 right-20 text-xs text-amber-500/10 -rotate-12 select-none text-[24px]">🍂</div>
-          <div className="absolute bottom-60 left-1/3 text-xs text-amber-500/15 rotate-90 select-none text-[20px]">🍃</div>
+          <Icon icon="mdi:leaf" className="absolute top-10 left-10 h-8 w-8 rotate-45 select-none text-amber-500/20" />
+          <Icon icon="mdi:leaf-maple" className="absolute top-40 right-20 h-7 w-7 -rotate-12 select-none text-amber-500/10" />
+          <Icon icon="mdi:leaf" className="absolute bottom-60 left-1/3 h-6 w-6 rotate-90 select-none text-amber-500/15" />
         </div>
       )}
 
@@ -1721,7 +1760,9 @@ const InvitePage = () => {
             <div className="w-72 sm:w-80 p-3.5 rounded-2xl bg-[#0D1220]/90 backdrop-blur-md border border-[#D8B76A]/20 shadow-2xl animate-fade-in transition-all duration-300">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] font-semibold">Soundtrack Player</span>
-                <button onClick={() => setShowSpotifyPlayer(false)} className="text-white/60 hover:text-white text-xs px-1.5 py-0.5 rounded hover:bg-white/10">✕</button>
+                <button onClick={() => setShowSpotifyPlayer(false)} className="text-white/60 hover:text-white text-xs px-1.5 py-0.5 rounded hover:bg-white/10">
+                  <Icon icon="lucide:x" className="h-3.5 w-3.5" />
+                </button>
               </div>
               <iframe
                 src={getSpotifyEmbedUrl(musicUrl)}
@@ -1740,7 +1781,7 @@ const InvitePage = () => {
             className={`h-12 w-12 rounded-full bg-[#1A2E4A] border border-[#D8B76A]/40 flex items-center justify-center text-lg text-[#D8B76A] shadow-xl hover:scale-110 active:scale-95 transition ${showSpotifyPlayer ? 'ring-2 ring-[#D8B76A]' : ''}`}
             title="Play background soundtrack"
           >
-            🎵
+            <Icon icon="lucide:music" className="h-5 w-5" />
           </button>
         </div>
       )}
@@ -1756,9 +1797,11 @@ const InvitePage = () => {
             style={{ borderColor: isPlaying ? accentColor : "rgba(255,255,255,0.2)" }}
             title={isPlaying ? "Pause music" : "Play music"}
           >
-            <span className={isPlaying ? "animate-spin" : ""} style={{ display: "inline-block", animationDuration: "6s" }}>
-              {isPlaying ? "🎵" : "🔇"}
-            </span>
+            <Icon
+              icon={isPlaying ? "lucide:music" : "lucide:volume-x"}
+              className={`h-5 w-5 ${isPlaying ? "animate-spin" : ""}`}
+              style={{ animationDuration: "6s" }}
+            />
           </button>
         </div>
       )}
@@ -1836,6 +1879,19 @@ const InvitePage = () => {
                 } : {})
               }}
             >
+              <div
+                className={`w-full flex flex-col justify-center transition-all ${
+                  textAlignment === "left"
+                    ? "items-start text-left"
+                    : textAlignment === "right"
+                    ? "items-end text-right"
+                    : "items-center text-center"
+                }`}
+                style={{
+                  maxWidth: layout.layoutConfig?.safeArea?.maxWidth || "85%",
+                  margin: textAlignment === "left" ? "0 auto 0 0" : textAlignment === "right" ? "0 0 0 auto" : "0 auto",
+                }}
+              >
               {/* ── Wedding Invitation title ── */}
               <h2
                 {...getBlockProps("title", "100ms")}
@@ -1950,7 +2006,7 @@ const InvitePage = () => {
                 Time : {formattedTimeWithFormat || "To be announced"}
               </p>
 
-              {/* ── Venue (clickable → Maps Selector Modal) ── */}
+              {/* Venue (clickable -> Maps Selector Modal) */}
               {venue && (
                 isFreeUser ? (
                   <div
@@ -2067,6 +2123,7 @@ const InvitePage = () => {
               >
                 {invitation.category || "Guest"}
               </p>
+              </div>
               
               {isFreeUser && (
                 <div className="absolute bottom-2.5 left-0 right-0 text-center select-none pointer-events-none opacity-45 z-20">
@@ -2113,7 +2170,7 @@ const InvitePage = () => {
                 : "border-amber-400/30 bg-amber-400/10 text-amber-300"
             }`}
           >
-            <span>{deadlinePassed ? "🔒" : "⏰"}</span>
+            <Icon icon={deadlinePassed ? "lucide:lock" : "lucide:clock"} className="h-4 w-4 shrink-0" />
             <p className="text-xs font-medium">
               {deadlinePassed
                 ? "RSVP is now closed"
@@ -2129,11 +2186,17 @@ const InvitePage = () => {
         {/* RSVP Status / Button */}
         {invitation.hasRSVPed ? (
           <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-8 py-4 download-exclude">
-            <p className="text-sm text-emerald-400">✓ We've received your RSVP. Thank you!</p>
+            <p className="flex items-center justify-center gap-1.5 text-sm text-emerald-400">
+              <Icon icon="lucide:check" className="h-4 w-4" />
+              We've received your RSVP. Thank you!
+            </p>
           </div>
         ) : deadlinePassed ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-8 py-4 download-exclude">
-            <p className="text-sm text-red-400">🔒 RSVP is now closed.</p>
+            <p className="flex items-center justify-center gap-1.5 text-sm text-red-400">
+              <Icon icon="lucide:lock" className="h-4 w-4" />
+              RSVP is now closed.
+            </p>
           </div>
         ) : (
           <button
@@ -2143,7 +2206,8 @@ const InvitePage = () => {
               isProTemplate ? "animate-pro-btn-glow" : ""
             }`}
           >
-            ✦ RSVP Now
+            <Icon icon="lucide:sparkle" className="mr-1 inline h-4 w-4" />
+            RSVP Now
           </button>
         )}
 
@@ -2155,10 +2219,10 @@ const InvitePage = () => {
             className="flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#1A2E4A]/80 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#D8B76A] backdrop-blur-sm transition hover:bg-[#1A2E4A] hover:shadow-[0_8px_24px_rgba(216,183,106,0.2)] disabled:opacity-50"
           >
             {downloading ? (
-              <span className="animate-pulse">Downloading…</span>
+              <span className="animate-pulse">Downloading...</span>
             ) : (
               <>
-                <span>⬇</span> Download
+                <Icon icon="lucide:download" className="h-4 w-4" /> Download
               </>
             )}
           </button>
@@ -2302,7 +2366,7 @@ const InvitePage = () => {
 
           {/* Time */}
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <span className="text-2xl text-[#D8B76A]">⏰</span>
+            <Icon icon="mdi:clock-time-four-outline" className="h-7 w-7 text-[#D8B76A]" />
             <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Time</p>
             <p className="text-white text-sm leading-6">
               {formattedTimeWithFormat || "To be announced"}
@@ -2311,7 +2375,7 @@ const InvitePage = () => {
 
           {/* Venue */}
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <span className="text-2xl text-[#D8B76A]">📍</span>
+            <Icon icon="lucide:map-pin" className="mx-auto h-6 w-6 text-[#D8B76A]" />
             <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Venue</p>
             {venue ? (
               isFreeUser ? (
@@ -2342,7 +2406,7 @@ const InvitePage = () => {
 
           {receptionLocation && (
             <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-              <span className="text-2xl text-[#D8B76A]">🥂</span>
+              <Icon icon="mdi:glass-cocktail" className="mx-auto h-6 w-6 text-[#D8B76A]" />
               <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Reception at</p>
               {isFreeUser ? (
                 <p className="text-white text-sm leading-6">{receptionName || receptionLocation}</p>
@@ -2370,14 +2434,14 @@ const InvitePage = () => {
 
           {/* Dress Code */}
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <span className="text-2xl text-[#D8B76A]">👔</span>
+            <Icon icon="mdi:tie" className="mx-auto h-6 w-6 text-[#D8B76A]" />
             <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Dress Code</p>
             <p className="text-white text-sm leading-6">{dressCode || "To be announced"}</p>
           </div>
 
           {/* Colour of the Day */}
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <span className="text-2xl text-[#D8B76A]">🎨</span>
+            <Icon icon="lucide:palette" className="mx-auto h-6 w-6 text-[#D8B76A]" />
             <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-3">Colour of the Day</p>
             {weddingColors.length > 0 ? (
               <div className="flex justify-center flex-wrap gap-2">
@@ -2406,14 +2470,14 @@ const InvitePage = () => {
 
           {/* Your Category */}
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <span className="text-2xl text-[#D8B76A]">✦</span>
+            <Icon icon="lucide:sparkle" className="mx-auto h-6 w-6 text-[#D8B76A]" />
             <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Your Category</p>
             <p className="text-white text-sm leading-6">{invitation.category || "Guest"}</p>
           </div>
 
           {/* Additional guest policy */}
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <span className="text-2xl text-[#D8B76A]">➕</span>
+            <Icon icon="lucide:user-plus" className="mx-auto h-6 w-6 text-[#D8B76A]" />
             <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Additional Guest</p>
             <p className="text-white text-sm leading-6">
               {plusOnePolicy === "plus_one_allowed" ? "Plus one allowed" : "Strictly by invitation"}
@@ -2422,7 +2486,7 @@ const InvitePage = () => {
 
           {/* Children policy */}
           <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <span className="text-2xl text-[#D8B76A]">🧒</span>
+            <Icon icon="mdi:human-child" className="mx-auto h-6 w-6 text-[#D8B76A]" />
             <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Children</p>
             <p className="text-white text-sm leading-6">
               {kidsAllowed ? "Children are welcome" : "Adults only"}
@@ -2441,7 +2505,7 @@ const InvitePage = () => {
                 onClick={() => setShowForm(false)}
                 className="text-[#1A2E4A]/40 hover:text-[#1A2E4A] transition text-lg"
               >
-                ✕
+                <Icon icon="lucide:x" className="h-5 w-5" />
               </button>
             </div>
 
@@ -2511,7 +2575,10 @@ const InvitePage = () => {
                               : "border-[#1A2E4A]/10 bg-[#F8F8F8] text-[#1A2E4A]/50 hover:border-[#1A2E4A]/20"
                           }`}
                         >
-                          {opt === "Yes" ? "✓ Yes" : "✗ No"}
+                          <span className="inline-flex items-center gap-1.5">
+                            <Icon icon={opt === "Yes" ? "lucide:check" : "lucide:x"} className="h-3.5 w-3.5" />
+                            {opt}
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -2599,7 +2666,7 @@ const InvitePage = () => {
           <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Gift Registry</h2>
           
           <div className="w-full max-w-xl rounded-3xl border border-[#D8B76A]/30 bg-[#070A13]/90 p-6 sm:p-8 shadow-2xl space-y-8 text-left relative overflow-hidden backdrop-blur-md">
-            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none text-9xl">🎁</div>
+            <Icon icon="mdi:gift-outline" className="absolute top-4 right-4 h-28 w-28 opacity-5 pointer-events-none text-white" />
             
             {invitation.userId?.registryNotes && (
               <p className="text-sm text-white/70 text-center leading-relaxed italic border-b border-white/5 pb-6">
@@ -2610,7 +2677,10 @@ const InvitePage = () => {
             {/* Bank details info */}
             {invitation.userId?.registryAccountNumber && (
               <div className="space-y-4 pt-4 border-t border-white/5">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-white/50">🏦 Bank Transfer Details</h4>
+                <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-white/50">
+                  <Icon icon="mdi:bank-outline" className="h-4 w-4" />
+                  Bank Transfer Details
+                </h4>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
                     <div>
@@ -2631,7 +2701,7 @@ const InvitePage = () => {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(invitation.userId.registryAccountNumber);
-                        toast.success("Account number copied! 📋");
+                        toast.success("Account number copied!");
                       }}
                       className="px-4 py-2 rounded-lg bg-[#D8B76A] text-[#070A13] text-xs font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition"
                     >
@@ -2644,7 +2714,10 @@ const InvitePage = () => {
 
             {/* Paystack Cash Gifting Option */}
             <div className="space-y-4 pt-4 border-t border-white/5 flex flex-col items-center">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white/50 w-full text-left">💳 Secure Online Gifting</h4>
+              <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-white/50 w-full text-left">
+                <Icon icon="mdi:credit-card-outline" className="h-4 w-4" />
+                Secure Online Gifting
+              </h4>
               <p className="text-xs text-white/40 leading-relaxed w-full">
                 You can send a cash gift instantly using your debit card or bank transfer via Paystack.
               </p>
@@ -2652,7 +2725,10 @@ const InvitePage = () => {
                 onClick={() => setShowGiftModal(true)}
                 className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-3.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(216,183,106,0.35)]"
               >
-                💝 Send Cash Gift
+                <span className="inline-flex items-center justify-center gap-1.5">
+                  <Icon icon="mdi:gift-outline" className="h-4 w-4" />
+                  Send Cash Gift
+                </span>
               </button>
             </div>
           </div>
@@ -2670,7 +2746,7 @@ const InvitePage = () => {
                 onClick={() => setShowGiftModal(false)}
                 className="text-[#1A2E4A]/40 hover:text-[#1A2E4A] transition text-lg"
               >
-                ✕
+                <Icon icon="lucide:x" className="h-5 w-5" />
               </button>
             </div>
 
@@ -2772,7 +2848,7 @@ const InvitePage = () => {
           <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-fade-in">
             <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/30 bg-[#0D1220] p-6 shadow-2xl space-y-6 text-center">
               <div>
-                <span className="text-3xl">🧭</span>
+                <Icon icon="mdi:compass-outline" className="mx-auto h-8 w-8 text-[#D8B76A]" />
                 <h3 className="font-serif text-xl text-white mt-2">Open in Maps</h3>
                 <p className="text-white/40 text-xs mt-1 leading-relaxed max-w-xs mx-auto">
                   Choose your preferred navigation app to open routes for:<br />
@@ -2792,7 +2868,7 @@ const InvitePage = () => {
                   onClick={() => setMapSelectAddress(null)}
                   className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
                 >
-                  <span>🗺️</span> Google Maps
+                  <Icon icon="mdi:google-maps" className="h-4 w-4" /> Google Maps
                 </a>
                 
                 {/* Apple Maps */}
@@ -2803,7 +2879,7 @@ const InvitePage = () => {
                   onClick={() => setMapSelectAddress(null)}
                   className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
                 >
-                  <span>🍎</span> Apple Maps
+                  <Icon icon="mdi:apple" className="h-4 w-4" /> Apple Maps
                 </a>
                 
                 {/* Waze */}
@@ -2814,7 +2890,7 @@ const InvitePage = () => {
                   onClick={() => setMapSelectAddress(null)}
                   className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
                 >
-                  <span>🚗</span> Waze
+                  <Icon icon="mdi:car" className="h-4 w-4" /> Waze
                 </a>
               </div>
               

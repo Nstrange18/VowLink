@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import Skeleton from '../../components/common/Skeleton'
+import { Icon } from '@iconify/react'
 
 const AdminRsvpsPage = () => {
   const [rsvps, setRsvps] = useState([])
@@ -75,7 +76,10 @@ const AdminRsvpsPage = () => {
             </div>
             {percent >= 100 && (
               <p className="text-[9px] text-red-400 mt-0.5 animate-pulse font-medium">
-                ⚠️ Limit reached! Upgrade your plan to accept more guest RSVPs.
+                <span className="inline-flex items-center gap-1">
+                  <Icon icon="lucide:alert-triangle" className="h-3 w-3" />
+                  Limit reached! Upgrade your plan to accept more guest RSVPs.
+                </span>
               </p>
             )}
           </div>
@@ -89,7 +93,9 @@ const AdminRsvpsPage = () => {
                 : 'border-white/10 bg-white/5 text-white/40 hover:bg-white/10'
             }`}
           >
-            <span>⬇</span> Export CSV {tier !== 'pro' && '🔒'}
+            <Icon icon="lucide:download" className="h-4 w-4" />
+            Export CSV
+            {tier !== 'pro' && <Icon icon="lucide:lock" className="h-3.5 w-3.5" />}
           </button>
         )}
       </div>
@@ -230,7 +236,10 @@ const AdminRsvpsPage = () => {
                 </div>
                 <div className="mt-2">
                   <span className="rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-2.5 py-0.5 text-xs text-[#D8B76A]/80">
-                    🍽 {r.mealPreference || 'No Preference'}
+                    <span className="inline-flex items-center gap-1.5">
+                      <Icon icon="mdi:silverware-fork-knife" className="h-3.5 w-3.5" />
+                      {r.mealPreference || 'No Preference'}
+                    </span>
                   </span>
                 </div>
                 {r.message && (

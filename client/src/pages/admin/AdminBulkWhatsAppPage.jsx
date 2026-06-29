@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import api from "../../utils/api";
 import Skeleton from "../../components/common/Skeleton";
 import { showConfirmToast } from "../../utils/toastConfirm";
+import { Icon } from "@iconify/react";
 
 const cleanPhone = (phone) => {
   if (!phone) return "";
@@ -76,7 +77,7 @@ const AdminBulkWhatsAppPage = () => {
     return (
       <div className="p-4 sm:p-8 max-w-xl mx-auto text-white text-center py-20">
         <div className="w-20 h-20 rounded-full bg-[#D8B76A]/10 border border-[#D8B76A]/30 flex items-center justify-center text-3xl mx-auto mb-6 shadow-[0_0_20px_rgba(216,183,106,0.1)]">
-          🔒
+          <Icon icon="lucide:lock" className="w-8 h-8 text-[#D8B76A]" />
         </div>
         <h2 className="font-serif text-3xl text-white mb-3">Pro-Only Feature</h2>
         <p className="text-white/60 text-sm mb-8 leading-relaxed">
@@ -457,7 +458,7 @@ const AdminBulkWhatsAppPage = () => {
                 onClick={handleOpenNextUnsent}
                 className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-3 text-xs font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(216,183,106,0.25)] flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <span>💬</span> Open Next Unsent
+                <Icon icon="lucide:message-square" className="w-4 h-4 text-[#070A13]" /> Open Next Unsent
               </button>
 
               <button
@@ -471,7 +472,7 @@ const AdminBulkWhatsAppPage = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Preparing…
+                    Preparing...
                   </>
                 ) : (
                   `Prepare WhatsApp Invites (${selectedIds.length})`

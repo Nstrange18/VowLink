@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Controller } from "react-hook-form";
 import { toast } from "react-toastify";
 import ColorPicker from "../../components/ColorPicker";
@@ -9,23 +9,24 @@ import InvitationCardPreview from "../../components/settings/InvitationCardPrevi
 import ThemeSelector from "../../components/settings/ThemeSelector";
 import MusicSelector from "../../components/settings/MusicSelector";
 import ImageEditorModal from "../../components/ImageEditorModal";
+import { Icon } from "@iconify/react";
 
 const TIMELINE_ICONS = [
-  { char: "⛪", label: "Church/Ceremony" },
-  { char: "💍", label: "Exchange of Rings" },
-  { char: "📸", label: "Photoshoot" },
-  { char: "🥂", label: "Cocktail / Toast" },
-  { char: "🍽️", label: "Dinner / Buffet" },
-  { char: "🍰", label: "Cake Cutting" },
-  { char: "💃", label: "Dance Floor" },
-  { char: "🚗", label: "Send Off" },
+  { icon: "mdi:church", label: "Church/Ceremony" },
+  { icon: "mdi:ring", label: "Exchange of Rings" },
+  { icon: "lucide:camera", label: "Photoshoot" },
+  { icon: "mdi:glass-cocktail", label: "Cocktail / Toast" },
+  { icon: "mdi:silverware-fork-knife", label: "Dinner / Buffet" },
+  { icon: "mdi:cake-variant-outline", label: "Cake Cutting" },
+  { icon: "mdi:dance-ballroom", label: "Dance Floor" },
+  { icon: "mdi:car", label: "Send Off" },
 ];
 
 const TimelineBuilder = ({ timeline, setTimeline }) => {
   const [time, setTime] = React.useState("");
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
-  const [icon, setIcon] = React.useState("💍");
+  const [icon, setIcon] = React.useState("mdi:ring");
 
   const handleAddEvent = () => {
     if (!time || !title) {
@@ -38,7 +39,7 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
     setTime("");
     setTitle("");
     setDescription("");
-    setIcon("💍");
+    setIcon("mdi:ring");
     toast.success("Event added to timeline! Remember to save customizations.");
   };
 
@@ -55,10 +56,10 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
           {timeline.map((item, index) => (
             <div key={index} className="flex justify-between items-center bg-white/5 border border-white/10 rounded-xl p-3">
               <div className="flex items-center gap-3">
-                <span className="text-xl">{item.icon}</span>
+                <Icon icon={item.icon?.includes(":") ? item.icon : "mdi:ring"} className="h-5 w-5 shrink-0 text-[#D8B76A]" />
                 <div>
                   <p className="text-xs font-semibold text-white">
-                    {item.time} — {item.title}
+                    {item.time} - {item.title}
                   </p>
                   {item.description && <p className="text-[10px] text-white/40 mt-0.5">{item.description}</p>}
                 </div>
@@ -68,7 +69,7 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
                 onClick={() => handleRemoveEvent(index)}
                 className="text-white/30 hover:text-red-400 text-xs px-2 py-1 rounded hover:bg-white/5 transition"
               >
-                ✕
+                <Icon icon="lucide:x" className="h-3.5 w-3.5" />
               </button>
             </div>
           ))}
@@ -77,7 +78,7 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
 
       <div className="bg-white/3 border border-white/5 p-4 rounded-xl space-y-4">
         <p className="text-[10px] uppercase tracking-wider text-[#D8B76A] font-bold">+ Add Timeline Event</p>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-1">Time</label>
@@ -116,17 +117,16 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
           <div className="flex flex-wrap gap-2">
             {TIMELINE_ICONS.map((i) => (
               <button
-                key={i.char}
+                key={i.icon}
                 type="button"
-                onClick={() => setIcon(i.char)}
-                className={`h-8 w-8 rounded-lg text-lg flex items-center justify-center border transition-all ${
-                  icon === i.char
+                onClick={() => setIcon(i.icon)}
+                className={`h-8 w-8 rounded-lg text-lg flex items-center justify-center border transition-all ${icon === i.icon
                     ? "bg-[#D8B76A]/20 border-[#D8B76A] text-white"
                     : "bg-[#070A13] border-white/10 text-white/60 hover:border-white/30"
-                }`}
+                  }`}
                 title={i.label}
               >
-                {i.char}
+                <Icon icon={i.icon} className="h-4 w-4" />
               </button>
             ))}
           </div>
@@ -200,10 +200,6 @@ const AdminSettingsPageContent = () => {
     timeline, setTimeline,
     gifts,
 
-    aiVibe, setAiVibe,
-    aiGenerating, setAiGenerating,
-    handleAiVibeGenerate,
-
     currentPassword, setCurrentPassword,
     newPassword, setNewPassword,
     confirmNewPassword, setConfirmNewPassword,
@@ -254,6 +250,15 @@ const AdminSettingsPageContent = () => {
 
   const [showCouplePortrait, setShowCouplePortrait] = React.useState(true);
   const [showSocialShare, setShowSocialShare] = React.useState(false);
+  const location = useLocation();
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get("tab");
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [location, setActiveTab]);
 
   return (
     <div className="p-4 sm:p-8 max-w-6xl mx-auto text-white">
@@ -268,11 +273,11 @@ const AdminSettingsPageContent = () => {
       {/* Glassmorphic Tabs Selector */}
       <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-8 border-b border-white/10 pb-4">
         {[
-          { id: "details", label: "💍 Details", fullLabel: "💍 Wedding Details" },
-          { id: "design", label: "🎨 Design", fullLabel: "🎨 Design & Theme" },
-          { id: "media", label: "🎵 Music", fullLabel: "🎵 Media & Music" },
-          { id: "registry", label: "🎁 Registry", fullLabel: "🎁 Gift Registry" },
-          { id: "security", label: "🔒 Security", fullLabel: "🔒 Security & Danger Zone" }
+          { id: "details", label: "Details", fullLabel: "Wedding Details", icon: "lucide:calendar-days" },
+          { id: "design", label: "Design", fullLabel: "Design & Theme", icon: "lucide:palette" },
+          { id: "media", label: "Music", fullLabel: "Media & Music", icon: "lucide:music" },
+          { id: "registry", label: "Registry", fullLabel: "Gift Registry", icon: "lucide:gift" },
+          { id: "security", label: "Security", fullLabel: "Security & Danger Zone", icon: "lucide:lock" }
         ].map(tab => (
           <button
             key={tab.id}
@@ -288,8 +293,11 @@ const AdminSettingsPageContent = () => {
               : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
               }`}
           >
-            <span className="sm:hidden">{tab.label}</span>
-            <span className="hidden sm:inline">{tab.fullLabel}</span>
+            <span className="flex items-center gap-1.5 justify-center">
+              <Icon icon={tab.icon} className="w-3.5 h-3.5 shrink-0" />
+              <span className="sm:hidden">{tab.label}</span>
+              <span className="hidden sm:inline">{tab.fullLabel}</span>
+            </span>
           </button>
         ))}
       </div>
@@ -298,7 +306,7 @@ const AdminSettingsPageContent = () => {
       {activeTab !== "security" && (
         <div className="lg:hidden flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 mb-6 text-xs text-white/80 animate-pulse">
           <div className="flex items-center gap-2">
-            <span className="text-[#D8B76A] text-sm">👁️</span>
+            <Icon icon="lucide:eye" className="text-[#D8B76A] w-4 h-4 shrink-0" />
             <span>Live changes are updating on the card below</span>
           </div>
           <button
@@ -308,7 +316,8 @@ const AdminSettingsPageContent = () => {
             }}
             className="text-[10px] uppercase font-bold text-[#D8B76A] hover:underline shrink-0 flex items-center gap-1"
           >
-            Scroll to Preview ↓
+            <span>Scroll to Preview</span>
+            <Icon icon="lucide:arrow-down" className="w-3 h-3 text-[#D8B76A]" />
           </button>
         </div>
       )}
@@ -439,7 +448,7 @@ const AdminSettingsPageContent = () => {
                     </div>
 
                     <div className="sm:col-span-2 bg-[#D8B76A]/5 border border-[#D8B76A]/20 p-3 rounded-xl flex items-start gap-2">
-                      <span className="text-xs mt-0.5">⚠️</span>
+                      <Icon icon="lucide:alert-triangle" className="text-xs mt-0.5 text-[#D8B76A]" />
                       <p className="text-[10px] text-white/70 leading-relaxed">
                         <strong className="text-[#D8B76A]">Location Precision:</strong> When adding locations, please be as precise as possible (include specific hall name, street address, or major landmarks). Guests will use these descriptions to look up routes and direct maps.
                       </p>
@@ -510,66 +519,46 @@ const AdminSettingsPageContent = () => {
                 <div className="space-y-6">
                   <ThemeSelector />
 
-                  {/* AI Theme suggestion tool (Pro Only) */}
-                  <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4">
+                  {/* AI Invitation Background Generator — teaser linking to Templates page */}
+                  <div className="p-3 sm:p-5 rounded-2xl border border-[#D8B76A]/20 bg-[#0D1220] space-y-4 relative overflow-hidden">
+                    {/* shimmer gradient decoration */}
+                    <div className="absolute inset-0 bg-linear-to-br from-[#D8B76A]/5 via-transparent to-transparent pointer-events-none" />
                     <div className="flex justify-between items-center">
-                      <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">3. AI Intelligent Theme Matcher</h3>
-                      {!isPro && (
+                      <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] flex items-center gap-1.5">
+                        <Icon icon="lucide:sparkles" className="w-4 h-4 text-[#D8B76A]" />
+                        <span>AI Invitation Background Generator</span>
+                      </h3>
+                      {!isPro && !isPlus && (
                         <span className="text-[9px] uppercase font-bold tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded flex items-center gap-1">
-                          <span>🔒</span> Pro Feature
+                          <Icon icon="lucide:lock" className="w-2.5 h-2.5" /> Plus / Pro Feature
                         </span>
                       )}
                     </div>
                     <p className="text-[10px] text-white/40 leading-relaxed">
-                      Select your desired wedding aesthetic/vibe, and our AI matcher will automatically coordinate corresponding themes, backgrounds, fonts, and colors for your invitation cards.
+                      Generate stunning, one-of-a-kind AI wedding invitation backgrounds tailored to your exact colors, style, and cultural influence. The AI creates beautiful frame graphics — VowLink overlays your text automatically.
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                      <div className="flex-1">
-                        <select
-                          disabled={!isPro}
-                          className="w-full rounded-xl border border-white/10 bg-[#070A13] px-3 py-2 text-xs text-white outline-none focus:border-[#D8B76A]/60 disabled:opacity-50"
-                          value={aiVibe}
-                          onChange={(e) => setAiVibe(e.target.value)}
-                        >
-                          <option value="Royal Velvet">👑 Royal Velvet (Navy, Gold & Burgundy)</option>
-                          <option value="Vintage Rose">🌹 Vintage Rose (Blush Pink, Sage & Serif)</option>
-                          <option value="Starry Midnight">✨ Starry Midnight (Midnight Black & Silver)</option>
-                          <option value="Emerald Garden">🌿 Emerald Garden (Emerald Green & Gold)</option>
-                        </select>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      <div className="flex flex-wrap gap-2">
+                        {["Luxury Gold", "Soft Floral", "Burgundy Velvet", "Traditional Nigerian", "Navy & Gold", "Emerald Green"].map((style) => (
+                          <span key={style} className="px-2.5 py-1 text-[9px] rounded-full border border-white/10 text-white/50 bg-white/5">
+                            {style}
+                          </span>
+                        ))}
+                        <span className="px-2.5 py-1 text-[9px] rounded-full border border-white/10 text-white/50 bg-white/5">+ more</span>
                       </div>
                       <button
                         type="button"
-                        onClick={(e) => {
-                          if (!isPro) {
-                            toast.warning("AI Intelligent Theme Matcher is a Pro feature! Upgrade your plan to unlock.", { toastId: 'ai-matcher-lock' });
-                            navigate('/admin/billing');
-                            return;
-                          }
-                          handleAiVibeGenerate();
-                        }}
-                        disabled={aiGenerating}
-                        className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 whitespace-nowrap ${
-                          !isPro 
-                            ? 'bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white cursor-pointer'
-                            : 'bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13]'
-                        }`}
+                        onClick={() => navigate("/admin/templates#ai-backgrounds")}
+                        className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer shrink-0 ${!isPro && !isPlus
+                            ? "bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white"
+                            : "bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13] shadow-[0_4px_16px_rgba(216,183,106,0.25)]"
+                          }`}
                       >
-                        {aiGenerating ? (
-                          <>
-                            <span className="animate-spin">🌀</span>
-                            <span>Styling Vibe...</span>
-                          </>
-                        ) : !isPro ? (
-                          <>
-                            <span>🪄</span>
-                            <span>Auto-Coordinate 🔒</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>🪄</span>
-                            <span>Auto-Coordinate</span>
-                          </>
-                        )}
+                        <Icon icon="lucide:sparkles" className="w-3.5 h-3.5" />
+                        <span className="inline-flex items-center gap-1.5">
+                          {!isPro && !isPlus ? "Upgrade to Generate" : "Generate AI Background"}
+                          {!isPro && !isPlus && <Icon icon="lucide:lock" className="h-3.5 w-3.5" />}
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -582,14 +571,17 @@ const AdminSettingsPageContent = () => {
                       className="w-full flex justify-between items-center text-sm font-semibold uppercase tracking-widest text-[#D8B76A] hover:text-white transition py-1 cursor-pointer outline-none"
                     >
                       <span className="flex items-center gap-2 text-left">
-                        <span>📸</span> 4. Couple Portrait Page Background
+                        <Icon icon="lucide:camera" className="w-4 h-4 text-[#D8B76A]" /> 4. Couple Portrait Page Background
                         {isFree && (
                           <span className="text-[9px] uppercase font-bold tracking-wider text-white/30 bg-white/5 px-2 py-0.5 rounded shrink-0">
                             Locked
                           </span>
                         )}
                       </span>
-                      <span className="font-mono text-[10px] text-[#D8B76A] shrink-0">{showCouplePortrait ? "▲ Hide" : "▼ Show"}</span>
+                      <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[#D8B76A] shrink-0">
+                        <Icon icon={showCouplePortrait ? "lucide:chevron-up" : "lucide:chevron-down"} className="h-3 w-3" />
+                        {showCouplePortrait ? "Hide" : "Show"}
+                      </span>
                     </button>
 
                     {showCouplePortrait && (
@@ -597,88 +589,88 @@ const AdminSettingsPageContent = () => {
                         <p className="text-[10px] text-white/40 leading-relaxed">
                           Upload a romantic photo of the couple. It will serve as the fullscreen background backdrop behind your elegant invitation card, and will also be shown as the preview image when sharing your invitation links on WhatsApp, Slack, and other platforms.
                         </p>
-                      <div>
-                        <input
-                          ref={couplePhotoInputRef}
-                          type="file"
-                          accept="image/*"
-                          disabled={isFree}
-                          onChange={handleCouplePhotoUpload}
-                          className="w-full text-xs text-white/40 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#D8B76A]/10 file:text-[#D8B76A] hover:file:bg-[#D8B76A]/20 disabled:opacity-30"
-                        />
-                      </div>
-
-                      {couplePhotoUrl && (
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <img src={couplePhotoUrl} alt="Couple portrait" className="h-16 w-16 rounded-xl object-cover border border-white/10" />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                toast.dismiss();
-                                const ToastConfirm = ({ closeToast }) => (
-                                  <div className="flex flex-col gap-2 p-1 text-white">
-                                    <p className="font-semibold text-xs leading-relaxed">
-                                      Are you sure you want to remove the couple portrait photo?
-                                    </p>
-                                    <div className="flex gap-2 justify-end mt-1">
-                                      <button
-                                        type="button"
-                                        onClick={closeToast}
-                                        className="px-2 py-1 text-[10px] font-semibold bg-white/10 hover:bg-white/20 text-white rounded transition"
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setCouplePhotoUrl("");
-                                          closeToast();
-                                          toast.success("Couple portrait photo removed.");
-                                        }}
-                                        className="px-2 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
-                                      >
-                                        Confirm
-                                      </button>
-                                    </div>
-                                  </div>
-                                );
-                                toast.warn(<ToastConfirm />, {
-                                  position: "top-center",
-                                  autoClose: false,
-                                  closeOnClick: false,
-                                  draggable: false,
-                                  closeButton: false,
-                                });
-                              }}
-                              className="px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-[10px] font-semibold text-red-400 hover:bg-red-500/20 transition"
-                            >
-                              Delete Photo
-                            </button>
-                          </div>
-
-                          <div>
-                            <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
-                              <span>Overlay darkening opacity</span>
-                              <span className="font-mono text-[#D8B76A]">{Math.round(coupleOverlayOpacity * 100)}%</span>
-                            </div>
-                            <input
-                              type="range"
-                              min="0"
-                              max="0.9"
-                              step="0.05"
-                              disabled={isFree}
-                              className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A] disabled:opacity-40"
-                              value={coupleOverlayOpacity}
-                              onChange={(e) => setCoupleOverlayOpacity(Number(e.target.value))}
-                            />
-                            <p className="text-[8px] text-white/30 mt-1">Darker overlay enhances the contrast and readability of your card overlay text.</p>
-                          </div>
+                        <div>
+                          <input
+                            ref={couplePhotoInputRef}
+                            type="file"
+                            accept="image/*"
+                            disabled={isFree}
+                            onChange={handleCouplePhotoUpload}
+                            className="w-full text-xs text-white/40 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#D8B76A]/10 file:text-[#D8B76A] hover:file:bg-[#D8B76A]/20 disabled:opacity-30"
+                          />
                         </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+
+                        {couplePhotoUrl && (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <img src={couplePhotoUrl} alt="Couple portrait" className="h-16 w-16 rounded-xl object-cover border border-white/10" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  toast.dismiss();
+                                  const ToastConfirm = ({ closeToast }) => (
+                                    <div className="flex flex-col gap-2 p-1 text-white">
+                                      <p className="font-semibold text-xs leading-relaxed">
+                                        Are you sure you want to remove the couple portrait photo?
+                                      </p>
+                                      <div className="flex gap-2 justify-end mt-1">
+                                        <button
+                                          type="button"
+                                          onClick={closeToast}
+                                          className="px-2 py-1 text-[10px] font-semibold bg-white/10 hover:bg-white/20 text-white rounded transition"
+                                        >
+                                          Cancel
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setCouplePhotoUrl("");
+                                            closeToast();
+                                            toast.success("Couple portrait photo removed.");
+                                          }}
+                                          className="px-2 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
+                                        >
+                                          Confirm
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                  toast.warn(<ToastConfirm />, {
+                                    position: "top-center",
+                                    autoClose: false,
+                                    closeOnClick: false,
+                                    draggable: false,
+                                    closeButton: false,
+                                  });
+                                }}
+                                className="px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-[10px] font-semibold text-red-400 hover:bg-red-500/20 transition"
+                              >
+                                Delete Photo
+                              </button>
+                            </div>
+
+                            <div>
+                              <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
+                                <span>Overlay darkening opacity</span>
+                                <span className="font-mono text-[#D8B76A]">{Math.round(coupleOverlayOpacity * 100)}%</span>
+                              </div>
+                              <input
+                                type="range"
+                                min="0"
+                                max="0.9"
+                                step="0.05"
+                                disabled={isFree}
+                                className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A] disabled:opacity-40"
+                                value={coupleOverlayOpacity}
+                                onChange={(e) => setCoupleOverlayOpacity(Number(e.target.value))}
+                              />
+                              <p className="text-[8px] text-white/30 mt-1">Darker overlay enhances the contrast and readability of your card overlay text.</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   {/* WhatsApp/Social Share Preview Message */}
                   <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4 animate-fade-in">
@@ -688,9 +680,12 @@ const AdminSettingsPageContent = () => {
                       className="w-full flex justify-between items-center text-sm font-semibold uppercase tracking-widest text-[#D8B76A] hover:text-white transition py-1 cursor-pointer outline-none"
                     >
                       <span className="flex items-center gap-2">
-                        <span>🔗</span> 5. Social Share Preview Message
+                        <Icon icon="lucide:link" className="w-4 h-4 text-[#D8B76A]" /> 5. Social Share Preview Message
                       </span>
-                      <span className="font-mono text-[10px] text-[#D8B76A] shrink-0">{showSocialShare ? "▲ Hide" : "▼ Show"}</span>
+                      <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[#D8B76A] shrink-0">
+                        <Icon icon={showSocialShare ? "lucide:chevron-up" : "lucide:chevron-down"} className="h-3 w-3" />
+                        {showSocialShare ? "Hide" : "Show"}
+                      </span>
                     </button>
 
                     {showSocialShare && (
@@ -729,7 +724,9 @@ const AdminSettingsPageContent = () => {
                   <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6 animate-fade-in">
                     <div className="flex items-center justify-between border-b border-white/5 pb-4">
                       <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">🎁 Gift Registry</h3>
+                        <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] flex items-center gap-1.5">
+                          <Icon icon="lucide:gift" className="w-4 h-4 text-[#D8B76A]" /> Gift Registry
+                        </h3>
                         <p className="text-white/40 text-xs mt-1">
                           Share bank details directly on your invitation and RSVP confirmation pages.
                         </p>
@@ -739,14 +736,12 @@ const AdminSettingsPageContent = () => {
                         <button
                           type="button"
                           onClick={() => setRegistryEnabled(!registryEnabled)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                            registryEnabled ? "bg-[#D8B76A]" : "bg-white/10"
-                          }`}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${registryEnabled ? "bg-[#D8B76A]" : "bg-white/10"
+                            }`}
                         >
                           <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-slate-900 shadow-md ring-0 transition duration-200 ease-in-out ${
-                              registryEnabled ? "translate-x-5 bg-white" : "translate-x-0"
-                            }`}
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-slate-900 shadow-md ring-0 transition duration-200 ease-in-out ${registryEnabled ? "translate-x-5 bg-white" : "translate-x-0"
+                              }`}
                           />
                         </button>
                       </div>
@@ -756,8 +751,10 @@ const AdminSettingsPageContent = () => {
                       <div className="space-y-6">
                         {/* Bank Details Card */}
                         <div className="space-y-4">
-                          <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60">🏦 Bank Transfer Details</h4>
-                          
+                          <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60 flex items-center gap-1.5">
+                            <Icon icon="lucide:landmark" className="w-3.5 h-3.5 text-white/60" /> Bank Transfer Details
+                          </h4>
+
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
                               <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Bank Name</label>
@@ -810,7 +807,9 @@ const AdminSettingsPageContent = () => {
                     {/* Recent Cash Gifts History */}
                     {registryEnabled && (
                       <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220]/60 space-y-4 mt-6">
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-[#D8B76A]">🎁 Recent Cash Gifts</h4>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-[#D8B76A] flex items-center gap-1.5">
+                          <Icon icon="lucide:gift" className="w-3.5 h-3.5 text-[#D8B76A]" /> Recent Cash Gifts
+                        </h4>
                         <p className="text-[10px] text-white/40 leading-relaxed">
                           Here are the cash gifts sent by your guests via Paystack.
                         </p>
@@ -858,7 +857,10 @@ const AdminSettingsPageContent = () => {
                   onClick={handleResetAll}
                   className="w-full sm:w-auto rounded-full bg-red-600/10 border border-red-500/30 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-red-200 hover:bg-red-600/20 transition text-center"
                 >
-                  ↺ Reset Defaults
+                  <span className="inline-flex items-center justify-center gap-1.5">
+                    <Icon icon="lucide:rotate-ccw" className="h-3.5 w-3.5" />
+                    Reset Defaults
+                  </span>
                 </button>
                 <button
                   type="submit"
@@ -896,7 +898,7 @@ const AdminSettingsPageContent = () => {
                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition text-xs select-none"
                       >
-                        {showCurrentPassword ? "🙈" : "👁️"}
+                        <Icon icon={showCurrentPassword ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -915,7 +917,7 @@ const AdminSettingsPageContent = () => {
                         onClick={() => setShowNewPassword(!showNewPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition text-xs select-none"
                       >
-                        {showNewPassword ? "🙈" : "👁️"}
+                        <Icon icon={showNewPassword ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -934,7 +936,7 @@ const AdminSettingsPageContent = () => {
                         onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition text-xs select-none"
                       >
-                        {showConfirmNewPassword ? "🙈" : "👁️"}
+                        <Icon icon={showConfirmNewPassword ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -1020,7 +1022,7 @@ const AdminSettingsPageContent = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
           <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0D1220] p-6 shadow-2xl space-y-6">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">⚠️</span>
+              <Icon icon="lucide:alert-triangle" className="text-2xl text-amber-500 shrink-0" />
               <div>
                 <h3 className="text-lg font-semibold text-white">Reset Customizations?</h3>
                 <p className="text-white/60 text-xs">
@@ -1028,11 +1030,12 @@ const AdminSettingsPageContent = () => {
                 </p>
               </div>
             </div>
-            
-            <p className="text-[10px] text-[#D8B76A]/80 bg-[#D8B76A]/5 p-3 rounded-lg border border-[#D8B76A]/10">
-              💡 Note: Make sure to click "Save Customizations" after resetting to apply these changes to your live cards.
+
+            <p className="text-[10px] text-[#D8B76A]/80 bg-[#D8B76A]/5 p-3 rounded-lg border border-[#D8B76A]/10 flex items-center gap-1.5">
+              <Icon icon="lucide:lightbulb" className="w-3.5 h-3.5 text-[#D8B76A]" />
+              <span>Note: Make sure to click "Save Customizations" after resetting to apply these changes to your live cards.</span>
             </p>
-            
+
             <div className="flex justify-end gap-3">
               <button
                 type="button"

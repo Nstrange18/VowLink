@@ -1,4 +1,4 @@
-// Force IPv4 DNS resolution — prevents ENETUNREACH on Render (IPv6 not available)
+﻿// Force IPv4 DNS resolution — prevents ENETUNREACH on Render (IPv6 not available)
 const dns = require("dns");
 dns.setDefaultResultOrder("ipv4first");
 
@@ -16,6 +16,7 @@ const rsvpRoutes = require("./routes/rsvpRoutes");
 const venueRoutes = require("./routes/venueRoutes");
 const superAdminRoutes = require("./routes/superAdminRoutes");
 const seatingRoutes = require("./routes/seatingRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -34,6 +35,7 @@ app.use("/api/rsvps", rsvpRoutes);
 app.use("/api/venues", venueRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 app.use("/api/seating", seatingRoutes);
+app.use("/api/ai", aiRoutes);
 
 const PORT = process.env.PORT || 5000;
 
@@ -50,21 +52,21 @@ const checkWeddingDaysToday = async () => {
 
     for (const user of users) {
       const wDate = new Date(user.weddingDate);
-      
+
       const wYear = wDate.getUTCFullYear();
       const wMonth = wDate.getUTCMonth();
       const wDay = wDate.getUTCDate();
-      
+
       const tYearLocal = today.getFullYear();
       const tMonthLocal = today.getMonth();
       const tDayLocal = today.getDate();
-      
+
       const tYearUTC = today.getUTCFullYear();
       const tMonthUTC = today.getUTCMonth();
       const tDayUTC = today.getUTCDate();
 
       const isWeddingToday = (wYear === tYearLocal && wMonth === tMonthLocal && wDay === tDayLocal) ||
-                             (wYear === tYearUTC && wMonth === tMonthUTC && wDay === tDayUTC);
+        (wYear === tYearUTC && wMonth === tMonthUTC && wDay === tDayUTC);
 
       if (isWeddingToday) {
         await sendWeddingDayCongratulationsEmail({
@@ -84,11 +86,11 @@ const checkWeddingDaysToday = async () => {
 
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
-  
+
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("MongoDB connected successfully (Atlas/Configured)");
-    
+
     // Run wedding day scheduler check immediately and every 12 hours
     checkWeddingDaysToday();
     setInterval(checkWeddingDaysToday, 12 * 60 * 60 * 1000);
@@ -98,12 +100,12 @@ app.listen(PORT, async () => {
       console.log("Attempting local MongoDB fallback...");
       await mongoose.connect("mongodb://127.0.0.1:27017/vowlink");
       console.log("MongoDB connected successfully (Local Fallback)");
-      
+
       checkWeddingDaysToday();
       setInterval(checkWeddingDaysToday, 12 * 60 * 60 * 1000);
     } catch (localError) {
       console.log("Local MongoDB fallback failed:", localError.message);
-      console.log("⚠️ Server is running but database connection is offline!");
+      console.log("Server is running but database connection is offline!");
     }
   }
 });

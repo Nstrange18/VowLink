@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
+import { Icon } from "@iconify/react";
 
 const AdminSeatingPage = () => {
   const [tables, setTables] = useState([]);
@@ -48,7 +49,7 @@ const AdminSeatingPage = () => {
       });
       setTables((prev) => [...prev, res.data.table]);
       setTableName("");
-      toast.success("Table created successfully! 🍽️");
+      toast.success("Table created successfully!");
     } catch (err) {
       toast.error("Failed to create table.");
     } finally {
@@ -148,7 +149,9 @@ const AdminSeatingPage = () => {
         <div className="col-span-12 lg:col-span-4 space-y-6">
           {/* Add Table form */}
           <div className="p-5 rounded-2xl border border-white/10 bg-[#0D1220] shadow-lg">
-            <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] mb-4">🍽️ Add New Table</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] mb-4 flex items-center gap-1.5">
+              <Icon icon="mdi:table-furniture" className="w-4 h-4 text-[#D8B76A]" /> Add New Table
+            </h3>
             <form onSubmit={handleAddTable} className="space-y-4">
               <div>
                 <label className="block text-[10px] uppercase tracking-wider text-white/50 mb-1.5 font-bold">Table Name / Number</label>
@@ -199,16 +202,28 @@ const AdminSeatingPage = () => {
           {/* Guest List Sidebar */}
           <div className="p-5 rounded-2xl border border-white/10 bg-[#0D1220] shadow-lg flex flex-col max-h-[500px]">
             <div className="mb-4">
-              <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">👥 Guests Waiting to sit</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] flex items-center gap-1.5">
+                <Icon icon="lucide:users" className="w-4 h-4 text-[#D8B76A]" /> Guests Waiting to sit
+              </h3>
               <p className="text-[10px] text-white/40 mt-1">
                 Showing {unassignedGuests.length} unassigned of {rsvps.length} attending guests.
               </p>
             </div>
 
             <div className="overflow-y-auto space-y-2 flex-1 pr-1 custom-scrollbar">
-              {unassignedGuests.length === 0 ? (
-                <div className="py-8 text-center border border-dashed border-white/10 rounded-xl text-white/30 text-xs">
-                  {rsvps.length === 0 ? "No attending RSVPs yet." : "All attending guests are seated! 🎉"}
+              {loading ? (
+                Array.from({ length: 3 }).map((_, idx) => (
+                  <div key={idx} className="flex justify-between items-center bg-white/5 border border-white/5 rounded-xl p-3 animate-pulse">
+                    <div className="space-y-1.5 flex-1">
+                      <div className="h-3.5 bg-white/10 rounded w-1/2" />
+                      <div className="h-2.5 bg-white/5 rounded w-1/3" />
+                    </div>
+                    <div className="h-6 w-16 bg-white/5 rounded-lg" />
+                  </div>
+                ))
+              ) : unassignedGuests.length === 0 ? (
+                <div className="py-8 text-center border border-dashed border-white/10 rounded-xl text-white/30 text-xs animate-fade-in">
+                  {rsvps.length === 0 ? "No attending RSVPs yet." : "All attending guests are seated!"}
                 </div>
               ) : (
                 unassignedGuests.map((guest) => (
@@ -253,10 +268,35 @@ const AdminSeatingPage = () => {
         {/* RIGHT PANEL: Seating Layout (Col 8) */}
         <div className="col-span-12 lg:col-span-8">
           {loading ? (
-            <p className="text-white/40">Loading seating chart...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
+              {Array.from({ length: 4 }).map((_, idx) => (
+                <div key={idx} className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 space-y-6">
+                  {/* Table Header */}
+                  <div className="flex justify-between items-center pb-4 border-b border-white/5">
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-white/10 rounded w-1/2" />
+                      <div className="h-3 bg-white/5 rounded w-1/3" />
+                    </div>
+                    <div className="h-6 w-12 bg-white/5 rounded-full" />
+                  </div>
+                  {/* Table Graphic/Shape representation */}
+                  <div className="flex justify-center py-6">
+                    <div className="w-24 h-24 rounded-full border-4 border-dashed border-white/10 bg-white/5" />
+                  </div>
+                  {/* Seat Assignment Progress */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <div className="h-3 bg-white/5 rounded w-1/4" />
+                      <div className="h-3 bg-white/5 rounded w-1/6" />
+                    </div>
+                    <div className="h-2 bg-white/5 rounded-full w-full" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : tables.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-white/10 p-12 text-center bg-[#0D1220]/20">
-              <span className="text-4xl block mb-4">🍽️</span>
+            <div className="rounded-3xl border border-dashed border-white/10 p-12 text-center bg-[#0D1220]/20 flex flex-col items-center">
+              <Icon icon="mdi:table-furniture" className="w-12 h-12 text-white/20 mb-4" />
               <h4 className="text-base font-semibold text-white mb-2">No Tables Created</h4>
               <p className="text-sm text-white/40 max-w-md mx-auto mb-6">
                 Create circular or rectangular tables in the left panel to begin planning the layout.
@@ -291,10 +331,10 @@ const AdminSeatingPage = () => {
                         </span>
                         <button
                           onClick={() => handleDeleteTable(table._id)}
-                          className="text-white/30 hover:text-red-400 text-xs px-1.5 py-0.5 rounded transition hover:bg-white/5"
+                          className="text-white/30 hover:text-red-400 text-xs px-1.5 py-0.5 rounded transition hover:bg-white/5 flex items-center justify-center"
                           title="Delete Table"
                         >
-                          🗑️
+                          <Icon icon="lucide:trash-2" className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -399,7 +439,7 @@ const AdminSeatingPage = () => {
                               className="inline-flex items-center gap-1.5 rounded-full bg-white/5 hover:bg-red-500/10 hover:text-red-400 border border-white/10 hover:border-red-500/20 px-2.5 py-1 text-xs text-white/80 cursor-pointer transition"
                               title="Click to unseat"
                             >
-                              {name} <span className="text-[9px] opacity-40">✕</span>
+                              {name} <Icon icon="lucide:x" className="h-3 w-3 opacity-40" />
                             </span>
                           ))}
                         </div>
@@ -418,7 +458,7 @@ const AdminSeatingPage = () => {
           <div className="absolute inset-0 bg-black/70 backdrop-blur-xs animate-fade-in" onClick={() => setTableToDelete(null)} />
           <div className="relative z-10 w-full max-w-sm rounded-3xl border border-red-500/20 bg-[#0D1220] p-6 shadow-2xl space-y-5">
             <div className="flex items-center gap-3">
-              <span className="text-xl">🗑️</span>
+              <Icon icon="lucide:trash-2" className="text-xl text-red-500 shrink-0" />
               <h2 className="font-serif text-lg text-white">Delete Table?</h2>
             </div>
             <p className="text-xs text-white/60 leading-relaxed">

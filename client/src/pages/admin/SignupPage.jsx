@@ -7,6 +7,7 @@ import api from "../../utils/api";
 import { signupSchema } from "../../utils/schemas";
 import ColorPicker, { WEDDING_COLORS } from "../../components/ColorPicker";
 import CustomSelect from "../../components/CustomSelect";
+import { Icon } from "@iconify/react";
 
 const isDarkColor = (hex) => {
   if (!hex || hex === '#999') return false;
@@ -113,7 +114,7 @@ const SignupPage = () => {
       localStorage.setItem("token", res.data.accessToken);
       localStorage.setItem("refreshToken", res.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      toast.success("Account created! Welcome to Vowlink 🎉");
+      toast.success("Account created! Welcome to Vowlink");
       navigate("/admin/dashboard");
     } catch (err) {
       toast.error(
@@ -441,8 +442,9 @@ const SignupPage = () => {
                 </p>
               )}
               {weddingTime && (
-                <p className="text-xs text-[#D8B76A]">
-                  ⏰ {formattedTimeWithFormat}
+                <p className="flex items-center gap-1.5 text-xs text-[#D8B76A]">
+                  <Icon icon="mdi:clock-time-four-outline" className="h-3.5 w-3.5 shrink-0" />
+                  <span>{formattedTimeWithFormat}</span>
                 </p>
               )}
               {rsvpDeadline && (
@@ -455,14 +457,25 @@ const SignupPage = () => {
                   })}
                 </p>
               )}
-              {venue && <p className="text-xs text-white/40">📍 {venue}</p>}
+              {venue && (
+                <p className="flex items-center justify-center gap-1 text-xs text-white/40">
+                  <Icon icon="lucide:map-pin" className="h-3.5 w-3.5" />
+                  {venue}
+                </p>
+              )}
               {receptionLocation && (
                 <p className="text-xs text-white/40">
-                  🥂 Reception at {receptionLocation}
+                  <span className="inline-flex items-center justify-center gap-1">
+                    <Icon icon="mdi:glass-cocktail" className="h-3.5 w-3.5" />
+                    Reception at {receptionLocation}
+                  </span>
                 </p>
               )}
               {dressCode && (
-                <p className="text-xs text-white/50">👔 {dressCode}</p>
+                <p className="flex items-center justify-center gap-1 text-xs text-white/50">
+                  <Icon icon="mdi:tie" className="h-3.5 w-3.5" />
+                  {dressCode}
+                </p>
               )}
               {weddingColors.length > 0 && (
                 <div className="flex justify-center gap-1 pt-1">

@@ -1,6 +1,7 @@
 import React from "react";
 import { toast } from "react-toastify";
 import { useSettings } from "../../context/SettingsContext";
+import { Icon } from "@iconify/react";
 
 const MusicSelector = () => {
   const {
@@ -117,7 +118,7 @@ const MusicSelector = () => {
                     className="absolute top-1.5 right-1.5 z-10 w-5 h-5 rounded-full bg-red-600/90 text-white hover:bg-red-700 flex items-center justify-center transition shadow-lg md:opacity-0 md:group-hover:opacity-100 cursor-pointer text-[10px] font-bold"
                     title="Delete photo"
                   >
-                    ✕
+                    <Icon icon="lucide:x" className="h-4 w-4" />
                   </button>
                 </div>
               ))}
@@ -143,12 +144,12 @@ const MusicSelector = () => {
             <label className="block text-[10px] text-white/50 uppercase mb-2">Curated Background Soundtracks (Autoplays)</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {[
-                { name: "A Thousand Years (Piano)", url: "https://archive.org/download/20-piano-guys-lord-of-the-rings-the-hobbit/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3", emoji: "🎹" },
-                { name: "Perfect (Acoustic Guitar)", url: "https://archive.org/download/fave2/Ed%20Sheeran%20-%20Perfect.mp3", emoji: "🎸" },
-                { name: "Can't Help Falling in Love", url: "https://archive.org/download/fave2/Haley%20Reinhart%20-%20Cant%20Help%20Falling%20In%20Love%20With%20You.mp3", emoji: "🎻" },
-                { name: "All of Me (Piano Solo)", url: "https://archive.org/download/AlsPlaylistMixedGenre/John%20Legend%20-%20All%20of%20Me.mp3", emoji: "🎵" },
-                { name: "Thinking Out Loud", url: "https://archive.org/download/AlsPlaylistMixedGenre/Ed%20Sheeran%20-%20Thinking%20Out%20Loud.mp3", emoji: "💑" },
-                { name: "Wedding March (Classical)", url: "https://archive.org/download/wedding-march/Wedding%20March.mp3", emoji: "⛪" }
+                { name: "A Thousand Years (Piano)", url: "https://archive.org/download/20-piano-guys-lord-of-the-rings-the-hobbit/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3", icon: "mdi:piano" },
+                { name: "Perfect (Acoustic Guitar)", url: "https://archive.org/download/fave2/Ed%20Sheeran%20-%20Perfect.mp3", icon: "mdi:guitar-acoustic" },
+                { name: "Can't Help Falling in Love", url: "https://archive.org/download/fave2/Haley%20Reinhart%20-%20Cant%20Help%20Falling%20In%20Love%20With%20You.mp3", icon: "mdi:violin" },
+                { name: "All of Me (Piano Solo)", url: "https://archive.org/download/AlsPlaylistMixedGenre/John%20Legend%20-%20All%20of%20Me.mp3", icon: "lucide:music" },
+                { name: "Thinking Out Loud", url: "https://archive.org/download/AlsPlaylistMixedGenre/Ed%20Sheeran%20-%20Thinking%20Out%20Loud.mp3", icon: "lucide:heart" },
+                { name: "Wedding March (Classical)", url: "https://archive.org/download/wedding-march/Wedding%20March.mp3", icon: "lucide:church" }
               ].map((p) => {
                 const isSelected = musicUrl === p.url;
                 return (
@@ -162,7 +163,7 @@ const MusicSelector = () => {
                       : "border-white/10 bg-white/3 text-white/70 hover:border-white/20"
                       } disabled:opacity-30 disabled:cursor-not-allowed`}
                   >
-                    <span className="text-lg">{p.emoji}</span>
+                    <Icon icon={p.icon} className="text-lg text-[#D8B76A] shrink-0" />
                     <div className="truncate">
                       <p className="text-xs font-semibold truncate">{p.name}</p>
                       <p className="text-[8px] text-white/40 truncate font-mono">wedding cover</p>
@@ -176,7 +177,10 @@ const MusicSelector = () => {
           {/* Upload from Device */}
           <div className="rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <label className="block text-[10px] text-[#D8B76A] uppercase font-bold tracking-wider">📱 Upload from Your Device</label>
+              <label className="flex items-center gap-1.5 text-[10px] text-[#D8B76A] uppercase font-bold tracking-wider">
+                <Icon icon="mdi:cellphone-arrow-down" className="h-3.5 w-3.5" />
+                Upload from Your Device
+              </label>
               {localAudioUrl && (
                 <button type="button" onClick={clearLocalAudio} className="text-[9px] uppercase tracking-wider text-red-400 hover:underline">Remove</button>
               )}
@@ -190,11 +194,15 @@ const MusicSelector = () => {
               className="w-full text-xs text-white/50 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-[#D8B76A]/15 file:text-[#D8B76A] hover:file:bg-[#D8B76A]/25 disabled:opacity-30 disabled:cursor-not-allowed"
             />
             {localAudioName && (
-              <p className="text-[9px] text-[#D8B76A]/80 font-semibold truncate">🎵 {localAudioName}</p>
+              <p className="flex items-center gap-1.5 text-[9px] text-[#D8B76A]/80 font-semibold truncate">
+                <Icon icon="lucide:music" className="h-3 w-3 shrink-0" />
+                <span className="truncate">{localAudioName}</span>
+              </p>
             )}
             <div className="bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2">
-              <p className="text-[8px] text-emerald-200/70 leading-relaxed">
-                🚀 <strong>Cloudinary Cloud Hosting:</strong> Your uploaded song is securely saved in the cloud. Unlike Spotify widgets, uploaded soundtracks **will automatically play** for guests as soon as they open the welcome envelope!
+              <p className="flex items-start gap-1.5 text-[8px] text-emerald-200/70 leading-relaxed">
+                <Icon icon="lucide:cloud" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                <span><strong>Cloudinary Cloud Hosting:</strong> Your uploaded song is securely saved in the cloud. Unlike Spotify widgets, uploaded soundtracks **will automatically play** for guests as soon as they open the welcome envelope!</span>
               </p>
             </div>
           </div>
@@ -227,13 +235,13 @@ const MusicSelector = () => {
             </p>
             {musicUrl && musicUrl.includes("res.cloudinary.com") && (
               <div className="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-500/20 px-2 py-1 rounded-lg w-fit">
-                <span>☁️</span>
+                <Icon icon="lucide:cloud" className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Securely hosted on Cloudinary (Enables guest autoplay!)</span>
               </div>
             )}
             {musicUrl && getSpotifyEmbedUrl(musicUrl) && (
               <div className="mt-2 flex items-center gap-1.5 text-[9px] font-semibold text-amber-300 bg-amber-950/30 border border-amber-500/20 px-2 py-1 rounded-lg w-fit">
-                <span>⚠️</span>
+                <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5 text-amber-400" />
                 <span>Spotify Widget: Autoplay blocked by browsers. Guests must manually tap Play. Upload an MP3 above for automated playback.</span>
               </div>
             )}
@@ -256,8 +264,9 @@ const MusicSelector = () => {
                     className="rounded-xl border border-white/10"
                     referrerPolicy="no-referrer-when-downgrade"
                   ></iframe>
-                  <p className="text-[8px] text-white/40 leading-relaxed italic bg-white/3 p-2 rounded-lg border border-white/5">
-                    💡 Tip: If Spotify preview says "Page not found", it is a known Spotify security conflict with your logged-in browser session. Try viewing in an Incognito window or logging out of Spotify.
+                  <p className="flex items-start gap-1.5 text-[8px] text-white/40 leading-relaxed italic bg-white/3 p-2 rounded-lg border border-white/5">
+                    <Icon icon="lucide:lightbulb" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#D8B76A]" />
+                    <span>Tip: If Spotify preview says "Page not found", it is a known Spotify security conflict with your logged-in browser session. Try viewing in an Incognito window or logging out of Spotify.</span>
                   </p>
                 </>
               ) : (

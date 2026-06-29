@@ -1,4 +1,4 @@
-const sgMail = require("@sendgrid/mail");
+﻿const sgMail = require("@sendgrid/mail");
 
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -37,11 +37,11 @@ const sendRsvpCoupleAlert = async ({ coupleEmail, coupleName, guestName, attendi
 
   const isAttending = attending === "Yes";
   const statusColor = isAttending ? "#34D399" : "#F87171";
-  const statusText = isAttending ? "✓ Attending" : "✗ Declining";
+  const statusText = isAttending ? "Attending" : "Declining";
   const formattedDate = weddingDate ? new Date(weddingDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : null;
 
   const body = `
-    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:22px;font-weight:400;">New RSVP Received 💌</h2>
+    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:22px;font-weight:400;">New RSVP Received</h2>
     <p style="margin:0 0 24px 0;color:rgba(255,255,255,0.5);font-size:14px;font-family:sans-serif;">${coupleName}</p>
 
     <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:20px;">
@@ -62,12 +62,12 @@ const sendRsvpCoupleAlert = async ({ coupleEmail, coupleName, guestName, attendi
     await sgMail.send({
       to: coupleEmail,
       from: FROM_EMAIL,
-      subject: `💌 ${guestName} just RSVPed to your wedding!`,
+      subject: `${guestName} just RSVPed to your wedding!`,
       html: wrapEmail(body),
     });
-    console.log(`📧 RSVP couple alert sent to ${coupleEmail}`);
+    console.log(`RSVP couple alert sent to ${coupleEmail}`);
   } catch (err) {
-    console.error("❌ SendGrid RSVP couple alert error:", err.response?.body || err.message);
+    console.error("SendGrid RSVP couple alert error:", err.response?.body || err.message);
   }
 };
 
@@ -80,7 +80,7 @@ const sendRsvpGuestConfirmation = async ({ guestEmail, guestName, coupleName, at
   const formattedDate = weddingDate ? new Date(weddingDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : null;
 
   const body = `
-    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:22px;font-weight:400;">RSVP Confirmed ✓</h2>
+    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:22px;font-weight:400;">RSVP Confirmed</h2>
     <p style="margin:0 0 24px 0;color:rgba(255,255,255,0.5);font-size:14px;font-family:sans-serif;">Thank you, ${guestName}</p>
 
     <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:20px;">
@@ -112,9 +112,9 @@ const sendRsvpGuestConfirmation = async ({ guestEmail, guestName, coupleName, at
       subject: `RSVP Confirmed — ${coupleName}'s Wedding`,
       html: wrapEmail(body),
     });
-    console.log(`📧 RSVP guest confirmation sent to ${guestEmail}`);
+    console.log(`RSVP guest confirmation sent to ${guestEmail}`);
   } catch (err) {
-    console.error("❌ SendGrid RSVP guest confirmation error:", err.response?.body || err.message);
+    console.error("SendGrid RSVP guest confirmation error:", err.response?.body || err.message);
   }
 };
 
@@ -126,7 +126,7 @@ const sendHoneymoonGoalReachedNotification = async ({ coupleEmail, coupleName, t
   const formattedCurrent = currentAmount.toLocaleString();
 
   const body = `
-    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:22px;font-weight:400;">Honeymoon Fund Target Reached! 🎉</h2>
+    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:22px;font-weight:400;">Honeymoon Fund Target Reached!</h2>
     <p style="margin:0 0 24px 0;color:rgba(255,255,255,0.5);font-size:14px;font-family:sans-serif;">Congratulations, ${coupleName}!</p>
 
     <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;">
@@ -148,12 +148,12 @@ const sendHoneymoonGoalReachedNotification = async ({ coupleEmail, coupleName, t
     await sgMail.send({
       to: coupleEmail,
       from: FROM_EMAIL,
-      subject: `🎉 VowLink Alert: Your Honeymoon Fund Target has been reached!`,
+      subject: `VowLink Alert: Your Honeymoon Fund Target has been reached!`,
       html: wrapEmail(body),
     });
-    console.log(`📧 Honeymoon fund target alert sent to ${coupleEmail}`);
+    console.log(`Honeymoon fund target alert sent to ${coupleEmail}`);
   } catch (err) {
-    console.error("❌ SendGrid honeymoon target alert error:", err.response?.body || err.message);
+    console.error("SendGrid honeymoon target alert error:", err.response?.body || err.message);
   }
 };
 
@@ -162,7 +162,7 @@ const sendWeddingDayCongratulationsEmail = async ({ coupleEmail, coupleName }) =
   if (!process.env.SENDGRID_API_KEY || !coupleEmail) return;
 
   const body = `
-    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:24px;font-weight:400;text-align:center;">Happy Wedding Day! 💍🎉</h2>
+    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:24px;font-weight:400;text-align:center;">Happy Wedding Day!</h2>
     <p style="margin:0 0 24px 0;color:rgba(255,255,255,0.5);font-size:14px;font-family:sans-serif;text-align:center;">${coupleName}</p>
 
     <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:30px;margin-bottom:20px;text-align:center;line-height:1.6;">
@@ -172,7 +172,7 @@ const sendWeddingDayCongratulationsEmail = async ({ coupleEmail, coupleName }) =
       <p style="margin:0 0 20px 0;color:rgba(255,255,255,0.7);font-size:14px;font-family:sans-serif;">
         On behalf of the VowLink team, we wish you a gorgeous, magical wedding day filled with love, laughter, and unforgettable moments. May your marriage be a lifetime of happiness, understanding, and shared dreams.
       </p>
-      <div style="font-size:48px;margin:20px 0;">✨ 🥂 🤵‍♂️ ❤️ 👰‍♀️ ✨</div>
+      <div style="font-size:48px;margin:20px 0;">Congratulations</div>
     </div>
 
     <p style="color:rgba(255,255,255,0.4);font-size:12px;font-family:sans-serif;margin:0;text-align:center;">
@@ -184,12 +184,12 @@ const sendWeddingDayCongratulationsEmail = async ({ coupleEmail, coupleName }) =
     await sgMail.send({
       to: coupleEmail,
       from: FROM_EMAIL,
-      subject: `💍 Happy Wedding Day, ${coupleName}! 🎉`,
+      subject: `Happy Wedding Day, ${coupleName}! `,
       html: wrapEmail(body),
     });
-    console.log(`📧 Wedding day congratulations email sent to ${coupleEmail}`);
+    console.log(`Wedding day congratulations email sent to ${coupleEmail}`);
   } catch (err) {
-    console.error("❌ SendGrid wedding day congratulations email error:", err.response?.body || err.message);
+    console.error("SendGrid wedding day congratulations email error:", err.response?.body || err.message);
   }
 };
 
@@ -198,14 +198,14 @@ const sendNewVenueRegistrationAdminAlert = async (venue) => {
   const adminEmail = "nwubachukwuemelie@gmail.com";
   if (!process.env.SENDGRID_API_KEY) return;
 
-  const formatBool = (val) => (val ? "✔️ Yes" : "❌ No");
+  const formatBool = (val) => (val ? "Yes" : "No");
 
   const body = `
-    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:22px;font-weight:400;text-align:center;">New Venue Registration Alert 🏛️</h2>
+    <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:22px;font-weight:400;text-align:center;">New Venue Registration Alert</h2>
     <p style="margin:0 0 24px 0;color:rgba(255,255,255,0.5);font-size:14px;font-family:sans-serif;text-align:center;">VowLink Administrator Notification</p>
 
     <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:20px;line-height:1.6;color:rgba(255,255,255,0.9);font-family:sans-serif;font-size:14px;">
-      <h3 style="margin:0 0 12px 0;color:#D8B76A;font-size:16px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:6px;">🏛️ General Specifications</h3>
+      <h3 style="margin:0 0 12px 0;color:#D8B76A;font-size:16px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:6px;">General Specifications</h3>
       <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Venue Name:</strong> ${venue.name}</p>
       <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Style Category:</strong> ${venue.style}</p>
       <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Owner Email:</strong> ${venue.ownerEmail}</p>
@@ -216,7 +216,7 @@ const sendNewVenueRegistrationAdminAlert = async (venue) => {
       <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Full Address:</strong> ${venue.fullAddress}</p>
       <p style="margin:0 0 16px 0;"><strong style="color:#fff;">Price Range:</strong> ${venue.priceRange}</p>
 
-      <h3 style="margin:0 0 12px 0;color:#D8B76A;font-size:16px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:6px;">🛡️ Declared Trust & Safety Items</h3>
+      <h3 style="margin:0 0 12px 0;color:#D8B76A;font-size:16px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:6px;">Declared Trust & Safety Items</h3>
       <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Fire Exits & Signage:</strong> ${formatBool(venue.claimedFireExits)}</p>
       <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Full CCTV Coverage:</strong> ${formatBool(venue.claimedCctv)}</p>
       <p style="margin:0 0 8px 0;"><strong style="color:#fff;">Guard Security Personnel:</strong> ${formatBool(venue.claimedSecurity)}</p>
@@ -233,12 +233,12 @@ const sendNewVenueRegistrationAdminAlert = async (venue) => {
     await sgMail.send({
       to: adminEmail,
       from: FROM_EMAIL,
-      subject: `🏛️ VowLink Alerts: New Venue Account Created — ${venue.name}`,
+      subject: `VowLink Alerts: New Venue Account Created — ${venue.name}`,
       html: wrapEmail(body),
     });
-    console.log(`📧 Admin venue registration alert sent to ${adminEmail}`);
+    console.log(`Admin venue registration alert sent to ${adminEmail}`);
   } catch (err) {
-    console.error("❌ SendGrid admin venue registration alert error:", err.response?.body || err.message);
+    console.error("SendGrid admin venue registration alert error:", err.response?.body || err.message);
   }
 };
 
@@ -247,7 +247,7 @@ const sendRsvpLimitReachedAlert = async ({ coupleEmail, coupleName, tier, limit 
   if (!process.env.SENDGRID_API_KEY || !coupleEmail) return;
 
   const body = `
-    <h2 style="margin:0 0 8px 0;color:#F87171;font-size:22px;font-weight:400;">RSVP Limit Reached ⚠️</h2>
+    <h2 style="margin:0 0 8px 0;color:#F87171;font-size:22px;font-weight:400;">RSVP Limit Reached</h2>
     <p style="margin:0 0 24px 0;color:rgba(255,255,255,0.5);font-size:14px;font-family:sans-serif;">${coupleName}</p>
 
     <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;">
@@ -278,12 +278,12 @@ const sendRsvpLimitReachedAlert = async ({ coupleEmail, coupleName, tier, limit 
     await sgMail.send({
       to: coupleEmail,
       from: FROM_EMAIL,
-      subject: `⚠️ VowLink Alert: Your RSVP limit has been reached! (${tier.toUpperCase()} Plan)`,
+      subject: `VowLink Alert: Your RSVP limit has been reached! (${tier.toUpperCase()} Plan)`,
       html: wrapEmail(body),
     });
-    console.log(`📧 RSVP limit reached alert sent to ${coupleEmail}`);
+    console.log(`RSVP limit reached alert sent to ${coupleEmail}`);
   } catch (err) {
-    console.error("❌ SendGrid RSVP limit reached alert error:", err.response?.body || err.message);
+    console.error("SendGrid RSVP limit reached alert error:", err.response?.body || err.message);
   }
 };
 
