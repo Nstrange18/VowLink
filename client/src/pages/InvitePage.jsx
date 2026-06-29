@@ -199,12 +199,12 @@ const useCountdown = (targetDate) => {
 
 const CountdownBox = ({ value, label }) => (
   <div className="flex flex-col items-center">
-    <div className="rounded-xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 px-3 py-2 min-w-13 text-center">
-      <span className="font-serif text-2xl font-light text-white">
+    <div className="invite-countdown-box rounded-xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 px-3 py-2 min-w-13 text-center">
+      <span className="invite-countdown-number font-serif text-2xl font-light text-white">
         {String(value).padStart(2, "0")}
       </span>
     </div>
-    <span className="mt-1 text-[9px] uppercase tracking-widest text-[#D8B76A]/70">
+    <span className="invite-countdown-label mt-1 text-[9px] uppercase tracking-widest text-[#D8B76A]/70">
       {label}
     </span>
   </div>
@@ -2023,7 +2023,7 @@ const InvitePage = ({ setThemePreference }) => {
                         isFreeUser ? (
                           <div
                             {...getBlockProps("details", "1700ms")}
-                            className={`${getBlockProps("details", "1700ms").className} block w-full px-2`}
+                            className={`${getBlockProps("details", "1700ms").className} invite-card-location-text block w-full px-2`}
                             style={getBlockProps("details", "1700ms").style}
                           >
                             Location: {venueName || venue}
@@ -2041,7 +2041,7 @@ const InvitePage = ({ setThemePreference }) => {
                               textDecorationColor: `${accentColor}55`,
                               textUnderlineOffset: "3px",
                             }}
-                            className={`${getBlockProps("details", "1700ms").className} invite-card-map-link cursor-pointer hover:opacity-90 transition block w-full px-2`}
+                            className={`${getBlockProps("details", "1700ms").className} invite-card-location-text invite-card-map-link cursor-pointer hover:opacity-90 transition block w-full px-2`}
                           >
                             Location: {venueName || venue}
                           </button>
@@ -2052,7 +2052,7 @@ const InvitePage = ({ setThemePreference }) => {
                         isFreeUser ? (
                           <div
                             {...getBlockProps("reception", "1800ms")}
-                            className={`${getBlockProps("reception", "1800ms").className} block w-full px-2`}
+                            className={`${getBlockProps("reception", "1800ms").className} invite-card-location-text block w-full px-2`}
                             style={getBlockProps("reception", "1800ms").style}
                           >
                             Reception at: {receptionName || receptionLocation}
@@ -2070,7 +2070,7 @@ const InvitePage = ({ setThemePreference }) => {
                               textDecorationColor: `${accentColor}55`,
                               textUnderlineOffset: "3px",
                             }}
-                            className={`${getBlockProps("reception", "1800ms").className} invite-card-map-link cursor-pointer hover:opacity-90 transition block w-full px-2`}
+                            className={`${getBlockProps("reception", "1800ms").className} invite-card-location-text invite-card-map-link cursor-pointer hover:opacity-90 transition block w-full px-2`}
                           >
                             Reception at: {receptionName || receptionLocation}
                           </button>
