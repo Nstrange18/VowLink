@@ -1,5 +1,6 @@
 const express = require("express");
 const Invitation = require("../models/Invitation");
+const RSVP = require("../models/RSVP");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 
@@ -311,6 +312,8 @@ router.delete("/:id", protect, async (req, res) => {
     if (!invitation) {
       return res.status(404).json({ message: "Invitation not found" });
     }
+
+    await RSVP.deleteMany({ invitationId: invitation._id });
 
     res.status(200).json({ message: "Invitation deleted successfully" });
   } catch (error) {

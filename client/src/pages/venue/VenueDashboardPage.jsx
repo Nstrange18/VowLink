@@ -651,7 +651,7 @@ const VenueDashboardPage = () => {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 sm:pr-28">
           <span className="hidden sm:inline text-xs text-white/55 font-sans">Owner: <span className="text-[#D8B76A] font-semibold">{venue?.ownerEmail}</span></span>
           <button
             onClick={handleLogout}

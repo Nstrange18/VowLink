@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import Skeleton from "../../components/common/Skeleton";
+import { showConfirmToast } from "../../utils/toastConfirm";
 
 const cleanPhone = (phone) => {
   if (!phone) return "";
@@ -176,6 +177,49 @@ const AdminBulkWhatsAppPage = () => {
         return next;
       });
     }
+  };
+
+  const handleDeleteGuest = (guest) => {
+    showConfirmToast({
+      toastId: `delete-whatsapp-queue-${guest._id}`,
+      confirmLabel: "Delete",
+      message: `Delete ${guest.guestName || "this guest"} from the WhatsApp queue? This permanently removes their invitation and linked RSVP responses.`,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/invitations/${guest._id}`);
+          setInvitations((prev) => prev.filter((inv) => inv._id !== guest._id));
+          setSelectedIds((prev) => prev.filter((id) => id !== guest._id));
+          toast.success("Guest deleted from queue.");
+        } catch {
+          toast.error("Failed to delete guest.");
+        }
+      },
+    });
+  };
+
+  const handleDeleteSelectedGuests = () => {
+    const selectedGuests = invitations.filter((guest) => selectedIds.includes(guest._id));
+    if (selectedGuests.length === 0) {
+      toast.warning("Please select guests to delete.");
+      return;
+    }
+
+    showConfirmToast({
+      toastId: "delete-selected-whatsapp-queue",
+      confirmLabel: "Delete selected",
+      message: `Delete ${selectedGuests.length} selected guest${selectedGuests.length === 1 ? "" : "s"} from the WhatsApp queue? This permanently removes their invitations and linked RSVP responses.`,
+      onConfirm: async () => {
+        try {
+          await Promise.all(selectedGuests.map((guest) => api.delete(`/invitations/${guest._id}`)));
+          const deletedIds = new Set(selectedGuests.map((guest) => guest._id));
+          setInvitations((prev) => prev.filter((inv) => !deletedIds.has(inv._id)));
+          setSelectedIds([]);
+          toast.success(`Deleted ${selectedGuests.length} guest${selectedGuests.length === 1 ? "" : "s"} from queue.`);
+        } catch {
+          toast.error("Failed to delete selected guests.");
+        }
+      },
+    });
   };
 
   const handlePrepareInvites = async () => {
@@ -507,6 +551,12 @@ const AdminBulkWhatsAppPage = () => {
                 >
                   Apply
                 </button>
+                <button
+                  onClick={handleDeleteSelectedGuests}
+                  className="px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/25 text-[10px] font-bold uppercase rounded-lg transition cursor-pointer"
+                >
+                  Delete Selected
+                </button>
               </div>
             )}
           </div>
@@ -720,6 +770,13 @@ const AdminBulkWhatsAppPage = () => {
                                   ) : "Undo"}
                                 </button>
                               )}
+                              <button
+                                onClick={() => handleDeleteGuest(guest)}
+                                disabled={loadingIds.has(guest._id)}
+                                className="px-2 py-1 rounded border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                              >
+                                Delete
+                              </button>
                             </div>
                           </td>
                         </tr>

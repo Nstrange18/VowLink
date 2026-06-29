@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import Skeleton from '../../components/common/Skeleton'
+import { showConfirmToast } from '../../utils/toastConfirm'
 
 const AdminInvitationsPage = () => {
   const [invitations, setInvitations] = useState([])
@@ -10,7 +11,6 @@ const AdminInvitationsPage = () => {
   const [copied, setCopied] = useState(null)
   const navigate = useNavigate()
   const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
-  const [deleteTargetId, setDeleteTargetId] = useState(null)
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState("")
@@ -39,21 +39,23 @@ const AdminInvitationsPage = () => {
   }
 
   const handleDeleteClick = (id) => {
-    setDeleteTargetId(id)
+    const invitation = invitations.find((inv) => inv._id === id)
+    showConfirmToast({
+      toastId: `delete-invitation-${id}`,
+      confirmLabel: 'Delete',
+      message: `Delete ${invitation?.guestName || 'this invitation'}? This permanently removes the invitation and linked RSVP responses.`,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/invitations/${id}`)
+          setInvitations((prev) => prev.filter((i) => i._id !== id))
+          toast.success('Invitation deleted successfully.')
+        } catch {
+          toast.error('Failed to delete invitation.')
+        }
+      },
+    })
   }
 
-  const handleConfirmDelete = async () => {
-    if (!deleteTargetId) return
-    try {
-      await api.delete(`/invitations/${deleteTargetId}`)
-      setInvitations((prev) => prev.filter((i) => i._id !== deleteTargetId))
-      toast.success('Invitation deleted successfully. ✓')
-    } catch {
-      toast.error('Failed to delete invitation.')
-    } finally {
-      setDeleteTargetId(null)
-    }
-  }
 
   const handleEdit = (invitation) => {
     navigate(`/admin/invitations/edit/${invitation._id}`, { state: { invitation } })
@@ -461,37 +463,6 @@ const AdminInvitationsPage = () => {
         </>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {deleteTargetId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0D1220] p-6 shadow-2xl space-y-6">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">⚠️</span>
-              <div>
-                <h3 className="text-lg font-semibold text-white">Delete Invitation?</h3>
-                <p className="text-white/60 text-xs">This action cannot be undone. All guest responses and RSVPs for this link will be permanently lost.</p>
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setDeleteTargetId(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-white/5 text-white hover:bg-white/10 transition"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/35 transition"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

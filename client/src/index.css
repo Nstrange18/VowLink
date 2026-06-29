@@ -15,6 +15,159 @@ body {
   font-family: 'Jost', sans-serif;
 }
 
+html.vowlink-light,
+body.vowlink-light {
+  background-color: #f7f3ec;
+  color: #1f2933;
+}
+
+html.vowlink-light ::-webkit-scrollbar-track { background: #f7f3ec; }
+
+html.vowlink-light .bg-\[\#070A13\],
+html.vowlink-light .bg-\[\#090D19\],
+html.vowlink-light .bg-\[\#0D1220\],
+html.vowlink-light .bg-\[\#0d1220\],
+html.vowlink-light .bg-\[\#0A0D16\],
+html.vowlink-light .bg-\[\#0B0F19\],
+html.vowlink-light .bg-\[\#0d1220\]\/70,
+html.vowlink-light .bg-\[\#070A13\]\/60,
+html.vowlink-light .bg-\[\#0D1220\]\/60,
+html.vowlink-light .bg-\[\#0D1220\]\/40 {
+  background-color: #fffaf0 !important;
+}
+
+html.vowlink-light .bg-black\/20,
+html.vowlink-light .bg-black\/60,
+html.vowlink-light .bg-black\/70,
+html.vowlink-light .bg-white\/2,
+html.vowlink-light .bg-white\/3,
+html.vowlink-light .bg-white\/5,
+html.vowlink-light .bg-white\/10 {
+  background-color: rgba(31, 41, 51, 0.06) !important;
+}
+
+html.vowlink-light .from-\[\#0D1220\],
+html.vowlink-light .from-\[\#111827\],
+html.vowlink-light .from-\[\#1C253D\] {
+  --tw-gradient-from: #fffaf0 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(255, 250, 240, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position)) !important;
+}
+
+html.vowlink-light .to-\[\#0D1220\],
+html.vowlink-light .to-\[\#111827\],
+html.vowlink-light .to-\[\#1C253D\] {
+  --tw-gradient-to: #f4ead6 var(--tw-gradient-to-position) !important;
+}
+
+html.vowlink-light .from-transparent {
+  --tw-gradient-from: transparent var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: transparent var(--tw-gradient-to-position) !important;
+}
+
+html.vowlink-light .text-white,
+html.vowlink-light .text-white\/30,
+html.vowlink-light .text-white\/40,
+html.vowlink-light .text-white\/50,
+html.vowlink-light .text-white\/55,
+html.vowlink-light .text-white\/60,
+html.vowlink-light .text-white\/70,
+html.vowlink-light .text-white\/80 {
+  color: #1f2933 !important;
+}
+
+html.vowlink-light .text-\[\#D8B76A\],
+html.vowlink-light .text-\[\#D8B76A\]\/70,
+html.vowlink-light .text-\[\#D8B76A\]\/80 {
+  color: #8a6518 !important;
+}
+
+html.vowlink-light .hover\:text-\[\#D8B76A\]:hover,
+html.vowlink-light .hover\:text-\[\#D8B76A\]\/70:hover,
+html.vowlink-light .hover\:text-\[\#D8B76A\]\/80:hover {
+  color: #6f5012 !important;
+}
+
+html.vowlink-light .hover\:text-white:hover,
+html.vowlink-light .group:hover .group-hover\:text-white\/70 {
+  color: #8a6a22 !important;
+}
+
+html.vowlink-light .placeholder-white\/20::placeholder,
+html.vowlink-light .placeholder-white\/30::placeholder {
+  color: rgba(31, 41, 51, 0.45) !important;
+}
+
+html.vowlink-light .border-white\/5,
+html.vowlink-light .border-white\/10,
+html.vowlink-light .border-white\/15,
+html.vowlink-light .border-white\/20 {
+  border-color: rgba(31, 41, 51, 0.12) !important;
+}
+
+html.vowlink-light input,
+html.vowlink-light textarea,
+html.vowlink-light select {
+  color: #1f2933;
+}
+
+html.vowlink-light .shadow-2xl,
+html.vowlink-light .shadow-lg {
+  box-shadow: 0 18px 50px rgba(31, 41, 51, 0.12) !important;
+}
+
+html.vowlink-light .light-theme-toggle {
+  background-color: rgba(255, 250, 240, 0.94) !important;
+  color: #1f2933 !important;
+}
+
+html.vowlink-light .landing-hero,
+html.vowlink-light .auth-shell {
+  background-color: #070A13 !important;
+}
+
+html.vowlink-light .landing-hero {
+  color: #fffaf0 !important;
+}
+
+html.vowlink-light .landing-hero .bg-\[\#070A13\]\/60 {
+  background-color: rgba(7, 10, 19, 0.7) !important;
+}
+
+html.vowlink-light .landing-hero .bg-white\/5,
+html.vowlink-light .landing-hero .bg-white\/10 {
+  background-color: rgba(255, 250, 240, 0.08) !important;
+}
+
+html.vowlink-light .landing-hero .text-white,
+html.vowlink-light .landing-hero .text-white\/30,
+html.vowlink-light .landing-hero .text-white\/40,
+html.vowlink-light .landing-hero .text-white\/50,
+html.vowlink-light .landing-hero .text-white\/60,
+html.vowlink-light .landing-hero .text-white\/80 {
+  color: #fffaf0 !important;
+}
+
+html.vowlink-light .auth-shell > .bg-\[\#070A13\]\/85,
+html.vowlink-light .auth-shell > .bg-\[\#070A13\]\/90 {
+  background-color: rgba(255, 250, 240, 0.94) !important;
+}
+
+html.vowlink-light .auth-shell input,
+html.vowlink-light .auth-shell textarea,
+html.vowlink-light .auth-shell select {
+  background-color: rgba(31, 41, 51, 0.05) !important;
+  color: #1f2933 !important;
+}
+
+html.vowlink-light .auth-shell .scheme-dark {
+  color-scheme: light;
+}
+
+html.vowlink-light .auth-shell .bg-\[\#070A13\] {
+  background-color: rgba(255, 250, 240, 0.94) !important;
+}
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #070A13; }
 ::-webkit-scrollbar-thumb { background: #D8B76A; border-radius: 3px; }

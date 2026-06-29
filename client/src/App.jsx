@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -26,6 +27,7 @@ import AdminForgotPasswordPage from './pages/admin/AdminForgotPasswordPage'
 import AdminLayout from './components/AdminLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import SuperAdminDashboardPage from './pages/admin/SuperAdminDashboardPage'
+import ThemeToggle from './components/ThemeToggle'
 
 // Venue Owner Portal Pages
 import VenueLoginPage from './pages/venue/VenueLoginPage'
@@ -33,6 +35,18 @@ import VenueRegisterPage from './pages/venue/VenueRegisterPage'
 import VenueDashboardPage from './pages/venue/VenueDashboardPage'
 
 function App() {
+  const [theme, setTheme] = useState(() => localStorage.getItem('vowlink-theme') || 'dark')
+
+  useEffect(() => {
+    localStorage.setItem('vowlink-theme', theme)
+    document.documentElement.classList.toggle('vowlink-light', theme === 'light')
+    document.body.classList.toggle('vowlink-light', theme === 'light')
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme((current) => (current === 'light' ? 'dark' : 'light'))
+  }
+
   return (
     <BrowserRouter>
       <ToastContainer
@@ -42,15 +56,16 @@ function App() {
         newestOnTop
         closeOnClick
         pauseOnHover
-        theme="dark"
+        theme={theme}
         toastStyle={{
-          background: '#0D1220',
+          background: theme === 'light' ? '#fffaf0' : '#0D1220',
           border: '1px solid rgba(216,183,106,0.2)',
           borderRadius: '16px',
-          color: '#fff',
+          color: theme === 'light' ? '#1f2933' : '#fff',
           fontSize: '14px',
         }}
       />
+      <ThemeToggle theme={theme} onToggle={toggleTheme} />
       <ScrollToTop />
       <Routes>
         {/* Default route */}
