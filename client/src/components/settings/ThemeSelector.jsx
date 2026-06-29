@@ -434,7 +434,7 @@ const ThemeSelector = () => {
 
             {/* Guidelines and Pre-made Templates (All Tiers) */}
             <div className="space-y-4 border-t border-white/5 pt-4">
-              <div className="bg-amber-500/10 border border-amber-500/25 rounded-xl p-3.5 text-xs text-amber-200/90 leading-relaxed">
+              <div className="theme-guideline-alert bg-amber-500/10 border border-amber-500/25 rounded-xl p-3.5 text-xs text-amber-200/90 leading-relaxed">
                 <p className="font-semibold flex items-center gap-1.5 mb-1 text-amber-300">
                   <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5 text-amber-300 shrink-0" /> Design Guidelines: Text-Free Images Only
                 </p>
@@ -488,13 +488,13 @@ const ThemeSelector = () => {
                             // but if the user had manually overridden alignment, that override persists.
                             setUserHasCustomTextColor(false);
                           }}
-                          className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
+                          className={`template-preview-card relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                             }`}
                           style={getTemplatePreviewStyles(t.url)}
                         >
                           {renderTemplatePreviewOrnaments(t.url)}
-                          <div className="absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
-                          <div className="text-left z-10 w-full">
+                          <div className="template-preview-shade absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
+                          <div className="template-preview-label text-left z-10 w-full">
                             <p className="text-[10px] font-bold text-white leading-tight mb-0.5">{t.name}</p>
                             <span className="text-[7px] text-[#D8B76A] uppercase font-bold tracking-widest">Free</span>
                           </div>
@@ -534,15 +534,15 @@ const ThemeSelector = () => {
                               toast.info("Previewing Plus template! Upgrade to Plus or Pro to save this template.", { toastId: "plus-template-preview" });
                             }
                           }}
-                          className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
+                          className={`template-preview-card relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                             }`}
                           style={getTemplatePreviewStyles(t.url)}
                         >
                           {renderTemplatePreviewOrnaments(t.url)}
-                          <div className="absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
+                          <div className="template-preview-shade absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
 
                           {isLocked && (
-                            <div className="absolute inset-0 bg-black/85 backdrop-blur-xs flex flex-col items-center justify-center text-center p-2 z-20 hover:bg-black/60 transition duration-300">
+                            <div className="template-lock-overlay absolute inset-0 bg-black/85 backdrop-blur-xs flex flex-col items-center justify-center text-center p-2 z-20 hover:bg-black/60 transition duration-300">
                               <Icon icon="lucide:lock" className="h-4 w-4 text-[#D8B76A]" />
                               <span className="text-[8px] uppercase tracking-wider text-white/80 mt-1 font-bold">
                                 Plus / Pro
@@ -553,7 +553,7 @@ const ThemeSelector = () => {
                             </div>
                           )}
 
-                          <div className="text-left z-10 w-full">
+                          <div className="template-preview-label text-left z-10 w-full">
                             <p className="text-[10px] font-bold text-white leading-tight mb-0.5">{t.name}</p>
                             <span className="text-[7px] text-amber-400 uppercase font-bold tracking-widest">Plus</span>
                           </div>
@@ -593,15 +593,15 @@ const ThemeSelector = () => {
                               toast.info("Previewing Pro template! Upgrade to Pro to save this template.", { toastId: "pro-template-preview" });
                             }
                           }}
-                          className={`relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
+                          className={`template-preview-card relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                             }`}
                           style={getTemplatePreviewStyles(t.url)}
                         >
                           {renderTemplatePreviewOrnaments(t.url)}
-                          <div className="absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
+                          <div className="template-preview-shade absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
 
                           {isLocked && (
-                            <div className="absolute inset-0 bg-black/85 backdrop-blur-xs flex flex-col items-center justify-center text-center p-2 z-20 hover:bg-black/60 transition duration-300">
+                            <div className="template-lock-overlay absolute inset-0 bg-black/85 backdrop-blur-xs flex flex-col items-center justify-center text-center p-2 z-20 hover:bg-black/60 transition duration-300">
                               <Icon icon="lucide:lock" className="h-4 w-4 text-[#D8B76A]" />
                               <span className="text-[8px] uppercase tracking-wider text-white/80 mt-1 font-bold">
                                 Pro Only
@@ -612,7 +612,7 @@ const ThemeSelector = () => {
                             </div>
                           )}
 
-                          <div className="text-left z-10 w-full">
+                          <div className="template-preview-label text-left z-10 w-full">
                             <p className="text-[10px] font-bold text-white leading-tight mb-0.5">{t.name}</p>
                             <span className="text-[7px] text-amber-500 uppercase font-bold tracking-widest">Pro</span>
                           </div>

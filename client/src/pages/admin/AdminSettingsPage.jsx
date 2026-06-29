@@ -121,8 +121,8 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
                 type="button"
                 onClick={() => setIcon(i.icon)}
                 className={`h-8 w-8 rounded-lg text-lg flex items-center justify-center border transition-all ${icon === i.icon
-                    ? "bg-[#D8B76A]/20 border-[#D8B76A] text-white"
-                    : "bg-[#070A13] border-white/10 text-white/60 hover:border-white/30"
+                  ? "bg-[#D8B76A]/20 border-[#D8B76A] text-white"
+                  : "bg-[#070A13] border-white/10 text-white/60 hover:border-white/30"
                   }`}
                 title={i.label}
               >
@@ -550,8 +550,8 @@ const AdminSettingsPageContent = () => {
                         type="button"
                         onClick={() => navigate("/admin/templates#ai-backgrounds")}
                         className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer shrink-0 ${!isPro && !isPlus
-                            ? "bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white"
-                            : "bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13] shadow-[0_4px_16px_rgba(216,183,106,0.25)]"
+                          ? "bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white"
+                          : "bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13] shadow-[0_4px_16px_rgba(216,183,106,0.25)]"
                           }`}
                       >
                         <Icon icon="lucide:sparkles" className="w-3.5 h-3.5" />
@@ -855,7 +855,7 @@ const AdminSettingsPageContent = () => {
                 <button
                   type="button"
                   onClick={handleResetAll}
-                  className="w-full sm:w-auto rounded-full bg-red-600/10 border border-red-500/30 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-red-200 hover:bg-red-600/20 transition text-center"
+                  className="w-full sm:w-auto rounded-full bg-red-600/10 border border-red-500/30 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-red-600 hover:bg-red-600/20 transition text-center"
                 >
                   <span className="inline-flex items-center justify-center gap-1.5">
                     <Icon icon="lucide:rotate-ccw" className="h-3.5 w-3.5" />
@@ -898,7 +898,7 @@ const AdminSettingsPageContent = () => {
                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition text-xs select-none"
                       >
-                        <Icon icon={showCurrentPassword ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="h-4 w-4" />
+                        <Icon icon={showCurrentPassword ? "lucide:eye-off" : "lucide:eye"} className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -917,7 +917,7 @@ const AdminSettingsPageContent = () => {
                         onClick={() => setShowNewPassword(!showNewPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition text-xs select-none"
                       >
-                        <Icon icon={showNewPassword ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="h-4 w-4" />
+                        <Icon icon={showNewPassword ? "lucide:eye-off" : "lucide:eye"} className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -936,7 +936,7 @@ const AdminSettingsPageContent = () => {
                         onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition text-xs select-none"
                       >
-                        <Icon icon={showConfirmNewPassword ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="h-4 w-4" />
+                        <Icon icon={showConfirmNewPassword ? "lucide:eye-off" : "lucide:eye"} className="h-4 w-4" />
                       </button>
                     </div>
                   </div>

@@ -41,7 +41,7 @@ const resolveWeddingColors = (colors, defaultColorsList) => {
   const hexList = (colors || []).map(name => colorMap[name.toLowerCase()]).filter(Boolean);
 
   const primary = hexList[0] || "#1A2E4A"; // Default Navy
-  
+
   const secondary = hexList[1] || (hexList[0] && !isDarkColor(hexList[0]) ? hexList[0] : "#C9A84C");
   const tertiary = hexList[2] || secondary;
 
@@ -64,7 +64,7 @@ const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
         <svg className="absolute top-0 left-0 w-28 h-28 pointer-events-none select-none opacity-85 z-0" viewBox="0 0 100 100" fill="none">
           <path d="M0,0 Q30,10 50,40 Q40,60 30,70" stroke={leafColor} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
           <path d="M0,0 Q10,30 30,60 Q50,70 60,80" stroke={leafColor} strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
-          
+
           {/* Leaf Shapes */}
           <path d="M25,12 C20,18 28,24 35,18 C30,12 25,12 25,12" fill={leafColor} opacity="0.8" />
           <path d="M12,25 C18,20 24,28 18,35 C12,30 12,25 12,25" fill={leafColor} opacity="0.8" />
@@ -86,7 +86,7 @@ const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
         <svg className="absolute bottom-0 right-0 w-28 h-28 pointer-events-none select-none opacity-85 rotate-180 z-0" viewBox="0 0 100 100" fill="none">
           <path d="M0,0 Q30,10 50,40 Q40,60 30,70" stroke={leafColor} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
           <path d="M0,0 Q10,30 30,60 Q50,70 60,80" stroke={leafColor} strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
-          
+
           {/* Leaf Shapes */}
           <path d="M25,12 C20,18 28,24 35,18 C30,12 25,12 25,12" fill={leafColor} opacity="0.8" />
           <path d="M12,25 C18,20 24,28 18,35 C12,30 12,25 12,25" fill={leafColor} opacity="0.8" />
@@ -112,7 +112,7 @@ const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
       <svg className="absolute top-4 left-4 w-[calc(100%-32px)] h-[calc(100%-32px)] pointer-events-none select-none z-0" viewBox="0 0 100 100" preserveAspectRatio="none">
         <rect x="2" y="2" width="96" height="96" fill="none" stroke={pri} strokeWidth="0.75" opacity="0.4" />
         <rect x="4" y="4" width="92" height="92" fill="none" stroke={sec} strokeWidth="0.5" opacity="0.3" />
-        
+
         <path d="M10,4 L4,4 L4,10" fill="none" stroke={pri} strokeWidth="1" />
         <path d="M90,4 L96,4 L96,10" fill="none" stroke={pri} strokeWidth="1" />
         <path d="M10,96 L4,96 L4,90" fill="none" stroke={pri} strokeWidth="1" />
@@ -251,7 +251,8 @@ const WeddingDayParticles = () => {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden">
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes floatDown {
           0% {
             transform: translateY(0) rotate(0deg);
@@ -270,7 +271,7 @@ const WeddingDayParticles = () => {
 
 const renderFrameBorder = (frameBorder) => {
   if (!frameBorder) return null;
-  
+
   if (frameBorder === "gold-royal") {
     return (
       <div className="absolute inset-5 border-2 border-[#D8B76A]/40 pointer-events-none rounded-xl z-0">
@@ -283,7 +284,7 @@ const renderFrameBorder = (frameBorder) => {
       </div>
     );
   }
-  
+
   if (frameBorder === "lace") {
     return (
       <div className="absolute inset-4 border border-[#B8963A]/25 pointer-events-none rounded-xl z-0">
@@ -292,19 +293,19 @@ const renderFrameBorder = (frameBorder) => {
       </div>
     );
   }
-  
+
   if (frameBorder === "dashed-gold") {
     return (
       <div className="absolute inset-6 border border-dashed border-[#D8B76A]/35 pointer-events-none rounded-lg z-0" />
     );
   }
-  
+
   if (frameBorder === "gold-thin") {
     return (
       <div className="absolute inset-4 border border-[#D8B76A]/25 pointer-events-none rounded-xl z-0" />
     );
   }
-  
+
   if (frameBorder === "eucalyptus") {
     return (
       <div className="absolute inset-5 border border-[#A3B899]/20 pointer-events-none rounded-2xl z-0" />
@@ -339,7 +340,7 @@ const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary
     return isSecondary ? "lucide:sparkle" : "mdi:flower-pollen-outline";
   };
   const dividerIcon = getDividerIcon();
-  
+
   if (dividerType === "gold-royal") {
     return (
       <div className={`flex items-center gap-2 select-none ${spacing}`}>
@@ -349,7 +350,7 @@ const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary
       </div>
     );
   }
-  
+
   return (
     <div className={`flex items-center gap-2 select-none ${spacing}`}>
       <div className="h-px w-10" style={lineStyle} />
@@ -821,7 +822,7 @@ const InvitePage = () => {
         if (localAudio && localAudio.startsWith("data:audio")) {
           musicUrl = localAudio;
         }
-      } catch {}
+      } catch { }
     }
     // Map old placeholder SoundHelix loops to actual wedding instrumentals
     if (musicUrl && !musicUrl.startsWith("data:") && (musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" || musicUrl === "https://archive.org/download/PianoGuysMusic/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3")) {
@@ -875,8 +876,8 @@ const InvitePage = () => {
       setAudioReady(false);
       setIsPlaying(false);
     };
-  // Re-run only when the actual audio URL changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Re-run only when the actual audio URL changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [musicUrl]);
 
   // Pause background music when user switches tabs or minimizes browser, and resume when they return
@@ -1184,7 +1185,7 @@ const InvitePage = () => {
       .then((res) => {
         setWishes(res.data);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [slug, setValue]);
 
 
@@ -1227,10 +1228,10 @@ const InvitePage = () => {
   const handleDownload = async () => {
     if (!downloadRef.current) return;
     setDownloading(true);
-    
+
     // Add is-exporting class to collapse heights of hidden elements
     downloadRef.current.classList.add("is-exporting");
-    
+
     // Allow browser layout engine to recalculate and collapse heights
     await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -1334,11 +1335,11 @@ const InvitePage = () => {
 
   const formattedDate = weddingDate
     ? new Date(weddingDate).toLocaleDateString("en-GB", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
     : null;
 
   const mapsUrl = venue
@@ -1351,10 +1352,10 @@ const InvitePage = () => {
 
   const formattedTime = weddingTime
     ? new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
     : null;
 
   const formattedTimeWithFormat = formattedTime;
@@ -1411,7 +1412,7 @@ const InvitePage = () => {
   } else if (cardTheme === "custom" && customCardBg) {
     let bg = `url('${customCardBg}') 0% 0% / 100% 100% no-repeat`;
     let color = "#1A2E4A";
-    
+
     switch (customCardBg) {
       case "/templates/template_free_1.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
@@ -1549,17 +1550,17 @@ const InvitePage = () => {
       userHasCustomTextColor,
       customTextSizesObj
     );
-    
+
     let className = "";
     const style = { ...blockStyles };
-    
+
     if (isPlusTemplate) {
       className = "animate-plus-fade-up";
     } else if (isProTemplate) {
       className = "animate-pro-text-reveal";
       style.animationDelay = delay;
     }
-    
+
     return { className, style };
   };
 
@@ -1576,7 +1577,7 @@ const InvitePage = () => {
   const isTodayWeddingDay = weddingDate && (new Date(weddingDate).toDateString() === new Date().toDateString());
 
   return (
-    <div className={`min-h-screen min-h-[100svh] relative ${isOpen ? "overflow-x-hidden" : "h-screen h-[100svh] overflow-hidden"}`} style={{ background: "#070A13" }}>
+    <div className={`invite-page min-h-screen min-h-[100svh] relative ${isOpen ? "overflow-x-hidden" : "h-screen h-[100svh] overflow-hidden"}`} style={{ background: "#070A13" }}>
       <style>{`
         .is-exporting .download-exclude,
         .is-exporting #rsvp-open-btn,
@@ -1596,15 +1597,15 @@ const InvitePage = () => {
       <div className="pointer-events-none fixed inset-x-0 top-0 h-[100vh] h-[100lvh] z-0" aria-hidden="true">
         {/* Dark base */}
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)" }} />
-        
+
         {/* Page Background Image (Couple Photo) */}
         {couplePhotoUrl && (
           <>
-            <div 
+            <div
               className="absolute inset-0 bg-contain sm:bg-cover bg-center bg-no-repeat transition-all duration-500"
               style={{ backgroundImage: `url(${couplePhotoUrl})` }}
             />
-            <div 
+            <div
               className="absolute inset-0 transition-all duration-300"
               style={{ backgroundColor: `rgba(0, 0, 0, ${coupleOverlayOpacity})` }}
             />
@@ -1629,18 +1630,17 @@ const InvitePage = () => {
       {/* Fullscreen Envelope Welcome Overlay */}
       {!hiddenOverlay && (
         <div
-          className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out select-none ${
-            isOpen
+          className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out select-none ${isOpen
               ? "translate-y-[-100vh] opacity-0 pointer-events-none"
               : "translate-y-0 opacity-100"
-          }`}
+            }`}
           style={{
             background: envelopeBg,
             fontFamily: cardStyles.fontFamily
           }}
         >
           {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
-          
+
           <div className="max-w-md w-full px-8 text-center flex flex-col items-center justify-center z-10">
             <p
               className="text-xs uppercase tracking-[0.4em] mb-3 opacity-60 font-semibold"
@@ -1648,16 +1648,16 @@ const InvitePage = () => {
             >
               VowLink Invitation
             </p>
-            
+
             <div className="my-6 h-px w-24" style={{ background: envelopeAccentColor, opacity: 0.6 }} />
-            
+
             <p
               className="italic mb-2"
               style={{ color: envelopeTextColor, ...script, fontSize: "1.8rem" }}
             >
               You are cordially invited to the wedding of
             </p>
-            
+
             <h1
               className="mb-8"
               style={{ color: envelopeTextColor, ...script, fontSize: "3.2rem", lineHeight: 1.1 }}
@@ -1666,7 +1666,7 @@ const InvitePage = () => {
               <span className="block my-1 text-2xl font-serif not-italic opacity-80" style={{ color: envelopeTextColor }}>&</span>
               {invitation.userId?.partner2Name || "Partner 2"}
             </h1>
-            
+
             <button
               onClick={handleOpenInvitation}
               className="relative group h-28 w-28 rounded-full flex flex-col items-center justify-center shadow-[0_15px_35px_rgba(0,0,0,0.3)] border transition-all duration-500 hover:scale-105 active:scale-95"
@@ -1677,27 +1677,27 @@ const InvitePage = () => {
               }}
             >
               {/* Outer pulsing ring for high-contrast visibility on light/dark themes */}
-              <span 
-                className="absolute -inset-2 rounded-full animate-pulse pointer-events-none" 
-                style={{ 
+              <span
+                className="absolute -inset-2 rounded-full animate-pulse pointer-events-none"
+                style={{
                   border: `2px solid ${pulseColor}`,
                   boxShadow: `0 0 20px ${pulseColor}${isEnvelopeDark ? "55" : "33"}`,
                   opacity: isEnvelopeDark ? 0.4 : 0.6
-                }} 
+                }}
               />
               {/* Inner expanding ping ring */}
-              <span 
-                className="absolute inset-0 rounded-full animate-ping pointer-events-none" 
-                style={{ 
+              <span
+                className="absolute inset-0 rounded-full animate-ping pointer-events-none"
+                style={{
                   backgroundColor: pulseColor,
                   opacity: isEnvelopeDark ? 0.6 : 0.25
-                }} 
+                }}
               />
               <div className="absolute inset-2 rounded-full border border-dashed opacity-40" style={{ borderColor: isEnvelopeDark ? "#FFFFFF" : "#070A13" }} />
               <Icon icon="lucide:mail" className="mb-1 h-6 w-6 z-10" />
               <span className="text-[10px] uppercase font-bold tracking-widest z-10">Open</span>
             </button>
-            
+
             <p className="mt-8 text-[10px] uppercase tracking-[0.2em] opacity-40" style={{ color: envelopeTextColor }}>
               {musicUrl ? "Click to unveil details & play music" : "Click to unveil details"}
             </p>
@@ -1723,10 +1723,10 @@ const InvitePage = () => {
             transition: "opacity 0.6s ease",
           }}
         >
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D8B76A]">
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#E6C45A ]">
             Scroll down for details
           </span>
-          <span className="text-xs font-bold animate-pulse text-[#D8B76A]">↓</span>
+          <span className="text-xs font-bold animate-pulse text-[#E6C45A ]">↓</span>
         </div>
       )}
 
@@ -1778,7 +1778,7 @@ const InvitePage = () => {
           )}
           <button
             onClick={() => setShowSpotifyPlayer(!showSpotifyPlayer)}
-            className={`h-12 w-12 rounded-full bg-[#1A2E4A] border border-[#D8B76A]/40 flex items-center justify-center text-lg text-[#D8B76A] shadow-xl hover:scale-110 active:scale-95 transition ${showSpotifyPlayer ? 'ring-2 ring-[#D8B76A]' : ''}`}
+            className={`invite-audio-toggle h-12 w-12 rounded-full bg-[#1A2E4A] border border-[#D8B76A]/40 flex items-center justify-center text-lg text-[#D8B76A] shadow-xl hover:scale-110 active:scale-95 transition ${showSpotifyPlayer ? 'ring-2 ring-[#D8B76A]' : ''}`}
             title="Play background soundtrack"
           >
             <Icon icon="lucide:music" className="h-5 w-5" />
@@ -1791,16 +1791,15 @@ const InvitePage = () => {
         <div className="fixed bottom-6 right-6 z-40">
           <button
             onClick={handleAudioToggle}
-            className={`h-12 w-12 rounded-full bg-[#1A2E4A] border flex items-center justify-center text-lg shadow-xl hover:scale-110 active:scale-95 transition-all duration-300 ${
-              isPlaying ? "animate-pulse" : ""
-            }`}
+            className={`invite-audio-toggle h-12 w-12 rounded-full bg-[#1A2E4A] border flex items-center justify-center text-lg text-[#D8B76A] shadow-xl hover:scale-110 active:scale-95 transition-all duration-300 ${isPlaying ? "animate-pulse" : ""
+              }`}
             style={{ borderColor: isPlaying ? accentColor : "rgba(255,255,255,0.2)" }}
             title={isPlaying ? "Pause music" : "Play music"}
           >
             <Icon
-              icon={isPlaying ? "lucide:music" : "lucide:volume-x"}
-              className={`h-5 w-5 ${isPlaying ? "animate-spin" : ""}`}
-              style={{ animationDuration: "6s" }}
+              icon={isPlaying ? "lucide:pause" : "lucide:play"}
+              className="h-5 w-5"
+              style={{ color: accentColor || "#D8B76A" }}
             />
           </button>
         </div>
@@ -1810,930 +1809,940 @@ const InvitePage = () => {
       <div ref={downloadRef} id="main-invitation-container" className="w-full relative z-10">
         {/* Section 1: Invitation Card centered vertically in viewport */}
         <section className="flex flex-col items-center justify-center py-0 px-4 relative z-10 w-full min-h-screen min-h-[100svh]">
-        {/* ═══ THE CARD (this gets downloaded) ═══ */}
-        <div 
-          className="w-full flex items-start justify-center relative"
-          style={{ 
-            height: cardHeight > 0 && isOpen && !downloading ? `${cardHeight * (downloading ? 1 : scale)}px` : "auto",
-            transition: "height 0.3s ease-out"
-          }}
-        >
+          {/* ═══ THE CARD (this gets downloaded) ═══ */}
           <div
+            className="w-full flex items-start justify-center relative"
             style={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "center",
-              transform: isOpen && !downloading ? `scale(${scale})` : "none",
-              transformOrigin: "top center",
-              transition: "transform 0.3s ease-out",
+              height: cardHeight > 0 && isOpen && !downloading ? `${cardHeight * (downloading ? 1 : scale)}px` : "auto",
+              transition: "height 0.3s ease-out"
             }}
           >
             <div
-              ref={cardRef}
-              key={customCardBg || cardTheme}
-              className={`w-[608px] flex-none rounded-2xl overflow-hidden transition-all duration-300 ${
-                isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
-              } ${
-                isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
-              }`}
-            >
-          {/* Card background container */}
-          <div
-            className="relative w-full overflow-hidden"
-            style={cardStyles}
-          >
-            {isProTemplate && <div className="pro-card-shimmer-overlay" />}
-
-            <div key={`${cardTheme}__${customCardBg}`} className={isProTemplate ? "animate-pro-float" : ""}>
-              {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
-              {cardTheme === "custom" && renderTemplateBackgroundGraphics(customCardBg, priHex, secHex, terHex, isFreeUser)}
-            </div>
-            {renderFrameBorder(layout.frameBorder)}
-            {/* Custom Spacing & Scaling wrapper */}
-            <div
-              className={`relative z-10 flex flex-col justify-center w-full min-h-[620px] transition-all ${
-                textAlignment === "left"
-                  ? "items-start text-left"
-                  : textAlignment === "right"
-                  ? "items-end text-right"
-                  : "items-center text-center"
-              }`}
               style={{
-                /* fontSize intentionally NOT set here — applied per-block via getBlockStyles */
-                fontWeight: baseWeight,
-                paddingTop: `calc(${layout.pt}px + ${customVerticalOffset}px)`,
-                paddingBottom: `calc(${layout.pb}px - ${customVerticalOffset}px)`,
-                paddingLeft: `${scalePadding(layout.pl)}px`,
-                paddingRight: `${scalePadding(layout.pr)}px`,
-                transform: `translateX(${customHorizontalOffset || 0}px)`,
-                ...(layout?.contrastHelpers?.overlayBehindText ? {
-                  background: layout.contrastHelpers.overlayBehindText === true
-                    ? (layout.tier === "free" ? "rgba(255, 255, 255, 0.25)" : "rgba(0, 0, 0, 0.2)")
-                    : layout.contrastHelpers.overlayBehindText,
-                  borderRadius: "16px",
-                  backdropFilter: "blur(4px)",
-                  boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)",
-                  padding: "16px",
-                  width: "90%",
-                  margin: "0 auto",
-                } : {})
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                transform: isOpen && !downloading ? `scale(${scale})` : "none",
+                transformOrigin: "top center",
+                transition: "transform 0.3s ease-out",
               }}
             >
               <div
-                className={`w-full flex flex-col justify-center transition-all ${
-                  textAlignment === "left"
-                    ? "items-start text-left"
-                    : textAlignment === "right"
-                    ? "items-end text-right"
-                    : "items-center text-center"
-                }`}
-                style={{
-                  maxWidth: layout.layoutConfig?.safeArea?.maxWidth || "85%",
-                  margin: textAlignment === "left" ? "0 auto 0 0" : textAlignment === "right" ? "0 0 0 auto" : "0 auto",
-                }}
+                ref={cardRef}
+                key={customCardBg || cardTheme}
+                className={`w-[608px] flex-none rounded-2xl overflow-hidden transition-all duration-300 ${isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
+                  } ${isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+                  }`}
               >
-              {/* ── Wedding Invitation title ── */}
-              <h2
-                {...getBlockProps("title", "100ms")}
-                style={{
-                  ...getBlockProps("title", "100ms").style,
-                  fontFamily: activeFont,
-                  fontWeight: headingWeight,
-                }}
-              >
-                Wedding Invitation
-              </h2>
-
-              {/* ornament divider */}
-              <div {...getBlockProps("divider1", "300ms")} className={`${getBlockProps("divider1", "300ms").className} flex justify-center w-full`}>
-                {renderOrnamentDivider(layout.dividerType, getBlockProps("divider1", "300ms").style.color, "my-3")}
-              </div>
-
-              {/* ── Marriage between ── */}
-              <p
-                {...getBlockProps("subtitle", "500ms")}
-                style={{
-                  ...getBlockProps("subtitle", "500ms").style,
-                  ...script,
-                  fontStyle: "italic",
-                }}
-              >
-                Marriage between
-              </p>
-
-              {/* ── Couple names ── */}
-              <h1
-                {...getBlockProps("coupleNames", "700ms")}
-                className={`${getBlockProps("coupleNames", "700ms").className} leading-tight`}
-                style={{
-                  ...getBlockProps("coupleNames", "700ms").style,
-                  fontFamily: activeFont,
-                  fontWeight: headingWeight,
-                  backgroundImage: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "linear-gradient(135deg, #FFF 0%, #D8B76A 60%, #A37F28 100%)" : "none",
-                  WebkitBackgroundClip: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "text" : "border-box",
-                  WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "transparent" : "initial",
-                  display: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "inline-block" : "block"
-                }}
-              >
-                {invitation.userId?.partner1Name || "Partner 1"}{" "}
-                <span style={{ 
-                  color: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : getBlockProps("coupleNames", "700ms").style.color,
-                  WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : "initial",
-                  opacity: 0.9 
-                }}>
-                  and
-                </span>{" "}
-                {invitation.userId?.partner2Name || "Partner 2"}
-              </h1>
-
-              {/* ornament */}
-              <div {...getBlockProps("divider2", "900ms")} className={`${getBlockProps("divider2", "900ms").className} flex justify-center w-full`}>
-                {renderOrnamentDivider(layout.dividerType, getBlockProps("divider2", "900ms").style.color, "my-3", true)}
-              </div>
-
-              {/* ── You are cordially invited ── */}
-              <p
-                {...getBlockProps("greeting", "1100ms")}
-                style={{
-                  ...getBlockProps("greeting", "1100ms").style,
-                }}
-              >
-                You are cordially invited
-              </p>
-
-              {/* ── Salutation (customized greeting) ── */}
-              <p
-                {...getBlockProps("greeting", "1100ms")}
-                style={{
-                  ...getBlockProps("greeting", "1100ms").style,
-                  ...script,
-                  fontStyle: "italic",
-                }}
-              >
-                {invitation.greeting || `Dear ${invitation.guestName},`}
-              </p>
-
-              {/* ── Custom message ── */}
-              <p
-                {...getBlockProps("message", "1300ms")}
-                className={`${getBlockProps("message", "1300ms").className} opacity-90`}
-                style={{
-                  ...getBlockProps("message", "1300ms").style,
-                }}
-              >
-                {invitation.customMessage}
-              </p>
-
-              {/* ── Date ── */}
-              {formattedDate && (
-                <p
-                  {...getBlockProps("details", "1500ms")}
-                  style={{
-                    ...getBlockProps("details", "1500ms").style,
-                  }}
+                {/* Card background container */}
+                <div
+                  className="relative w-full overflow-hidden"
+                  style={cardStyles}
                 >
-                  Date : {formattedDate}
-                </p>
-              )}
+                  {isProTemplate && <div className="pro-card-shimmer-overlay" />}
 
-              {/* ── Time ── */}
-              <p
-                {...getBlockProps("details", "1600ms")}
-                style={{
-                  ...getBlockProps("details", "1600ms").style,
-                }}
-              >
-                Time : {formattedTimeWithFormat || "To be announced"}
-              </p>
-
-              {/* Venue (clickable -> Maps Selector Modal) */}
-              {venue && (
-                isFreeUser ? (
-                  <div
-                    {...getBlockProps("details", "1700ms")}
-                    className={`${getBlockProps("details", "1700ms").className} block w-full px-2`}
-                    style={getBlockProps("details", "1700ms").style}
-                  >
-                    Location: {venueName || venue}
+                  <div key={`${cardTheme}__${customCardBg}`} className={isProTemplate ? "animate-pro-float" : ""}>
+                    {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
+                    {cardTheme === "custom" && renderTemplateBackgroundGraphics(customCardBg, priHex, secHex, terHex, isFreeUser)}
                   </div>
+                  {renderFrameBorder(layout.frameBorder)}
+                  {/* Custom Spacing & Scaling wrapper */}
+                  <div
+                    className={`relative z-10 flex flex-col justify-center w-full min-h-[620px] transition-all ${textAlignment === "left"
+                        ? "items-start text-left"
+                        : textAlignment === "right"
+                          ? "items-end text-right"
+                          : "items-center text-center"
+                      }`}
+                    style={{
+                      /* fontSize intentionally NOT set here — applied per-block via getBlockStyles */
+                      fontWeight: baseWeight,
+                      paddingTop: `calc(${layout.pt}px + ${customVerticalOffset}px)`,
+                      paddingBottom: `calc(${layout.pb}px - ${customVerticalOffset}px)`,
+                      paddingLeft: `${scalePadding(layout.pl)}px`,
+                      paddingRight: `${scalePadding(layout.pr)}px`,
+                      transform: `translateX(${customHorizontalOffset || 0}px)`,
+                      ...(layout?.contrastHelpers?.overlayBehindText ? {
+                        background: layout.contrastHelpers.overlayBehindText === true
+                          ? (layout.tier === "free" ? "rgba(255, 255, 255, 0.25)" : "rgba(0, 0, 0, 0.2)")
+                          : layout.contrastHelpers.overlayBehindText,
+                        borderRadius: "16px",
+                        backdropFilter: "blur(4px)",
+                        boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)",
+                        padding: "16px",
+                        width: "90%",
+                        margin: "0 auto",
+                      } : {})
+                    }}
+                  >
+                    <div
+                      className={`w-full flex flex-col justify-center transition-all ${textAlignment === "left"
+                          ? "items-start text-left"
+                          : textAlignment === "right"
+                            ? "items-end text-right"
+                            : "items-center text-center"
+                        }`}
+                      style={{
+                        maxWidth: layout.layoutConfig?.safeArea?.maxWidth || "85%",
+                        margin: textAlignment === "left" ? "0 auto 0 0" : textAlignment === "right" ? "0 0 0 auto" : "0 auto",
+                      }}
+                    >
+                      {/* ── Wedding Invitation title ── */}
+                      <h2
+                        {...getBlockProps("title", "100ms")}
+                        style={{
+                          ...getBlockProps("title", "100ms").style,
+                          fontFamily: activeFont,
+                          fontWeight: headingWeight,
+                        }}
+                      >
+                        Wedding Invitation
+                      </h2>
+
+                      {/* ornament divider */}
+                      <div {...getBlockProps("divider1", "300ms")} className={`${getBlockProps("divider1", "300ms").className} flex justify-center w-full`}>
+                        {renderOrnamentDivider(layout.dividerType, getBlockProps("divider1", "300ms").style.color, "my-3")}
+                      </div>
+
+                      {/* ── Marriage between ── */}
+                      <p
+                        {...getBlockProps("subtitle", "500ms")}
+                        style={{
+                          ...getBlockProps("subtitle", "500ms").style,
+                          ...script,
+                          fontStyle: "italic",
+                        }}
+                      >
+                        Marriage between
+                      </p>
+
+                      {/* ── Couple names ── */}
+                      <h1
+                        {...getBlockProps("coupleNames", "700ms")}
+                        className={`${getBlockProps("coupleNames", "700ms").className} leading-tight`}
+                        style={{
+                          ...getBlockProps("coupleNames", "700ms").style,
+                          fontFamily: activeFont,
+                          fontWeight: headingWeight,
+                          backgroundImage: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "linear-gradient(135deg, #FFF 0%, #D8B76A 60%, #A37F28 100%)" : "none",
+                          WebkitBackgroundClip: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "text" : "border-box",
+                          WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "transparent" : "initial",
+                          display: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "inline-block" : "block"
+                        }}
+                      >
+                        {invitation.userId?.partner1Name || "Partner 1"}{" "}
+                        <span style={{
+                          color: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : getBlockProps("coupleNames", "700ms").style.color,
+                          WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : "initial",
+                          opacity: 0.9
+                        }}>
+                          and
+                        </span>{" "}
+                        {invitation.userId?.partner2Name || "Partner 2"}
+                      </h1>
+
+                      {/* ornament */}
+                      <div {...getBlockProps("divider2", "900ms")} className={`${getBlockProps("divider2", "900ms").className} flex justify-center w-full`}>
+                        {renderOrnamentDivider(layout.dividerType, getBlockProps("divider2", "900ms").style.color, "my-3", true)}
+                      </div>
+
+                      {/* ── You are cordially invited ── */}
+                      <p
+                        {...getBlockProps("greeting", "1100ms")}
+                        style={{
+                          ...getBlockProps("greeting", "1100ms").style,
+                        }}
+                      >
+                        You are cordially invited
+                      </p>
+
+                      {/* ── Salutation (customized greeting) ── */}
+                      <p
+                        {...getBlockProps("greeting", "1100ms")}
+                        style={{
+                          ...getBlockProps("greeting", "1100ms").style,
+                          ...script,
+                          fontStyle: "italic",
+                        }}
+                      >
+                        {invitation.greeting || `Dear ${invitation.guestName},`}
+                      </p>
+
+                      {/* ── Custom message ── */}
+                      <p
+                        {...getBlockProps("message", "1300ms")}
+                        className={`${getBlockProps("message", "1300ms").className} opacity-90`}
+                        style={{
+                          ...getBlockProps("message", "1300ms").style,
+                        }}
+                      >
+                        {invitation.customMessage}
+                      </p>
+
+                      {/* ── Date ── */}
+                      {formattedDate && (
+                        <p
+                          {...getBlockProps("details", "1500ms")}
+                          style={{
+                            ...getBlockProps("details", "1500ms").style,
+                          }}
+                        >
+                          Date : {formattedDate}
+                        </p>
+                      )}
+
+                      {/* ── Time ── */}
+                      <p
+                        {...getBlockProps("details", "1600ms")}
+                        style={{
+                          ...getBlockProps("details", "1600ms").style,
+                        }}
+                      >
+                        Time : {formattedTimeWithFormat || "To be announced"}
+                      </p>
+
+                      {/* Venue (clickable -> Maps Selector Modal) */}
+                      {venue && (
+                        isFreeUser ? (
+                          <div
+                            {...getBlockProps("details", "1700ms")}
+                            className={`${getBlockProps("details", "1700ms").className} block w-full px-2`}
+                            style={getBlockProps("details", "1700ms").style}
+                          >
+                            Location: {venueName || venue}
+                          </div>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setMapSelectAddress({ label: venueName || venue, query: venue });
+                            }}
+                            {...getBlockProps("details", "1700ms")}
+                            style={{
+                              ...getBlockProps("details", "1700ms").style,
+                              textDecoration: "underline",
+                              textDecorationColor: `${accentColor}55`,
+                              textUnderlineOffset: "3px",
+                            }}
+                            className={`${getBlockProps("details", "1700ms").className} invite-card-map-link cursor-pointer hover:opacity-90 transition block w-full px-2`}
+                          >
+                            Location: {venueName || venue}
+                          </button>
+                        )
+                      )}
+
+                      {receptionLocation && (
+                        isFreeUser ? (
+                          <div
+                            {...getBlockProps("reception", "1800ms")}
+                            className={`${getBlockProps("reception", "1800ms").className} block w-full px-2`}
+                            style={getBlockProps("reception", "1800ms").style}
+                          >
+                            Reception at: {receptionName || receptionLocation}
+                          </div>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
+                            }}
+                            {...getBlockProps("reception", "1800ms")}
+                            style={{
+                              ...getBlockProps("reception", "1800ms").style,
+                              textDecoration: "underline",
+                              textDecorationColor: `${accentColor}55`,
+                              textUnderlineOffset: "3px",
+                            }}
+                            className={`${getBlockProps("reception", "1800ms").className} invite-card-map-link cursor-pointer hover:opacity-90 transition block w-full px-2`}
+                          >
+                            Reception at: {receptionName || receptionLocation}
+                          </button>
+                        )
+                      )}
+
+                      {/* bottom ornament */}
+                      <div {...getBlockProps("divider2", "1900ms")} className={`${getBlockProps("divider2", "1900ms").className} flex justify-center w-full`}>
+                        {renderOrnamentDivider(layout.dividerType, primaryTextColor, "my-3", true)}
+                      </div>
+
+                      {/* Colors */}
+                      {weddingColors.length > 0 && (
+                        <div
+                          {...getBlockProps("colors", "2000ms")}
+                          style={{
+                            ...getBlockProps("colors", "2000ms").style,
+                          }}
+                        >
+                          <p
+                            style={{
+                              color: getBlockProps("colors", "2000ms").style.color,
+                              opacity: 0.8,
+                              textShadow: getBlockProps("colors", "2000ms").style.textShadow || "none",
+                            }}
+                            className="uppercase mb-2 tracking-widest"
+                          >
+                            Colour of the Day
+                          </p>
+                          <div className="flex flex-wrap justify-center gap-1.5">
+                            {weddingColors.map((name, i) => {
+                              const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999";
+                              const blockStyles = getBlockProps("colors", "2000ms").style;
+                              const isDark = isDarkColor(hex);
+                              return (
+                                <div
+                                  key={i}
+                                  className="flex items-center gap-1.5 rounded-full px-2.5 py-0.75 border text-[1.2em] font-extrabold shadow-xs whitespace-nowrap"
+                                  style={{
+                                    borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
+                                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
+                                  }}
+                                >
+                                  <div className={`h-2.5 w-2.5 rounded-full shrink-0 shadow-xs border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ backgroundColor: hex }} />
+                                  <span style={{ color: blockStyles.color }}>{name}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Category badge */}
+                      <p
+                        {...getBlockProps("details", "2100ms")}
+                        style={{
+                          ...getBlockProps("details", "2100ms").style,
+                          letterSpacing: "0.18em",
+                          fontWeight: 700,
+                        }}
+                        className={`${getBlockProps("details", "2100ms").className} uppercase`}
+                      >
+                        {invitation.category || "Guest"}
+                      </p>
+                    </div>
+
+                    {isFreeUser && (
+                      <div className="absolute bottom-2.5 left-0 right-0 text-center select-none pointer-events-none opacity-45 z-20">
+                        <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: cardStyles.color || "#000000" }}>
+                          Powered by VowLink
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* ═══ END CARD ═══ */}
+        </section>
+
+        {/* Section 2: Details & RSVP actions below the card */}
+        <section id="details-start-anchor" className="flex flex-col items-center justify-center py-10 px-4 gap-6 relative z-10 w-full download-exclude">
+
+          {/* ── Countdown (outside card, not downloaded) ── */}
+          {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
+            <div className="w-full download-exclude" style={{ maxWidth: `${608 * scale}px` }}>
+              <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">
+                Counting Down
+              </p>
+              <div className="flex items-end justify-center gap-2">
+                <CountdownBox value={countdown.days} label="Days" />
+                <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
+                <CountdownBox value={countdown.hours} label="Hours" />
+                <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
+                <CountdownBox value={countdown.minutes} label="Mins" />
+                <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
+                <CountdownBox value={countdown.seconds} label="Secs" />
+              </div>
+            </div>
+          )}
+
+          {/* RSVP Deadline badge */}
+          {rsvpDeadline && (
+            <div
+              className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 download-exclude ${deadlinePassed
+                  ? "border-red-400/30 bg-red-400/10 text-red-400"
+                  : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                }`}
+            >
+              <Icon icon={deadlinePassed ? "lucide:lock" : "lucide:clock"} className="h-4 w-4 shrink-0" />
+              <p className="text-xs font-medium">
+                {deadlinePassed
+                  ? "RSVP is now closed"
+                  : `RSVP by ${new Date(rsvpDeadline).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}`}
+              </p>
+            </div>
+          )}
+
+          {/* RSVP Status / Button */}
+          {invitation.hasRSVPed ? (
+            <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-8 py-4 download-exclude">
+              <p className="flex items-center justify-center gap-1.5 text-sm text-emerald-400">
+                <Icon icon="lucide:check" className="h-4 w-4" />
+                We've received your RSVP. Thank you!
+              </p>
+            </div>
+          ) : deadlinePassed ? (
+            <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-8 py-4 download-exclude">
+              <p className="flex items-center justify-center gap-1.5 text-sm text-red-400">
+                <Icon icon="lucide:lock" className="h-4 w-4" />
+                RSVP is now closed.
+              </p>
+            </div>
+          ) : (
+            <button
+              id="rsvp-open-btn"
+              onClick={() => setShowForm(true)}
+              className={`rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.45)] download-exclude ${isProTemplate ? "animate-pro-btn-glow" : ""
+                }`}
+            >
+              <Icon icon="lucide:sparkle" className="mr-1 inline h-4 w-4" />
+              RSVP Now
+            </button>
+          )}
+
+          {/* Download */}
+          <div id="download-actions-bar" className="flex flex-wrap items-center justify-center gap-3 pb-4 download-exclude">
+            <button
+              onClick={handleDownload}
+              disabled={downloading}
+              className="flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#1A2E4A]/80 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#D8B76A] backdrop-blur-sm transition hover:bg-[#1A2E4A] hover:shadow-[0_8px_24px_rgba(216,183,106,0.2)] disabled:opacity-50"
+            >
+              {downloading ? (
+                <span className="animate-pulse">Downloading...</span>
+              ) : (
+                <>
+                  <Icon icon="lucide:download" className="h-4 w-4" /> Download
+                </>
+              )}
+            </button>
+          </div>
+        </section>
+        <div id="details-start-anchor" className="scroll-mt-10" />
+
+        {/* Love Story Couple Gallery Section (Plus/Pro) */}
+        {galleryPhotos.length > 0 && (
+          <section className="invite-section px-4 py-16 bg-[#090D19] border-t border-white/5 relative z-10 flex flex-col items-center download-exclude">
+            <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-2 text-center">Love Story</p>
+            <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 text-center">Our Gallery</h2>
+
+            <div className="invite-feature-card invite-gallery-card w-full max-w-2xl rounded-3xl overflow-hidden border border-white/10 bg-[#070A13] p-3 sm:p-4 flex flex-col items-center">
+              {/* Big slide */}
+              <div className="invite-gallery-frame w-full aspect-[4/5] sm:aspect-[16/11] rounded-2xl overflow-hidden bg-white/5 relative">
+                {galleryPhotos.map((photo, i) => (
+                  <img
+                    key={i}
+                    src={photo}
+                    alt={`Couple photo ${i + 1}`}
+                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${i === galleryIndex ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 z-0 pointer-events-none"
+                      }`}
+                  />
+                ))}
+                {/* Carousel controls — SVG chevron arrows */}
+                <div className="absolute inset-x-0 top-0 z-20 h-28 bg-linear-to-b from-black/50 to-transparent pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 z-20 h-32 bg-linear-to-t from-black/65 to-transparent pointer-events-none" />
+                <div className="absolute left-4 top-4 z-30 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white/90 backdrop-blur-md">
+                  <Icon icon="lucide:images" className="h-3.5 w-3.5 text-[#D8B76A]" />
+                  {galleryIndex + 1} / {galleryPhotos.length}
+                </div>
+                <button
+                  onClick={() => setGalleryIndex((prev) => (prev === 0 ? galleryPhotos.length - 1 : prev - 1))}
+                  className="invite-gallery-control absolute left-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-black/60 border border-white/15 flex items-center justify-center hover:bg-[#D8B76A]/20 hover:border-[#D8B76A]/40 transition-all duration-200 group z-30"
+                  aria-label="Previous photo"
+                >
+                  <Icon icon="lucide:chevron-left" className="h-5 w-5 text-white/70 group-hover:text-[#D8B76A] transition-colors" />
+                </button>
+                <button
+                  onClick={() => setGalleryIndex((prev) => (prev === galleryPhotos.length - 1 ? 0 : prev + 1))}
+                  className="invite-gallery-control absolute right-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-black/60 border border-white/15 flex items-center justify-center hover:bg-[#D8B76A]/20 hover:border-[#D8B76A]/40 transition-all duration-200 group z-30"
+                  aria-label="Next photo"
+                >
+                  <Icon icon="lucide:chevron-right" className="h-5 w-5 text-white/70 group-hover:text-[#D8B76A] transition-colors" />
+                </button>
+                <div className="absolute bottom-4 left-4 right-4 z-30">
+                  <div className="flex gap-1.5">
+                    {galleryPhotos.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setGalleryIndex(i)}
+                        className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i === galleryIndex ? "bg-[#D8B76A]" : "bg-white/30 hover:bg-white/55"}`}
+                        aria-label={`Go to photo ${i + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Thumbnails list */}
+              <div className="invite-gallery-thumbs flex gap-2.5 mt-4 w-full overflow-x-auto pb-1 justify-start sm:justify-center no-scrollbar">
+                {galleryPhotos.map((photo, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setGalleryIndex(i)}
+                    className={`h-14 w-14 shrink-0 rounded-xl overflow-hidden border transition-all duration-200 ${i === galleryIndex ? "border-[#D8B76A] opacity-100 shadow-[0_0_0_3px_rgba(216,183,106,0.16)]" : "border-white/10 opacity-55 hover:opacity-90 hover:border-white/30"
+                      }`}
+                    aria-label={`Show gallery photo ${i + 1}`}
+                  >
+                    <img src={photo} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Timeline / Schedule Section */}
+        {invitation.userId?.timeline && invitation.userId.timeline.length > 0 && (
+          <section className="invite-section px-4 sm:px-6 py-16 text-center bg-[#070A13] relative z-10 border-t border-white/5 flex flex-col items-center">
+            <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Timeline</p>
+            <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Wedding Schedule</h2>
+            <p className="text-white/40 text-xs max-w-sm mb-12 -mt-4 leading-relaxed font-normal">
+              Here is what to expect on our special day. We look forward to celebrating each moment with you!
+            </p>
+
+            <div className="relative w-full max-w-md mx-auto px-4">
+              {/* The vertical line */}
+              <div className="absolute left-8 top-2 bottom-2 w-0.5 bg-linear-to-b from-[#D8B76A] via-[#F2D894]/50 to-[#D8B76A] opacity-30" />
+
+              <div className="space-y-8 text-left">
+                {invitation.userId.timeline.map((event, index) => {
+                  let displayTime = event.time;
+                  try {
+                    const [hourStr, minStr] = event.time.split(":");
+                    const hour = parseInt(hourStr);
+                    const period = hour >= 12 ? "PM" : "AM";
+                    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+                    displayTime = `${displayHour}:${minStr} ${period}`;
+                  } catch (e) {
+                    // Fallback
+                  }
+
+                  return (
+                    <div key={index} className="relative flex items-start pl-14 group">
+                      {/* Circle Node with icon/emoji */}
+                      <div className="absolute left-3 top-0 h-10 w-10 rounded-full bg-[#0D1220] border border-[#D8B76A]/40 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(216,183,106,0.15)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(216,183,106,0.4)] group-hover:border-[#D8B76A] transition-all duration-300 z-10">
+                        {event.icon}
+                      </div>
+
+                      {/* Timeline card details */}
+                      <div className="invite-feature-card flex-1 p-5 rounded-2xl border border-white/10 bg-[#0D1220] hover:border-[#D8B76A]/30 transition duration-300 shadow-md">
+                        <span className="text-[10px] font-bold text-[#D8B76A] uppercase tracking-wider block mb-1">
+                          {displayTime}
+                        </span>
+                        <h4 className="text-white text-base font-semibold font-serif mb-1">
+                          {event.title}
+                        </h4>
+                        {event.description && (
+                          <p className="text-xs text-white/50 leading-relaxed font-normal">
+                            {event.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Details Section */}
+        <section className="invite-section px-4 sm:px-6 py-16 sm:py-20 text-center bg-[#070A13] relative z-10 border-t border-white/5">
+          <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-4">The Details</p>
+          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 sm:mb-10">Wedding Day</h2>
+          {!isFreeUser && (venue || receptionLocation) && (
+            <p className="mx-auto -mt-5 mb-8 flex max-w-md items-center justify-center gap-1.5 rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-[#D8B76A]">
+              <Icon icon="lucide:map-pin" className="h-3.5 w-3.5" />
+              Tap underlined locations for directions
+            </p>
+          )}
+          <div className="mx-auto max-w-4xl grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Date */}
+            <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+              <span className="text-2xl text-[#D8B76A]">◈</span>
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Date</p>
+              <p className="text-white text-sm leading-6">
+                {weddingDate
+                  ? new Date(weddingDate).toLocaleDateString("en-GB", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })
+                  : "To be announced"}
+              </p>
+            </div>
+
+            {/* Time */}
+            <div className="invite-detail-card rounded-2xl flex flex-col items-center border border-white/10 bg-[#0D1220] px-6 py-8">
+              <Icon icon="mdi:clock-time-four-outline" className="h-7 w-7 text-[#D8B76A]" />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Time</p>
+              <p className="text-white text-sm leading-6">
+                {formattedTimeWithFormat || "To be announced"}
+              </p>
+            </div>
+
+            {/* Venue */}
+            <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+              <Icon icon="lucide:map-pin" className="mx-auto h-6 w-6 text-[#D8B76A]" />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Venue</p>
+              {venue ? (
+                isFreeUser ? (
+                  <p className="text-white text-sm leading-6">{venueName || venue}</p>
                 ) : (
                   <button
                     onClick={(e) => {
                       e.preventDefault();
                       setMapSelectAddress({ label: venueName || venue, query: venue });
                     }}
-                    {...getBlockProps("details", "1700ms")}
                     style={{
-                      ...getBlockProps("details", "1700ms").style,
+                      ...serif,
+                      fontSize: "0.95rem",
+                      color: "inherit",
                       textDecoration: "underline",
-                      textDecorationColor: `${accentColor}55`,
+                      textDecorationColor: "#B8963A55",
                       textUnderlineOffset: "3px",
                     }}
-                    className={`${getBlockProps("details", "1700ms").className} hover:opacity-80 transition block w-full px-2`}
+                    className="invite-map-link cursor-pointer transition block w-full text-center"
                   >
-                    Location: {venueName || venue}
+                    {venueName || venue}
                   </button>
                 )
+              ) : (
+                <p className="text-white text-sm leading-6">To be announced</p>
               )}
+            </div>
 
-              {receptionLocation && (
-                isFreeUser ? (
-                  <div
-                    {...getBlockProps("reception", "1800ms")}
-                    className={`${getBlockProps("reception", "1800ms").className} block w-full px-2`}
-                    style={getBlockProps("reception", "1800ms").style}
-                  >
-                    Reception at: {receptionName || receptionLocation}
-                  </div>
+            {receptionLocation && (
+              <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+                <Icon icon="mdi:glass-cocktail" className="mx-auto h-6 w-6 text-[#D8B76A]" />
+                <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Reception at</p>
+                {isFreeUser ? (
+                  <p className="cursor-pointer text-white text-sm leading-6">{receptionName || receptionLocation}</p>
                 ) : (
                   <button
                     onClick={(e) => {
                       e.preventDefault();
                       setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
                     }}
-                    {...getBlockProps("reception", "1800ms")}
                     style={{
-                      ...getBlockProps("reception", "1800ms").style,
+                      ...serif,
+                      fontSize: "0.95rem",
+                      color: "inherit",
                       textDecoration: "underline",
-                      textDecorationColor: `${accentColor}55`,
+                      textDecorationColor: "#B8963A55",
                       textUnderlineOffset: "3px",
                     }}
-                    className={`${getBlockProps("reception", "1800ms").className} hover:opacity-80 transition block w-full px-2`}
+                    className="invite-map-link cursor-pointer transition block w-full text-center"
                   >
-                    Reception at: {receptionName || receptionLocation}
+                    {receptionName || receptionLocation}
                   </button>
-                )
-              )}
-
-              {/* bottom ornament */}
-              <div {...getBlockProps("divider2", "1900ms")} className={`${getBlockProps("divider2", "1900ms").className} flex justify-center w-full`}>
-                {renderOrnamentDivider(layout.dividerType, primaryTextColor, "my-3", true)}
-              </div>
-
-              {/* Colors */}
-              {weddingColors.length > 0 && (
-                <div
-                  {...getBlockProps("colors", "2000ms")}
-                  style={{
-                    ...getBlockProps("colors", "2000ms").style,
-                  }}
-                >
-                  <p
-                    style={{
-                      color: getBlockProps("colors", "2000ms").style.color,
-                      opacity: 0.8,
-                      textShadow: getBlockProps("colors", "2000ms").style.textShadow || "none",
-                    }}
-                    className="uppercase mb-2 tracking-widest"
-                  >
-                    Colour of the Day
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-1.5">
-                    {weddingColors.map((name, i) => {
-                      const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999";
-                      const blockStyles = getBlockProps("colors", "2000ms").style;
-                      const isDark = isDarkColor(hex);
-                      return (
-                        <div
-                          key={i}
-                          className="flex items-center gap-1.5 rounded-full px-2.5 py-0.75 border text-[1.2em] font-extrabold shadow-xs whitespace-nowrap"
-                          style={{
-                            borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
-                            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
-                          }}
-                        >
-                          <div className={`h-2.5 w-2.5 rounded-full shrink-0 shadow-xs border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ backgroundColor: hex }} />
-                          <span style={{ color: blockStyles.color }}>{name}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Category badge */}
-              <p
-                {...getBlockProps("details", "2100ms")}
-                style={{
-                  ...getBlockProps("details", "2100ms").style,
-                  letterSpacing: "0.18em",
-                  fontWeight: 700,
-                }}
-                className={`${getBlockProps("details", "2100ms").className} uppercase`}
-              >
-                {invitation.category || "Guest"}
-              </p>
-              </div>
-              
-              {isFreeUser && (
-                <div className="absolute bottom-2.5 left-0 right-0 text-center select-none pointer-events-none opacity-45 z-20">
-                  <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: cardStyles.color || "#000000" }}>
-                    Powered by VowLink
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-          </div>
-        </div>
-      </div>
-      {/* ═══ END CARD ═══ */}
-      </section>
-
-      {/* Section 2: Details & RSVP actions below the card */}
-      <section id="details-start-anchor" className="flex flex-col items-center justify-center py-10 px-4 gap-6 relative z-10 w-full download-exclude">
-
-        {/* ── Countdown (outside card, not downloaded) ── */}
-        {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
-          <div className="w-full download-exclude" style={{ maxWidth: `${608 * scale}px` }}>
-            <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">
-              Counting Down
-            </p>
-            <div className="flex items-end justify-center gap-2">
-              <CountdownBox value={countdown.days} label="Days" />
-              <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
-              <CountdownBox value={countdown.hours} label="Hours" />
-              <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
-              <CountdownBox value={countdown.minutes} label="Mins" />
-              <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
-              <CountdownBox value={countdown.seconds} label="Secs" />
-            </div>
-          </div>
-        )}
-
-        {/* RSVP Deadline badge */}
-        {rsvpDeadline && (
-          <div
-            className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 download-exclude ${
-              deadlinePassed
-                ? "border-red-400/30 bg-red-400/10 text-red-400"
-                : "border-amber-400/30 bg-amber-400/10 text-amber-300"
-            }`}
-          >
-            <Icon icon={deadlinePassed ? "lucide:lock" : "lucide:clock"} className="h-4 w-4 shrink-0" />
-            <p className="text-xs font-medium">
-              {deadlinePassed
-                ? "RSVP is now closed"
-                : `RSVP by ${new Date(rsvpDeadline).toLocaleDateString("en-GB", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}`}
-            </p>
-          </div>
-        )}
-
-        {/* RSVP Status / Button */}
-        {invitation.hasRSVPed ? (
-          <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-8 py-4 download-exclude">
-            <p className="flex items-center justify-center gap-1.5 text-sm text-emerald-400">
-              <Icon icon="lucide:check" className="h-4 w-4" />
-              We've received your RSVP. Thank you!
-            </p>
-          </div>
-        ) : deadlinePassed ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-8 py-4 download-exclude">
-            <p className="flex items-center justify-center gap-1.5 text-sm text-red-400">
-              <Icon icon="lucide:lock" className="h-4 w-4" />
-              RSVP is now closed.
-            </p>
-          </div>
-        ) : (
-          <button
-            id="rsvp-open-btn"
-            onClick={() => setShowForm(true)}
-            className={`rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.45)] download-exclude ${
-              isProTemplate ? "animate-pro-btn-glow" : ""
-            }`}
-          >
-            <Icon icon="lucide:sparkle" className="mr-1 inline h-4 w-4" />
-            RSVP Now
-          </button>
-        )}
-
-        {/* Download */}
-        <div id="download-actions-bar" className="flex flex-wrap items-center justify-center gap-3 pb-4 download-exclude">
-          <button
-            onClick={handleDownload}
-            disabled={downloading}
-            className="flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#1A2E4A]/80 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#D8B76A] backdrop-blur-sm transition hover:bg-[#1A2E4A] hover:shadow-[0_8px_24px_rgba(216,183,106,0.2)] disabled:opacity-50"
-          >
-            {downloading ? (
-              <span className="animate-pulse">Downloading...</span>
-            ) : (
-              <>
-                <Icon icon="lucide:download" className="h-4 w-4" /> Download
-              </>
-            )}
-          </button>
-        </div>
-      </section>
-      <div id="details-start-anchor" className="scroll-mt-10" />
-
-      {/* Love Story Couple Gallery Section (Plus/Pro) */}
-      {galleryPhotos.length > 0 && (
-        <section className="px-4 py-16 bg-[#090D19] border-t border-white/5 relative z-10 flex flex-col items-center download-exclude">
-          <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-2 text-center">Love Story</p>
-          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 text-center">Our Gallery</h2>
-
-          <div className="w-full max-w-lg rounded-3xl overflow-hidden border border-white/10 bg-[#070A13] p-4 flex flex-col items-center">
-            {/* Big slide */}
-            <div className="w-full h-80 rounded-2xl overflow-hidden bg-white/5 relative">
-              {galleryPhotos.map((photo, i) => (
-                <img
-                  key={i}
-                  src={photo}
-                  alt={`Couple photo ${i + 1}`}
-                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
-                    i === galleryIndex ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-                  }`}
-                />
-              ))}
-              {/* Carousel controls — SVG chevron arrows */}
-              <button
-                onClick={() => setGalleryIndex((prev) => (prev === 0 ? galleryPhotos.length - 1 : prev - 1))}
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 border border-white/15 flex items-center justify-center hover:bg-[#D8B76A]/20 hover:border-[#D8B76A]/40 transition-all duration-200 group z-20"
-                aria-label="Previous photo"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-white/70 group-hover:text-[#D8B76A] transition-colors">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setGalleryIndex((prev) => (prev === galleryPhotos.length - 1 ? 0 : prev + 1))}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/60 border border-white/15 flex items-center justify-center hover:bg-[#D8B76A]/20 hover:border-[#D8B76A]/40 transition-all duration-200 group z-20"
-                aria-label="Next photo"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-white/70 group-hover:text-[#D8B76A] transition-colors">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Thumbnails list */}
-            <div className="flex gap-2.5 mt-4 flex-wrap justify-center">
-              {galleryPhotos.map((photo, i) => (
-                <button
-                  key={i}
-                  onClick={() => setGalleryIndex(i)}
-                  className={`h-11 w-11 rounded-lg overflow-hidden border transition ${
-                    i === galleryIndex ? "border-[#D8B76A]" : "border-white/10 opacity-50"
-                  }`}
-                >
-                  <img src={photo} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Timeline / Schedule Section */}
-      {invitation.userId?.timeline && invitation.userId.timeline.length > 0 && (
-        <section className="px-4 sm:px-6 py-16 text-center bg-[#070A13] relative z-10 border-t border-white/5 flex flex-col items-center">
-          <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Timeline</p>
-          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Wedding Schedule</h2>
-          <p className="text-white/40 text-xs max-w-sm mb-12 -mt-4 leading-relaxed font-normal">
-            Here is what to expect on our special day. We look forward to celebrating each moment with you!
-          </p>
-
-          <div className="relative w-full max-w-md mx-auto px-4">
-            {/* The vertical line */}
-            <div className="absolute left-8 top-2 bottom-2 w-0.5 bg-linear-to-b from-[#D8B76A] via-[#F2D894]/50 to-[#D8B76A] opacity-30" />
-
-            <div className="space-y-8 text-left">
-              {invitation.userId.timeline.map((event, index) => {
-                let displayTime = event.time;
-                try {
-                  const [hourStr, minStr] = event.time.split(":");
-                  const hour = parseInt(hourStr);
-                  const period = hour >= 12 ? "PM" : "AM";
-                  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-                  displayTime = `${displayHour}:${minStr} ${period}`;
-                } catch (e) {
-                  // Fallback
-                }
-
-                return (
-                  <div key={index} className="relative flex items-start pl-14 group">
-                    {/* Circle Node with icon/emoji */}
-                    <div className="absolute left-3 top-0 h-10 w-10 rounded-full bg-[#0D1220] border border-[#D8B76A]/40 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(216,183,106,0.15)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(216,183,106,0.4)] group-hover:border-[#D8B76A] transition-all duration-300 z-10">
-                      {event.icon}
-                    </div>
-
-                    {/* Timeline card details */}
-                    <div className="flex-1 p-5 rounded-2xl border border-white/10 bg-[#0D1220] hover:border-[#D8B76A]/30 transition duration-300 shadow-md">
-                      <span className="text-[10px] font-bold text-[#D8B76A] uppercase tracking-wider block mb-1">
-                        {displayTime}
-                      </span>
-                      <h4 className="text-white text-base font-semibold font-serif mb-1">
-                        {event.title}
-                      </h4>
-                      {event.description && (
-                        <p className="text-xs text-white/50 leading-relaxed font-normal">
-                          {event.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Details Section */}
-      <section className="px-4 sm:px-6 py-16 sm:py-20 text-center bg-[#070A13] relative z-10 border-t border-white/5">
-        <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-4">The Details</p>
-        <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 sm:mb-10">Wedding Day</h2>
-        <div className="mx-auto max-w-4xl grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Date */}
-          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <span className="text-2xl text-[#D8B76A]">◈</span>
-            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Date</p>
-            <p className="text-white text-sm leading-6">
-              {weddingDate
-                ? new Date(weddingDate).toLocaleDateString("en-GB", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })
-                : "To be announced"}
-            </p>
-          </div>
-
-          {/* Time */}
-          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <Icon icon="mdi:clock-time-four-outline" className="h-7 w-7 text-[#D8B76A]" />
-            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Time</p>
-            <p className="text-white text-sm leading-6">
-              {formattedTimeWithFormat || "To be announced"}
-            </p>
-          </div>
-
-          {/* Venue */}
-          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <Icon icon="lucide:map-pin" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Venue</p>
-            {venue ? (
-              isFreeUser ? (
-                <p className="text-white text-sm leading-6">{venueName || venue}</p>
-              ) : (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setMapSelectAddress({ label: venueName || venue, query: venue });
-                  }}
-                  style={{
-                    ...serif,
-                    fontSize: "0.95rem",
-                    color: "gainsboro",
-                    textDecoration: "underline",
-                    textDecorationColor: "#B8963A55",
-                    textUnderlineOffset: "3px",
-                  }}
-                  className="hover:opacity-80 transition block w-full text-center"
-                >
-                  {venueName || venue}
-                </button>
-              )
-            ) : (
-              <p className="text-white text-sm leading-6">To be announced</p>
-            )}
-          </div>
-
-          {receptionLocation && (
-            <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-              <Icon icon="mdi:glass-cocktail" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Reception at</p>
-              {isFreeUser ? (
-                <p className="text-white text-sm leading-6">{receptionName || receptionLocation}</p>
-              ) : (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
-                  }}
-                  style={{
-                    ...serif,
-                    fontSize: "0.95rem",
-                    color: "gainsboro",
-                    textDecoration: "underline",
-                    textDecorationColor: "#B8963A55",
-                    textUnderlineOffset: "3px",
-                  }}
-                  className="hover:opacity-80 transition block w-full text-center"
-                >
-                  {receptionName || receptionLocation}
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Dress Code */}
-          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <Icon icon="mdi:tie" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Dress Code</p>
-            <p className="text-white text-sm leading-6">{dressCode || "To be announced"}</p>
-          </div>
-
-          {/* Colour of the Day */}
-          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <Icon icon="lucide:palette" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-3">Colour of the Day</p>
-            {weddingColors.length > 0 ? (
-              <div className="flex justify-center flex-wrap gap-2">
-                {weddingColors.map((name, i) => {
-                  const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999";
-                  const isDark = isDarkColor(hex);
-                  return (
-                    <div
-                      key={i}
-                      className="flex items-center gap-2 rounded-full border px-3.5 py-1.5 shadow-sm"
-                      style={{
-                        borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
-                        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
-                      }}
-                    >
-                      <div className={`h-5 w-5 rounded-full shrink-0 shadow-inner border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ background: hex }} />
-                      <span className="text-xs font-bold text-white tracking-wide">{name}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-white text-sm">To be announced</p>
-            )}
-          </div>
-
-          {/* Your Category */}
-          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <Icon icon="lucide:sparkle" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Your Category</p>
-            <p className="text-white text-sm leading-6">{invitation.category || "Guest"}</p>
-          </div>
-
-          {/* Additional guest policy */}
-          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <Icon icon="lucide:user-plus" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Additional Guest</p>
-            <p className="text-white text-sm leading-6">
-              {plusOnePolicy === "plus_one_allowed" ? "Plus one allowed" : "Strictly by invitation"}
-            </p>
-          </div>
-
-          {/* Children policy */}
-          <div className="rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-            <Icon icon="mdi:human-child" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-            <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Children</p>
-            <p className="text-white text-sm leading-6">
-              {kidsAllowed ? "Children are welcome" : "Adults only"}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* RSVP MODAL */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4 backdrop-blur-sm">
-          <div className="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-[#D8B76A]/20 bg-white p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-serif text-2xl text-[#1A2E4A]">Your RSVP</h2>
-              <button
-                onClick={() => setShowForm(false)}
-                className="text-[#1A2E4A]/40 hover:text-[#1A2E4A] transition text-lg"
-              >
-                <Icon icon="lucide:x" className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit(onRsvpSubmit)} className="space-y-4">
-              {/* Name */}
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Name *</label>
-                <input
-                  id="rsvp-name"
-                  {...register("guestName")}
-                  className={`${inputClass} ${errors.guestName ? "border-red-400/50" : ""}`}
-                />
-                {errors.guestName && (
-                  <p className="mt-1 text-xs text-red-500">{errors.guestName.message}</p>
                 )}
               </div>
+            )}
 
-              {/* Phone */}
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
-                  Phone Number *
-                </label>
-                <input
-                  id="rsvp-phone"
-                  placeholder="+234 800 000 0000"
-                  {...register("phone")}
-                  className={`${inputClass} ${errors.phone ? "border-red-400/50" : ""}`}
-                />
-                {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>}
-              </div>
+            {/* Dress Code */}
+            <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+              <Icon icon="mdi:tie" className="mx-auto h-6 w-6 text-[#D8B76A]" />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Dress Code</p>
+              <p className="text-white text-sm leading-6">{dressCode || "To be announced"}</p>
+            </div>
 
-              {/* Optional Email for confirmation */}
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
-                  Email <span className="text-[#1A2E4A]/30 normal-case">(optional — for confirmation)</span>
-                </label>
-                <input
-                  id="rsvp-email"
-                  type="email"
-                  placeholder="your@email.com"
-                  {...register("guestEmail")}
-                  className={`${inputClass} ${errors.guestEmail ? "border-red-400/50" : ""}`}
-                />
-                {errors.guestEmail && <p className="mt-1 text-xs text-red-500">{errors.guestEmail.message}</p>}
-              </div>
-
-              {/* Attending toggle */}
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
-                  Will you attend? *
-                </label>
-                <Controller
-                  name="attending"
-                  control={control}
-                  render={({ field }) => (
-                    <div className="flex gap-3">
-                      {["Yes", "No"].map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => field.onChange(opt)}
-                          className={`flex-1 rounded-xl border py-3 text-sm font-medium transition ${
-                            field.value === opt
-                              ? opt === "Yes"
-                                ? "border-emerald-500/50 bg-emerald-50 text-emerald-700"
-                                : "border-red-400/50 bg-red-50 text-red-600"
-                              : "border-[#1A2E4A]/10 bg-[#F8F8F8] text-[#1A2E4A]/50 hover:border-[#1A2E4A]/20"
-                          }`}
-                        >
-                          <span className="inline-flex items-center gap-1.5">
-                            <Icon icon={opt === "Yes" ? "lucide:check" : "lucide:x"} className="h-3.5 w-3.5" />
-                            {opt}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                />
-              </div>
-
-              {attending === "Yes" && (
-                <div className="rounded-xl border border-[#B8963A]/30 bg-[#D8B76A]/10 px-4 py-3">
-                  <p className="text-xs uppercase tracking-widest text-[#B8963A]/80 mb-1">
-                    Your invitation
-                  </p>
-                  <p className="text-sm text-[#1A2E4A]">
-                    {plusOnePolicy === "plus_one_allowed"
-                      ? `You're confirming attendance for ${invitedCount} guest${
-                          invitedCount === 1 ? "" : "s"
-                        } (${invitation.allowedGuests || 1} on your invitation + 1 plus one).`
-                      : `You're confirming attendance for ${invitedCount} guest${
-                          invitedCount === 1 ? "" : "s"
-                        } as listed on your invitation.`}
-                  </p>
+            {/* Colour of the Day */}
+            <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+              <Icon icon="lucide:palette" className="mx-auto h-6 w-6 text-[#D8B76A]" />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-3">Colour of the Day</p>
+              {weddingColors.length > 0 ? (
+                <div className="flex justify-center flex-wrap gap-2">
+                  {weddingColors.map((name, i) => {
+                    const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999";
+                    const isDark = isDarkColor(hex);
+                    return (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 rounded-full border px-3.5 py-1.5 shadow-sm"
+                        style={{
+                          borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
+                        }}
+                      >
+                        <div className={`h-5 w-5 rounded-full shrink-0 shadow-inner border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ background: hex }} />
+                        <span className="text-xs font-bold text-white tracking-wide">{name}</span>
+                      </div>
+                    );
+                  })}
                 </div>
+              ) : (
+                <p className="text-white text-sm">To be announced</p>
               )}
+            </div>
 
-              {/* Meal preference */}
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
-                  Meal Preference
-                </label>
-                <Controller
-                  name="mealPreference"
-                  control={control}
-                  render={({ field }) => (
-                    <div className="flex flex-wrap gap-2">
-                      {MEAL_OPTIONS.map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => field.onChange(opt)}
-                          className={`rounded-full border px-4 py-1.5 text-xs font-medium transition ${
-                            field.value === opt
-                              ? "border-[#B8963A]/60 bg-[#D8B76A]/15 text-[#B8963A]"
-                              : "border-[#1A2E4A]/10 bg-[#F8F8F8] text-[#1A2E4A]/50 hover:border-[#1A2E4A]/20"
-                          }`}
-                        >
-                          {opt}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                />
-              </div>
+            {/* Your Category */}
+            <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+              <Icon icon="lucide:sparkle" className="mx-auto h-6 w-6 text-[#D8B76A]" />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Your Category</p>
+              <p className="text-white text-sm leading-6">{invitation.category || "Guest"}</p>
+            </div>
 
-              {/* Message */}
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
-                  Message (optional)
-                </label>
-                <textarea
-                  id="rsvp-message"
-                  rows={3}
-                  placeholder="A note for the couple..."
-                  {...register("message")}
-                  className={`${inputClass} resize-none`}
-                />
-              </div>
-
-              <button
-                type="submit"
-                id="rsvp-submit-btn"
-                disabled={isSubmitting}
-                className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.4)] disabled:opacity-60 mt-2"
-              >
-                {isSubmitting ? "Sending..." : "Submit RSVP"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Gift Registry Section */}
-      {invitation.userId?.registryEnabled && (
-        <section className="px-4 sm:px-6 py-16 text-center bg-[#090D19] relative z-10 border-t border-white/5 flex flex-col items-center download-exclude">
-          <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Gifting</p>
-          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Gift Registry</h2>
-          
-          <div className="w-full max-w-xl rounded-3xl border border-[#D8B76A]/30 bg-[#070A13]/90 p-6 sm:p-8 shadow-2xl space-y-8 text-left relative overflow-hidden backdrop-blur-md">
-            <Icon icon="mdi:gift-outline" className="absolute top-4 right-4 h-28 w-28 opacity-5 pointer-events-none text-white" />
-            
-            {invitation.userId?.registryNotes && (
-              <p className="text-sm text-white/70 text-center leading-relaxed italic border-b border-white/5 pb-6">
-                "{invitation.userId.registryNotes}"
+            {/* Additional guest policy */}
+            <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+              <Icon icon="lucide:user-plus" className="mx-auto h-6 w-6 text-[#D8B76A]" />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Additional Guest</p>
+              <p className="text-white text-sm leading-6">
+                {plusOnePolicy === "plus_one_allowed" ? "Plus one allowed" : "Strictly by invitation"}
               </p>
-            )}
+            </div>
 
-            {/* Bank details info */}
-            {invitation.userId?.registryAccountNumber && (
-              <div className="space-y-4 pt-4 border-t border-white/5">
-                <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-white/50">
-                  <Icon icon="mdi:bank-outline" className="h-4 w-4" />
-                  Bank Transfer Details
-                </h4>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
-                  <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
-                    <div>
-                      <span className="text-white/40 block text-[9px] uppercase tracking-wider">Bank Name</span>
-                      <span className="text-white font-medium">{invitation.userId.registryBankName || "Not Specified"}</span>
-                    </div>
-                    <div>
-                      <span className="text-white/40 block text-[9px] uppercase tracking-wider">Account Name</span>
-                      <span className="text-white font-medium">{invitation.userId.registryAccountName || "Not Specified"}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between bg-black/40 rounded-xl p-3 sm:p-4 border border-white/5">
-                    <div>
-                      <span className="text-white/40 block text-[9px] uppercase tracking-wider">Account Number</span>
-                      <span className="text-white font-mono text-base tracking-wide font-bold">{invitation.userId.registryAccountNumber}</span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(invitation.userId.registryAccountNumber);
-                        toast.success("Account number copied!");
-                      }}
-                      className="px-4 py-2 rounded-lg bg-[#D8B76A] text-[#070A13] text-xs font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition"
-                    >
-                      Copy Number
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Paystack Cash Gifting Option */}
-            <div className="space-y-4 pt-4 border-t border-white/5 flex flex-col items-center">
-              <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-white/50 w-full text-left">
-                <Icon icon="mdi:credit-card-outline" className="h-4 w-4" />
-                Secure Online Gifting
-              </h4>
-              <p className="text-xs text-white/40 leading-relaxed w-full">
-                You can send a cash gift instantly using your debit card or bank transfer via Paystack.
+            {/* Children policy */}
+            <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+              <Icon icon="mdi:human-child" className="mx-auto h-6 w-6 text-[#D8B76A]" />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Children</p>
+              <p className="text-white text-sm leading-6">
+                {kidsAllowed ? "Children are welcome" : "Adults only"}
               </p>
-              <button
-                onClick={() => setShowGiftModal(true)}
-                className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-3.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(216,183,106,0.35)]"
-              >
-                <span className="inline-flex items-center justify-center gap-1.5">
-                  <Icon icon="mdi:gift-outline" className="h-4 w-4" />
-                  Send Cash Gift
-                </span>
-              </button>
             </div>
           </div>
         </section>
-      )}
+
+        {/* RSVP MODAL */}
+        {showForm && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4 backdrop-blur-sm">
+            <div className="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-[#D8B76A]/20 bg-white p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="font-serif text-2xl text-[#1A2E4A]">Your RSVP</h2>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-[#1A2E4A]/40 hover:text-[#1A2E4A] transition text-lg"
+                >
+                  <Icon icon="lucide:x" className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit(onRsvpSubmit)} className="space-y-4">
+                {/* Name */}
+                <div>
+                  <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Name *</label>
+                  <input
+                    id="rsvp-name"
+                    {...register("guestName")}
+                    className={`${inputClass} ${errors.guestName ? "border-red-400/50" : ""}`}
+                  />
+                  {errors.guestName && (
+                    <p className="mt-1 text-xs text-red-500">{errors.guestName.message}</p>
+                  )}
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
+                    Phone Number *
+                  </label>
+                  <input
+                    id="rsvp-phone"
+                    placeholder="+234 800 000 0000"
+                    {...register("phone")}
+                    className={`${inputClass} ${errors.phone ? "border-red-400/50" : ""}`}
+                  />
+                  {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>}
+                </div>
+
+                {/* Optional Email for confirmation */}
+                <div>
+                  <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
+                    Email <span className="text-[#1A2E4A]/30 normal-case">(optional — for confirmation)</span>
+                  </label>
+                  <input
+                    id="rsvp-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    {...register("guestEmail")}
+                    className={`${inputClass} ${errors.guestEmail ? "border-red-400/50" : ""}`}
+                  />
+                  {errors.guestEmail && <p className="mt-1 text-xs text-red-500">{errors.guestEmail.message}</p>}
+                </div>
+
+                {/* Attending toggle */}
+                <div>
+                  <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
+                    Will you attend? *
+                  </label>
+                  <Controller
+                    name="attending"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex gap-3">
+                        {["Yes", "No"].map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => field.onChange(opt)}
+                            className={`flex-1 rounded-xl border py-3 text-sm font-medium transition ${field.value === opt
+                                ? opt === "Yes"
+                                  ? "border-emerald-500/50 bg-emerald-50 text-emerald-700"
+                                  : "border-red-400/50 bg-red-50 text-red-600"
+                                : "border-[#1A2E4A]/10 bg-[#F8F8F8] text-[#1A2E4A]/50 hover:border-[#1A2E4A]/20"
+                              }`}
+                          >
+                            <span className="inline-flex items-center gap-1.5">
+                              <Icon icon={opt === "Yes" ? "lucide:check" : "lucide:x"} className="h-3.5 w-3.5" />
+                              {opt}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  />
+                </div>
+
+                {attending === "Yes" && (
+                  <div className="rounded-xl border border-[#B8963A]/30 bg-[#D8B76A]/10 px-4 py-3">
+                    <p className="text-xs uppercase tracking-widest text-[#B8963A]/80 mb-1">
+                      Your invitation
+                    </p>
+                    <p className="text-sm text-[#1A2E4A]">
+                      {plusOnePolicy === "plus_one_allowed"
+                        ? `You're confirming attendance for ${invitedCount} guest${invitedCount === 1 ? "" : "s"
+                        } (${invitation.allowedGuests || 1} on your invitation + 1 plus one).`
+                        : `You're confirming attendance for ${invitedCount} guest${invitedCount === 1 ? "" : "s"
+                        } as listed on your invitation.`}
+                    </p>
+                  </div>
+                )}
+
+                {/* Meal preference */}
+                <div>
+                  <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
+                    Meal Preference
+                  </label>
+                  <Controller
+                    name="mealPreference"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex flex-wrap gap-2">
+                        {MEAL_OPTIONS.map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => field.onChange(opt)}
+                            className={`rounded-full border px-4 py-1.5 text-xs font-medium transition ${field.value === opt
+                                ? "border-[#B8963A]/60 bg-[#D8B76A]/15 text-[#B8963A]"
+                                : "border-[#1A2E4A]/10 bg-[#F8F8F8] text-[#1A2E4A]/50 hover:border-[#1A2E4A]/20"
+                              }`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  />
+                </div>
+
+                {/* Message */}
+                <div>
+                  <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
+                    Message (optional)
+                  </label>
+                  <textarea
+                    id="rsvp-message"
+                    rows={3}
+                    placeholder="A note for the couple..."
+                    {...register("message")}
+                    className={`${inputClass} resize-none`}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  id="rsvp-submit-btn"
+                  disabled={isSubmitting}
+                  className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.4)] disabled:opacity-60 mt-2"
+                >
+                  {isSubmitting ? "Sending..." : "Submit RSVP"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Gift Registry Section */}
+        {invitation.userId?.registryEnabled && (
+          <section className="invite-section px-4 sm:px-6 py-16 text-center bg-[#090D19] relative z-10 border-t border-white/5 flex flex-col items-center download-exclude">
+            <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Gifting</p>
+            <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Gift Registry</h2>
+
+            <div className="invite-registry-card w-full max-w-xl rounded-3xl border border-[#D8B76A]/30 bg-[#070A13]/90 p-6 sm:p-8 shadow-2xl space-y-8 text-left relative overflow-hidden backdrop-blur-md">
+              <Icon icon="mdi:gift-outline" className="absolute top-4 right-4 h-28 w-28 opacity-5 pointer-events-none text-white" />
+
+              {invitation.userId?.registryNotes && (
+                <p className="text-sm text-white/70 text-center leading-relaxed italic border-b border-white/5 pb-6">
+                  "{invitation.userId.registryNotes}"
+                </p>
+              )}
+
+              {/* Bank details info */}
+              {invitation.userId?.registryAccountNumber && (
+                <div className="space-y-4 pt-4 border-t border-white/5">
+                  <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-white/50">
+                    <Icon icon="mdi:bank-outline" className="h-4 w-4" />
+                    Bank Transfer Details
+                  </h4>
+                  <div className="invite-feature-card rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+                    <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
+                      <div>
+                        <span className="text-white/40 block text-[9px] uppercase tracking-wider">Bank Name</span>
+                        <span className="text-white font-medium">{invitation.userId.registryBankName || "Not Specified"}</span>
+                      </div>
+                      <div>
+                        <span className="text-white/40 block text-[9px] uppercase tracking-wider">Account Name</span>
+                        <span className="text-white font-medium">{invitation.userId.registryAccountName || "Not Specified"}</span>
+                      </div>
+                    </div>
+
+                    <div className="invite-account-number flex items-center justify-between bg-black/40 rounded-xl p-3 sm:p-4 border border-white/5">
+                      <div>
+                        <span className="text-white/40 block text-[9px] uppercase tracking-wider">Account Number</span>
+                        <span className="text-white font-mono text-base tracking-wide font-bold">{invitation.userId.registryAccountNumber}</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(invitation.userId.registryAccountNumber);
+                          toast.success("Account number copied!");
+                        }}
+                        className="px-4 py-2 rounded-lg bg-[#D8B76A] text-[#070A13] text-xs font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition"
+                      >
+                        Copy Number
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Paystack Cash Gifting Option */}
+              <div className="space-y-4 pt-4 border-t border-white/5 flex flex-col items-center">
+                <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-white/50 w-full text-left">
+                  <Icon icon="mdi:credit-card-outline" className="h-4 w-4" />
+                  Secure Online Gifting
+                </h4>
+                <p className="text-xs text-white/40 leading-relaxed w-full">
+                  You can send a cash gift instantly using your debit card or bank transfer via Paystack.
+                </p>
+                <button
+                  onClick={() => setShowGiftModal(true)}
+                  className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-3.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(216,183,106,0.35)]"
+                >
+                  <span className="inline-flex items-center justify-center gap-1.5">
+                    <Icon icon="mdi:gift-outline" className="h-4 w-4" />
+                    Send Cash Gift
+                  </span>
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
       </div>
 
       {/* GIFT REGISTRY MODAL */}
@@ -2805,18 +2814,18 @@ const InvitePage = () => {
 
       {/* Wish Wall / Guestbook Section */}
       {wishes.length > 0 && (
-        <section className="px-4 sm:px-6 py-16 text-center bg-[#070A13] relative z-10 border-t border-white/5 flex flex-col items-center">
+        <section className="invite-section px-4 sm:px-6 py-16 text-center bg-[#070A13] relative z-10 border-t border-white/5 flex flex-col items-center">
           <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Congratulations</p>
           <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">The Wish Wall</h2>
           <p className="text-white/40 text-xs max-w-sm mb-10 -mt-4 leading-relaxed font-normal">
             Beautiful wishes and congratulations from our dear guests who are attending.
           </p>
-          
+
           <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {wishes.map((w, index) => (
               <div
                 key={index}
-                className="p-5 rounded-2xl border border-white/10 bg-[#0D1220] text-left relative overflow-hidden flex flex-col justify-between min-h-36 hover:border-[#D8B76A]/40 transition duration-300 shadow-lg"
+                className="invite-feature-card p-5 rounded-2xl border border-white/10 bg-[#0D1220] text-left relative overflow-hidden flex flex-col justify-between min-h-36 hover:border-[#D8B76A]/40 transition duration-300 shadow-lg"
               >
                 <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none text-4xl font-serif">“</div>
                 <p className="text-white/80 text-sm leading-relaxed italic mb-4 font-normal">
@@ -2858,7 +2867,7 @@ const InvitePage = () => {
                   )}
                 </p>
               </div>
-              
+
               <div className="space-y-3">
                 {/* Google Maps */}
                 <a
@@ -2870,7 +2879,7 @@ const InvitePage = () => {
                 >
                   <Icon icon="mdi:google-maps" className="h-4 w-4" /> Google Maps
                 </a>
-                
+
                 {/* Apple Maps */}
                 <a
                   href={`https://maps.apple.com/?q=${encodeURIComponent(mapsQuery)}`}
@@ -2881,7 +2890,7 @@ const InvitePage = () => {
                 >
                   <Icon icon="mdi:apple" className="h-4 w-4" /> Apple Maps
                 </a>
-                
+
                 {/* Waze */}
                 <a
                   href={`https://waze.com/ul?q=${encodeURIComponent(mapsQuery)}`}
@@ -2893,7 +2902,7 @@ const InvitePage = () => {
                   <Icon icon="mdi:car" className="h-4 w-4" /> Waze
                 </a>
               </div>
-              
+
               <button
                 onClick={() => setMapSelectAddress(null)}
                 className="w-full text-xs font-bold uppercase tracking-widest text-[#D8B76A] hover:underline"

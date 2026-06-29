@@ -466,38 +466,6 @@ const AdminInvitationsPage = () => {
           </div>
         </>
       )}
-
-      {/* Delete Confirmation Modal */}
-      {deleteTargetId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0D1220] p-6 shadow-2xl space-y-6">
-            <div className="flex items-center gap-3">
-              <Icon icon="lucide:alert-triangle" className="h-6 w-6 shrink-0 text-amber-400" />
-              <div>
-                <h3 className="text-lg font-semibold text-white">Delete Invitation?</h3>
-                <p className="text-white/60 text-xs">This action cannot be undone. All guest responses and RSVPs for this link will be permanently lost.</p>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setDeleteTargetId(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-white/5 text-white hover:bg-white/10 transition"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/35 transition"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
