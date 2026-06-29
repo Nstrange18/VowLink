@@ -87,7 +87,7 @@ const RsvpResponsePage = () => {
   const isAttending = attending !== "No";
 
   return (
-    <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg.png')] bg-cover bg-top bg-no-repeat px-6">
+    <section className="flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg.webp')] bg-cover bg-top bg-no-repeat px-6">
       {isAttending && <ConfettiShower />}
       <Link
         to="/"

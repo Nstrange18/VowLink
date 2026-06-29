@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { toPng } from "html-to-image";
 import { getTemplateLayout, getBlockStyles } from "../utils/templateLayouts";
+import { normalizePublicImageUrl } from "../utils/publicAssets";
 import api from "../utils/api";
 import { rsvpSchema } from "../utils/schemas";
 import { WEDDING_COLORS } from "../components/ColorPicker";
@@ -367,7 +368,7 @@ const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary
 const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, isFreeUser) => {
   if (!customCardBg) return null;
 
-  if (customCardBg === "/templates/Blush Pink Watercolor.png") {
+  if (customCardBg === "/templates/Blush Pink Watercolor.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <circle cx="85" cy="115" r="30" fill="#FFE5E9" opacity="0.6" filter="blur(10px)" />
@@ -384,7 +385,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Cream Floral Elegance.png") {
+  if (customCardBg === "/templates/Cream Floral Elegance.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <circle cx="15" cy="35" r="35" fill="#F4ECE1" opacity="0.7" filter="blur(12px)" />
@@ -402,7 +403,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_free_1.png") {
+  if (customCardBg === "/templates/template_free_1.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -425,7 +426,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Emerald Eucalyptus Frame.png") {
+  if (customCardBg === "/templates/Emerald Eucalyptus Frame.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -463,7 +464,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Royal Navy Lace Accent.png") {
+  if (customCardBg === "/templates/Royal Navy Lace Accent.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -481,7 +482,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Elegant purple and silver floral.png") {
+  if (customCardBg === "/templates/Elegant purple and silver floral.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -503,7 +504,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_plus_3.png") {
+  if (customCardBg === "/templates/template_plus_3.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -525,7 +526,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Midnight Black Floral2.png") {
+  if (customCardBg === "/templates/Midnight Black Floral2.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -545,7 +546,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Dark Black Gold Marble.png") {
+  if (customCardBg === "/templates/Dark Black Gold Marble.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -565,7 +566,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Burgundy Velvet Filigree.png") {
+  if (customCardBg === "/templates/Burgundy Velvet Filigree.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -595,7 +596,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Royal Emerald Gold Frame.png") {
+  if (customCardBg === "/templates/Royal Emerald Gold Frame.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -618,7 +619,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Blush Pink & Rose Gold Glitter.png") {
+  if (customCardBg === "/templates/Blush Pink & Rose Gold Glitter.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -658,7 +659,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_pro_5.png") {
+  if (customCardBg === "/templates/template_pro_5.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -687,7 +688,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_pro_6.png") {
+  if (customCardBg === "/templates/template_pro_6.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -735,7 +736,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_pro_7.png") {
+  if (customCardBg === "/templates/template_pro_7.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -761,7 +762,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
   return null;
 }
 
-const InvitePage = () => {
+const InvitePage = ({ setThemePreference }) => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const cardRef = useRef(null);
@@ -1171,6 +1172,20 @@ const InvitePage = () => {
       .get(`/invitations/slug/${slug}`)
       .then((res) => {
         setInvitation(res.data);
+        try {
+          const savedTheme = localStorage.getItem("vowlink-guest-theme");
+          const hasSavedTheme = savedTheme === "light" || savedTheme === "dark";
+          const defaultGuestTheme = res.data?.userId?.defaultGuestTheme || "dark";
+          if (!hasSavedTheme && typeof setThemePreference === "function") {
+            const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)")?.matches;
+            const resolvedTheme = defaultGuestTheme === "system"
+              ? (prefersLight ? "light" : "dark")
+              : defaultGuestTheme === "light"
+                ? "light"
+                : "dark";
+            setThemePreference(resolvedTheme, { savePreference: false });
+          }
+        } catch { }
         setValue("guestName", res.data.guestName);
         setGiftGuestName(res.data.guestName || "");
       })
@@ -1311,8 +1326,9 @@ const InvitePage = () => {
 
   // Premium settings unpacked
   const cardTheme = invitation.userId?.cardTheme || "floral";
-  const customCardBg = invitation.userId?.customCardBg || "";
+  const customCardBg = normalizePublicImageUrl(invitation.userId?.customCardBg);
   const customTextColor = invitation.userId?.customTextColor || "#1A2E4A";
+  const customTextColors = invitation.userId?.customTextColors || {};
   const customFontFamily = invitation.userId?.customFontFamily || "classic";
   const customVerticalOffset = invitation.userId?.customVerticalOffset || 0;
   const customHorizontalOffset = invitation.userId?.customHorizontalOffset || 0;
@@ -1393,7 +1409,7 @@ const InvitePage = () => {
     };
   } else if (cardTheme === "navy") {
     cardStyles = {
-      background: "url('/templates/elegant_gold_frame_with_navy_backdrop.png') 0% 0% / 100% 100% no-repeat",
+      background: "url('/templates/elegant_gold_frame_with_navy_backdrop.webp') 0% 0% / 100% 100% no-repeat",
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A",
       fontFamily: activeFont,
     };
@@ -1414,7 +1430,7 @@ const InvitePage = () => {
     let color = "#1A2E4A";
 
     switch (customCardBg) {
-      case "/templates/template_free_1.png":
+      case "/templates/template_free_1.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
         break;
       case "/templates/template_free_2.png":
@@ -1423,28 +1439,28 @@ const InvitePage = () => {
       case "/templates/template_free_3.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6E5B4F";
         break;
-      case "/templates/Blush Pink Watercolor.png":
+      case "/templates/Blush Pink Watercolor.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3D2124";
         break;
-      case "/templates/Cream Floral Elegance.png":
+      case "/templates/Cream Floral Elegance.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
         break;
-      case "/templates/template_plus_1.png":
+      case "/templates/template_plus_1.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#B8963A";
         break;
       case "/templates/template_plus_2.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#800020";
         break;
-      case "/templates/Emerald Eucalyptus Frame.png":
+      case "/templates/Emerald Eucalyptus Frame.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
         break;
-      case "/templates/elegant_gold_frame_with_navy_backdrop.png":
+      case "/templates/elegant_gold_frame_with_navy_backdrop.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
-      case "/templates/Royal Navy Lace Accent.png":
+      case "/templates/Royal Navy Lace Accent.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/Elegant purple and silver floral.png":
+      case "/templates/Elegant purple and silver floral.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3C2A4D";
         break;
       case "/templates/template_pro_1.png":
@@ -1456,34 +1472,34 @@ const InvitePage = () => {
       case "/templates/template_pro_3.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
-      case "/templates/template_pro_4.png":
+      case "/templates/template_pro_4.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D4AF37";
         break;
-      case "/templates/template_plus_3.png":
+      case "/templates/template_plus_3.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/Midnight Black Floral2.png":
+      case "/templates/Midnight Black Floral2.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/Dark Black Gold Marble.png":
+      case "/templates/Dark Black Gold Marble.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
-      case "/templates/Burgundy Velvet Filigree.png":
+      case "/templates/Burgundy Velvet Filigree.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/Royal Emerald Gold Frame.png":
+      case "/templates/Royal Emerald Gold Frame.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
-      case "/templates/Blush Pink & Rose Gold Glitter.png":
+      case "/templates/Blush Pink & Rose Gold Glitter.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
         break;
-      case "/templates/template_pro_5.png":
+      case "/templates/template_pro_5.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#5C6B5E";
         break;
-      case "/templates/template_pro_6.png":
+      case "/templates/template_pro_6.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/template_pro_7.png":
+      case "/templates/template_pro_7.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
       default:
@@ -1548,7 +1564,8 @@ const InvitePage = () => {
       customTextColor,
       primaryTextColor,
       userHasCustomTextColor,
-      customTextSizesObj
+      customTextSizesObj,
+      customTextColors
     );
 
     let className = "";

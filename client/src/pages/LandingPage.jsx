@@ -25,12 +25,12 @@ const plans = [
 const LandingPage = () => {
   return (
     <div className="min-h-screen bg-[#070A13] text-white">
-      <section className="landing-hero relative min-h-screen bg-[url('/hero-bg.png')] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-6 text-center">
+      <section className="landing-hero relative min-h-screen bg-[url('/hero-bg.webp')] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-6 text-center">
         <div className="absolute inset-0 bg-[#070A13]/60" />
 
         <div className="relative z-10 max-w-2xl mx-auto">
           <div className="flex items-center justify-center gap-3 mb-10">
-            <img src="/vowlink-icon.png" alt="Vowlink" className="h-10 w-10 object-contain" />
+            <img src="/vowlink-icon.webp" alt="Vowlink" className="h-10 w-10 object-contain" />
             <span className="font-serif text-3xl tracking-wide text-white">Vowlink</span>
           </div>
 
@@ -156,7 +156,7 @@ const LandingPage = () => {
         <div className="mx-auto flex max-w-6xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <img src="/vowlink-icon.png" alt="" className="h-7 w-7 object-contain" />
+              <img src="/vowlink-icon.webp" alt="" className="h-7 w-7 object-contain" />
               <span className="font-serif text-xl text-white">Vowlink</span>
             </div>
             <p className="mt-2 text-xs text-white/40">Digital wedding invitations, RSVP tracking, and guest planning tools.</p>

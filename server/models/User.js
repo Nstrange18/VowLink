@@ -51,10 +51,26 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    defaultGuestTheme: {
+      type: String,
+      enum: ["dark", "light", "system"],
+      default: "dark",
+      trim: true,
+    },
     customTextColor: {
       type: String,
       default: "#1A2E4A",
       trim: true,
+    },
+    customTextColors: {
+      title: { type: String, default: "" },
+      subtitle: { type: String, default: "" },
+      coupleNames: { type: String, default: "" },
+      greeting: { type: String, default: "" },
+      message: { type: String, default: "" },
+      details: { type: String, default: "" },
+      reception: { type: String, default: "" },
+      colors: { type: String, default: "" },
     },
     userHasCustomTextColor: {
       type: Boolean,

@@ -533,12 +533,12 @@ const AdminBulkWhatsAppPage = () => {
 
             {/* Bulk Assignment Selector */}
             {selectedIds.length > 0 && (
-              <div className="flex items-center gap-2 animate-fade-in">
-                <span className="text-[10px] uppercase text-white/50">Assign Selected:</span>
+              <div className="flex w-full sm:w-auto flex-wrap items-center gap-2 animate-fade-in">
+                <span className="w-full sm:w-auto text-[10px] uppercase text-white/50">Assign Selected:</span>
                 <select
                   value={bulkQueueVal}
                   onChange={(e) => setBulkQueueVal(e.target.value)}
-                  className="rounded-lg border bg-[#070A13] border-white/10 px-3 py-1.5 text-xs text-white outline-none focus:border-[#D8B76A]/60"
+                  className="min-w-0 flex-1 sm:flex-none rounded-lg border bg-[#070A13] border-white/10 px-3 py-1.5 text-xs text-white outline-none focus:border-[#D8B76A]/60"
                 >
                   <option value="">Choose Queue...</option>
                   <option value="general">General Queue</option>
@@ -548,13 +548,13 @@ const AdminBulkWhatsAppPage = () => {
                 </select>
                 <button
                   onClick={handleBulkQueueAssign}
-                  className="px-3 py-1.5 bg-[#D8B76A] hover:bg-[#F2D894] text-[#070A13] text-[10px] font-bold uppercase rounded-lg transition cursor-pointer"
+                  className="shrink-0 px-3 py-1.5 bg-[#D8B76A] hover:bg-[#F2D894] text-[#070A13] text-[10px] font-bold uppercase rounded-lg transition cursor-pointer"
                 >
                   Apply
                 </button>
                 <button
                   onClick={handleDeleteSelectedGuests}
-                  className="px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/25 text-[10px] font-bold uppercase rounded-lg transition cursor-pointer"
+                  className="shrink-0 px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/25 text-[10px] font-bold uppercase rounded-lg transition cursor-pointer"
                 >
                   Delete Selected
                 </button>
@@ -734,11 +734,11 @@ const AdminBulkWhatsAppPage = () => {
 
                           {/* Action Buttons */}
                           <td className="px-4 py-4 text-center">
-                            <div className="flex flex-col sm:flex-row gap-1.5 justify-center">
+                            <div className="flex flex-col sm:flex-row gap-1.5 justify-center min-w-[5rem]">
                               {!isMissing && (
                                 <button
                                   onClick={() => handleOpenWhatsApp(guest)}
-                                  className="px-2 py-1 rounded bg-[#3EC58E] hover:bg-[#32B07C] text-[#070A13] font-bold text-[9px] uppercase transition cursor-pointer"
+                                  className="w-full sm:w-auto px-2 py-1 rounded bg-[#3EC58E] hover:bg-[#32B07C] text-[#070A13] font-bold text-[9px] uppercase transition cursor-pointer"
                                 >
                                   Open
                                 </button>
@@ -748,7 +748,7 @@ const AdminBulkWhatsAppPage = () => {
                                 <button
                                   onClick={() => updateWhatsAppStatus(guest._id, "sent")}
                                   disabled={loadingIds.has(guest._id)}
-                                  className="px-2 py-1 rounded border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                                  className="w-full sm:w-auto px-2 py-1 rounded border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                                 >
                                   {loadingIds.has(guest._id) ? (
                                     <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
@@ -761,7 +761,7 @@ const AdminBulkWhatsAppPage = () => {
                                 <button
                                   onClick={() => updateWhatsAppStatus(guest._id, "not_sent")}
                                   disabled={loadingIds.has(guest._id)}
-                                  className="px-2 py-1 rounded border border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/10 text-yellow-400 font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                                  className="w-full sm:w-auto px-2 py-1 rounded border border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/10 text-yellow-400 font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                                 >
                                   {loadingIds.has(guest._id) ? (
                                     <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
@@ -774,7 +774,7 @@ const AdminBulkWhatsAppPage = () => {
                               <button
                                 onClick={() => handleDeleteGuest(guest)}
                                 disabled={loadingIds.has(guest._id)}
-                                className="px-2 py-1 rounded border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="w-full sm:w-auto px-2 py-1 rounded border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                               >
                                 Delete
                               </button>

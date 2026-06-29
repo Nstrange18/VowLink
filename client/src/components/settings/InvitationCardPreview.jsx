@@ -204,7 +204,7 @@ const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary
 const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, isFreeUser) => {
   if (!customCardBg) return null;
 
-  if (customCardBg === "/templates/Blush Pink Watercolor.png") {
+  if (customCardBg === "/templates/Blush Pink Watercolor.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <circle cx="85" cy="115" r="30" fill="#FFE5E9" opacity="0.6" filter="blur(10px)" />
@@ -221,7 +221,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Cream Floral Elegance.png") {
+  if (customCardBg === "/templates/Cream Floral Elegance.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <circle cx="15" cy="35" r="35" fill="#F4ECE1" opacity="0.7" filter="blur(12px)" />
@@ -239,7 +239,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_free_1.png") {
+  if (customCardBg === "/templates/template_free_1.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -262,7 +262,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Emerald Eucalyptus Frame.png") {
+  if (customCardBg === "/templates/Emerald Eucalyptus Frame.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -300,7 +300,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Royal Navy Lace Accent.png") {
+  if (customCardBg === "/templates/Royal Navy Lace Accent.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -318,7 +318,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Elegant purple and silver floral.png") {
+  if (customCardBg === "/templates/Elegant purple and silver floral.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -340,7 +340,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_plus_3.png") {
+  if (customCardBg === "/templates/template_plus_3.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -362,7 +362,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Midnight Black Floral2.png") {
+  if (customCardBg === "/templates/Midnight Black Floral2.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -382,7 +382,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Dark Black Gold Marble.png") {
+  if (customCardBg === "/templates/Dark Black Gold Marble.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -402,7 +402,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Burgundy Velvet Filigree.png") {
+  if (customCardBg === "/templates/Burgundy Velvet Filigree.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -432,7 +432,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Royal Emerald Gold Frame.png") {
+  if (customCardBg === "/templates/Royal Emerald Gold Frame.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -455,7 +455,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/Blush Pink & Rose Gold Glitter.png") {
+  if (customCardBg === "/templates/Blush Pink & Rose Gold Glitter.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -495,7 +495,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_pro_5.png") {
+  if (customCardBg === "/templates/template_pro_5.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -524,7 +524,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_pro_6.png") {
+  if (customCardBg === "/templates/template_pro_6.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -572,7 +572,7 @@ const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, 
     );
   }
 
-  if (customCardBg === "/templates/template_pro_7.png") {
+  if (customCardBg === "/templates/template_pro_7.webp") {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
         <style>{`
@@ -636,6 +636,7 @@ const InvitationCardPreview = () => {
     setCardTheme,
     cardTheme,
     customTextColor,
+    customTextColors,
     userHasCustomTextColor,
     priHex,
     secHex,
@@ -671,7 +672,8 @@ const InvitationCardPreview = () => {
       customTextColor,
       primaryTextColor,
       userHasCustomTextColor,
-      customTextSizesObj
+      customTextSizesObj,
+      customTextColors
     );
 
     let className = "";

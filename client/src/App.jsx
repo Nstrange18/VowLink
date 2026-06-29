@@ -1,55 +1,91 @@
-import { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-import InvitePage from './pages/InvitePage'
-import RsvpResponsePage from './pages/RsvpResponsePage'
-import NotFoundPage from './pages/NotFoundPage'
-import LandingPage from './pages/LandingPage'
 import ScrollToTop from './components/ScrollToTop'
-import AdminResetPasswordPage from './pages/admin/AdminResetPasswordPage'
-import AdminLoginPage from './pages/admin/AdminLoginPage'
-import AdminDashboardPage from './pages/admin/AdminDashboardPage'
-import AdminInvitationsPage from './pages/admin/AdminInvitationsPage'
-import AdminNewInvitationPage from './pages/admin/AdminNewInvitationPage'
-import AdminEditInvitationPage from './pages/admin/AdminEditInvitationPage'
-import AdminRsvpsPage from './pages/admin/AdminRsvpsPage'
-import SignupPage from './pages/admin/SignupPage'
-import AdminSettingsPage from './pages/admin/AdminSettingsPage'
-import AdminTemplatesPage from './pages/admin/AdminTemplatesPage'
-import AdminBillingPage from './pages/admin/AdminBillingPage'
-import AdminVenuesPage from './pages/admin/AdminVenuesPage'
-import VenueDetailsPage from './pages/admin/VenueDetailsPage'
-import AdminBulkInvitationPage from './pages/admin/AdminBulkInvitationPage'
-import AdminBulkWhatsAppPage from './pages/admin/AdminBulkWhatsAppPage'
-import AdminSeatingPage from './pages/admin/AdminSeatingPage'
-import AdminForgotPasswordPage from './pages/admin/AdminForgotPasswordPage'
-import AdminLayout from './components/AdminLayout'
 import ProtectedRoute from './components/ProtectedRoute'
-import SuperAdminDashboardPage from './pages/admin/SuperAdminDashboardPage'
 import ThemeToggle from './components/ThemeToggle'
 
-// Venue Owner Portal Pages
-import VenueLoginPage from './pages/venue/VenueLoginPage'
-import VenueRegisterPage from './pages/venue/VenueRegisterPage'
-import VenueDashboardPage from './pages/venue/VenueDashboardPage'
+const InvitePage = lazy(() => import('./pages/InvitePage'))
+const RsvpResponsePage = lazy(() => import('./pages/RsvpResponsePage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
+const LandingPage = lazy(() => import('./pages/LandingPage'))
+const AdminResetPasswordPage = lazy(() => import('./pages/admin/AdminResetPasswordPage'))
+const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'))
+const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
+const AdminInvitationsPage = lazy(() => import('./pages/admin/AdminInvitationsPage'))
+const AdminNewInvitationPage = lazy(() => import('./pages/admin/AdminNewInvitationPage'))
+const AdminEditInvitationPage = lazy(() => import('./pages/admin/AdminEditInvitationPage'))
+const AdminRsvpsPage = lazy(() => import('./pages/admin/AdminRsvpsPage'))
+const SignupPage = lazy(() => import('./pages/admin/SignupPage'))
+const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'))
+const AdminTemplatesPage = lazy(() => import('./pages/admin/AdminTemplatesPage'))
+const AdminBillingPage = lazy(() => import('./pages/admin/AdminBillingPage'))
+const AdminVenuesPage = lazy(() => import('./pages/admin/AdminVenuesPage'))
+const VenueDetailsPage = lazy(() => import('./pages/admin/VenueDetailsPage'))
+const AdminBulkInvitationPage = lazy(() => import('./pages/admin/AdminBulkInvitationPage'))
+const AdminBulkWhatsAppPage = lazy(() => import('./pages/admin/AdminBulkWhatsAppPage'))
+const AdminSeatingPage = lazy(() => import('./pages/admin/AdminSeatingPage'))
+const AdminForgotPasswordPage = lazy(() => import('./pages/admin/AdminForgotPasswordPage'))
+const AdminLayout = lazy(() => import('./components/AdminLayout'))
+const SuperAdminDashboardPage = lazy(() => import('./pages/admin/SuperAdminDashboardPage'))
+const VenueLoginPage = lazy(() => import('./pages/venue/VenueLoginPage'))
+const VenueRegisterPage = lazy(() => import('./pages/venue/VenueRegisterPage'))
+const VenueDashboardPage = lazy(() => import('./pages/venue/VenueDashboardPage'))
 
-function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('vowlink-theme') || 'dark')
+const APP_THEME_KEY = 'vowlink-theme'
+const GUEST_THEME_KEY = 'vowlink-guest-theme'
+
+const readStoredTheme = (key) => {
+  const savedTheme = localStorage.getItem(key)
+  return savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : null
+}
+
+const RouteFallback = () => (
+  <div className="min-h-screen bg-[#070A13] text-white flex items-center justify-center text-xs uppercase tracking-widest">
+    Loading...
+  </div>
+)
+
+function AppContent() {
+  const location = useLocation()
+  const isInviteRoute = location.pathname.startsWith('/invite/')
+  const activeThemeKey = isInviteRoute ? GUEST_THEME_KEY : APP_THEME_KEY
+  const [theme, setTheme] = useState(() => readStoredTheme(APP_THEME_KEY) || 'dark')
 
   useEffect(() => {
-    localStorage.setItem('vowlink-theme', theme)
     document.documentElement.classList.toggle('vowlink-light', theme === 'light')
     document.body.classList.toggle('vowlink-light', theme === 'light')
   }, [theme])
 
+  useEffect(() => {
+    const routeTheme = readStoredTheme(activeThemeKey)
+    if (routeTheme) {
+      setTheme(routeTheme)
+    } else if (!isInviteRoute) {
+      setTheme(readStoredTheme(APP_THEME_KEY) || 'dark')
+    }
+  }, [activeThemeKey, isInviteRoute])
+
+  const setThemePreference = (nextTheme, { savePreference = true } = {}) => {
+    if (nextTheme !== 'light' && nextTheme !== 'dark') return
+    setTheme(nextTheme)
+    if (savePreference) {
+      localStorage.setItem(activeThemeKey, nextTheme)
+    }
+  }
+
   const toggleTheme = () => {
-    setTheme((current) => (current === 'light' ? 'dark' : 'light'))
+    setTheme((current) => {
+      const nextTheme = current === 'light' ? 'dark' : 'light'
+      localStorage.setItem(activeThemeKey, nextTheme)
+      return nextTheme
+    })
   }
 
   return (
-    <BrowserRouter>
+    <>
       <ToastContainer
         position="bottom-right"
         autoClose={4000}
@@ -68,12 +104,13 @@ function App() {
       />
       <ThemeToggle theme={theme} onToggle={toggleTheme} />
       <ScrollToTop />
-      <Routes>
-        {/* Default route */}
-        <Route path="/" element={<LandingPage />} />
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          {/* Default route */}
+          <Route path="/" element={<LandingPage />} />
 
         {/* Guest routes */}
-        <Route path="/invite/:slug" element={<InvitePage />} />
+        <Route path="/invite/:slug" element={<InvitePage setThemePreference={setThemePreference} />} />
         <Route path="/rsvp-response" element={<RsvpResponsePage />} />
 
         {/* Auth */}
@@ -123,8 +160,17 @@ function App() {
         />
 
         {/* Fallback */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
+    </>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   )
 }

@@ -157,12 +157,12 @@ const AdminTemplatesPageContent = () => {
     return (
       <div
         key={t.name}
-        className={`group relative rounded-2xl border p-3 flex flex-col transition-all duration-300 ${cardStyle} ${
+        className={`template-gallery-card group relative rounded-2xl border p-3 flex flex-col transition-all duration-300 ${cardStyle} ${
           isLocked ? "opacity-85" : "hover:-translate-y-1"
         }`}
       >
         {/* Template Image */}
-        <div className="relative aspect-[608/580] w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner">
+        <div className="template-gallery-image relative aspect-[608/580] w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner">
           <img
             src={t.preview}
             alt={t.name}
@@ -281,7 +281,7 @@ const AdminTemplatesPageContent = () => {
   ];
 
   return (
-    <div className="p-4 sm:p-8 max-w-6xl mx-auto text-white pb-10">
+    <div className="templates-gallery-page p-4 sm:p-8 max-w-6xl mx-auto text-white pb-10">
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -380,7 +380,7 @@ const AdminTemplatesPageContent = () => {
 
       {/* Floating Save/Cancel changes bar */}
       {hasUnsavedChanges && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#0D1220]/95 backdrop-blur-md border border-[#D8B76A]/40 px-5 py-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.8)] w-[92%] max-w-xl animate-fade-in border-l-4 border-l-[#D8B76A]">
+        <div className="template-save-bar fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#0D1220]/95 backdrop-blur-md border border-[#D8B76A]/40 px-5 py-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.8)] w-[92%] max-w-xl animate-fade-in border-l-4 border-l-[#D8B76A]">
           <div className="text-center sm:text-left">
             <p className="text-xs font-semibold text-white">Unsaved template customizations</p>
             <p className="text-[10px] text-white/50 mt-0.5">Click save to apply your selection to your invitation card.</p>

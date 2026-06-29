@@ -8,6 +8,26 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+            return 'react-vendor'
+          }
+          if (id.includes('@iconify')) return 'iconify-vendor'
+          if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+            return 'forms-vendor'
+          }
+          if (id.includes('axios') || id.includes('react-toastify') || id.includes('html-to-image')) {
+            return 'app-vendor'
+          }
+          return 'vendor'
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/api': {

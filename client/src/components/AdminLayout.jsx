@@ -74,7 +74,7 @@ const AdminLayout = () => {
       {/* Vowlink Brand */}
       <div className="border-b border-[#D8B76A]/20 px-5 py-4 shrink-0">
         <div className="mb-4 flex items-center gap-2">
-          <img src="/vowlink-icon.png" alt="" className="h-6 w-6 object-contain opacity-90" />
+          <img src="/vowlink-icon.webp" alt="" className="h-6 w-6 object-contain opacity-90" />
           <span className="font-serif text-lg tracking-wide text-white">Vowlink</span>
         </div>
         <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-2">Your Wedding</p>
@@ -189,7 +189,7 @@ const AdminLayout = () => {
               <span className="block h-0.5 w-6 rounded bg-current" />
             </button>
             <div className="flex items-center gap-1 sm:gap-2">
-              <img src="/vowlink-icon.png" alt="" className="h-5 w-5 object-contain opacity-80" />
+              <img src="/vowlink-icon.webp" alt="" className="h-5 w-5 object-contain opacity-80" />
               <span className="font-serif text-sm sm:text-base text-white">Vowlink</span>
               <span className={`text-[7px] sm:text-[8px] uppercase font-bold tracking-widest px-1.5 sm:px-2 py-0.5 rounded-full ${
                 user.tier === 'pro'

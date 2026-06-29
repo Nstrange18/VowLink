@@ -26,98 +26,98 @@ export const PREMADE_TEMPLATES = [
   {
     tier: "plus",
     name: "Classic Navy, Gold & Cream",
-    url: "/templates/template_free_1.png",
-    preview: "/templates/template_free_1.png",
+    url: "/templates/template_free_1.webp",
+    preview: "/templates/template_free_1.webp",
   },
   {
     tier: "free",
     name: "Blush Pink Watercolor",
-    url: "/templates/Blush Pink Watercolor.png",
-    preview: "/templates/Blush Pink Watercolor.png",
+    url: "/templates/Blush Pink Watercolor.webp",
+    preview: "/templates/Blush Pink Watercolor.webp",
   },
   {
     tier: "free",
     name: "Cream Floral Elegance",
-    url: "/templates/Cream Floral Elegance.png",
-    preview: "/templates/Cream Floral Elegance.png",
+    url: "/templates/Cream Floral Elegance.webp",
+    preview: "/templates/Cream Floral Elegance.webp",
   },
   {
     tier: "plus",
     name: "Emerald Eucalyptus Frame",
-    url: "/templates/Emerald Eucalyptus Frame.png",
-    preview: "/templates/Emerald Eucalyptus Frame.png",
+    url: "/templates/Emerald Eucalyptus Frame.webp",
+    preview: "/templates/Emerald Eucalyptus Frame.webp",
   },
   {
     tier: "plus",
     name: "Royal Navy Gold Frame",
-    url: "/templates/elegant_gold_frame_with_navy_backdrop.png",
-    preview: "/templates/elegant_gold_frame_with_navy_backdrop.png",
+    url: "/templates/elegant_gold_frame_with_navy_backdrop.webp",
+    preview: "/templates/elegant_gold_frame_with_navy_backdrop.webp",
   },
   {
     tier: "plus",
     name: "Royal Navy Lace Accent",
-    url: "/templates/Royal Navy Lace Accent.png",
-    preview: "/templates/Royal Navy Lace Accent.png",
+    url: "/templates/Royal Navy Lace Accent.webp",
+    preview: "/templates/Royal Navy Lace Accent.webp",
   },
   {
     tier: "plus",
     name: "Elegant Purple & Silver Floral",
-    url: "/templates/Elegant purple and silver floral.png",
-    preview: "/templates/Elegant purple and silver floral.png",
+    url: "/templates/Elegant purple and silver floral.webp",
+    preview: "/templates/Elegant purple and silver floral.webp",
   },
   {
     tier: "pro",
     name: "Midnight Black Floral",
-    url: "/templates/template_plus_3.png",
-    preview: "/templates/template_plus_3.png",
+    url: "/templates/template_plus_3.webp",
+    preview: "/templates/template_plus_3.webp",
   },
   {
     tier: "pro",
     name: "Deep Black Rose",
-    url: "/templates/Midnight Black Floral2.png",
-    preview: "/templates/Midnight Black Floral2.png",
+    url: "/templates/Midnight Black Floral2.webp",
+    preview: "/templates/Midnight Black Floral2.webp",
   },
   {
     tier: "pro",
     name: "Dark Black Gold Marble",
-    url: "/templates/Dark Black Gold Marble.png",
-    preview: "/templates/Dark Black Gold Marble.png",
+    url: "/templates/Dark Black Gold Marble.webp",
+    preview: "/templates/Dark Black Gold Marble.webp",
   },
   {
     tier: "pro",
     name: "Burgundy Velvet Filigree",
-    url: "/templates/Burgundy Velvet Filigree.png",
-    preview: "/templates/Burgundy Velvet Filigree.png",
+    url: "/templates/Burgundy Velvet Filigree.webp",
+    preview: "/templates/Burgundy Velvet Filigree.webp",
   },
   {
     tier: "pro",
     name: "Royal Emerald Gold Frame",
-    url: "/templates/Royal Emerald Gold Frame.png",
-    preview: "/templates/Royal Emerald Gold Frame.png",
+    url: "/templates/Royal Emerald Gold Frame.webp",
+    preview: "/templates/Royal Emerald Gold Frame.webp",
   },
   {
     tier: "pro",
     name: "Blush Pink & Rose Gold Glitter",
-    url: "/templates/Blush Pink & Rose Gold Glitter.png",
-    preview: "/templates/Blush Pink & Rose Gold Glitter.png",
+    url: "/templates/Blush Pink & Rose Gold Glitter.webp",
+    preview: "/templates/Blush Pink & Rose Gold Glitter.webp",
   },
   {
     tier: "pro",
     name: "Minimalist Linen Ivory Leaves",
-    url: "/templates/template_pro_5.png",
-    preview: "/templates/template_pro_5.png",
+    url: "/templates/template_pro_5.webp",
+    preview: "/templates/template_pro_5.webp",
   },
   {
     tier: "pro",
     name: "Starry Lavender Gold Dust",
-    url: "/templates/template_pro_6.png",
-    preview: "/templates/template_pro_6.png",
+    url: "/templates/template_pro_6.webp",
+    preview: "/templates/template_pro_6.webp",
   },
   {
     tier: "pro",
     name: "Classic Charcoal Gold Floral",
-    url: "/templates/template_pro_7.png",
-    preview: "/templates/template_pro_7.png",
+    url: "/templates/template_pro_7.webp",
+    preview: "/templates/template_pro_7.webp",
   },
 ];
 
@@ -133,10 +133,14 @@ const ThemeSelector = () => {
   const {
     cardTheme,
     setCardTheme,
+    defaultGuestTheme,
+    setDefaultGuestTheme,
     customCardBg,
     setCustomCardBg,
     customTextColor,
     setCustomTextColor,
+    customTextColors,
+    setCustomTextColors,
     customFontFamily,
     setCustomFontFamily,
     customVerticalOffset,
@@ -182,6 +186,7 @@ const ThemeSelector = () => {
   } = useSettings();
 
   const [showDetailedScaling, setShowDetailedScaling] = useState(false);
+  const [showDetailedColors, setShowDetailedColors] = useState(false);
   const [showThemeLayout, setShowThemeLayout] = useState(true);
   const [showFineTuning, setShowFineTuning] = useState(true);
 
@@ -189,6 +194,7 @@ const ThemeSelector = () => {
     cardTheme !== "floral" ||
     customCardBg !== "" ||
     customTextColor !== "#1A2E4A" ||
+    Object.values(customTextColors || {}).some(Boolean) ||
     customFontFamily !== "classic" ||
     customVerticalOffset !== 0 ||
     customHorizontalOffset !== 0 ||
@@ -208,6 +214,7 @@ const ThemeSelector = () => {
     setCardTheme("floral");
     setCustomCardBg("");
     setCustomTextColor("#1A2E4A");
+    setCustomTextColors({});
     setCustomFontFamily("classic");
     setCustomVerticalOffset(0);
     setCustomHorizontalOffset(0);
@@ -230,10 +237,28 @@ const ThemeSelector = () => {
     toast.success("Theme settings reset to defaults! Click 'Save Customizations' below to save changes.");
   };
 
+  const detailedSections = [
+    { key: "coupleNames", label: "Couple Names" },
+    { key: "message", label: "Personal Message" },
+    { key: "subtitle", label: "Joining Statement" },
+    { key: "title", label: "Invitation Title" },
+    { key: "greeting", label: "Guest Greeting" },
+    { key: "details", label: "Date & Venue Address" },
+    { key: "reception", label: "Reception Details" },
+    { key: "colors", label: "Color Palette Chips" },
+  ];
+
+  const updateSectionTextColor = (key, value) => {
+    setCustomTextColors((prev) => ({
+      ...(prev || {}),
+      [key]: value,
+    }));
+  };
+
   return (
     <div className="space-y-6">
       {/* Invitation Theme Options */}
-      <div className="p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6">
+      <div className="settings-theme-panel p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6">
         <button
           type="button"
           onClick={() => setShowThemeLayout(!showThemeLayout)}
@@ -255,6 +280,35 @@ const ThemeSelector = () => {
 
         {showThemeLayout && (
           <div className="space-y-6 pt-2 border-t border-white/5 animate-fade-in">
+            <div className="settings-theme-subpanel rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-[#D8B76A] font-bold">Default Guest Invite Theme</p>
+                <p className="mt-1 text-[10px] text-white/45 leading-relaxed">
+                  Controls the first theme guests see. Their theme toggle still saves their own choice on their device.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {[
+                  { value: "dark", label: "Dark Theme", icon: "lucide:moon" },
+                  { value: "light", label: "Light Theme", icon: "lucide:sun" },
+                  { value: "system", label: "Match Device/System", icon: "lucide:monitor" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setDefaultGuestTheme(option.value)}
+                    className={`rounded-xl border px-3 py-3 text-left transition flex items-center gap-2 ${
+                      defaultGuestTheme === option.value
+                        ? "border-[#D8B76A] bg-[#D8B76A]/12 text-[#D8B76A]"
+                        : "border-white/10 bg-[#070A13]/60 text-white/60 hover:border-white/25 hover:text-white"
+                    }`}
+                  >
+                    <Icon icon={option.icon} className="h-4 w-4 shrink-0" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider leading-tight">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div>
               <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Theme Layout</label>
@@ -305,7 +359,7 @@ const ThemeSelector = () => {
                     textStyle = { color: "#2E3A59" };
                     borderClass = "border-2 border-double border-[#2E3A59]/30";
                   } else if (theme.value === "navy") {
-                    previewStyle = { background: "url('/templates/elegant_gold_frame_with_navy_backdrop.png') center/cover no-repeat" };
+                    previewStyle = { background: "url('/templates/elegant_gold_frame_with_navy_backdrop.webp') center/cover no-repeat" };
                     textStyle = { color: "#D8B76A" };
                     borderClass = "border border-[#D8B76A]";
                   } else if (theme.value === "stardust") {
@@ -894,6 +948,61 @@ const ThemeSelector = () => {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Detailed section text colors */}
+              <div className="border-t border-white/5 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowDetailedColors(!showDetailedColors)}
+                  className="w-full flex justify-between items-center text-[10px] uppercase font-bold text-white/70 hover:text-white transition py-1 cursor-pointer outline-none"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Icon icon="lucide:paintbrush" className="w-3.5 h-3.5 text-[#D8B76A]" /> Detailed Section Text Colors
+                  </span>
+                  <span className="inline-flex items-center gap-1 font-mono text-[#D8B76A]">
+                    <Icon icon={showDetailedColors ? "lucide:chevron-up" : "lucide:chevron-down"} className="h-3 w-3" />
+                    {showDetailedColors ? "Hide" : "Show"}
+                  </span>
+                </button>
+                {showDetailedColors && (
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 border-l-2 border-[#D8B76A]/20 pl-3 transition-all duration-300">
+                    {detailedSections.map((section) => {
+                      const value = customTextColors?.[section.key] || "";
+                      return (
+                        <div key={section.key} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <span className="text-[9px] text-white/50 uppercase tracking-wider">{section.label}</span>
+                            <button
+                              type="button"
+                              onClick={() => updateSectionTextColor(section.key, "")}
+                              disabled={!value}
+                              className="text-[8px] uppercase font-bold text-white/35 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition"
+                            >
+                              Reset
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              value={value || customTextColor || "#1A2E4A"}
+                              onChange={(e) => updateSectionTextColor(section.key, e.target.value)}
+                              className="h-9 w-11 shrink-0 cursor-pointer rounded-lg border border-white/10 bg-transparent"
+                              aria-label={`${section.label} text color`}
+                            />
+                            <input
+                              type="text"
+                              value={value}
+                              onChange={(e) => updateSectionTextColor(section.key, e.target.value)}
+                              placeholder="Template default"
+                              className="min-w-0 flex-1 rounded-lg border border-white/10 bg-[#070A13]/60 px-3 py-2 text-xs text-white placeholder-white/25 outline-none focus:border-[#D8B76A]/60"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

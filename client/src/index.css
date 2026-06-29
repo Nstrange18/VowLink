@@ -238,6 +238,36 @@ html.vowlink-light .template-lock-overlay .text-white\/50 {
   color: #fffaf0 !important;
 }
 
+html.vowlink-light .settings-theme-panel,
+html.vowlink-light .settings-theme-subpanel {
+  background-color: rgba(255, 255, 255, 0.78) !important;
+  border-color: rgba(31, 41, 51, 0.14) !important;
+}
+
+html.vowlink-light .templates-gallery-page .template-gallery-card {
+  background-color: rgba(255, 255, 255, 0.78) !important;
+  border-color: rgba(31, 41, 51, 0.14) !important;
+  box-shadow: 0 16px 42px rgba(31, 41, 51, 0.1) !important;
+}
+
+html.vowlink-light .templates-gallery-page .template-gallery-card:hover {
+  border-color: rgba(138, 101, 24, 0.36) !important;
+}
+
+html.vowlink-light .templates-gallery-page .template-gallery-image {
+  background-color: #efe4cf !important;
+}
+
+html.vowlink-light .templates-gallery-page .template-save-bar {
+  background-color: rgba(255, 250, 240, 0.96) !important;
+  border-color: rgba(138, 101, 24, 0.38) !important;
+  box-shadow: 0 18px 48px rgba(31, 41, 51, 0.18) !important;
+}
+
+html.vowlink-light .templates-gallery-page .template-save-bar .bg-white\/5 {
+  background-color: rgba(31, 41, 51, 0.07) !important;
+}
+
 .invite-page .invite-section {
   transition: background-color 180ms ease, border-color 180ms ease;
 }

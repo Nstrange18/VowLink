@@ -64,6 +64,20 @@ const resetPasswordLimiter = rateLimit({
 // Set SendGrid API key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+const normalizePublicImageUrl = (url) => {
+  if (typeof url !== "string" || !url.startsWith("/")) return url || "";
+  return url.replace(/\.(png|jpe?g)$/i, ".webp");
+};
+
+const normalizeCustomTextColors = (colors = {}) => {
+  const allowed = ["title", "subtitle", "coupleNames", "greeting", "message", "details", "reception", "colors"];
+  return allowed.reduce((acc, key) => {
+    const value = colors?.[key];
+    acc[key] = typeof value === "string" ? value.trim() : "";
+    return acc;
+  }, {});
+};
+
 // ── Token helpers ─────────────────────────────────────────────────────────────
 const userPayload = (user) => ({
   id: user._id,
@@ -83,7 +97,9 @@ const userPayload = (user) => ({
   kidsAllowed: typeof user.kidsAllowed === "boolean" ? user.kidsAllowed : true,
   tier: user.tier || "free",
   cardTheme: user.cardTheme || "floral",
+  defaultGuestTheme: ["dark", "light", "system"].includes(user.defaultGuestTheme) ? user.defaultGuestTheme : "dark",
   customTextColor: user.customTextColor || "#1A2E4A",
+  customTextColors: normalizeCustomTextColors(user.customTextColors),
   userHasCustomTextColor: typeof user.userHasCustomTextColor === "boolean" ? user.userHasCustomTextColor : false,
   customFontFamily: user.customFontFamily || "classic",
   customVerticalOffset: typeof user.customVerticalOffset === "number" ? user.customVerticalOffset : 0,
@@ -143,7 +159,9 @@ const userPublic = (user) => ({
   // They can be large base64 strings (MBs) that crash localStorage.setItem() with QuotaExceededError.
   // These are fetched separately by the settings page via GET /api/auth/me.
   cardTheme: user.cardTheme || "floral",
+  defaultGuestTheme: ["dark", "light", "system"].includes(user.defaultGuestTheme) ? user.defaultGuestTheme : "dark",
   customTextColor: user.customTextColor || "#1A2E4A",
+  customTextColors: normalizeCustomTextColors(user.customTextColors),
   userHasCustomTextColor: typeof user.userHasCustomTextColor === "boolean" ? user.userHasCustomTextColor : false,
   customFontFamily: user.customFontFamily || "classic",
   customVerticalOffset: typeof user.customVerticalOffset === "number" ? user.customVerticalOffset : 0,
@@ -353,9 +371,11 @@ router.put("/me", protect, async (req, res) => {
       plusOnePolicy,
       kidsAllowed,
       cardTheme,
+      defaultGuestTheme,
       customCardBg,
       pageBgTemplate,
       customTextColor,
+      customTextColors,
       customFontFamily,
       customVerticalOffset,
       customTextSize,
@@ -390,6 +410,8 @@ router.put("/me", protect, async (req, res) => {
 
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
+    const normalizedCustomCardBg = customCardBg !== undefined ? normalizePublicImageUrl(customCardBg) : undefined;
+    const normalizedPageBgTemplate = pageBgTemplate !== undefined ? normalizePublicImageUrl(pageBgTemplate) : undefined;
 
     // Update timeline if provided
     if (timeline !== undefined && Array.isArray(timeline)) {
@@ -429,6 +451,9 @@ router.put("/me", protect, async (req, res) => {
       user.plusOnePolicy = plusOnePolicy === "plus_one_allowed" ? "plus_one_allowed" : "invitation_only";
     }
     if (kidsAllowed !== undefined) user.kidsAllowed = typeof kidsAllowed === "boolean" ? kidsAllowed : true;
+    if (defaultGuestTheme !== undefined && ["dark", "light", "system"].includes(defaultGuestTheme)) {
+      user.defaultGuestTheme = defaultGuestTheme;
+    }
 
     // Update registry settings
     if (typeof registryEnabled === "boolean") user.registryEnabled = registryEnabled;
@@ -456,13 +481,13 @@ router.put("/me", protect, async (req, res) => {
     // Apply tier limitations for visual styles
     if (user.tier === "free") {
       const allowedFreeBgs = [
-        "/templates/Blush Pink Watercolor.png",
-        "/templates/Cream Floral Elegance.png"
+        "/templates/Blush Pink Watercolor.webp",
+        "/templates/Cream Floral Elegance.webp"
       ];
       // Free users can use floral or custom theme with free background templates
-      if (cardTheme === "custom" && customCardBg && (allowedFreeBgs.includes(customCardBg) || customCardBg.startsWith("/Free Plan Vowlink/"))) {
+      if (cardTheme === "custom" && normalizedCustomCardBg && (allowedFreeBgs.includes(normalizedCustomCardBg) || normalizedCustomCardBg.startsWith("/Free Plan Vowlink/"))) {
         user.cardTheme = "custom";
-        user.customCardBg = customCardBg;
+        user.customCardBg = normalizedCustomCardBg;
       } else if (cardTheme === "plain") {
         user.cardTheme = "plain";
         user.customCardBg = "";
@@ -483,29 +508,29 @@ router.put("/me", protect, async (req, res) => {
       user.coupleOverlayOpacity = 0.45;
     } else if (user.tier === "plus") {
       const allowedPlusBgs = [
-        "/templates/template_free_1.png",
-        "/templates/Blush Pink Watercolor.png",
-        "/templates/Cream Floral Elegance.png",
-        "/templates/Emerald Eucalyptus Frame.png",
-        "/templates/Royal Navy Lace Accent.png",
-        "/templates/elegant_gold_frame_with_navy_backdrop.png",
-        "/templates/Elegant purple and silver floral.png"
+        "/templates/template_free_1.webp",
+        "/templates/Blush Pink Watercolor.webp",
+        "/templates/Cream Floral Elegance.webp",
+        "/templates/Emerald Eucalyptus Frame.webp",
+        "/templates/Royal Navy Lace Accent.webp",
+        "/templates/elegant_gold_frame_with_navy_backdrop.webp",
+        "/templates/Elegant purple and silver floral.webp"
       ];
       // Plus tier layout permissions
       if (cardTheme && cardTheme !== "custom" && ["floral", "minimalist", "navy", "plain"].includes(cardTheme)) {
         user.cardTheme = cardTheme;
         user.customCardBg = "";
-      } else if (cardTheme === "custom" && customCardBg && (allowedPlusBgs.includes(customCardBg) || customCardBg.startsWith("/Free Plan Vowlink/") || customCardBg.startsWith("/Plus Plans Vowlink/"))) {
+      } else if (cardTheme === "custom" && normalizedCustomCardBg && (allowedPlusBgs.includes(normalizedCustomCardBg) || normalizedCustomCardBg.startsWith("/Free Plan Vowlink/") || normalizedCustomCardBg.startsWith("/Plus Plans Vowlink/"))) {
         user.cardTheme = "custom";
-        user.customCardBg = customCardBg;
+        user.customCardBg = normalizedCustomCardBg;
       } else {
         user.cardTheme = "floral"; // Fallback if custom chosen without approved template
         user.customCardBg = "";
       }
-      if (pageBgTemplate !== undefined) {
-        if (pageBgTemplate && allowedPlusBgs.includes(pageBgTemplate)) {
-          user.pageBgTemplate = pageBgTemplate;
-        } else if (pageBgTemplate === "") {
+      if (normalizedPageBgTemplate !== undefined) {
+        if (normalizedPageBgTemplate && allowedPlusBgs.includes(normalizedPageBgTemplate)) {
+          user.pageBgTemplate = normalizedPageBgTemplate;
+        } else if (normalizedPageBgTemplate === "") {
           user.pageBgTemplate = "";
         }
         // If pageBgTemplate is sent but not in allowed list, preserve existing value
@@ -527,10 +552,10 @@ router.put("/me", protect, async (req, res) => {
       if (musicUrl !== undefined) user.musicUrl = musicUrl;
       if (customFontFamily !== undefined) user.customFontFamily = customFontFamily;
       if (customTextColor !== undefined) user.customTextColor = customTextColor;
-      if (customCardBg !== undefined) user.customCardBg = customCardBg;
+      if (normalizedCustomCardBg !== undefined) user.customCardBg = normalizedCustomCardBg;
       if (couplePhotoUrl !== undefined) user.couplePhotoUrl = couplePhotoUrl;
       if (typeof coupleOverlayOpacity === "number") user.coupleOverlayOpacity = coupleOverlayOpacity;
-      if (pageBgTemplate !== undefined) user.pageBgTemplate = pageBgTemplate;
+      if (normalizedPageBgTemplate !== undefined) user.pageBgTemplate = normalizedPageBgTemplate;
     }
 
     // Apply fine-tuning inputs for all tiers
@@ -545,6 +570,9 @@ router.put("/me", protect, async (req, res) => {
     if (typeof customTextSizeDetails === "number") user.customTextSizeDetails = customTextSizeDetails;
     if (typeof customTextSizeReception === "number") user.customTextSizeReception = customTextSizeReception;
     if (typeof customTextSizeColors === "number") user.customTextSizeColors = customTextSizeColors;
+    if (customTextColors !== undefined && typeof customTextColors === "object") {
+      user.customTextColors = normalizeCustomTextColors(customTextColors);
+    }
     if (customTextBoldness !== undefined && ["normal", "medium", "bold"].includes(customTextBoldness)) {
       user.customTextBoldness = customTextBoldness;
     }

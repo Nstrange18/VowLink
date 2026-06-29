@@ -6,6 +6,9 @@
  * Users can still override alignment and offsets using manual settings.
  */
 
+const normalizeTemplateUrl = (url) =>
+  typeof url === "string" ? url.replace(/\.(png|jpe?g)$/i, ".webp") : url;
+
 const createPreset = (
   tier,
   defaultAlign,
@@ -82,6 +85,7 @@ const createPreset = (
 };
 
 export const getTemplateLayout = (theme, customCardBg) => {
+  customCardBg = normalizeTemplateUrl(customCardBg);
   if (theme !== "custom" || !customCardBg) {
     // Fallbacks for built-in styling themes (floral, minimalist, navy, stardust, forest)
     switch (theme) {
@@ -150,7 +154,7 @@ export const getTemplateLayout = (theme, customCardBg) => {
 
   // Layout parameters for premium pre-made background designs
   switch (customCardBg) {
-    case "/templates/template_free_1.png": // Classic Navy, Gold & Cream
+    case "/templates/template_free_1.webp": // Classic Navy, Gold & Cream
       return createPreset("plus", "center", 95, 95, 50, 50, "none", "default", null, "80%", {}, {
         title: "#1A2E4A", subtitle: "#2E3A59", coupleNames: "#B8963A", greeting: "#1A2E4A", message: "#2E3A59", details: "#1A2E4A", colourOfDay: "#B8963A", chips: "#FFFFFF", divider: "#B8963A"
       });
@@ -165,17 +169,17 @@ export const getTemplateLayout = (theme, customCardBg) => {
         title: "#6E5B4F", subtitle: "#9C8A7E", coupleNames: "#524339", greeting: "#6E5B4F", message: "#7D6B5F", details: "#9C8A7E", colourOfDay: "#524339", chips: "#FFFFFF", divider: "#524339"
       });
 
-    case "/templates/Blush Pink Watercolor.png": // Blush Pink Watercolor - Align Left (flowers top-right & bottom-left)
+    case "/templates/Blush Pink Watercolor.webp": // Blush Pink Watercolor - Align Left (flowers top-right & bottom-left)
       return createPreset("free", "left", 150, 160, 70, 125, "1px 1px 3px rgba(140, 113, 90, 0.15)", "floral-rose", null, "62%", {}, {
         title: "#5C3A21", subtitle: "#8C5E58", coupleNames: "#8C715A", greeting: "#5C3A21", message: "#6B4E38", details: "#8C715A", colourOfDay: "#8C715A", chips: "#FFFFFF", divider: "#8C715A"
       }, { textShadow: "1px 1px 3px rgba(140, 113, 90, 0.15)" });
 
-    case "/templates/Cream Floral Elegance.png": // Cream Floral Elegance - Center (flowers on all 4 corners)
+    case "/templates/Cream Floral Elegance.webp": // Cream Floral Elegance - Center (flowers on all 4 corners)
       return createPreset("free", "center", 145, 170, 110, 110, "none", "leaf-right", null, "68%", {}, {
         title: "#5C4C3E", subtitle: "#826D5A", coupleNames: "#826D5A", greeting: "#5C4C3E", message: "#6B5847", details: "#826D5A", colourOfDay: "#5C4C3E", chips: "#FFFFFF", divider: "#826D5A"
       });
 
-    case "/templates/template_plus_1.png": // Golden Arch Minimalist - Plus
+    case "/templates/template_plus_1.webp": // Golden Arch Minimalist - Plus
       return createPreset("plus", "center", 140, 140, 90, 90, "none", "gold", "gold-thin", "70%", {}, {
         title: "#B8963A", subtitle: "#4A4A4A", coupleNames: "#1A1A1A", greeting: "#2B2B2B", message: "#4A4A4A", details: "#4A4A4A", colourOfDay: "#B8963A", chips: "#FFFFFF", divider: "#B8963A"
       });
@@ -185,22 +189,22 @@ export const getTemplateLayout = (theme, customCardBg) => {
         title: "#800020", subtitle: "#4A4A4A", coupleNames: "#800020", greeting: "#2B2B2B", message: "#4A4A4A", details: "#4D4D4D", colourOfDay: "#800020", chips: "#FFFFFF", divider: "#800020"
       }, { textShadow: "0 0 6px rgba(0,0,0,0.6)" });
 
-    case "/templates/Emerald Eucalyptus Frame.png": // Emerald Eucalyptus Frame - Center (leaves on all 4 sides)
+    case "/templates/Emerald Eucalyptus Frame.webp": // Emerald Eucalyptus Frame - Center (leaves on all 4 sides)
       return createPreset("plus", "center", 165, 175, 95, 95, "0 1px 4px rgba(0,0,0,0.1)", "eucalyptus", "eucalyptus", "70%", {}, {
         title: "#b1c4beff", subtitle: "#639c87ff", coupleNames: "#D8B76A", greeting: "#88d1b6ff", message: "#88d1b6ff", details: "#a5b1adff", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "none" });
 
-    case "/templates/elegant_gold_frame_with_navy_backdrop.png": // Royal Navy Gold Frame
+    case "/templates/elegant_gold_frame_with_navy_backdrop.webp": // Royal Navy Gold Frame
       return createPreset("plus", "center", 120, 120, 100, 100, "0 0 6px rgba(216, 183, 106, 0.5)", "gold", "gold", "68%", {}, {
         title: "#D8B76A", subtitle: "#EADFC8", coupleNames: "#FFFFFF", greeting: "#FFF5E0", message: "#EADFC8", details: "#FFF5E0", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "0 0 8px rgba(0,0,0,0.7)" });
 
-    case "/templates/Royal Navy Lace Accent.png": // Royal Navy Lace Accent - Center (symmetric lace on both sides)
+    case "/templates/Royal Navy Lace Accent.webp": // Royal Navy Lace Accent - Center (symmetric lace on both sides)
       return createPreset("plus", "center", 110, 110, 130, 130, "0 0 4px rgba(255,255,255,0.2)", "lace", "lace", "60%", {}, {
         title: "#D8B76A", subtitle: "#EADFC8", coupleNames: "#FFFFFF", greeting: "#FFF5E0", message: "#EADFC8", details: "#FFF5E0", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "0 0 6px rgba(0,0,0,0.6)" });
 
-    case "/templates/Elegant purple and silver floral.png": // Elegant Purple & Silver Floral - Center
+    case "/templates/Elegant purple and silver floral.webp": // Elegant Purple & Silver Floral - Center
       return createPreset("plus", "center", 145, 145, 90, 90, "none", "floral", "gold-thin", "70%", {}, {
         title: "#3C2A4D", subtitle: "#5C3E75", coupleNames: "#2D1D3D", greeting: "#3C2A4D", message: "#5C3E75", details: "#3C2A4D", colourOfDay: "#120f14ff", chips: "#FFFFFF", divider: "#3C2A4D"
       }, { textShadow: "none" });
@@ -220,52 +224,52 @@ export const getTemplateLayout = (theme, customCardBg) => {
         title: "#D8B76A", subtitle: "#EADFC8", coupleNames: "#FFFFFF", greeting: "#FFF5E0", message: "#EADFC8", details: "#FFF5E0", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "1px 1px 4px rgba(0,0,0,0.8)" });
 
-    case "/templates/template_pro_4.png": // Luxe Marble Geometric - Pro
+    case "/templates/template_pro_4.webp": // Luxe Marble Geometric - Pro
       return createPreset("pro", "right", 135, 135, 65, 110, "0 1px 3px rgba(0,0,0,0.7)", "gold", null, "66%", {}, {
         title: "#D4AF37", subtitle: "#FFFDF9", coupleNames: "#FFFFFF", greeting: "#FFF5E0", message: "#EADFC8", details: "#D4AF37", colourOfDay: "#D4AF37", chips: "#FFFFFF", divider: "#D4AF37"
       }, { textShadow: "0 2px 4px rgba(0,0,0,0.6)" });
 
-    case "/templates/template_plus_3.png": // Midnight Black Floral
+    case "/templates/template_plus_3.webp": // Midnight Black Floral
       return createPreset("pro", "center", 105, 105, 55, 55, "none", "default", null, "80%", {}, {
         title: "#D8B76A", subtitle: "#EADFC8", coupleNames: "#F5EBD6", greeting: "#FFF5E0", message: "#EADFC8", details: "#FFF5E0", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "0 0 8px rgba(0,0,0,0.7)" });
 
-    case "/templates/Midnight Black Floral2.png": // Midnight Rose
+    case "/templates/Midnight Black Floral2.webp": // Midnight Rose
       return createPreset("pro", "center", 110, 110, 60, 60, "none", "default", null, "80%", {}, {
         title: "#D8B76A", subtitle: "#EADFC8", coupleNames: "#F5EBD6", greeting: "#FFF5E0", message: "#EADFC8", details: "#FFF5E0", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "0 0 8px rgba(0,0,0,0.7)" });
 
-    case "/templates/Dark Black Gold Marble.png": // Dark Black Gold Marble - Align Left (Marble on Right)
+    case "/templates/Dark Black Gold Marble.webp": // Dark Black Gold Marble - Align Left (Marble on Right)
       return createPreset("pro", "left", 110, 110, 75, 120, "1px 1px 4px rgba(216, 183, 106, 0.7)", "gold-foil", "dashed-gold", "65%", {}, {
         title: "#D8B76A", subtitle: "#EADFC8", coupleNames: "#FFFFFF", greeting: "#FFF5E0", message: "#EADFC8", details: "#FFF5E0", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "1px 1px 4px rgba(0,0,0,0.8)" });
 
-    case "/templates/Burgundy Velvet Filigree.png": // Burgundy Velvet Filigree - Center (filigree on both sides)
+    case "/templates/Burgundy Velvet Filigree.webp": // Burgundy Velvet Filigree - Center (filigree on both sides)
       return createPreset("pro", "center", 120, 120, 100, 100, "1px 1px 3px rgba(216, 183, 106, 0.5)", "filigree", "gold-thin", "68%", {}, {
         title: "#D8B76A", subtitle: "#EADFC8", coupleNames: "#F5EBD6", greeting: "#FFF5E0", message: "#EADFC8", details: "#FFF5E0", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "0 0 6px rgba(0,0,0,0.7)" });
 
-    case "/templates/Royal Emerald Gold Frame.png": // Royal Emerald Gold Frame - Center inside frame
+    case "/templates/Royal Emerald Gold Frame.webp": // Royal Emerald Gold Frame - Center inside frame
       return createPreset("pro", "center", 145, 145, 80, 80, "0 2px 5px rgba(216, 183, 106, 0.6)", "gold-royal", "gold-royal", "72%", {}, {
         title: "#D8B76A", subtitle: "#FFFDF9", coupleNames: "#FFFFFF", greeting: "#FFF5E0", message: "#EADFC8", details: "#D8B76A", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "0 2px 4px rgba(0,0,0,0.6)" });
 
-    case "/templates/Blush Pink & Rose Gold Glitter.png": // Blush Pink & Rose Gold Glitter - Align Left (Glitter on Right)
+    case "/templates/Blush Pink & Rose Gold Glitter.webp": // Blush Pink & Rose Gold Glitter - Align Left (Glitter on Right)
       return createPreset("pro", "left", 115, 115, 70, 120, "1px 1px 3px rgba(184, 150, 58, 0.4)", "glitter", null, "65%", {}, {
         title: "#5C3A21", subtitle: "#8C715A", coupleNames: "#8C715A", greeting: "#5C3A21", message: "#6B5847", details: "#8C715A", colourOfDay: "#5C3A21", chips: "#FFFFFF", divider: "#8C715A"
       });
 
-    case "/templates/template_pro_5.png": // Minimalist Linen Ivory Leaves - Align Right (Leaves on Left)
+    case "/templates/template_pro_5.webp": // Minimalist Linen Ivory Leaves - Align Right (Leaves on Left)
       return createPreset("pro", "right", 110, 110, 125, 65, "none", "linen", null, "65%", {}, {
         title: "#2F3E36", subtitle: "#526756", coupleNames: "#526756", greeting: "#2F3E36", message: "#354F52", details: "#526756", colourOfDay: "#2F3E36", chips: "#FFFFFF", divider: "#526756"
       });
 
-    case "/templates/template_pro_6.png": // Starry Lavender Gold Dust - Align Center
+    case "/templates/template_pro_6.webp": // Starry Lavender Gold Dust - Align Center
       return createPreset("pro", "center", 125, 125, 60, 60, "0 0 8px rgba(255,255,255,0.7)", "starry", "dashed-gold", "80%", {}, {
         title: "#D8B76A", subtitle: "#EADFC8", coupleNames: "#FFFFFF", greeting: "#FFF5E0", message: "#EADFC8", details: "#D8B76A", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "0 0 6px rgba(0,0,0,0.6)" });
 
-    case "/templates/template_pro_7.png": // Classic Charcoal Gold Floral - Align Left (Floral on Right)
+    case "/templates/template_pro_7.webp": // Classic Charcoal Gold Floral - Align Left (Floral on Right)
       return createPreset("pro", "left", 120, 120, 75, 120, "1px 1px 3px rgba(216, 183, 106, 0.6)", "charcoal-gold", null, "65%", {}, {
         title: "#D8B76A", subtitle: "#EADFC8", coupleNames: "#FFFFFF", greeting: "#FFF5E0", message: "#EADFC8", details: "#D8B76A", colourOfDay: "#D8B76A", chips: "#FFFFFF", divider: "#D8B76A"
       }, { textShadow: "0 0 6px rgba(0,0,0,0.7)" });
@@ -304,7 +308,8 @@ export const getBlockStyles = (
   customTextColor,
   primaryTextColor,
   userHasCustomTextColor,
-  customTextSize = 1.0
+  customTextSize = 1.0,
+  customTextColors = {}
 ) => {
   const layoutConfig = layout?.layoutConfig || {};
   const blockConfig = layoutConfig.blocks?.[blockName] || {};
@@ -384,11 +389,16 @@ export const getBlockStyles = (
     styles.WebkitTextStroke = contrast.stroke;
   }
 
-  // Handle per-block text color or custom global text color override
-  if (userHasCustomTextColor) {
+  let blockColorKey = blockName;
+  if (blockName === "divider1" || blockName === "divider2") blockColorKey = "details";
+  const sectionColor = customTextColors?.[blockColorKey];
+
+  // Handle per-block, custom global, or template default text color.
+  if (sectionColor) {
+    styles.color = sectionColor;
+  } else if (userHasCustomTextColor) {
     styles.color = customTextColor || primaryTextColor;
   } else {
-    let blockColorKey = blockName;
     if (blockName === "reception") blockColorKey = "details";
     if (blockName === "colors") blockColorKey = "colourOfDay";
     if (blockName === "divider2" || blockName === "divider1") blockColorKey = "divider";
@@ -404,55 +414,55 @@ export const PREMADE_TEMPLATES = [
   {
     tier: "free",
     name: "Blush Pink Watercolor",
-    url: "/templates/Blush Pink Watercolor.png",
-    preview: "/templates/Blush Pink Watercolor.png",
+    url: "/templates/Blush Pink Watercolor.webp",
+    preview: "/templates/Blush Pink Watercolor.webp",
   },
   {
     tier: "free",
     name: "Cream Floral Elegance",
-    url: "/templates/Cream Floral Elegance.png",
-    preview: "/templates/Cream Floral Elegance.png",
+    url: "/templates/Cream Floral Elegance.webp",
+    preview: "/templates/Cream Floral Elegance.webp",
   },
   {
     tier: "free",
     name: "Free Gallery Orchid Breeze",
-    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_09 AM (1).png",
-    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_09 AM (1).png",
+    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_09 AM (1).webp",
+    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_09 AM (1).webp",
     onlyInGallery: true
   },
   {
     tier: "free",
     name: "Free Gallery Classic Laurel",
-    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_10 AM (2).png",
-    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_10 AM (2).png",
+    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_10 AM (2).webp",
+    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_10 AM (2).webp",
     onlyInGallery: true
   },
   {
     tier: "free",
     name: "Free Gallery Spring Whimsy",
-    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_14 AM (3).png",
-    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_14 AM (3).png",
+    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_14 AM (3).webp",
+    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_14 AM (3).webp",
     onlyInGallery: true
   },
   {
     tier: "free",
     name: "Free Gallery Eucalyptus Arch",
-    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_16 AM (4).png",
-    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_16 AM (4).png",
+    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_16 AM (4).webp",
+    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_16 AM (4).webp",
     onlyInGallery: true
   },
   {
     tier: "free",
     name: "Free Gallery Peach Rose Border",
-    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_19 AM (5).png",
-    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_19 AM (5).png",
+    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_19 AM (5).webp",
+    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_19 AM (5).webp",
     onlyInGallery: true
   },
   {
     tier: "free",
     name: "Free Gallery Pure Gold Accent",
-    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_23 AM (6).png",
-    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_23 AM (6).png",
+    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_23 AM (6).webp",
+    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_23 AM (6).webp",
     onlyInGallery: true
   },
 
@@ -460,107 +470,107 @@ export const PREMADE_TEMPLATES = [
   {
     tier: "plus",
     name: "Classic Navy, Gold & Cream",
-    url: "/templates/template_free_1.png",
-    preview: "/templates/template_free_1.png",
+    url: "/templates/template_free_1.webp",
+    preview: "/templates/template_free_1.webp",
   },
   {
     tier: "plus",
     name: "Golden Arch Minimalist",
-    url: "/templates/template_plus_1.png",
-    preview: "/templates/template_plus_1.png",
+    url: "/templates/template_plus_1.webp",
+    preview: "/templates/template_plus_1.webp",
   },
   {
     tier: "plus",
     name: "Emerald Eucalyptus Frame",
-    url: "/templates/Emerald Eucalyptus Frame.png",
-    preview: "/templates/Emerald Eucalyptus Frame.png",
+    url: "/templates/Emerald Eucalyptus Frame.webp",
+    preview: "/templates/Emerald Eucalyptus Frame.webp",
   },
   {
     tier: "plus",
     name: "Royal Navy Gold Frame",
-    url: "/templates/elegant_gold_frame_with_navy_backdrop.png",
-    preview: "/templates/elegant_gold_frame_with_navy_backdrop.png",
+    url: "/templates/elegant_gold_frame_with_navy_backdrop.webp",
+    preview: "/templates/elegant_gold_frame_with_navy_backdrop.webp",
   },
   {
     tier: "plus",
     name: "Royal Navy Lace Accent",
-    url: "/templates/Royal Navy Lace Accent.png",
-    preview: "/templates/Royal Navy Lace Accent.png",
+    url: "/templates/Royal Navy Lace Accent.webp",
+    preview: "/templates/Royal Navy Lace Accent.webp",
   },
   {
     tier: "plus",
     name: "Elegant Purple & Silver Floral",
-    url: "/templates/Elegant purple and silver floral.png",
-    preview: "/templates/Elegant purple and silver floral.png",
+    url: "/templates/Elegant purple and silver floral.webp",
+    preview: "/templates/Elegant purple and silver floral.webp",
   },
   {
     tier: "plus",
     name: "Plus Gallery Vintage Damask",
-    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (1).png",
-    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (1).png",
+    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (1).webp",
+    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (1).webp",
     onlyInGallery: true
   },
   {
     tier: "plus",
     name: "Plus Gallery Gilded Leaves",
-    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (2).png",
-    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (2).png",
+    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (2).webp",
+    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (2).webp",
     onlyInGallery: true
   },
   {
     tier: "plus",
     name: "Plus Gallery Royal Arch",
-    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (3).png",
-    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (3).png",
+    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (3).webp",
+    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (3).webp",
     onlyInGallery: true
   },
   {
     tier: "plus",
     name: "Plus Gallery Golden Geometry",
-    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (4).png",
-    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (4).png",
+    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (4).webp",
+    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (4).webp",
     onlyInGallery: true
   },
   {
     tier: "plus",
     name: "Plus Gallery Midnight Orchids",
-    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (5).png",
-    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (5).png",
+    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (5).webp",
+    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_23 PM (5).webp",
     onlyInGallery: true
   },
   {
     tier: "plus",
     name: "Plus Gallery Emerald Eucalyptus",
-    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (6).png",
-    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (6).png",
+    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (6).webp",
+    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (6).webp",
     onlyInGallery: true
   },
   {
     tier: "plus",
     name: "Plus Gallery Velvet Romance",
-    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (7).png",
-    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (7).png",
+    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (7).webp",
+    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (7).webp",
     onlyInGallery: true
   },
   {
     tier: "plus",
     name: "Plus Gallery Golden Dust Frame",
-    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (8).png",
-    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (8).png",
+    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (8).webp",
+    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (8).webp",
     onlyInGallery: true
   },
   {
     tier: "plus",
     name: "Plus Gallery Classic Crest",
-    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (9).png",
-    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (9).png",
+    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (9).webp",
+    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (9).webp",
     onlyInGallery: true
   },
   {
     tier: "plus",
     name: "Plus Gallery Ivory Ornaments",
-    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (10).png",
-    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (10).png",
+    url: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (10).webp",
+    preview: "/Plus Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_00_24 PM (10).webp",
     onlyInGallery: true
   },
 
@@ -568,131 +578,131 @@ export const PREMADE_TEMPLATES = [
   {
     tier: "pro",
     name: "Luxe Marble Geometric",
-    url: "/templates/template_pro_4.png",
-    preview: "/templates/template_pro_4.png",
+    url: "/templates/template_pro_4.webp",
+    preview: "/templates/template_pro_4.webp",
   },
   {
     tier: "pro",
     name: "Midnight Black Floral",
-    url: "/templates/template_plus_3.png",
-    preview: "/templates/template_plus_3.png",
+    url: "/templates/template_plus_3.webp",
+    preview: "/templates/template_plus_3.webp",
   },
   {
     tier: "pro",
     name: "Deep Black Rose",
-    url: "/templates/Midnight Black Floral2.png",
-    preview: "/templates/Midnight Black Floral2.png",
+    url: "/templates/Midnight Black Floral2.webp",
+    preview: "/templates/Midnight Black Floral2.webp",
   },
   {
     tier: "pro",
     name: "Dark Black Gold Marble",
-    url: "/templates/Dark Black Gold Marble.png",
-    preview: "/templates/Dark Black Gold Marble.png",
+    url: "/templates/Dark Black Gold Marble.webp",
+    preview: "/templates/Dark Black Gold Marble.webp",
   },
   {
     tier: "pro",
     name: "Burgundy Velvet Filigree",
-    url: "/templates/Burgundy Velvet Filigree.png",
-    preview: "/templates/Burgundy Velvet Filigree.png",
+    url: "/templates/Burgundy Velvet Filigree.webp",
+    preview: "/templates/Burgundy Velvet Filigree.webp",
   },
   {
     tier: "pro",
     name: "Royal Emerald Gold Frame",
-    url: "/templates/Royal Emerald Gold Frame.png",
-    preview: "/templates/Royal Emerald Gold Frame.png",
+    url: "/templates/Royal Emerald Gold Frame.webp",
+    preview: "/templates/Royal Emerald Gold Frame.webp",
   },
   {
     tier: "pro",
     name: "Blush Pink & Rose Gold Glitter",
-    url: "/templates/Blush Pink & Rose Gold Glitter.png",
-    preview: "/templates/Blush Pink & Rose Gold Glitter.png",
+    url: "/templates/Blush Pink & Rose Gold Glitter.webp",
+    preview: "/templates/Blush Pink & Rose Gold Glitter.webp",
   },
   {
     tier: "pro",
     name: "Minimalist Linen Ivory Leaves",
-    url: "/templates/template_pro_5.png",
-    preview: "/templates/template_pro_5.png",
+    url: "/templates/template_pro_5.webp",
+    preview: "/templates/template_pro_5.webp",
   },
   {
     tier: "pro",
     name: "Starry Lavender Gold Dust",
-    url: "/templates/template_pro_6.png",
-    preview: "/templates/template_pro_6.png",
+    url: "/templates/template_pro_6.webp",
+    preview: "/templates/template_pro_6.webp",
   },
   {
     tier: "pro",
     name: "Classic Charcoal Gold Floral",
-    url: "/templates/template_pro_7.png",
-    preview: "/templates/template_pro_7.png",
+    url: "/templates/template_pro_7.webp",
+    preview: "/templates/template_pro_7.webp",
   },
   {
     tier: "pro",
     name: "Pro Gallery Celestial Shimmer",
-    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_17 PM (1).png",
-    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_17 PM (1).png",
+    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_17 PM (1).webp",
+    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_17 PM (1).webp",
     onlyInGallery: true
   },
   {
     tier: "pro",
     name: "Pro Gallery Royal Purple Filigree",
-    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_18 PM (2).png",
-    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_18 PM (2).png",
+    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_18 PM (2).webp",
+    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_18 PM (2).webp",
     onlyInGallery: true
   },
   {
     tier: "pro",
     name: "Pro Gallery Lux Emerald Marble",
-    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_18 PM (3).png",
-    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_18 PM (3).png",
+    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_18 PM (3).webp",
+    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_18 PM (3).webp",
     onlyInGallery: true
   },
   {
     tier: "pro",
     name: "Pro Gallery Platinum Shimmer",
-    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_19 PM (4).png",
-    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_19 PM (4).png",
+    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_19 PM (4).webp",
+    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_19 PM (4).webp",
     onlyInGallery: true
   },
   {
     tier: "pro",
     name: "Pro Gallery Gilded Onyx Frame",
-    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_19 PM (5).png",
-    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_19 PM (5).png",
+    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_19 PM (5).webp",
+    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_19 PM (5).webp",
     onlyInGallery: true
   },
   {
     tier: "pro",
     name: "Pro Gallery Classic Burgundy Velvet",
-    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_20 PM (6).png",
-    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_20 PM (6).png",
+    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_20 PM (6).webp",
+    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_20 PM (6).webp",
     onlyInGallery: true
   },
   {
     tier: "pro",
     name: "Pro Gallery Royal Blue Lace",
-    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_21 PM (7).png",
-    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_21 PM (7).png",
+    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_21 PM (7).webp",
+    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_21 PM (7).webp",
     onlyInGallery: true
   },
   {
     tier: "pro",
     name: "Pro Gallery Peach Rose Garden",
-    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_22 PM (8).png",
-    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_22 PM (8).png",
+    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_22 PM (8).webp",
+    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_22 PM (8).webp",
     onlyInGallery: true
   },
   {
     tier: "pro",
     name: "Pro Gallery Minimalist Linen Frame",
-    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_25 PM (9).png",
-    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_25 PM (9).png",
+    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_25 PM (9).webp",
+    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_25 PM (9).webp",
     onlyInGallery: true
   },
   {
     tier: "pro",
     name: "Pro Gallery Golden Sparkle Frame",
-    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_34 PM (10).png",
-    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_34 PM (10).png",
+    url: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_34 PM (10).webp",
+    preview: "/Pro Plans Vowlink/ChatGPT Image Jun 25, 2026, 01_11_34 PM (10).webp",
     onlyInGallery: true
   },
 ];

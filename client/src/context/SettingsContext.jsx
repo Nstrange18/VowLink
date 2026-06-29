@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import api from "../utils/api";
 import { settingsSchema } from "../utils/schemas";
 import { WEDDING_COLORS } from "../components/ColorPicker";
+import { normalizePublicImageUrl } from "../utils/publicAssets";
 
 const SettingsContext = createContext(null);
 
@@ -19,6 +20,14 @@ export const useSettings = () => {
 
 const toInputDate = (dateStr) =>
   dateStr ? new Date(dateStr).toISOString().split("T")[0] : "";
+
+const TEXT_COLOR_KEYS = ["title", "subtitle", "coupleNames", "greeting", "message", "details", "reception", "colors"];
+
+const normalizeTextColors = (colors = {}) =>
+  TEXT_COLOR_KEYS.reduce((acc, key) => {
+    acc[key] = typeof colors?.[key] === "string" ? colors[key] : "";
+    return acc;
+  }, {});
 
 const resolveWeddingColors = (colors, defaultColorsList) => {
   const colorMap = {};
@@ -81,12 +90,16 @@ export const SettingsProvider = ({ children }) => {
 
   // Premium state fields
   const [cardTheme, setCardTheme] = useState(storedUser.cardTheme || "floral");
+  const [defaultGuestTheme, setDefaultGuestTheme] = useState(
+    ["dark", "light", "system"].includes(storedUser.defaultGuestTheme) ? storedUser.defaultGuestTheme : "dark"
+  );
   const [pageBgTemplate, setPageBgTemplate] = useState(storedUser.pageBgTemplate || "");
-  const [customCardBg, setCustomCardBg] = useState(storedUser.customCardBg || "");
-  const [savedCardBg, setSavedCardBg] = useState(storedUser.customCardBg || "");
+  const [customCardBg, setCustomCardBg] = useState(normalizePublicImageUrl(storedUser.customCardBg));
+  const [savedCardBg, setSavedCardBg] = useState(normalizePublicImageUrl(storedUser.customCardBg));
   const [savedCardTheme, setSavedCardTheme] = useState(storedUser.cardTheme || "floral");
 
   const [customTextColor, setCustomTextColor] = useState(storedUser.customTextColor || "#1A2E4A");
+  const [customTextColors, setCustomTextColors] = useState(normalizeTextColors(storedUser.customTextColors));
   const [customFontFamily, setCustomFontFamily] = useState(storedUser.customFontFamily || "classic");
   const [customVerticalOffset, setCustomVerticalOffset] = useState(storedUser.customVerticalOffset || 0);
   const [customHorizontalOffset, setCustomHorizontalOffset] = useState(storedUser.customHorizontalOffset || 0);
@@ -243,14 +256,18 @@ export const SettingsProvider = ({ children }) => {
         const res = await api.get("/auth/me");
         const freshUser = res.data;
         if (freshUser.galleryPhotos?.length) setGalleryPhotos(freshUser.galleryPhotos);
-        setCustomCardBg(freshUser.customCardBg || "");
-        setSavedCardBg(freshUser.customCardBg || "");
+        setCustomCardBg(normalizePublicImageUrl(freshUser.customCardBg));
+        setSavedCardBg(normalizePublicImageUrl(freshUser.customCardBg));
         if (freshUser.couplePhotoUrl) setCouplePhotoUrl(freshUser.couplePhotoUrl);
         if (freshUser.pageBgTemplate) setPageBgTemplate(freshUser.pageBgTemplate);
         if (freshUser.musicUrl) setMusicUrl(freshUser.musicUrl);
         setCardTheme(freshUser.cardTheme || "floral");
         setSavedCardTheme(freshUser.cardTheme || "floral");
+        if (["dark", "light", "system"].includes(freshUser.defaultGuestTheme)) {
+          setDefaultGuestTheme(freshUser.defaultGuestTheme);
+        }
         if (freshUser.customTextColor) setCustomTextColor(freshUser.customTextColor);
+        setCustomTextColors(normalizeTextColors(freshUser.customTextColors));
         if (freshUser.customFontFamily) setCustomFontFamily(freshUser.customFontFamily);
         if (typeof freshUser.coupleOverlayOpacity === "number") setCoupleOverlayOpacity(freshUser.coupleOverlayOpacity);
         if (typeof freshUser.customVerticalOffset === "number") setCustomVerticalOffset(freshUser.customVerticalOffset);
@@ -364,26 +381,26 @@ export const SettingsProvider = ({ children }) => {
         }
         
         const proTemplates = [
-          "/templates/template_plus_3.png",
-          "/templates/Midnight Black Floral2.png",
-          "/templates/Dark Black Gold Marble.png",
-          "/templates/Burgundy Velvet Filigree.png",
-          "/templates/Royal Emerald Gold Frame.png",
-          "/templates/Blush Pink & Rose Gold Glitter.png",
-          "/templates/template_pro_5.png",
-          "/templates/template_pro_6.png",
-          "/templates/template_pro_7.png",
+          "/templates/template_plus_3.webp",
+          "/templates/Midnight Black Floral2.webp",
+          "/templates/Dark Black Gold Marble.webp",
+          "/templates/Burgundy Velvet Filigree.webp",
+          "/templates/Royal Emerald Gold Frame.webp",
+          "/templates/Blush Pink & Rose Gold Glitter.webp",
+          "/templates/template_pro_5.webp",
+          "/templates/template_pro_6.webp",
+          "/templates/template_pro_7.webp",
         ];
         if (proTemplates.includes(bg)) {
           return userTier === "pro";
         }
 
         const plusTemplates = [
-          "/templates/template_free_1.png",
-          "/templates/Emerald Eucalyptus Frame.png",
-          "/templates/elegant_gold_frame_with_navy_backdrop.png",
-          "/templates/Royal Navy Lace Accent.png",
-          "/templates/Elegant purple and silver floral.png",
+          "/templates/template_free_1.webp",
+          "/templates/Emerald Eucalyptus Frame.webp",
+          "/templates/elegant_gold_frame_with_navy_backdrop.webp",
+          "/templates/Royal Navy Lace Accent.webp",
+          "/templates/Elegant purple and silver floral.webp",
         ];
         if (plusTemplates.includes(bg)) {
           return userTier === "plus" || userTier === "pro";
@@ -402,15 +419,15 @@ export const SettingsProvider = ({ children }) => {
     if (!checkTierPermissions(cardTheme, customCardBg, tier)) {
       const isCustomUpload = cardTheme === "custom" && customCardBg && (customCardBg.startsWith("data:") || customCardBg.startsWith("http"));
       const proTemplates = [
-        "/templates/template_plus_3.png",
-        "/templates/Midnight Black Floral2.png",
-        "/templates/Dark Black Gold Marble.png",
-        "/templates/Burgundy Velvet Filigree.png",
-        "/templates/Royal Emerald Gold Frame.png",
-        "/templates/Blush Pink & Rose Gold Glitter.png",
-        "/templates/template_pro_5.png",
-        "/templates/template_pro_6.png",
-        "/templates/template_pro_7.png",
+        "/templates/template_plus_3.webp",
+        "/templates/Midnight Black Floral2.webp",
+        "/templates/Dark Black Gold Marble.webp",
+        "/templates/Burgundy Velvet Filigree.webp",
+        "/templates/Royal Emerald Gold Frame.webp",
+        "/templates/Blush Pink & Rose Gold Glitter.webp",
+        "/templates/template_pro_5.webp",
+        "/templates/template_pro_6.webp",
+        "/templates/template_pro_7.webp",
       ];
       const isProTemplate = cardTheme === "custom" && proTemplates.includes(customCardBg);
       const isProTheme = ["stardust", "forest"].includes(cardTheme);
@@ -446,11 +463,13 @@ export const SettingsProvider = ({ children }) => {
         ...data,
         weddingColors,
         cardTheme,
+        defaultGuestTheme,
         customCardBg,
         ...mediaPayload,
         customShareMessage,
         coupleOverlayOpacity,
         customTextColor,
+        customTextColors,
         customFontFamily,
         customVerticalOffset: Number(customVerticalOffset),
         customHorizontalOffset: Number(customHorizontalOffset),
@@ -499,6 +518,34 @@ export const SettingsProvider = ({ children }) => {
     }
   };
 
+  const convertDataUrlToWebp = (dataUrl, quality = 0.88) =>
+    new Promise((resolve) => {
+      if (!dataUrl || !dataUrl.startsWith("data:image/")) {
+        resolve(dataUrl);
+        return;
+      }
+
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth || image.width;
+        canvas.height = image.naturalHeight || image.height;
+        const context = canvas.getContext("2d");
+        if (!context) {
+          resolve(dataUrl);
+          return;
+        }
+        context.drawImage(image, 0, 0);
+        try {
+          resolve(canvas.toDataURL("image/webp", quality));
+        } catch {
+          resolve(dataUrl);
+        }
+      };
+      image.onerror = () => resolve(dataUrl);
+      image.src = dataUrl;
+    });
+
   const uploadToCloudinary = async (base64Str) => {
     const toastId = toast.loading("Uploading file to Cloudinary...");
     try {
@@ -543,7 +590,8 @@ export const SettingsProvider = ({ children }) => {
       title: "Crop Gallery Photo",
       defaultAspect: 1, // 1:1 default aspect ratio
       callback: async (croppedDataUrl) => {
-        const url = await uploadToCloudinary(croppedDataUrl);
+        const webpDataUrl = await convertDataUrlToWebp(croppedDataUrl);
+        const url = await uploadToCloudinary(webpDataUrl);
         setGalleryPhotos((prev) => [...prev, url]);
       }
     }));
@@ -615,7 +663,8 @@ export const SettingsProvider = ({ children }) => {
         title: "Crop Background Card",
         defaultAspect: 608 / 580, // Card ratio
         callback: async (croppedDataUrl) => {
-          const url = await uploadToCloudinary(croppedDataUrl);
+          const webpDataUrl = await convertDataUrlToWebp(croppedDataUrl);
+          const url = await uploadToCloudinary(webpDataUrl);
           setCustomCardBg(url);
           setCustomTextColor("#FFFFFF");
         }
@@ -637,7 +686,8 @@ export const SettingsProvider = ({ children }) => {
         title: "Crop Couple Portrait",
         defaultAspect: 9 / 16, // Ideal vertical aspect ratio
         callback: async (croppedDataUrl) => {
-          const url = await uploadToCloudinary(croppedDataUrl);
+          const webpDataUrl = await convertDataUrlToWebp(croppedDataUrl);
+          const url = await uploadToCloudinary(webpDataUrl);
           setCouplePhotoUrl(url);
           setPageBgTemplate("");
           toast.success("Couple photo uploaded! It will appear as the page background.");
@@ -693,9 +743,11 @@ export const SettingsProvider = ({ children }) => {
 
   const handleResetConfirm = () => {
     setCardTheme("floral");
+    setDefaultGuestTheme("dark");
     setPageBgTemplate("");
     setCustomCardBg("");
     setCustomTextColor("#1A2E4A");
+    setCustomTextColors(normalizeTextColors());
     setCustomFontFamily("classic");
     setCustomVerticalOffset(0);
     setCustomHorizontalOffset(0);
@@ -790,31 +842,31 @@ export const SettingsProvider = ({ children }) => {
         return isDark ? "#F5EBD6" : "#1A2E4A";
       }
       const darkTemplates = [
-        "/templates/elegant_gold_frame_with_navy_backdrop.png",
-        "/templates/Emerald Eucalyptus Frame.png",
-        "/templates/Royal Navy Lace Accent.png",
-        "/templates/template_plus_3.png",
-        "/templates/Dark Black Gold Marble.png",
-        "/templates/Burgundy Velvet Filigree.png",
-        "/templates/Royal Emerald Gold Frame.png",
-        "/templates/template_pro_6.png",
-        "/templates/template_pro_7.png",
-        "/templates/Midnight Black Floral2.png",
+        "/templates/elegant_gold_frame_with_navy_backdrop.webp",
+        "/templates/Emerald Eucalyptus Frame.webp",
+        "/templates/Royal Navy Lace Accent.webp",
+        "/templates/template_plus_3.webp",
+        "/templates/Dark Black Gold Marble.webp",
+        "/templates/Burgundy Velvet Filigree.webp",
+        "/templates/Royal Emerald Gold Frame.webp",
+        "/templates/template_pro_6.webp",
+        "/templates/template_pro_7.webp",
+        "/templates/Midnight Black Floral2.webp",
         "/templates/template_plus_2.png",
         "/templates/template_pro_1.png",
         "/templates/template_pro_3.png",
-        "/templates/template_pro_4.png",
+        "/templates/template_pro_4.webp",
       ];
       const lightTemplates = [
-        "/templates/template_free_1.png",
-        "/templates/Blush Pink Watercolor.png",
-        "/templates/Cream Floral Elegance.png",
-        "/templates/Blush Pink & Rose Gold Glitter.png",
-        "/templates/template_pro_5.png",
-        "/templates/Elegant purple and silver floral.png",
+        "/templates/template_free_1.webp",
+        "/templates/Blush Pink Watercolor.webp",
+        "/templates/Cream Floral Elegance.webp",
+        "/templates/Blush Pink & Rose Gold Glitter.webp",
+        "/templates/template_pro_5.webp",
+        "/templates/Elegant purple and silver floral.webp",
         "/templates/template_free_2.png",
         "/templates/template_free_3.png",
-        "/templates/template_plus_1.png",
+        "/templates/template_plus_1.webp",
         "/templates/template_pro_2.png",
       ];
       if (darkTemplates.includes(cardBg)) return "#F5EBD6";
@@ -828,14 +880,14 @@ export const SettingsProvider = ({ children }) => {
     if (!overrideEnabled) return;
 
     const leftAlignTemplates = [
-      "/templates/Royal Navy Lace Accent.png",
-      "/templates/template_plus_3.png",
+      "/templates/Royal Navy Lace Accent.webp",
+      "/templates/template_plus_3.webp",
       "/templates/template_pro_3.png",
     ];
 
     const rightAlignTemplates = [
-      "/templates/template_pro_4.png",
-      "/templates/template_pro_5.png",
+      "/templates/template_pro_4.webp",
+      "/templates/template_pro_5.webp",
     ];
 
     if (leftAlignTemplates.includes(templateUrl)) {
@@ -854,7 +906,7 @@ export const SettingsProvider = ({ children }) => {
       toast.info("Smart layout optimized: Right alignment, -25px margin & 0.9x text size applied to prevent design overlap!", {
         toastId: "smart-align-toast"
       });
-    } else if (templateUrl === "/templates/Emerald Eucalyptus Frame.png") {
+    } else if (templateUrl === "/templates/Emerald Eucalyptus Frame.webp") {
       // Emerald Eucalyptus Frame - shift vertically to avoid leaf graphics
       setCustomTextAlign("center");
       setCustomHorizontalOffset(0);
@@ -864,16 +916,16 @@ export const SettingsProvider = ({ children }) => {
         toastId: "smart-align-toast"
       });
     } else if (
-      templateUrl === "/templates/Elegant purple and silver floral.png" ||
-      templateUrl === "/templates/Midnight Black Floral2.png" ||
-      templateUrl === "/templates/Dark Black Gold Marble.png" ||
-      templateUrl === "/templates/Burgundy Velvet Filigree.png" ||
-      templateUrl === "/templates/Royal Emerald Gold Frame.png" ||
-      templateUrl === "/templates/Blush Pink & Rose Gold Glitter.png" ||
+      templateUrl === "/templates/Elegant purple and silver floral.webp" ||
+      templateUrl === "/templates/Midnight Black Floral2.webp" ||
+      templateUrl === "/templates/Dark Black Gold Marble.webp" ||
+      templateUrl === "/templates/Burgundy Velvet Filigree.webp" ||
+      templateUrl === "/templates/Royal Emerald Gold Frame.webp" ||
+      templateUrl === "/templates/Blush Pink & Rose Gold Glitter.webp" ||
       templateUrl === "/templates/template_pro_1.png" ||
       templateUrl === "/templates/template_pro_2.png" ||
-      templateUrl === "/templates/template_pro_6.png" ||
-      templateUrl === "/templates/template_pro_7.png"
+      templateUrl === "/templates/template_pro_6.webp" ||
+      templateUrl === "/templates/template_pro_7.webp"
     ) {
       // Pro templates (marble background, filigree, border frames) - shrink slightly to sit inside borders and give generous text space
       setCustomTextAlign("center");
@@ -934,7 +986,7 @@ export const SettingsProvider = ({ children }) => {
     };
   } else if (cardTheme === "navy") {
     cardStyles = {
-      background: "url('/templates/elegant_gold_frame_with_navy_backdrop.png') center/cover no-repeat",
+      background: "url('/templates/elegant_gold_frame_with_navy_backdrop.webp') center/cover no-repeat",
       color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A",
       fontFamily: activeFont,
     };
@@ -955,7 +1007,7 @@ export const SettingsProvider = ({ children }) => {
     let color = "#1A2E4A";
     
     switch (customCardBg) {
-      case "/templates/template_free_1.png":
+      case "/templates/template_free_1.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
         break;
       case "/templates/template_free_2.png":
@@ -964,28 +1016,28 @@ export const SettingsProvider = ({ children }) => {
       case "/templates/template_free_3.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6E5B4F";
         break;
-      case "/templates/Blush Pink Watercolor.png":
+      case "/templates/Blush Pink Watercolor.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3D2124";
         break;
-      case "/templates/Cream Floral Elegance.png":
+      case "/templates/Cream Floral Elegance.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
         break;
-      case "/templates/template_plus_1.png":
+      case "/templates/template_plus_1.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#B8963A";
         break;
       case "/templates/template_plus_2.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#800020";
         break;
-      case "/templates/Emerald Eucalyptus Frame.png":
+      case "/templates/Emerald Eucalyptus Frame.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
         break;
-      case "/templates/elegant_gold_frame_with_navy_backdrop.png":
+      case "/templates/elegant_gold_frame_with_navy_backdrop.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
-      case "/templates/Royal Navy Lace Accent.png":
+      case "/templates/Royal Navy Lace Accent.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/Elegant purple and silver floral.png":
+      case "/templates/Elegant purple and silver floral.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3C2A4D";
         break;
       case "/templates/template_pro_1.png":
@@ -997,34 +1049,34 @@ export const SettingsProvider = ({ children }) => {
       case "/templates/template_pro_3.png":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
-      case "/templates/template_pro_4.png":
+      case "/templates/template_pro_4.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D4AF37";
         break;
-      case "/templates/template_plus_3.png":
+      case "/templates/template_plus_3.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/Midnight Black Floral2.png":
+      case "/templates/Midnight Black Floral2.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/Dark Black Gold Marble.png":
+      case "/templates/Dark Black Gold Marble.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
-      case "/templates/Burgundy Velvet Filigree.png":
+      case "/templates/Burgundy Velvet Filigree.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/Royal Emerald Gold Frame.png":
+      case "/templates/Royal Emerald Gold Frame.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
-      case "/templates/Blush Pink & Rose Gold Glitter.png":
+      case "/templates/Blush Pink & Rose Gold Glitter.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
         break;
-      case "/templates/template_pro_5.png":
+      case "/templates/template_pro_5.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#5C6B5E";
         break;
-      case "/templates/template_pro_6.png":
+      case "/templates/template_pro_6.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
         break;
-      case "/templates/template_pro_7.png":
+      case "/templates/template_pro_7.webp":
         color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
         break;
       default:
@@ -1066,10 +1118,12 @@ export const SettingsProvider = ({ children }) => {
 
         weddingColors, setWeddingColors,
         cardTheme, setCardTheme,
+        defaultGuestTheme, setDefaultGuestTheme,
         pageBgTemplate, setPageBgTemplate,
         customCardBg, setCustomCardBg,
         savedCardBg, savedCardTheme,
         customTextColor, setCustomTextColor,
+        customTextColors, setCustomTextColors,
         customFontFamily, setCustomFontFamily,
         customVerticalOffset, setCustomVerticalOffset,
         customHorizontalOffset, setCustomHorizontalOffset,
