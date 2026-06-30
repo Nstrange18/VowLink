@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
@@ -156,7 +156,7 @@ const AiBackgroundGenerator = () => {
           stored.customCardBg = image.imageUrl;
           stored.cardTheme = "custom";
           localStorage.setItem("user", JSON.stringify(stored));
-        } catch (e) {
+        } catch {
           // ignore
         }
 
@@ -193,7 +193,7 @@ const AiBackgroundGenerator = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6">
+    <div className="p-4 sm:p-6 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6 relative isolate overflow-hidden">
       {/* Header & Credit Info */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-white/5 pb-4">
         <div>
@@ -409,7 +409,7 @@ const AiBackgroundGenerator = () => {
               return (
                 <div
                   key={img._id || img.imageUrl}
-                  className={`rounded-xl border p-3 bg-[#070A13] flex flex-col justify-between gap-3 transition ${
+                  className={`rounded-xl border p-3 bg-[#070A13] flex flex-col justify-between gap-3 transition relative isolate overflow-hidden ${
                     isApplied ? "border-[#D8B76A] ring-1 ring-[#D8B76A]/40 shadow-lg" : "border-white/10 hover:border-white/20"
                   }`}
                 >

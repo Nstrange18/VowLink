@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +10,17 @@ import api from "../utils/api";
 import { rsvpSchema } from "../utils/schemas";
 import { WEDDING_COLORS } from "../components/ColorPicker";
 import { Icon } from "@iconify/react";
+
+const getGuestThemeStorageKey = (slug) => `vowlink_guest_theme_${slug}`;
+
+const resolveGuestDefaultTheme = (defaultGuestTheme) => {
+  if (defaultGuestTheme === "light") return "light";
+  if (defaultGuestTheme === "system") {
+    const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)")?.matches;
+    return prefersLight ? "light" : "dark";
+  }
+  return "dark";
+};
 
 const getSpotifyEmbedUrl = (url) => {
   if (!url) return "";
@@ -365,7 +376,7 @@ const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary
   );
 };
 
-const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, isFreeUser) => {
+const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHex, _isFreeUser) => {
   if (!customCardBg) return null;
 
   if (customCardBg === "/templates/Blush Pink Watercolor.webp") {
@@ -800,7 +811,10 @@ const InvitePage = ({ setThemePreference }) => {
   // to completely eliminate any Temporal Dead Zone (TDZ) reference errors.
   let musicUrl = "";
   let isDirectAudio = false;
-  let galleryPhotos = [];
+  const galleryPhotos = useMemo(
+    () => invitation?.userId?.galleryPhotos || [],
+    [invitation?.userId?.galleryPhotos]
+  );
   const customTextSize = invitation?.userId?.customTextSize || 1.0;
   const customTextSizeTitle = invitation?.userId?.customTextSizeTitle || 1.0;
   const customTextSizeSubtitle = invitation?.userId?.customTextSizeSubtitle || 1.0;
@@ -839,7 +853,6 @@ const InvitePage = ({ setThemePreference }) => {
       musicUrl = "https://archive.org/download/wedding-march/Wedding%20March.mp3";
     }
     isDirectAudio = musicUrl && !getSpotifyEmbedUrl(musicUrl);
-    galleryPhotos = invitation.userId.galleryPhotos || [];
   }
 
   const countdown = useCountdown(invitation?.userId?.weddingDate);
@@ -1173,17 +1186,14 @@ const InvitePage = ({ setThemePreference }) => {
       .then((res) => {
         setInvitation(res.data);
         try {
-          const savedTheme = localStorage.getItem("vowlink-guest-theme");
+          const savedTheme = localStorage.getItem(getGuestThemeStorageKey(slug));
           const hasSavedTheme = savedTheme === "light" || savedTheme === "dark";
           const defaultGuestTheme = res.data?.userId?.defaultGuestTheme || "dark";
-          if (!hasSavedTheme && typeof setThemePreference === "function") {
-            const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)")?.matches;
-            const resolvedTheme = defaultGuestTheme === "system"
-              ? (prefersLight ? "light" : "dark")
-              : defaultGuestTheme === "light"
-                ? "light"
-                : "dark";
-            setThemePreference(resolvedTheme, { savePreference: false });
+          if (typeof setThemePreference === "function") {
+            setThemePreference(
+              hasSavedTheme ? savedTheme : resolveGuestDefaultTheme(defaultGuestTheme),
+              { savePreference: false }
+            );
           }
         } catch { }
         setValue("guestName", res.data.guestName);
@@ -1201,7 +1211,7 @@ const InvitePage = ({ setThemePreference }) => {
         setWishes(res.data);
       })
       .catch(() => { });
-  }, [slug, setValue]);
+  }, [slug, setValue, setThemePreference]);
 
 
 
@@ -1343,7 +1353,6 @@ const InvitePage = ({ setThemePreference }) => {
   const baseWeight = customTextBoldness === "bold" ? "700" : (customTextBoldness === "medium" ? "500" : "400");
   const headingWeight = customTextBoldness === "bold" ? "950" : (customTextBoldness === "medium" ? "750" : "600");
   const couplePhotoUrl = invitation.userId?.couplePhotoUrl || "";
-  const pageBgTemplate = invitation.userId?.pageBgTemplate || "";
   const coupleOverlayOpacity = invitation.userId?.coupleOverlayOpacity ?? 0.45;
 
   const script = { fontFamily: "'Dancing Script', cursive" };
@@ -1356,14 +1365,6 @@ const InvitePage = ({ setThemePreference }) => {
       month: "long",
       year: "numeric",
     })
-    : null;
-
-  const mapsUrl = venue
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue)}`
-    : null;
-
-  const receptionMapsUrl = receptionLocation
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(receptionLocation)}`
     : null;
 
   const formattedTime = weddingTime
@@ -1531,7 +1532,6 @@ const InvitePage = ({ setThemePreference }) => {
   const primaryTextColor = cardStyles.color;
   const accentColor = cardTheme === "navy" || cardTheme === "forest" || cardTheme === "stardust" ? secHex : (isFreeUser ? "#B8963A" : priHex);
 
-  const isFreeTemplate = layout.tier === "free";
   const isPlusTemplate = layout.tier === "plus";
   const isProTemplate = layout.tier === "pro";
 

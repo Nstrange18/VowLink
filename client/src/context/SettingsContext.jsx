@@ -131,7 +131,6 @@ export const SettingsProvider = ({ children }) => {
   const [registryAccountNumber, setRegistryAccountNumber] = useState(storedUser.registryAccountNumber || "");
   const [registryNotes, setRegistryNotes] = useState(storedUser.registryNotes || "");
   const [honeymoonFundTarget, setHoneymoonFundTarget] = useState(storedUser.honeymoonFundTarget || 0);
-  const [musicUrlToSaveDummy, setMusicUrlToSaveDummy] = useState(""); // Dummy to assist grouping
   const [honeymoonFundCurrent, setHoneymoonFundCurrent] = useState(storedUser.honeymoonFundCurrent || 0);
 
   const [timeline, setTimeline] = useState(storedUser.timeline || []);
@@ -447,6 +446,9 @@ export const SettingsProvider = ({ children }) => {
 
     try {
       const musicUrlToSave = musicUrl && musicUrl.startsWith('data:') ? '' : musicUrl;
+      const normalizedDefaultGuestTheme = ["dark", "light", "system"].includes(defaultGuestTheme)
+        ? defaultGuestTheme
+        : "dark";
 
       // Only include media fields (gallery, couple photo, page bg) if we've loaded
       // them from the server first — prevents accidentally overwriting with stale
@@ -463,7 +465,7 @@ export const SettingsProvider = ({ children }) => {
         ...data,
         weddingColors,
         cardTheme,
-        defaultGuestTheme,
+        defaultGuestTheme: normalizedDefaultGuestTheme,
         customCardBg,
         ...mediaPayload,
         customShareMessage,

@@ -40,7 +40,6 @@ const AdminEditInvitationPage = () => {
   })
 
   const guestNameVal = watch('guestName') || 'Friend';
-  const categoryVal = watch('category') || 'Guest';
   const customMessageVal = watch('customMessage') || '';
 
 

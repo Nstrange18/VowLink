@@ -201,7 +201,7 @@ const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary
   );
 };
 
-const renderTemplateBackgroundGraphics = (customCardBg, priHex, secHex, terHex, isFreeUser) => {
+const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHex, _isFreeUser) => {
   if (!customCardBg) return null;
 
   if (customCardBg === "/templates/Blush Pink Watercolor.webp") {
@@ -646,7 +646,6 @@ const InvitationCardPreview = () => {
   const layout = getTemplateLayout(cardTheme, customCardBg);
   const textAlignment = userHasCustomAlignment ? (customTextAlign || "center") : (layout.align || "center");
 
-  const isFreeTemplate = layout.tier === "free";
   const isPlusTemplate = layout.tier === "plus";
   const isProTemplate = layout.tier === "pro";
 
@@ -736,22 +735,23 @@ const InvitationCardPreview = () => {
   const cardScale = containerWidth ? Math.min(1.0, (containerWidth - (shouldHideBg ? 16 : 48)) / nativeWidth) : 0.6;
 
   const previewContainerClass = shouldHideBg
-    ? "w-full bg-transparent rounded-none overflow-hidden shadow-none border-none p-0 relative flex items-start justify-center min-h-0 pt-2"
-    : "w-full bg-[#070A13] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 p-4 sm:p-6 relative flex items-start justify-center min-h-[580px] pt-6";
+    ? "w-full max-w-full bg-transparent rounded-none overflow-hidden shadow-none border-none p-0 relative isolate flex items-start justify-center min-h-0 pt-2"
+    : "w-full max-w-full bg-[#070A13] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 p-4 sm:p-6 relative isolate flex items-start justify-center min-h-0 pt-6";
 
   return (
-    <div className="col-span-12 lg:col-span-6 lg:sticky lg:top-8 space-y-4 animate-fade-in">
-      <p className="text-xs uppercase tracking-[0.25em] text-[#D8B76A] font-bold">Live Invitation Card Preview</p>
+    <div className="col-span-12 lg:col-span-6 min-w-0 lg:h-full">
+      <div className="space-y-4 animate-fade-in min-w-0 overflow-hidden lg:h-full lg:max-h-full lg:overflow-x-hidden lg:overflow-y-auto lg:pr-1">
+        <p className="text-xs uppercase tracking-[0.25em] text-[#D8B76A] font-bold">Live Invitation Card Preview</p>
 
-      <div
-        ref={containerRef}
-        id="live-card-preview"
-        className={previewContainerClass}
-        style={{
-          height: cardHeight > 0 ? `${cardHeight * cardScale + (shouldHideBg ? 16 : 48)}px` : "auto",
-          transition: "height 0.3s ease-out"
-        }}
-      >
+        <div
+          ref={containerRef}
+          id="live-card-preview"
+          className={previewContainerClass}
+          style={{
+            height: cardHeight > 0 ? `${cardHeight * cardScale + (shouldHideBg ? 16 : 48)}px` : "auto",
+            transition: "height 0.3s ease-out"
+          }}
+        >
         {/* Page Background (Couple Photo) */}
         {!shouldHideBg && couplePhotoUrl ? (
           <>
@@ -777,7 +777,7 @@ const InvitationCardPreview = () => {
         <div
           ref={cardRef}
           key={customCardBg || cardTheme}
-          className={`relative z-10 w-[608px] flex-none rounded-2xl overflow-hidden transition-all duration-300 ${isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
+          className={`relative z-10 w-[608px] max-w-none flex-none rounded-2xl overflow-hidden transition-all duration-300 ${isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
             } ${isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-2xl"
             }`}
           style={{
@@ -998,32 +998,33 @@ const InvitationCardPreview = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Quick Upload Own Card Action (Pro Only) */}
-      {isPro && (
-        <div className="flex flex-col gap-2 items-center justify-center p-4 rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5">
-          <p className="text-[10px] uppercase font-bold text-[#D8B76A] tracking-wider text-center">Pro Premium Quick Action</p>
-          <button
-            type="button"
-            onClick={() => {
-              setCardTheme("custom");
-              if (customBgInputRef.current) {
-                customBgInputRef.current.click();
-              }
-            }}
-            className="w-full py-2.5 rounded-xl bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-xs font-bold uppercase tracking-wider text-[#070A13] transition flex items-center justify-center gap-2"
-          >
-            <Icon
-              icon={customCardBg ? "mdi:image-edit" : "mdi:image-plus"}
-              className="h-4 w-4 shrink-0"
-              aria-hidden="true"
-            />
-            <span>{customCardBg ? "Change Your Card Background" : "Add Your Own Card Design"}</span>
-          </button>
-          <p className="text-[8px] text-white/40 text-center">Select custom card theme to preview your own card design.</p>
         </div>
-      )}
+
+        {/* Quick Upload Own Card Action (Pro Only) */}
+        {isPro && (
+          <div className="flex flex-col gap-2 items-center justify-center p-4 rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5">
+            <p className="text-[10px] uppercase font-bold text-[#D8B76A] tracking-wider text-center">Pro Premium Quick Action</p>
+            <button
+              type="button"
+              onClick={() => {
+                setCardTheme("custom");
+                if (customBgInputRef.current) {
+                  customBgInputRef.current.click();
+                }
+              }}
+              className="w-full py-2.5 rounded-xl bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-xs font-bold uppercase tracking-wider text-[#070A13] transition flex items-center justify-center gap-2"
+            >
+              <Icon
+                icon={customCardBg ? "mdi:image-edit" : "mdi:image-plus"}
+                className="h-4 w-4 shrink-0"
+                aria-hidden="true"
+              />
+              <span>{customCardBg ? "Change Your Card Background" : "Add Your Own Card Design"}</span>
+            </button>
+            <p className="text-[8px] text-white/40 text-center">Select custom card theme to preview your own card design.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

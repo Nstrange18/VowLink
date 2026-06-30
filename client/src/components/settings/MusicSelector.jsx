@@ -6,7 +6,6 @@ import { Icon } from "@iconify/react";
 const MusicSelector = () => {
   const {
     galleryPhotos,
-    setGalleryPhotos,
     musicUrl,
     setMusicUrl,
     localAudioUrl,

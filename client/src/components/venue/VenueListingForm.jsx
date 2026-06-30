@@ -14,7 +14,6 @@ const VenueListingForm = ({
   handleSubmit,
   onUpdateDetails,
   saving,
-  setValue,
   watch,
   uploadingProof,
   handleProofUpload,

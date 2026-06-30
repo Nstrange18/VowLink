@@ -125,7 +125,7 @@ const getTemplatePreviewStyles = (url) => {
   return { background: `url('${url}') center/cover no-repeat` };
 };
 
-const renderTemplatePreviewOrnaments = (url) => {
+const renderTemplatePreviewOrnaments = () => {
   return null;
 };
 
@@ -170,45 +170,20 @@ const ThemeSelector = () => {
     customTextAlign,
     setCustomTextAlign,
     setUserHasCustomAlignment,
-    userHasCustomTextColor,
     setUserHasCustomTextColor,
-    weddingColors,
-    setWeddingColors,
     isFree,
     isPlus,
     isPro,
-    tier,
     customBgInputRef,
     handleCustomCardBgUpload,
     getSmartTextColor,
     checkSmartAlignment,
-    secHex,
   } = useSettings();
 
   const [showDetailedScaling, setShowDetailedScaling] = useState(false);
   const [showDetailedColors, setShowDetailedColors] = useState(false);
   const [showThemeLayout, setShowThemeLayout] = useState(true);
   const [showFineTuning, setShowFineTuning] = useState(true);
-
-  const hasThemeChanges =
-    cardTheme !== "floral" ||
-    customCardBg !== "" ||
-    customTextColor !== "#1A2E4A" ||
-    Object.values(customTextColors || {}).some(Boolean) ||
-    customFontFamily !== "classic" ||
-    customVerticalOffset !== 0 ||
-    customHorizontalOffset !== 0 ||
-    customTextSize !== 1.0 ||
-    customTextSizeTitle !== 1.0 ||
-    customTextSizeSubtitle !== 1.0 ||
-    customTextSizeCoupleNames !== 1.0 ||
-    customTextSizeGreeting !== 1.0 ||
-    customTextSizeMessage !== 1.0 ||
-    customTextSizeDetails !== 1.0 ||
-    customTextSizeReception !== 1.0 ||
-    customTextSizeColors !== 1.0 ||
-    customTextBoldness !== "normal" ||
-    customTextAlign !== "center";
 
   const handleResetTheme = () => {
     setCardTheme("floral");
@@ -258,7 +233,7 @@ const ThemeSelector = () => {
   return (
     <div className="space-y-6">
       {/* Invitation Theme Options */}
-      <div className="settings-theme-panel p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6">
+      <div className="settings-theme-panel p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6 relative isolate overflow-hidden">
         <button
           type="button"
           onClick={() => setShowThemeLayout(!showThemeLayout)}
@@ -280,7 +255,7 @@ const ThemeSelector = () => {
 
         {showThemeLayout && (
           <div className="space-y-6 pt-2 border-t border-white/5 animate-fade-in">
-            <div className="settings-theme-subpanel rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+            <div className="settings-theme-subpanel rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3 relative isolate overflow-hidden">
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-[#D8B76A] font-bold">Default Guest Invite Theme</p>
                 <p className="mt-1 text-[10px] text-white/45 leading-relaxed">
@@ -393,7 +368,7 @@ const ThemeSelector = () => {
                           toast.info(`Previewing premium theme layout! Upgrade to ${reqTier} to save this theme.`, { toastId: "theme-select-preview" });
                         }
                       }}
-                      className={`relative h-20 rounded-xl overflow-hidden flex flex-col justify-between p-2.5 transition-all duration-300 ${borderClass} ${isSelected
+                      className={`relative isolate h-20 rounded-xl overflow-hidden flex flex-col justify-between p-2.5 transition-all duration-300 ${borderClass} ${isSelected
                         ? "ring-2 ring-[#D8B76A] ring-offset-2 ring-offset-[#070A13] scale-98"
                         : "hover:scale-102 hover:opacity-90"
                         }`}
@@ -542,7 +517,7 @@ const ThemeSelector = () => {
                             // but if the user had manually overridden alignment, that override persists.
                             setUserHasCustomTextColor(false);
                           }}
-                          className={`template-preview-card relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
+                          className={`template-preview-card relative isolate h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                             }`}
                           style={getTemplatePreviewStyles(t.url)}
                         >
@@ -588,7 +563,7 @@ const ThemeSelector = () => {
                               toast.info("Previewing Plus template! Upgrade to Plus or Pro to save this template.", { toastId: "plus-template-preview" });
                             }
                           }}
-                          className={`template-preview-card relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
+                          className={`template-preview-card relative isolate h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                             }`}
                           style={getTemplatePreviewStyles(t.url)}
                         >
@@ -647,7 +622,7 @@ const ThemeSelector = () => {
                               toast.info("Previewing Pro template! Upgrade to Pro to save this template.", { toastId: "pro-template-preview" });
                             }
                           }}
-                          className={`template-preview-card relative h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
+                          className={`template-preview-card relative isolate h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                             }`}
                           style={getTemplatePreviewStyles(t.url)}
                         >
@@ -727,7 +702,7 @@ const ThemeSelector = () => {
                   />
                   {customCardBg && (
                     <div className="mt-2 flex items-center gap-3">
-                      <div className="h-20 w-16 rounded border border-white/10 overflow-hidden relative group">
+                      <div className="h-20 w-16 rounded border border-white/10 overflow-hidden relative isolate group shrink-0">
                         <img src={customCardBg} alt="Upload Thumbnail" className="w-full h-full object-cover" />
                         <button
                           type="button"

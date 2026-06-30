@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
@@ -9,7 +9,7 @@ const VenueDetailsPage = () => {
   const navigate = useNavigate();
   const [venue, setVenue] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
+  const [user] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
 
   // Slideshow state
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
@@ -20,10 +20,9 @@ const VenueDetailsPage = () => {
 
   const tier = user.tier || "free";
   const isFree = tier === "free";
-  const isPlus = tier === "plus";
   const isPro = tier === "pro";
 
-  const fetchVenue = async () => {
+  const fetchVenue = useCallback(async () => {
     try {
       const res = await api.get(`/venues/${id}`);
       setVenue(res.data);
@@ -34,11 +33,11 @@ const VenueDetailsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
 
   useEffect(() => {
     fetchVenue();
-  }, [id]);
+  }, [fetchVenue]);
 
   const handleSendInquiry = async (e) => {
     e.preventDefault();

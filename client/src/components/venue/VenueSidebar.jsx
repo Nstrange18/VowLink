@@ -8,9 +8,6 @@ const VenueSidebar = ({
   stats,
   venue,
   setSidebarOpen,
-  handleLogout,
-  isFeatured,
-  isListed,
 }) => {
   return (
     <div className="flex flex-col gap-6">

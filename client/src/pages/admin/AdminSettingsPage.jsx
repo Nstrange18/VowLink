@@ -155,60 +155,40 @@ const AdminSettingsPageContent = () => {
   const navigate = useNavigate();
   const {
     storedUser,
-    tier,
     isFree,
     isPlus,
     isPro,
-    isFreeUser,
 
-    galleryInputRef,
     customBgInputRef,
     couplePhotoInputRef,
-    localAudioInputRef,
 
     weddingColors, setWeddingColors,
-    cardTheme, setCardTheme,
-    pageBgTemplate, setPageBgTemplate,
-    customCardBg, setCustomCardBg,
-    customTextColor, setCustomTextColor,
-    customFontFamily, setCustomFontFamily,
-    customVerticalOffset, setCustomVerticalOffset,
-    customHorizontalOffset, setCustomHorizontalOffset,
-    smartLayoutEnabled, setSmartLayoutEnabled,
-    customTextSize, setCustomTextSize,
-    customTextAlign, setCustomTextAlign,
     couplePhotoUrl, setCouplePhotoUrl,
     customShareMessage, setCustomShareMessage,
-    cropperQueue, setCropperQueue,
+    setCropperQueue,
     cropperOpen, setCropperOpen,
-    cropperImageSrc, setCropperImageSrc,
-    cropperTitle, setCropperTitle,
-    cropperDefaultAspect, setCropperDefaultAspect,
-    cropperCallback, setCropperCallback,
+    cropperImageSrc,
+    cropperTitle,
+    cropperDefaultAspect,
+    cropperCallback,
     coupleOverlayOpacity, setCoupleOverlayOpacity,
-    musicUrl, setMusicUrl,
-    galleryPhotos, setGalleryPhotos,
-    localAudioUrl, setLocalAudioUrl,
-    localAudioName, setLocalAudioName,
     registryEnabled, setRegistryEnabled,
     registryBankName, setRegistryBankName,
     registryAccountName, setRegistryAccountName,
     registryAccountNumber, setRegistryAccountNumber,
     registryNotes, setRegistryNotes,
-    honeymoonFundTarget, setHoneymoonFundTarget,
-    honeymoonFundCurrent, setHoneymoonFundCurrent,
     timeline, setTimeline,
     gifts,
 
     currentPassword, setCurrentPassword,
     newPassword, setNewPassword,
     confirmNewPassword, setConfirmNewPassword,
-    submittingPassword, setSubmittingPassword,
+    submittingPassword,
     handleChangePassword,
 
     showDeleteConfirm, setShowDeleteConfirm,
     deletePassword, setDeletePassword,
-    submittingDelete, setSubmittingDelete,
+    submittingDelete,
     handleDeleteAccount,
 
     activeTab, setActiveTab,
@@ -219,33 +199,18 @@ const AdminSettingsPageContent = () => {
 
     register,
     handleSubmit,
-    watch,
     control,
     errors,
     isSubmitting,
     onSubmit,
     onInvalid,
 
-    handlePhotoUpload,
-    removePhoto,
     handleCustomCardBgUpload,
     handleCouplePhotoUpload,
-    handleLocalAudioUpload,
-    clearLocalAudio,
     handleResetAll,
     handleResetConfirm,
-    getSmartTextColor,
-    checkSmartAlignment,
-    uploadToCloudinary,
 
-    p1, p2, weddingDate, rsvpDeadline, venue, venueName, receptionLocation, receptionName, dressCode, weddingTime,
-    formattedTime,
-    activeFont,
-    priHex, secHex, terHex, selectedBgHex,
-    cardStyles,
-    primaryTextColor,
-    accentColor,
-    formattedDate,
+    weddingDate, weddingTime,
   } = useSettings();
 
   const [showCouplePortrait, setShowCouplePortrait] = React.useState(true);
@@ -261,8 +226,8 @@ const AdminSettingsPageContent = () => {
   }, [location, setActiveTab]);
 
   return (
-    <div className="p-4 sm:p-8 max-w-6xl mx-auto text-white">
-      <div className="mb-6">
+    <div className="p-4 sm:p-8 max-w-6xl mx-auto text-white overflow-x-hidden lg:h-full lg:flex lg:flex-col">
+      <div className="mb-6 lg:shrink-0">
         <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Account</p>
         <h2 className="font-serif text-3xl sm:text-4xl">Settings & Customization</h2>
         <p className="text-white/40 text-sm mt-1">
@@ -271,7 +236,7 @@ const AdminSettingsPageContent = () => {
       </div>
 
       {/* Glassmorphic Tabs Selector */}
-      <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-8 border-b border-white/10 pb-4">
+      <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-8 border-b border-white/10 pb-4 lg:shrink-0">
         {[
           { id: "details", label: "Details", fullLabel: "Wedding Details", icon: "lucide:calendar-days" },
           { id: "design", label: "Design", fullLabel: "Design & Theme", icon: "lucide:palette" },
@@ -331,9 +296,9 @@ const AdminSettingsPageContent = () => {
         className="hidden"
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start lg:items-stretch min-w-0 lg:flex-1 lg:min-h-0">
         {/* LEFT COLUMN: Tabs/Forms container */}
-        <div className={`col-span-12 ${activeTab === "security" ? "lg:col-span-12" : "lg:col-span-6"} space-y-6`}>
+        <div className={`col-span-12 ${activeTab === "security" ? "lg:col-span-12" : "lg:col-span-6"} space-y-6 min-w-0 lg:h-full lg:overflow-y-auto lg:pr-2 lg:pb-8`}>
 
           {/* Main Form for Details, Design, Media, and Registry settings */}
           {(activeTab === "details" || activeTab === "design" || activeTab === "media" || activeTab === "registry") && (
@@ -520,7 +485,7 @@ const AdminSettingsPageContent = () => {
                   <ThemeSelector />
 
                   {/* AI Invitation Background Generator — teaser linking to Templates page */}
-                  <div className="p-3 sm:p-5 rounded-2xl border border-[#D8B76A]/20 bg-[#0D1220] space-y-4 relative overflow-hidden">
+                  <div className="p-3 sm:p-5 rounded-2xl border border-[#D8B76A]/20 bg-[#0D1220] space-y-4 relative isolate overflow-hidden">
                     {/* shimmer gradient decoration */}
                     <div className="absolute inset-0 bg-linear-to-br from-[#D8B76A]/5 via-transparent to-transparent pointer-events-none" />
                     <div className="flex justify-between items-center">
@@ -673,7 +638,7 @@ const AdminSettingsPageContent = () => {
                   </div>
 
                   {/* WhatsApp/Social Share Preview Message */}
-                  <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4 animate-fade-in">
+                  <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4 animate-fade-in relative isolate overflow-hidden">
                     <button
                       type="button"
                       onClick={() => setShowSocialShare(!showSocialShare)}

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -359,7 +359,18 @@ const VenueDashboardPage = () => {
     }
   };
 
-  const fetchProfile = async () => {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(detailsSchema),
+  });
+
+  const fetchProfile = useCallback(async () => {
     const token = localStorage.getItem("venueToken");
     if (!token) {
       toast.error("Please sign in to access the dashboard.");
@@ -389,21 +400,10 @@ const VenueDashboardPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(detailsSchema),
-  });
+  }, [navigate, reset]);
 
   // ── Fetch live stats (views + inquiries) from server ─────────────────────
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     const token = localStorage.getItem("venueToken");
     if (!token) return;
     try {
@@ -414,23 +414,24 @@ const VenueDashboardPage = () => {
     } catch {
       // Silently ignore; stale values remain visible
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   // Poll stats every 30 seconds for live updates
+  const venueId = venue?._id;
   useEffect(() => {
     // Initial fetch once venue is loaded
-    if (venue) {
+    if (venueId) {
       fetchStats();
     }
     const interval = setInterval(() => {
       if (localStorage.getItem("venueToken")) fetchStats();
     }, 30000);
     return () => clearInterval(interval);
-  }, [venue?._id]);
+  }, [fetchStats, venueId]);
 
   const onUpdateDetails = async (data) => {
     setSaving(true);
@@ -675,9 +676,6 @@ const VenueDashboardPage = () => {
 
   const inputBase =
     "w-full rounded-xl border bg-white/5 px-4 py-2.5 text-xs text-white placeholder-white/30 outline-none transition";
-  const inputOk =
-    "border-white/10 focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30";
-  const inputErr = "border-red-400/50 focus:border-red-400/70";
   const labelClass = "mb-1.5 block text-[10px] uppercase tracking-wider text-white/50 font-semibold";
 
   return (

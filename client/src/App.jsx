@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -35,9 +35,15 @@ const VenueRegisterPage = lazy(() => import('./pages/venue/VenueRegisterPage'))
 const VenueDashboardPage = lazy(() => import('./pages/venue/VenueDashboardPage'))
 
 const APP_THEME_KEY = 'vowlink-theme'
-const GUEST_THEME_KEY = 'vowlink-guest-theme'
+const GUEST_THEME_PREFIX = 'vowlink_guest_theme_'
+
+const getInviteThemeKey = (pathname) => {
+  const slug = pathname.match(/^\/invite\/([^/?#]+)/)?.[1]
+  return slug ? `${GUEST_THEME_PREFIX}${slug}` : null
+}
 
 const readStoredTheme = (key) => {
+  if (!key) return null
   const savedTheme = localStorage.getItem(key)
   return savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : null
 }
@@ -51,7 +57,7 @@ const RouteFallback = () => (
 function AppContent() {
   const location = useLocation()
   const isInviteRoute = location.pathname.startsWith('/invite/')
-  const activeThemeKey = isInviteRoute ? GUEST_THEME_KEY : APP_THEME_KEY
+  const activeThemeKey = isInviteRoute ? getInviteThemeKey(location.pathname) : APP_THEME_KEY
   const [theme, setTheme] = useState(() => readStoredTheme(APP_THEME_KEY) || 'dark')
 
   useEffect(() => {
@@ -68,18 +74,20 @@ function AppContent() {
     }
   }, [activeThemeKey, isInviteRoute])
 
-  const setThemePreference = (nextTheme, { savePreference = true } = {}) => {
+  const setThemePreference = useCallback((nextTheme, { savePreference = true } = {}) => {
     if (nextTheme !== 'light' && nextTheme !== 'dark') return
     setTheme(nextTheme)
-    if (savePreference) {
+    if (savePreference && activeThemeKey) {
       localStorage.setItem(activeThemeKey, nextTheme)
     }
-  }
+  }, [activeThemeKey])
 
   const toggleTheme = () => {
     setTheme((current) => {
       const nextTheme = current === 'light' ? 'dark' : 'light'
-      localStorage.setItem(activeThemeKey, nextTheme)
+      if (activeThemeKey) {
+        localStorage.setItem(activeThemeKey, nextTheme)
+      }
       return nextTheme
     })
   }

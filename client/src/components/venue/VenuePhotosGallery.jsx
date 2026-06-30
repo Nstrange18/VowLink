@@ -3,8 +3,6 @@ import { Icon } from "@iconify/react";
 
 const VenuePhotosGallery = ({
   photos,
-  setPhotos,
-  venue,
   isBasic,
   isListed,
   fileInputRef,

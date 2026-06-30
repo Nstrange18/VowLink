@@ -24,7 +24,6 @@ const AdminVenuesPage = () => {
 
   const tier = user.tier || "free";
   const isFree = tier === "free";
-  const isPlus = tier === "plus";
   const isPro = tier === "pro";
 
   const fetchVenues = async () => {
