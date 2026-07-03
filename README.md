@@ -1,176 +1,154 @@
-# 💍 Vowlink — Wedding Invitation Portal
+# VowLink
 
-> A beautiful, full-stack wedding invitation management platform. Couples create personalised digital invitations, guests RSVP with meal preferences, and everything is managed through a sleek dark-themed admin dashboard.
+VowLink is a full-stack wedding invitation platform for couples, guests, and venues. Couples can create digital invitations, manage RSVPs, customize public invite themes, send bulk WhatsApp invitations, collect gift contributions, and manage wedding details from an admin dashboard.
 
-![Vowlink](https://img.shields.io/badge/Vowlink-Wedding%20Portal-D8B76A?style=for-the-badge)
-![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)
-![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=node.js)
-![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb)
+## Features
 
----
+- Couple/admin authentication with JWT access and refresh tokens
+- Wedding dashboard with countdown, guest stats, RSVP stats, and seating tools
+- Invitation creation, editing, deletion, and public invite pages
+- RSVP collection with meal preferences, plus-one policy, kids policy, and deadlines
+- Bulk invitation import and WhatsApp bulk sending queue
+- Theme and template customization, including uploaded and AI-generated backgrounds
+- Default guest invite theme setting: dark, light, or system
+- Public invite light/dark toggle with per-invite guest preference storage
+- Music, gallery, slideshow, gift registry, wish wall, and share preview sections
+- Venue owner portal with venue listings, photos, subscriptions, and inquiries
+- Paystack integration for upgrades and guest gifts
+- Cloudinary uploads for media and generated images
+- OpenAI-powered message/background generation with plan-based credits
 
-## ✨ Features
+## Tech Stack
 
-### For Couples (Admin)
-- 🔐 **Secure Auth** — JWT access + refresh tokens with silent refresh, show/hide password
-- 🔑 **Forgot Password** — Reset via email link (or server console in dev)
-- 📋 **Dashboard** — Stats overview + guest breakdown by category (VIP, Family, Friend, Guest…)
-- 💌 **Invitations** — Create, edit, delete personalised invitations with custom greetings
-- 📲 **WhatsApp Share** — One-click per-invitation sharing
-- 🗂 **RSVP Management** — View all responses with meal preferences
-- 📊 **CSV Export** — Download full guest list with one click
-- ⚙️ **Settings** — Update couple names, wedding date, venue & RSVP deadline
+| Layer | Technology |
+| --- | --- |
+| Client | React 19, Vite 7, React Router, Tailwind CSS, React Hook Form, Zod |
+| Server | Node.js, Express 5, Mongoose |
+| Database | MongoDB |
+| Auth | JWT, bcryptjs |
+| Media | Cloudinary |
+| Email | SendGrid |
+| Payments | Paystack |
+| AI | OpenAI |
 
-### For Guests
-- 🎨 **Beautiful Invite Cards** — Light-themed floral design with couple names, date, venue & category badge
-- ⏱ **Live Countdown** — Real-time DD:HH:MM:SS countdown to the wedding day
-- 🔒 **RSVP Deadline** — Auto-locks RSVP form when deadline passes
-- 🍽 **Meal Preferences** — Choose from Chicken, Fish, Vegetarian, Vegan, or No Preference
-- ⬇️ **Downloadable** — Save invitation card as a crisp 2× PNG image
-- 📲 **WhatsApp Share** — Guests can forward their invite directly
+## Project Structure
 
----
-
-## 🗂 Project Structure
-
-```
+```text
 VowLink/
-├── client/          # React + Vite frontend
-│   ├── src/
-│   │   ├── components/   # AdminLayout, CustomSelect, ProtectedRoute
-│   │   ├── pages/
-│   │   │   ├── admin/    # Dashboard, Invitations, RSVPs, Settings, Auth pages
-│   │   │   ├── InvitePage.jsx
-│   │   │   └── RsvpSuccessPage.jsx
-│   │   ├── utils/        # Axios instance with auth interceptors
-│   │   └── App.jsx
-│   └── public/           # Static assets (logo, hero background)
-│
-├── server/          # Node.js + Express backend
-│   ├── models/
-│   │   ├── User.js       # Couple accounts (names, date, venue, deadline)
-│   │   ├── Invitation.js # Guest invitations with slug
-│   │   └── RSVP.js       # Guest responses with meal preference
-│   ├── routes/
-│   │   ├── authRoutes.js       # Signup, login, refresh, forgot/reset password
-│   │   ├── invitationRoutes.js
-│   │   └── rsvpRoutes.js
-│   ├── middleware/
-│   │   └── auth.js       # JWT protect middleware
-│   └── server.js
-│
-├── vercel.json      # Vercel SPA routing config (frontend)
-└── README.md
+  client/                 React/Vite frontend
+    api/                  Vercel/serverless helper endpoint
+    public/               Static public assets and templates
+    src/
+      components/         Shared UI and feature components
+      context/            Settings provider and shared state
+      pages/              Public, admin, and venue pages
+      utils/              API client, schemas, template layout helpers
+  server/                 Express backend
+    middleware/           Auth middleware
+    models/               Mongoose models
+    routes/               Auth, invitations, RSVPs, venues, AI routes
+    utils/                Email and credit helpers
+  vercel.json             Root deployment/routing config
+  README.md
 ```
 
----
+## Requirements
 
-## 🚀 Getting Started
+- Node.js 18 or newer
+- MongoDB database
+- Cloudinary account for uploads
+- SendGrid API key for email delivery
+- Paystack keys for payments
+- OpenAI API key for AI features
 
-### Prerequisites
-- Node.js ≥ 18
-- MongoDB Atlas account (or local MongoDB)
-
-### 1. Clone the repo
-```bash
-git clone https://github.com/Nstrange18/VowLink.git
-cd VowLink
-```
-
-### 2. Set up the server
-```bash
-cd server
-npm install
-```
+## Environment Variables
 
 Create `server/.env`:
+
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-JWT_REFRESH_SECRET=your_refresh_secret_key
+JWT_SECRET=your_access_token_secret
+JWT_REFRESH_SECRET=your_refresh_token_secret
 CLIENT_URL=http://localhost:5173
 
-# Optional — enables actual password reset emails
-EMAIL_USER=your-gmail@gmail.com
-EMAIL_PASS=your-gmail-app-password
-```
+SENDGRID_API_KEY=your_sendgrid_api_key
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
-> **Gmail App Password**: Go to Google Account → Security → 2-Step Verification → App Passwords
-
-```bash
-npm run dev   # starts on port 5000
-```
-
-### 3. Set up the client
-```bash
-cd client
-npm install
+PAYSTACK_SECRET_KEY=your_paystack_secret_key
+OPENAI_API_KEY=your_openai_api_key
+# Optional alternative used by the AI route:
+AI_API_SECRET_KEY=your_openai_api_key
 ```
 
 Create `client/.env`:
+
 ```env
 VITE_API_URL=http://localhost:5000/api
+VITE_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
 ```
+
+## Local Development
+
+Install and run the backend:
 
 ```bash
-npm run dev   # starts on port 5173
+cd server
+npm install
+npm run dev
 ```
 
----
+Install and run the frontend in a second terminal:
 
-## 🌐 Deployment
+```bash
+cd client
+npm install
+npm run dev
+```
 
-### Frontend → Vercel
-1. Import the repo in [Vercel](https://vercel.com)
-2. Set **Root Directory** to `client` (or leave root — `vercel.json` handles it)
-3. Add environment variable: `VITE_API_URL=https://your-server-url.com/api`
-4. Deploy — SPA routing is handled by `vercel.json`
+Default local URLs:
 
-### Backend → Railway / Render
-1. Create a new project and connect this repo
-2. Set **Root Directory** to `server`
-3. Set **Start Command** to `npm start`
-4. Add all environment variables from `server/.env`
-5. Copy the deployed URL and update `VITE_API_URL` in your Vercel project
+- Client: `http://localhost:5173`
+- Server: `http://localhost:5000`
+- API base: `http://localhost:5000/api`
 
----
+## Scripts
 
-## 🔑 Environment Variables
+Client:
 
-| Variable | Location | Description |
-|---|---|---|
-| `MONGO_URI` | server | MongoDB connection string |
-| `JWT_SECRET` | server | Access token secret |
-| `JWT_REFRESH_SECRET` | server | Refresh token secret |
-| `CLIENT_URL` | server | Frontend URL (for password reset links) |
-| `EMAIL_USER` | server | Gmail address (optional, for reset emails) |
-| `EMAIL_PASS` | server | Gmail app password (optional) |
-| `VITE_API_URL` | client | Backend API base URL |
+```bash
+cd client
+npm run dev
+npm run build
+npm run lint
+npm run preview
+```
 
----
+Server:
 
-## 🛠 Tech Stack
+```bash
+cd server
+npm run dev
+npm start
+```
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 18, Vite, React Router, TailwindCSS |
-| Backend | Node.js, Express |
-| Database | MongoDB + Mongoose |
-| Auth | JWT (access + refresh tokens), bcryptjs |
-| Email | Nodemailer (Gmail SMTP) |
-| Image Export | html-to-image |
+## Deployment
 
----
+Frontend is designed for Vercel. Set the client environment variables in Vercel and deploy the `client` app or use the repo deployment setup.
 
-## 📸 Screenshots
+Backend can be deployed to Render, Railway, or another Node host. Set all server environment variables and use:
 
-> *Admin Dashboard — dark themed with stats and category breakdown*
+```bash
+npm start
+```
 
-> *Guest Invite Card — light floral design with countdown timer and download button*
+After deploying the server, update the frontend `VITE_API_URL` to point to the deployed API URL.
 
----
+## Notes
 
-## 📄 License
-
-MIT © [Nstrange18](https://github.com/Nstrange18)
+- Do not commit `.env` files or secrets.
+- Anything placed in `client/public` is shipped publicly.
+- Public invite guest theme preferences are stored per invite in localStorage.
+- Run `npm run lint` and `npm run build` in `client` before shipping frontend changes.
