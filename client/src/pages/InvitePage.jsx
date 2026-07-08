@@ -1545,7 +1545,7 @@ const InvitePage = ({ setThemePreference }) => {
 
   if (loading)
     return (
-      <section className="flex min-h-screen min-h-[100svh] items-center justify-center bg-[#070A13]">
+      <section className="flex min-h-screen items-center justify-center bg-[#070A13]">
         <p className="text-white/40 text-sm tracking-widest uppercase animate-pulse">
           Loading your invitation...
         </p>
@@ -1554,7 +1554,7 @@ const InvitePage = ({ setThemePreference }) => {
 
   if (notFound)
     return (
-      <section className="flex min-h-screen min-h-[100svh] items-center justify-center bg-[#070A13] text-center px-6">
+      <section className="flex min-h-screen items-center justify-center bg-[#070A13] text-center px-6">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-4">
             Not Found
@@ -1846,7 +1846,7 @@ const InvitePage = ({ setThemePreference }) => {
   const isTodayWeddingDay = weddingDate && (new Date(weddingDate).toDateString() === new Date().toDateString());
 
   return (
-    <div className={`invite-page min-h-screen min-h-[100svh] relative ${isOpen ? "overflow-x-hidden" : "h-screen h-[100svh] overflow-hidden"}`} style={{ background: "#070A13" }}>
+    <div className={`invite-page min-h-screen relative ${isOpen ? "overflow-x-hidden" : "h-screen overflow-hidden"}`} style={{ background: "#070A13" }}>
       <style>{`
         .is-exporting .download-exclude,
         .is-exporting #rsvp-open-btn,
@@ -1871,7 +1871,7 @@ const InvitePage = ({ setThemePreference }) => {
         }
       `}</style>
       {downloading && (
-        <div className="download-exclude fixed inset-0 z-[80] flex items-center justify-center bg-[#070A13]/72 px-6 backdrop-blur-md">
+        <div className="download-exclude fixed inset-0 z-80 flex items-center justify-center bg-[#070A13]/72 px-6 backdrop-blur-md">
           <div className="w-full max-w-xs rounded-3xl border border-[#D8B76A]/30 bg-[#0D1220]/95 p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10">
               <Icon icon="lucide:download" className="h-6 w-6 animate-pulse text-[#D8B76A]" />
@@ -1897,7 +1897,7 @@ const InvitePage = ({ setThemePreference }) => {
         </div>
       )}
       {/* Premium page background: deep dark with radial gold bokeh */}
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-[100vh] h-[100lvh] z-0" aria-hidden="true">
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-screen z-0" aria-hidden="true">
         {/* Dark base */}
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)" }} />
 
@@ -2047,10 +2047,10 @@ const InvitePage = ({ setThemePreference }) => {
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 bg-[#06080F]" />
           {/* Sparkles simulation using styled animated divs */}
-          <div className="absolute bottom-[-100px] left-1/4 h-2 w-2 rounded-full bg-yellow-400 opacity-60 animate-bounce" style={{ animationDuration: "5s", animationDelay: "1s" }} />
-          <div className="absolute bottom-[-100px] left-1/2 h-3 w-3 rounded-full bg-white opacity-40 animate-bounce" style={{ animationDuration: "7s", animationDelay: "3s" }} />
-          <div className="absolute bottom-[-100px] left-3/4 h-2 w-2 rounded-full bg-yellow-200 opacity-80 animate-bounce" style={{ animationDuration: "4s", animationDelay: "2s" }} />
-          <div className="absolute bottom-[-100px] left-10 h-3 w-3 rounded-full bg-yellow-300 opacity-50 animate-bounce" style={{ animationDuration: "8s", animationDelay: "0s" }} />
+          <div className="absolute -bottom-25 left-1/4 h-2 w-2 rounded-full bg-yellow-400 opacity-60 animate-bounce" style={{ animationDuration: "5s", animationDelay: "1s" }} />
+          <div className="absolute -bottom-25 left-1/2 h-3 w-3 rounded-full bg-white opacity-40 animate-bounce" style={{ animationDuration: "7s", animationDelay: "3s" }} />
+          <div className="absolute -bottom-25 left-3/4 h-2 w-2 rounded-full bg-yellow-200 opacity-80 animate-bounce" style={{ animationDuration: "4s", animationDelay: "2s" }} />
+          <div className="absolute -bottom-25 left-10 h-3 w-3 rounded-full bg-yellow-300 opacity-50 animate-bounce" style={{ animationDuration: "8s", animationDelay: "0s" }} />
         </div>
       )}
 
@@ -2070,7 +2070,7 @@ const InvitePage = ({ setThemePreference }) => {
           {showSpotifyPlayer && (
             <div className="w-72 sm:w-80 p-3.5 rounded-2xl bg-[#0D1220]/90 backdrop-blur-md border border-[#D8B76A]/20 shadow-2xl animate-fade-in transition-all duration-300">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] font-semibold">Soundtrack Player</span>
+                <span className="text-[10px] uppercase tracking-widest text-[#D8B76A] font-semibold">Soundtrack Player</span>
                 <button onClick={() => setShowSpotifyPlayer(false)} className="text-white/60 hover:text-white text-xs px-1.5 py-0.5 rounded hover:bg-white/10">
                   <Icon icon="lucide:x" className="h-3.5 w-3.5" />
                 </button>
@@ -2119,7 +2119,7 @@ const InvitePage = ({ setThemePreference }) => {
       {/* ── INVITATION CARD SECTION ── */}
       <div id="main-invitation-container" className="w-full relative z-10">
         {/* Section 1: Invitation Card centered vertically in viewport */}
-        <section className="download-card-section flex flex-col items-center justify-center py-0 px-4 relative z-10 w-full min-h-screen min-h-[100svh]">
+        <section className="download-card-section flex flex-col items-center justify-center py-0 px-4 relative z-10 w-full min-h-screen">
           {/* ═══ THE CARD (this gets downloaded) ═══ */}
           <div
             className="w-full flex items-start justify-center relative"
@@ -2141,7 +2141,7 @@ const InvitePage = ({ setThemePreference }) => {
               <div
                 ref={cardRef}
                 key={customCardBg || cardTheme}
-                className={`w-[608px] flex-none rounded-2xl overflow-hidden transition-all duration-300 ${isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
+                className={`w-152 flex-none rounded-2xl overflow-hidden transition-all duration-300 ${isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
                   } ${isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
                   }`}
               >
@@ -2159,7 +2159,7 @@ const InvitePage = ({ setThemePreference }) => {
                   {renderFrameBorder(layout.frameBorder)}
                   {/* Custom Spacing & Scaling wrapper */}
                   <div
-                    className={`relative z-10 flex flex-col justify-center w-full min-h-[620px] transition-all ${textAlignment === "left"
+                    className={`relative z-10 flex flex-col justify-center w-full min-h-155 transition-all ${textAlignment === "left"
                         ? "items-start text-left"
                         : textAlignment === "right"
                           ? "items-end text-right"
@@ -2542,7 +2542,7 @@ const InvitePage = ({ setThemePreference }) => {
 
             <div className="invite-feature-card invite-gallery-card w-full max-w-2xl rounded-3xl overflow-hidden border border-white/10 bg-[#070A13] p-3 sm:p-4 flex flex-col items-center">
               {/* Big slide */}
-              <div className="invite-gallery-frame w-full aspect-[4/5] sm:aspect-[16/11] rounded-2xl overflow-hidden bg-white/5 relative">
+              <div className="invite-gallery-frame w-full aspect-4/5 sm:aspect-16/11 rounded-2xl overflow-hidden bg-white/5 relative">
                 {galleryPhotos.map((photo, i) => (
                   <img
                     key={i}
@@ -3143,7 +3143,7 @@ const InvitePage = ({ setThemePreference }) => {
                   "{w.message}"
                 </p>
                 <div className="flex items-center justify-between border-t border-white/5 pt-3 mt-auto">
-                  <span className="text-xs font-bold text-[#D8B76A] uppercase tracking-wider truncate max-w-28 font-semibold">
+                  <span className="text-xs text-[#D8B76A] uppercase tracking-wider truncate max-w-28 font-semibold">
                     {w.guestName}
                   </span>
                   <span className="text-[9px] text-white/30">
@@ -3196,9 +3196,9 @@ const InvitePage = ({ setThemePreference }) => {
                 <h3 className="font-serif text-xl text-white mt-2">Open in Maps</h3>
                 <p className="text-white/40 text-xs mt-1 leading-relaxed max-w-xs mx-auto">
                   Choose your preferred navigation app to open routes for:<br />
-                  <span className="text-white/80 font-medium block mt-1 break-words">{displayLabel}</span>
+                  <span className="text-white/80 font-medium block mt-1 wrap-break-word">{displayLabel}</span>
                   {isObj && displayLabel !== mapsQuery && (
-                    <span className="text-white/45 text-[10px] block mt-0.5 break-words italic">{mapsQuery}</span>
+                    <span className="text-white/45 text-[10px] block mt-0.5 wrap-break-word italic">{mapsQuery}</span>
                   )}
                 </p>
               </div>
