@@ -12,6 +12,7 @@ import { WEDDING_COLORS } from "../components/ColorPicker";
 import { Icon } from "@iconify/react";
 
 const getGuestThemeStorageKey = (slug) => `vowlink_guest_theme_${slug}`;
+const WISHES_PAGE_SIZE = 10;
 
 const resolveGuestDefaultTheme = (defaultGuestTheme) => {
   if (defaultGuestTheme === "light") return "light";
@@ -782,6 +783,9 @@ const InvitePage = ({ setThemePreference }) => {
   const [notFound, setNotFound] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const downloadingRef = useRef(false);
+  const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
+  const rsvpSubmittingRef = useRef(false);
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   const [scale, setScale] = useState(1);
   const [cardHeight, setCardHeight] = useState(0);
@@ -795,6 +799,7 @@ const InvitePage = ({ setThemePreference }) => {
   const [hiddenOverlay, setHiddenOverlay] = useState(false);
   const [mapSelectAddress, setMapSelectAddress] = useState(null);
   const [wishes, setWishes] = useState([]);
+  const [visibleWishCount, setVisibleWishCount] = useState(WISHES_PAGE_SIZE);
   const audioRef = useRef(null);
   const wasPlayingRef = useRef(false);
   const pendingPlayRef = useRef(false); // tracks a play request made before audio was ready
@@ -805,6 +810,7 @@ const InvitePage = ({ setThemePreference }) => {
   const [giftAmount, setGiftAmount] = useState("");
   const [giftMessage, setGiftMessage] = useState("");
   const [loadingGiftPayment, setLoadingGiftPayment] = useState(false);
+  const giftCheckoutRef = useRef(false);
 
   // Declare variables unconditionally at the very top of the render scope 
   // to completely eliminate any Temporal Dead Zone (TDZ) reference errors.
@@ -816,6 +822,11 @@ const InvitePage = ({ setThemePreference }) => {
   );
   const customTextSize = invitation?.userId?.customTextSize || 1.0;
   const customTextSizeTitle = invitation?.userId?.customTextSizeTitle || 1.0;
+  const visibleWishes = useMemo(
+    () => wishes.slice(0, visibleWishCount),
+    [visibleWishCount, wishes]
+  );
+  const hasMoreWishes = wishes.length > visibleWishCount;
   const customTextSizeSubtitle = invitation?.userId?.customTextSizeSubtitle || 1.0;
   const customTextSizeCoupleNames = invitation?.userId?.customTextSizeCoupleNames || 1.0;
   const customTextSizeGreeting = invitation?.userId?.customTextSizeGreeting || 1.0;
@@ -1032,19 +1043,28 @@ const InvitePage = ({ setThemePreference }) => {
   };
 
   const handleGiftCheckout = async () => {
+    if (giftCheckoutRef.current) return;
+
     if (!giftGuestName.trim() || !giftAmount || Number(giftAmount) < 100) {
       toast.warning("Please enter your name and a valid amount (minimum ₦100).");
       return;
     }
 
+    giftCheckoutRef.current = true;
     setLoadingGiftPayment(true);
     const loaded = await loadPaystackScript();
-    setLoadingGiftPayment(false);
 
     if (!loaded) {
+      giftCheckoutRef.current = false;
+      setLoadingGiftPayment(false);
       toast.error("Failed to load Paystack payment gateway. Please check your connection.");
       return;
     }
+
+    const releaseGiftCheckout = () => {
+      giftCheckoutRef.current = false;
+      setLoadingGiftPayment(false);
+    };
 
     const paystackCurrency = "NGN";
     const amountInMinor = Number(giftAmount) * 100;
@@ -1083,9 +1103,12 @@ const InvitePage = ({ setThemePreference }) => {
           setGiftMessage("");
         } catch (err) {
           toast.error(err.response?.data?.message || "Failed to verify contribution. Please contact the couple.");
+        } finally {
+          releaseGiftCheckout();
         }
       },
       onCancel: () => {
+        releaseGiftCheckout();
         toast.info("Payment cancelled.");
       },
     };
@@ -1108,6 +1131,7 @@ const InvitePage = ({ setThemePreference }) => {
       });
       handler.openIframe();
     } else {
+      releaseGiftCheckout();
       toast.error("Paystack payment SDK is not initialized. Please refresh the page.");
     }
   };
@@ -1207,7 +1231,21 @@ const InvitePage = ({ setThemePreference }) => {
     api
       .get(`/invitations/slug/${slug}/wishes`)
       .then((res) => {
-        setWishes(res.data);
+        const seen = new Set();
+        const uniqueWishes = (Array.isArray(res.data) ? res.data : [])
+          .filter((wish) => {
+            const guest = (wish.guestName || "").trim().replace(/\s+/g, " ").toLowerCase();
+            const message = (wish.message || "").trim().replace(/\s+/g, " ").toLowerCase();
+            const key = `${guest}::${message}`;
+
+            if (!message || seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          })
+          .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+        setWishes(uniqueWishes);
+        setVisibleWishCount(WISHES_PAGE_SIZE);
       })
       .catch(() => { });
   }, [slug, setValue, setThemePreference]);
@@ -1217,6 +1255,11 @@ const InvitePage = ({ setThemePreference }) => {
   // Component lifecycle hooks
 
   const onRsvpSubmit = async (data) => {
+    if (rsvpSubmittingRef.current) return;
+
+    rsvpSubmittingRef.current = true;
+    setRsvpSubmitting(true);
+
     try {
       await api.post("/rsvps", {
         invitationId: invitation._id,
@@ -1243,6 +1286,8 @@ const InvitePage = ({ setThemePreference }) => {
         },
       });
     } catch (err) {
+      rsvpSubmittingRef.current = false;
+      setRsvpSubmitting(false);
       toast.error(
         err.response?.data?.message || "Failed to submit RSVP. Please try again."
       );
@@ -1250,11 +1295,14 @@ const InvitePage = ({ setThemePreference }) => {
   };
 
   const handleDownload = async () => {
+    if (downloadingRef.current) return;
+
     const cardElement = cardRef.current;
     if (!cardElement) return;
 
     let exportPoster = null;
 
+    downloadingRef.current = true;
     setDownloading(true);
     toast.info("Preparing your invite image...", {
       autoClose: 1800,
@@ -1489,6 +1537,7 @@ const InvitePage = ({ setThemePreference }) => {
       if (exportPoster?.parentNode) {
         exportPoster.parentNode.removeChild(exportPoster);
       }
+      downloadingRef.current = false;
       setDownloading(false);
     }
   };
@@ -2916,13 +2965,13 @@ const InvitePage = ({ setThemePreference }) => {
                   />
                 </div>
 
-                <button
+                  <button
                   type="submit"
                   id="rsvp-submit-btn"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || rsvpSubmitting}
                   className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.4)] disabled:opacity-60 mt-2"
                 >
-                  {isSubmitting ? "Sending..." : "Submit RSVP"}
+                  {isSubmitting || rsvpSubmitting ? "Sending..." : "Submit RSVP"}
                 </button>
               </form>
             </div>
@@ -3083,9 +3132,9 @@ const InvitePage = ({ setThemePreference }) => {
           </p>
 
           <div className="w-full max-w-4xl columns-1 gap-6 sm:columns-2 lg:columns-3">
-            {wishes.map((w, index) => (
+            {visibleWishes.map((w, index) => (
               <div
-                key={index}
+                key={w._id || `${w.guestName}-${w.createdAt}-${index}`}
                 className="invite-feature-card mb-6 inline-block w-full break-inside-avoid p-5 rounded-2xl border border-white/10 bg-[#0D1220] text-left relative overflow-hidden hover:border-[#D8B76A]/40 transition duration-300 shadow-lg"
               >
                 <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none text-4xl font-serif">“</div>
@@ -3106,6 +3155,16 @@ const InvitePage = ({ setThemePreference }) => {
               </div>
             ))}
           </div>
+          {hasMoreWishes && (
+            <button
+              type="button"
+              onClick={() => setVisibleWishCount((count) => Math.min(count + WISHES_PAGE_SIZE, wishes.length))}
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-[#D8B76A]/35 bg-[#D8B76A]/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[#D8B76A] transition hover:border-[#D8B76A]/70 hover:bg-[#D8B76A]/15"
+            >
+              Show more wishes
+              <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5" />
+            </button>
+          )}
         </section>
       )}
 

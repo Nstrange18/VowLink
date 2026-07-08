@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
@@ -113,6 +113,10 @@ const AdminBillingPage = () => {
   );
   const [currency, setCurrency] = useState("USD");
   const [loadingPaystack, setLoadingPaystack] = useState(false);
+  const [checkoutLocked, setCheckoutLocked] = useState(false);
+  const checkoutSubmittingRef = useRef(false);
+  const [devBypassLocked, setDevBypassLocked] = useState(false);
+  const devBypassSubmittingRef = useRef(false);
 
   const currentTier = user.tier || "free";
 
@@ -133,19 +137,30 @@ const AdminBillingPage = () => {
   };
 
   const handleOpenCheckout = async (plan) => {
+    if (checkoutSubmittingRef.current) return;
+
     if (plan.id === currentTier) {
       toast.info(`You are already subscribed to the ${plan.name}.`);
       return;
     }
 
+    checkoutSubmittingRef.current = true;
+    setCheckoutLocked(true);
     setLoadingPaystack(true);
     const loaded = await loadPaystackScript();
     setLoadingPaystack(false);
 
     if (!loaded) {
+      checkoutSubmittingRef.current = false;
+      setCheckoutLocked(false);
       toast.error("Failed to load Paystack payment gateway. Please check your connection.");
       return;
     }
+
+    const releaseCheckout = () => {
+      checkoutSubmittingRef.current = false;
+      setCheckoutLocked(false);
+    };
 
     // Paystack account is registered in Nigeria; we must transact in NGN to ensure checkout success.
     // International cards will still pay the NGN equivalent automatically converted by their bank.
@@ -176,9 +191,11 @@ const AdminBillingPage = () => {
           window.location.reload();
         } catch (err) {
           toast.error(err.response?.data?.message || "Verification failed. Please contact support.");
+          releaseCheckout();
         }
       },
       onCancel: () => {
+        releaseCheckout();
         toast.info("Payment cancelled.");
       },
     };
@@ -202,7 +219,26 @@ const AdminBillingPage = () => {
       });
       handler.openIframe();
     } else {
+      releaseCheckout();
       toast.error("Paystack payment SDK is not initialized. Please refresh the page.");
+    }
+  };
+
+  const handleDevBypass = async (plan) => {
+    if (devBypassSubmittingRef.current) return;
+
+    devBypassSubmittingRef.current = true;
+    setDevBypassLocked(true);
+    try {
+      const res = await api.post("/auth/upgrade", { tier: plan.id });
+      localStorage.setItem("token", res.data.accessToken);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      toast.success(`[DEV BYPASS] Instantly activated ${plan.name}!`);
+      window.location.reload();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Dev bypass failed.");
+      devBypassSubmittingRef.current = false;
+      setDevBypassLocked(false);
     }
   };
 
@@ -290,7 +326,7 @@ const AdminBillingPage = () => {
               <div className="space-y-2">
                 <button
                   onClick={() => handleOpenCheckout(plan)}
-                  disabled={isActive && plan.id === "free"}
+                  disabled={checkoutLocked || isActive}
                   className={`w-full py-3 rounded-full text-xs font-semibold uppercase tracking-widest transition duration-300 ${
                     isActive
                       ? "bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] cursor-default"
@@ -305,14 +341,8 @@ const AdminBillingPage = () => {
                 {/* Dev Bypass Quick Trigger */}
                 {isLocal && !isActive && (
                   <button
-                    onClick={() => {
-                      api.post("/auth/upgrade", { tier: plan.id }).then((res) => {
-                        localStorage.setItem("token", res.data.accessToken);
-                        localStorage.setItem("user", JSON.stringify(res.data.user));
-                        toast.success(`[DEV BYPASS] Instantly activated ${plan.name}!`);
-                        window.location.reload();
-                      });
-                    }}
+                    onClick={() => handleDevBypass(plan)}
+                    disabled={checkoutLocked || devBypassLocked}
                     className="w-full text-center text-[10px] text-[#D8B76A]/50 hover:text-[#D8B76A] py-1 border border-dashed border-white/10 rounded-full hover:border-[#D8B76A]/30 transition"
                   >
                     <span className="inline-flex items-center justify-center gap-1.5">

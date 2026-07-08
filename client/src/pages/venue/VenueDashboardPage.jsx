@@ -250,6 +250,7 @@ const VenueDashboardPage = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [submittingPassword, setSubmittingPassword] = useState(false);
+  const submittingPasswordRef = useRef(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
@@ -259,6 +260,7 @@ const VenueDashboardPage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [submittingDelete, setSubmittingDelete] = useState(false);
+  const submittingDeleteRef = useRef(false);
   
   // Billing subscription modal state
   const [checkoutModal, setCheckoutModal] = useState({
@@ -268,6 +270,8 @@ const VenueDashboardPage = () => {
     reference: "",
     submitting: false,
   });
+  const checkoutSubmittingRef = useRef(false);
+  const devBypassSubmittingRef = useRef(false);
 
   const uploadToCloudinary = async (base64Str) => {
     const toastId = toast.loading("Uploading image to Cloudinary...");
@@ -297,6 +301,8 @@ const VenueDashboardPage = () => {
   };
 
   const handleChangePassword = async () => {
+    if (submittingPasswordRef.current) return;
+
     if (!currentPassword || !newPassword || !confirmNewPassword) {
       toast.warning("Please fill in all password fields.");
       return;
@@ -312,6 +318,7 @@ const VenueDashboardPage = () => {
 
     const token = localStorage.getItem("venueToken");
     try {
+      submittingPasswordRef.current = true;
       setSubmittingPassword(true);
       await api.put(
         "/venues/auth/change-password",
@@ -325,11 +332,14 @@ const VenueDashboardPage = () => {
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to change password.");
     } finally {
+      submittingPasswordRef.current = false;
       setSubmittingPassword(false);
     }
   };
 
   const handleDeleteAccount = async () => {
+    if (submittingDeleteRef.current) return;
+
     if (!deletePassword) {
       toast.warning("Please enter your password to confirm.");
       return;
@@ -337,6 +347,7 @@ const VenueDashboardPage = () => {
 
     const token = localStorage.getItem("venueToken");
     try {
+      submittingDeleteRef.current = true;
       setSubmittingDelete(true);
       await api.delete(
         "/venues/auth/delete-account",
@@ -355,6 +366,7 @@ const VenueDashboardPage = () => {
     } catch (err) {
       toast.error(err.response?.data?.message || "Deletion failed. Check password.");
     } finally {
+      submittingDeleteRef.current = false;
       setSubmittingDelete(false);
     }
   };
@@ -569,8 +581,11 @@ const VenueDashboardPage = () => {
 
   // Subscription upgrade handlers
   const handleInitiateUpgrade = async (tier) => {
+    if (checkoutSubmittingRef.current) return;
+
     const token = localStorage.getItem("venueToken");
     
+    checkoutSubmittingRef.current = true;
     setCheckoutModal({
       isOpen: true,
       tier,
@@ -583,10 +598,16 @@ const VenueDashboardPage = () => {
     setCheckoutModal((prev) => ({ ...prev, submitting: false }));
 
     if (!loaded) {
+      checkoutSubmittingRef.current = false;
       toast.error("Failed to load Paystack payment gateway. Please check your connection.");
       setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false });
       return;
     }
+
+    const releaseCheckout = () => {
+      checkoutSubmittingRef.current = false;
+      setCheckoutModal((prev) => ({ ...prev, submitting: false }));
+    };
 
     const paystackOptions = {
       key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
@@ -612,6 +633,7 @@ const VenueDashboardPage = () => {
           );
           
           setVenue(res.data.venue);
+          checkoutSubmittingRef.current = false;
           setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false });
           toast.success(`Welcome to ${tier.toUpperCase()} tier! subscription activated!`);
           
@@ -621,10 +643,12 @@ const VenueDashboardPage = () => {
           setActiveTab("listing");
         } catch (err) {
           toast.error("Payment verification failed. Please contact admin.");
+          checkoutSubmittingRef.current = false;
           setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false });
         }
       },
       onCancel: () => {
+        checkoutSubmittingRef.current = false;
         toast.info("Subscription payment cancelled.");
         setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false });
       },
@@ -649,6 +673,7 @@ const VenueDashboardPage = () => {
       });
       handler.openIframe();
     } else {
+      releaseCheckout();
       toast.error("Paystack payment SDK is not initialized. Please refresh the page.");
     }
   };
@@ -1058,7 +1083,10 @@ const VenueDashboardPage = () => {
                 {isLocal && (
                   <button
                     onClick={async () => {
+                      if (devBypassSubmittingRef.current) return;
+
                       const token = localStorage.getItem("venueToken");
+                      devBypassSubmittingRef.current = true;
                       setCheckoutModal((prev) => ({ ...prev, submitting: true }));
                       try {
                         const res = await api.post(
@@ -1075,11 +1103,14 @@ const VenueDashboardPage = () => {
                         const currentLocal = JSON.parse(localStorage.getItem("venue") || "{}");
                         localStorage.setItem("venue", JSON.stringify({ ...currentLocal, subscriptionTier: checkoutModal.tier }));
                         setActiveTab("listing");
+                        devBypassSubmittingRef.current = false;
                       } catch (err) {
                         toast.error("Dev bypass failed.");
+                        devBypassSubmittingRef.current = false;
                         setCheckoutModal((prev) => ({ ...prev, submitting: false }));
                       }
                     }}
+                    disabled={checkoutModal.submitting}
                     className="w-full py-2.5 rounded-full border border-dashed border-[#D8B76A]/40 text-[#D8B76A] hover:bg-white/5 text-[10px] uppercase font-bold tracking-wider transition"
                   >
                     <Icon icon="lucide:zap" className="w-3.5 h-3.5" /> Dev Bypass Activation
