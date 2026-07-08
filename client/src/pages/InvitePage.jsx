@@ -1253,18 +1253,30 @@ const InvitePage = ({ setThemePreference }) => {
   const handleDownload = async () => {
     if (!downloadRef.current) return;
     setDownloading(true);
+    toast.info("Preparing your invite image...", {
+      autoClose: 1800,
+      toastId: "invite-download-preparing",
+    });
 
-    // Add is-exporting class to collapse heights of hidden elements
     downloadRef.current.classList.add("is-exporting");
 
-    // Allow browser layout engine to recalculate and collapse heights
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
     try {
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+
       const dataUrl = await toPng(downloadRef.current, {
         cacheBust: true,
         pixelRatio: 2,
+        width: downloadRef.current.scrollWidth,
         height: downloadRef.current.scrollHeight,
+        skipFonts: true,
+        fontEmbedCSS: "",
+        skipAutoScale: true,
         style: {
           background: "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)",
         },
@@ -1282,10 +1294,11 @@ const InvitePage = ({ setThemePreference }) => {
       link.download = `invitation-${invitation.guestName?.toLowerCase().replace(/\s+/g, "-") || "card"}.png`;
       link.href = dataUrl;
       link.click();
+      toast.success("Your invite image is ready.");
     } catch (e) {
       console.error("Download failed", e);
+      toast.error("We couldn't prepare the invite image. Please try again.");
     } finally {
-      // Remove class to restore full layout for the guest
       downloadRef.current.classList.remove("is-exporting");
       setDownloading(false);
     }
@@ -1601,7 +1614,34 @@ const InvitePage = ({ setThemePreference }) => {
         .is-exporting #download-actions-bar {
           display: none !important;
         }
+        .is-exporting .download-card-section {
+          min-height: auto !important;
+          padding: 48px 16px 40px !important;
+        }
+        .is-exporting .download-details-section {
+          border-top: 0 !important;
+          padding-top: 48px !important;
+          padding-bottom: 64px !important;
+        }
       `}</style>
+      {downloading && (
+        <div className="download-exclude fixed inset-0 z-[80] flex items-center justify-center bg-[#070A13]/72 px-6 backdrop-blur-md">
+          <div className="w-full max-w-xs rounded-3xl border border-[#D8B76A]/30 bg-[#0D1220]/95 p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10">
+              <Icon icon="lucide:download" className="h-6 w-6 animate-pulse text-[#D8B76A]" />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#D8B76A]">
+              Preparing Invite
+            </p>
+            <p className="mt-2 text-sm leading-6 text-white/70">
+              We are arranging the card and wedding details into a downloadable image.
+            </p>
+            <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div className="h-full w-full animate-pulse rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894]" />
+            </div>
+          </div>
+        </div>
+      )}
       {isTodayWeddingDay && <WeddingDayParticles />}
       {isTodayWeddingDay && (
         <div className="bg-linear-to-r from-[#D8B76A] via-[#F2D894] to-[#D8B76A] text-[#070A13] px-4 py-3 text-center text-xs font-bold uppercase tracking-widest relative z-35 shadow-lg flex items-center justify-center gap-2">
@@ -1618,9 +1658,17 @@ const InvitePage = ({ setThemePreference }) => {
         {/* Page Background Image (Couple Photo) */}
         {couplePhotoUrl && (
           <>
-            <div
-              className="absolute inset-0 bg-contain sm:bg-cover bg-center bg-no-repeat transition-all duration-500"
-              style={{ backgroundImage: `url(${couplePhotoUrl})` }}
+            <img
+              src={couplePhotoUrl}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover object-center scale-105 blur-xl opacity-55 transition-all duration-500"
+              aria-hidden="true"
+            />
+            <img
+              src={couplePhotoUrl}
+              alt=""
+              className="absolute inset-0 h-full w-full object-contain object-center transition-all duration-500"
+              aria-hidden="true"
             />
             <div
               className="absolute inset-0 transition-all duration-300"
@@ -1825,7 +1873,7 @@ const InvitePage = ({ setThemePreference }) => {
       {/* ── INVITATION CARD SECTION ── */}
       <div ref={downloadRef} id="main-invitation-container" className="w-full relative z-10">
         {/* Section 1: Invitation Card centered vertically in viewport */}
-        <section className="flex flex-col items-center justify-center py-0 px-4 relative z-10 w-full min-h-screen min-h-[100svh]">
+        <section className="download-card-section flex flex-col items-center justify-center py-0 px-4 relative z-10 w-full min-h-screen min-h-[100svh]">
           {/* ═══ THE CARD (this gets downloaded) ═══ */}
           <div
             className="w-full flex items-start justify-center relative"
@@ -2314,7 +2362,7 @@ const InvitePage = ({ setThemePreference }) => {
 
         {/* Timeline / Schedule Section */}
         {invitation.userId?.timeline && invitation.userId.timeline.length > 0 && (
-          <section className="invite-section px-4 sm:px-6 py-16 text-center bg-[#070A13] relative z-10 border-t border-white/5 flex flex-col items-center">
+          <section className="invite-section px-4 sm:px-6 py-16 text-center bg-[#070A13] relative z-10 border-t border-white/5 flex flex-col items-center download-exclude">
             <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Timeline</p>
             <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Wedding Schedule</h2>
             <p className="text-white/40 text-xs max-w-sm mb-12 -mt-4 leading-relaxed font-normal">
@@ -2368,7 +2416,7 @@ const InvitePage = ({ setThemePreference }) => {
         )}
 
         {/* Details Section */}
-        <section className="invite-section px-4 sm:px-6 py-16 sm:py-20 text-center bg-[#070A13] relative z-10 border-t border-white/5">
+        <section className="invite-section download-details-section px-4 sm:px-6 py-16 sm:py-20 text-center bg-[#070A13] relative z-10 border-t border-white/5">
           <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-4">The Details</p>
           <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 sm:mb-10">Wedding Day</h2>
           {!isFreeUser && (venue || receptionLocation) && (
@@ -2838,11 +2886,11 @@ const InvitePage = ({ setThemePreference }) => {
             Beautiful wishes and congratulations from our dear guests who are attending.
           </p>
 
-          <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
             {wishes.map((w, index) => (
               <div
                 key={index}
-                className="invite-feature-card p-5 rounded-2xl border border-white/10 bg-[#0D1220] text-left relative overflow-hidden flex flex-col justify-between min-h-36 hover:border-[#D8B76A]/40 transition duration-300 shadow-lg"
+                className="invite-feature-card p-5 rounded-2xl border border-white/10 bg-[#0D1220] text-left relative overflow-hidden flex flex-col min-h-36 self-start hover:border-[#D8B76A]/40 transition duration-300 shadow-lg"
               >
                 <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none text-4xl font-serif">“</div>
                 <p className="text-white/80 text-sm leading-relaxed italic mb-4 font-normal">
