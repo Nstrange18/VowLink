@@ -827,6 +827,7 @@ const InvitePage = ({ setThemePreference }) => {
     [visibleWishCount, wishes]
   );
   const hasMoreWishes = wishes.length > visibleWishCount;
+  const canShowLessWishes = visibleWishCount > WISHES_PAGE_SIZE;
   const customTextSizeSubtitle = invitation?.userId?.customTextSizeSubtitle || 1.0;
   const customTextSizeCoupleNames = invitation?.userId?.customTextSizeCoupleNames || 1.0;
   const customTextSizeGreeting = invitation?.userId?.customTextSizeGreeting || 1.0;
@@ -3155,15 +3156,29 @@ const InvitePage = ({ setThemePreference }) => {
               </div>
             ))}
           </div>
-          {hasMoreWishes && (
-            <button
-              type="button"
-              onClick={() => setVisibleWishCount((count) => Math.min(count + WISHES_PAGE_SIZE, wishes.length))}
-              className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-[#D8B76A]/35 bg-[#D8B76A]/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[#D8B76A] transition hover:border-[#D8B76A]/70 hover:bg-[#D8B76A]/15"
-            >
-              Show more wishes
-              <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5" />
-            </button>
+          {(hasMoreWishes || canShowLessWishes) && (
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              {hasMoreWishes && (
+                <button
+                  type="button"
+                  onClick={() => setVisibleWishCount((count) => Math.min(count + WISHES_PAGE_SIZE, wishes.length))}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-[#D8B76A]/35 bg-[#D8B76A]/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[#D8B76A] transition hover:border-[#D8B76A]/70 hover:bg-[#D8B76A]/15"
+                >
+                  Show more wishes
+                  <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5" />
+                </button>
+              )}
+              {canShowLessWishes && (
+                <button
+                  type="button"
+                  onClick={() => setVisibleWishCount(WISHES_PAGE_SIZE)}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white/65 transition hover:border-white/25 hover:bg-white/10 hover:text-white"
+                >
+                  Show less
+                  <Icon icon="lucide:chevron-up" className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
           )}
         </section>
       )}
