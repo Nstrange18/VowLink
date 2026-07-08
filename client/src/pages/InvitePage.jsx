@@ -777,7 +777,6 @@ const InvitePage = ({ setThemePreference }) => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const cardRef = useRef(null);
-  const downloadRef = useRef(null);
   const [invitation, setInvitation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -1251,14 +1250,18 @@ const InvitePage = ({ setThemePreference }) => {
   };
 
   const handleDownload = async () => {
-    if (!downloadRef.current) return;
+    const cardElement = cardRef.current;
+    if (!cardElement) return;
+
+    let exportPoster = null;
+
     setDownloading(true);
     toast.info("Preparing your invite image...", {
       autoClose: 1800,
       toastId: "invite-download-preparing",
     });
 
-    downloadRef.current.classList.add("is-exporting");
+    cardElement.classList.add("is-exporting");
 
     try {
       if (document.fonts?.ready) {
@@ -1269,15 +1272,198 @@ const InvitePage = ({ setThemePreference }) => {
         requestAnimationFrame(() => requestAnimationFrame(resolve));
       });
 
-      const dataUrl = await toPng(downloadRef.current, {
+      const exportWidth = cardElement.offsetWidth || 608;
+      const cardClone = cardElement.cloneNode(true);
+      cardClone.classList.add("download-export-card");
+      cardClone.style.width = `${exportWidth}px`;
+      cardClone.style.maxWidth = `${exportWidth}px`;
+      cardClone.style.transform = "none";
+      cardClone.style.transformOrigin = "top center";
+      cardClone.style.margin = "0 auto";
+
+      const addDetail = (parent, label, value) => {
+        const item = document.createElement("div");
+        item.style.border = "1px solid rgba(216, 183, 106, 0.18)";
+        item.style.borderRadius = "14px";
+        item.style.background = "rgba(255, 255, 255, 0.045)";
+        item.style.padding = "13px 15px";
+        item.style.minHeight = "68px";
+        item.style.display = "flex";
+        item.style.flexDirection = "row";
+        item.style.alignItems = "center";
+        item.style.justifyContent = "space-between";
+        item.style.gap = "14px";
+        item.style.textAlign = "left";
+
+        const labelNode = document.createElement("p");
+        labelNode.textContent = label;
+        labelNode.style.margin = "0";
+        labelNode.style.fontSize = "9px";
+        labelNode.style.letterSpacing = "0.16em";
+        labelNode.style.textTransform = "uppercase";
+        labelNode.style.color = "rgba(245, 235, 214, 0.58)";
+        labelNode.style.fontWeight = "700";
+        labelNode.style.flex = "0 0 42%";
+
+        const valueNode = document.createElement("p");
+        valueNode.textContent = value || "To be announced";
+        valueNode.style.margin = "0";
+        valueNode.style.fontFamily = "'Jost', Arial, sans-serif";
+        valueNode.style.fontSize = "13px";
+        valueNode.style.lineHeight = "1.35";
+        valueNode.style.color = "#FFF8EA";
+        valueNode.style.fontWeight = "600";
+        valueNode.style.textAlign = "right";
+        valueNode.style.flex = "1";
+        valueNode.style.overflowWrap = "anywhere";
+
+        item.appendChild(labelNode);
+        item.appendChild(valueNode);
+        parent.appendChild(item);
+      };
+
+      exportPoster = document.createElement("div");
+      exportPoster.className = "download-export-poster";
+      exportPoster.style.position = "fixed";
+      exportPoster.style.left = "0";
+      exportPoster.style.top = "0";
+      exportPoster.style.zIndex = "-1";
+      exportPoster.style.pointerEvents = "none";
+      exportPoster.style.width = `${exportWidth}px`;
+      exportPoster.style.boxSizing = "border-box";
+      exportPoster.style.padding = "0 0 34px";
+      exportPoster.style.background = "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)";
+      exportPoster.style.fontFamily = activeFont;
+
+      const detailsPanel = document.createElement("div");
+      detailsPanel.style.width = `${exportWidth}px`;
+      detailsPanel.style.boxSizing = "border-box";
+      detailsPanel.style.padding = "26px 34px 0";
+      detailsPanel.style.color = "#FFF8EA";
+      detailsPanel.style.fontFamily = "'Jost', Arial, sans-serif";
+
+      const eyebrow = document.createElement("p");
+      eyebrow.textContent = "The Details";
+      eyebrow.style.margin = "0 0 8px";
+      eyebrow.style.textAlign = "center";
+      eyebrow.style.fontSize = "10px";
+      eyebrow.style.letterSpacing = "0.28em";
+      eyebrow.style.textTransform = "uppercase";
+      eyebrow.style.color = "#D8B76A";
+      eyebrow.style.fontWeight = "800";
+
+      const title = document.createElement("h2");
+      title.textContent = "Wedding Day";
+      title.style.margin = "0 0 20px";
+      title.style.textAlign = "center";
+      title.style.fontFamily = "'Cormorant Garamond', serif";
+      title.style.fontSize = "30px";
+      title.style.lineHeight = "1";
+      title.style.color = "#FFF8EA";
+      title.style.fontWeight = "500";
+
+      const detailsGrid = document.createElement("div");
+      detailsGrid.style.display = "grid";
+      detailsGrid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
+      detailsGrid.style.gap = "10px";
+
+      addDetail(detailsGrid, "Date", formattedDate || "To be announced");
+      addDetail(detailsGrid, "Time", formattedTimeWithFormat || "To be announced");
+      addDetail(detailsGrid, "Venue", venueName || venue || "To be announced");
+      if (receptionLocation) {
+        addDetail(detailsGrid, "Reception", receptionName || receptionLocation);
+      }
+      addDetail(detailsGrid, "Dress Code", dressCode || "To be announced");
+      addDetail(detailsGrid, "Category", invitation.category || "Guest");
+      addDetail(detailsGrid, "Additional Guest", plusOnePolicy === "plus_one_allowed" ? "Plus one allowed" : "Strictly by invitation");
+      addDetail(detailsGrid, "Children", kidsAllowed ? "Children are welcome" : "Adults only");
+
+      if (weddingColors.length > 0) {
+        const colorsItem = document.createElement("div");
+        colorsItem.style.gridColumn = "1 / -1";
+        colorsItem.style.border = "1px solid rgba(216, 183, 106, 0.18)";
+        colorsItem.style.borderRadius = "14px";
+        colorsItem.style.background = "rgba(255, 255, 255, 0.045)";
+        colorsItem.style.padding = "14px 16px";
+        colorsItem.style.textAlign = "center";
+
+        const colorsLabel = document.createElement("p");
+        colorsLabel.textContent = "Colour of the Day";
+        colorsLabel.style.margin = "0 0 10px";
+        colorsLabel.style.fontSize = "9px";
+        colorsLabel.style.letterSpacing = "0.16em";
+        colorsLabel.style.textTransform = "uppercase";
+        colorsLabel.style.color = "rgba(245, 235, 214, 0.58)";
+        colorsLabel.style.fontWeight = "700";
+
+        const chips = document.createElement("div");
+        chips.style.display = "flex";
+        chips.style.flexWrap = "wrap";
+        chips.style.justifyContent = "center";
+        chips.style.gap = "8px";
+
+        weddingColors.forEach((name) => {
+          const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999999";
+          const chip = document.createElement("div");
+          chip.style.display = "inline-flex";
+          chip.style.alignItems = "center";
+          chip.style.gap = "6px";
+          chip.style.border = `1px solid ${hex}66`;
+          chip.style.borderRadius = "999px";
+          chip.style.padding = "6px 12px";
+          chip.style.background = "rgba(255, 255, 255, 0.08)";
+          chip.style.color = "#FFF8EA";
+          chip.style.fontFamily = "'Jost', Arial, sans-serif";
+          chip.style.fontSize = "10px";
+          chip.style.fontWeight = "700";
+          chip.style.whiteSpace = "nowrap";
+          chip.style.flex = "0 0 auto";
+
+          const dot = document.createElement("span");
+          dot.style.width = "10px";
+          dot.style.height = "10px";
+          dot.style.borderRadius = "999px";
+          dot.style.background = hex;
+          dot.style.display = "inline-block";
+
+          const text = document.createElement("span");
+          text.textContent = name;
+          text.style.whiteSpace = "nowrap";
+
+          chip.appendChild(dot);
+          chip.appendChild(text);
+          chips.appendChild(chip);
+        });
+
+        colorsItem.appendChild(colorsLabel);
+        colorsItem.appendChild(chips);
+        detailsGrid.appendChild(colorsItem);
+      }
+
+      detailsPanel.appendChild(eyebrow);
+      detailsPanel.appendChild(title);
+      detailsPanel.appendChild(detailsGrid);
+      exportPoster.appendChild(cardClone);
+      exportPoster.appendChild(detailsPanel);
+      document.body.appendChild(exportPoster);
+
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+
+      const exportHeight = exportPoster.scrollHeight;
+
+      const dataUrl = await toPng(exportPoster, {
         cacheBust: true,
         pixelRatio: 2,
-        width: downloadRef.current.scrollWidth,
-        height: downloadRef.current.scrollHeight,
+        width: exportWidth,
+        height: exportHeight,
         skipFonts: true,
         fontEmbedCSS: "",
         skipAutoScale: true,
         style: {
+          width: `${exportWidth}px`,
+          height: `${exportHeight}px`,
           background: "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)",
         },
         filter: (node) => {
@@ -1299,7 +1485,10 @@ const InvitePage = ({ setThemePreference }) => {
       console.error("Download failed", e);
       toast.error("We couldn't prepare the invite image. Please try again.");
     } finally {
-      downloadRef.current.classList.remove("is-exporting");
+      cardElement.classList.remove("is-exporting");
+      if (exportPoster?.parentNode) {
+        exportPoster.parentNode.removeChild(exportPoster);
+      }
       setDownloading(false);
     }
   };
@@ -1614,14 +1803,21 @@ const InvitePage = ({ setThemePreference }) => {
         .is-exporting #download-actions-bar {
           display: none !important;
         }
-        .is-exporting .download-card-section {
-          min-height: auto !important;
-          padding: 48px 16px 40px !important;
+        .download-export-poster,
+        .download-export-poster * {
+          animation: none !important;
+          transition: none !important;
         }
-        .is-exporting .download-details-section {
-          border-top: 0 !important;
-          padding-top: 48px !important;
-          padding-bottom: 64px !important;
+        .download-export-poster .animate-plus-fade-in,
+        .download-export-poster .animate-plus-fade-up,
+        .download-export-poster .animate-pro-card-entrance,
+        .download-export-poster .animate-pro-text-reveal {
+          opacity: 1 !important;
+          filter: none !important;
+        }
+        .download-export-poster .download-export-card {
+          opacity: 1 !important;
+          transform: none !important;
         }
       `}</style>
       {downloading && (
@@ -1871,7 +2067,7 @@ const InvitePage = ({ setThemePreference }) => {
       )}
 
       {/* ── INVITATION CARD SECTION ── */}
-      <div ref={downloadRef} id="main-invitation-container" className="w-full relative z-10">
+      <div id="main-invitation-container" className="w-full relative z-10">
         {/* Section 1: Invitation Card centered vertically in viewport */}
         <section className="download-card-section flex flex-col items-center justify-center py-0 px-4 relative z-10 w-full min-h-screen min-h-[100svh]">
           {/* ═══ THE CARD (this gets downloaded) ═══ */}
@@ -2886,11 +3082,11 @@ const InvitePage = ({ setThemePreference }) => {
             Beautiful wishes and congratulations from our dear guests who are attending.
           </p>
 
-          <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+          <div className="w-full max-w-4xl columns-1 gap-6 sm:columns-2 lg:columns-3">
             {wishes.map((w, index) => (
               <div
                 key={index}
-                className="invite-feature-card p-5 rounded-2xl border border-white/10 bg-[#0D1220] text-left relative overflow-hidden flex flex-col min-h-36 self-start hover:border-[#D8B76A]/40 transition duration-300 shadow-lg"
+                className="invite-feature-card mb-6 inline-block w-full break-inside-avoid p-5 rounded-2xl border border-white/10 bg-[#0D1220] text-left relative overflow-hidden hover:border-[#D8B76A]/40 transition duration-300 shadow-lg"
               >
                 <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none text-4xl font-serif">“</div>
                 <p className="text-white/80 text-sm leading-relaxed italic mb-4 font-normal">
