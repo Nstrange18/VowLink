@@ -1322,6 +1322,7 @@ const InvitePage = ({ setThemePreference }) => {
       });
 
       const exportWidth = cardElement.offsetWidth || 608;
+      const isMobileExport = window.matchMedia?.("(max-width: 640px)")?.matches;
       const cardClone = cardElement.cloneNode(true);
       cardClone.classList.add("download-export-card");
       cardClone.style.width = `${exportWidth}px`;
@@ -1373,6 +1374,9 @@ const InvitePage = ({ setThemePreference }) => {
 
       exportPoster = document.createElement("div");
       exportPoster.className = "download-export-poster";
+      if (isMobileExport) {
+        exportPoster.classList.add("is-mobile-export");
+      }
       exportPoster.style.position = "fixed";
       exportPoster.style.left = "0";
       exportPoster.style.top = "0";
@@ -1869,6 +1873,41 @@ const InvitePage = ({ setThemePreference }) => {
           opacity: 1 !important;
           transform: none !important;
         }
+        .download-export-poster.is-mobile-export .download-export-card .invite-card-content {
+          min-height: 720px !important;
+          padding-top: 76px !important;
+          padding-bottom: 88px !important;
+        }
+        .download-export-poster.is-mobile-export .download-export-card .invite-card-inner {
+          max-width: 82% !important;
+        }
+        .download-export-poster.is-mobile-export .download-export-card .invite-card-message {
+          margin-bottom: 30px !important;
+          line-height: 1.74 !important;
+        }
+        .download-export-poster.is-mobile-export .download-export-card .invite-card-detail {
+          display: block !important;
+          margin-bottom: 11px !important;
+          line-height: 1.48 !important;
+        }
+        .download-export-poster.is-mobile-export .download-export-card .invite-card-location-text {
+          margin-bottom: 13px !important;
+          line-height: 1.48 !important;
+        }
+        .download-export-poster.is-mobile-export .download-export-card .invite-card-reception {
+          margin-bottom: 20px !important;
+        }
+        .download-export-poster.is-mobile-export .download-export-card .invite-card-bottom-divider {
+          margin-top: 8px !important;
+          margin-bottom: 12px !important;
+        }
+        .download-export-poster.is-mobile-export .download-export-card .invite-card-colors {
+          margin-top: 6px !important;
+          margin-bottom: 20px !important;
+        }
+        .download-export-poster.is-mobile-export .download-export-card .invite-card-color-chips {
+          gap: 7px 8px !important;
+        }
       `}</style>
       {downloading && (
         <div className="download-exclude fixed inset-0 z-80 flex items-center justify-center bg-[#070A13]/72 px-6 backdrop-blur-md">
@@ -2159,7 +2198,7 @@ const InvitePage = ({ setThemePreference }) => {
                   {renderFrameBorder(layout.frameBorder)}
                   {/* Custom Spacing & Scaling wrapper */}
                   <div
-                    className={`relative z-10 flex flex-col justify-center w-full min-h-155 transition-all ${textAlignment === "left"
+                    className={`invite-card-content relative z-10 flex flex-col justify-center w-full min-h-155 transition-all ${textAlignment === "left"
                         ? "items-start text-left"
                         : textAlignment === "right"
                           ? "items-end text-right"
@@ -2187,7 +2226,7 @@ const InvitePage = ({ setThemePreference }) => {
                     }}
                   >
                     <div
-                      className={`w-full flex flex-col justify-center transition-all ${textAlignment === "left"
+                      className={`invite-card-inner w-full flex flex-col justify-center transition-all ${textAlignment === "left"
                           ? "items-start text-left"
                           : textAlignment === "right"
                             ? "items-end text-right"
@@ -2282,7 +2321,7 @@ const InvitePage = ({ setThemePreference }) => {
                       {/* ── Custom message ── */}
                       <p
                         {...getBlockProps("message", "1300ms")}
-                        className={`${getBlockProps("message", "1300ms").className} opacity-90`}
+                        className={`${getBlockProps("message", "1300ms").className} invite-card-message opacity-90`}
                         style={{
                           ...getBlockProps("message", "1300ms").style,
                         }}
@@ -2294,6 +2333,7 @@ const InvitePage = ({ setThemePreference }) => {
                       {formattedDate && (
                         <p
                           {...getBlockProps("details", "1500ms")}
+                          className={`${getBlockProps("details", "1500ms").className} invite-card-detail`}
                           style={{
                             ...getBlockProps("details", "1500ms").style,
                           }}
@@ -2305,6 +2345,7 @@ const InvitePage = ({ setThemePreference }) => {
                       {/* ── Time ── */}
                       <p
                         {...getBlockProps("details", "1600ms")}
+                        className={`${getBlockProps("details", "1600ms").className} invite-card-detail`}
                         style={{
                           ...getBlockProps("details", "1600ms").style,
                         }}
@@ -2346,7 +2387,7 @@ const InvitePage = ({ setThemePreference }) => {
                         isFreeUser ? (
                           <div
                             {...getBlockProps("reception", "1800ms")}
-                            className={`${getBlockProps("reception", "1800ms").className} invite-card-location-text block w-full px-2`}
+                            className={`${getBlockProps("reception", "1800ms").className} invite-card-location-text invite-card-reception block w-full px-2`}
                             style={getBlockProps("reception", "1800ms").style}
                           >
                             Reception at: {receptionName || receptionLocation}
@@ -2364,7 +2405,7 @@ const InvitePage = ({ setThemePreference }) => {
                               textDecorationColor: `${accentColor}55`,
                               textUnderlineOffset: "3px",
                             }}
-                            className={`${getBlockProps("reception", "1800ms").className} invite-card-location-text invite-card-map-link cursor-pointer hover:opacity-90 transition block w-full px-2`}
+                            className={`${getBlockProps("reception", "1800ms").className} invite-card-location-text invite-card-reception invite-card-map-link cursor-pointer hover:opacity-90 transition block w-full px-2`}
                           >
                             Reception at: {receptionName || receptionLocation}
                           </button>
@@ -2372,7 +2413,7 @@ const InvitePage = ({ setThemePreference }) => {
                       )}
 
                       {/* bottom ornament */}
-                      <div {...getBlockProps("divider2", "1900ms")} className={`${getBlockProps("divider2", "1900ms").className} flex justify-center w-full`}>
+                      <div {...getBlockProps("divider2", "1900ms")} className={`${getBlockProps("divider2", "1900ms").className} invite-card-bottom-divider flex justify-center w-full`}>
                         {renderOrnamentDivider(layout.dividerType, primaryTextColor, "my-3", true)}
                       </div>
 
@@ -2380,6 +2421,7 @@ const InvitePage = ({ setThemePreference }) => {
                       {weddingColors.length > 0 && (
                         <div
                           {...getBlockProps("colors", "2000ms")}
+                          className={`${getBlockProps("colors", "2000ms").className} invite-card-colors`}
                           style={{
                             ...getBlockProps("colors", "2000ms").style,
                           }}
@@ -2394,7 +2436,7 @@ const InvitePage = ({ setThemePreference }) => {
                           >
                             Colour of the Day
                           </p>
-                          <div className="flex flex-wrap justify-center gap-1.5">
+                          <div className="invite-card-color-chips flex flex-wrap justify-center gap-1.5">
                             {weddingColors.map((name, i) => {
                               const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999";
                               const blockStyles = getBlockProps("colors", "2000ms").style;
