@@ -139,7 +139,7 @@ router.get("/", protect, async (req, res) => {
     const invitationIds = userInvitations.map((i) => i._id);
 
     const rsvps = await RSVP.find({ invitationId: { $in: invitationIds } })
-      .populate("invitationId", "guestName slug category allowedGuests")
+      .populate("invitationId", "guestName slug category allowedGuests senderGroup")
       .sort({ createdAt: -1 });
 
     res.status(200).json(rsvps);

@@ -14,13 +14,29 @@ const categoryColors = {
   Guest: { ring: 'border-white/20', bg: 'bg-white/5', text: 'text-white/60', dot: 'bg-white/40' },
 }
 
-const StatCard = ({ label, value, color, sub, loading }) => (
+const StatCard = ({ label, value, color, sub, loading, breakdown }) => (
   <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-4 sm:p-6">
     <p className="text-[10px] sm:text-xs uppercase tracking-widest text-white/40 mb-2 leading-tight">{label}</p>
     {loading ? (
-      <Skeleton className="h-10 w-16 mt-1" />
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-16 mt-1" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-4/5" />
+      </div>
     ) : (
-      <p className={`font-serif text-4xl sm:text-5xl font-light ${color}`}>{value}</p>
+      <>
+        <p className={`font-serif text-4xl sm:text-5xl font-light ${color}`}>{value}</p>
+        {breakdown && (
+          <div className="mt-4 space-y-1.5 border-t border-white/5 pt-3">
+            {breakdown.map((item) => (
+              <div key={item.label} className="flex items-center justify-between gap-3 text-[10px] sm:text-xs">
+                <span className="text-white/35">{item.label}</span>
+                <span className={`font-semibold ${item.color || 'text-white/70'}`}>{item.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </>
     )}
     {sub && !loading && <p className="mt-2 text-[10px] sm:text-xs text-white/30">{sub}</p>}
   </div>
@@ -322,6 +338,41 @@ const AdminDashboardPage = () => {
   const isDeadlinePassed = storedUser?.rsvpDeadline && new Date() > new Date(storedUser.rsvpDeadline);
   const pending = !isDeadlinePassed ? invitations.filter((i) => !i.hasRSVPed).length : 0;
   const noResponse = isDeadlinePassed ? invitations.filter((i) => !i.hasRSVPed).length : 0;
+  const pendingInvitations = invitations.filter((i) => !i.hasRSVPed);
+  const attendingRsvps = rsvps.filter((r) => r.attending === 'Yes');
+  const notAttendingRsvps = rsvps.filter((r) => r.attending === 'No');
+
+  const countBySenderGroup = (items, getSenderGroup) => items.reduce((acc, item) => {
+    const senderGroup = getSenderGroup(item) || 'general';
+    if (senderGroup === 'bride') acc.bride += 1;
+    else if (senderGroup === 'groom') acc.groom += 1;
+    else if (senderGroup === 'both') acc.both += 1;
+    else acc.general += 1;
+    return acc;
+  }, { bride: 0, groom: 0, both: 0, general: 0 });
+
+  const makeSenderBreakdown = (counts) => [
+    { label: 'Bride invited', value: counts.bride, color: 'text-rose-300' },
+    { label: 'Groom invited', value: counts.groom, color: 'text-[#7FA6D9]' },
+    counts.both > 0 ? { label: 'Both invited', value: counts.both, color: 'text-[#D8B76A]' } : null,
+    counts.general > 0 ? { label: 'General', value: counts.general, color: 'text-white/55' } : null,
+  ].filter(Boolean);
+
+  const invitationBreakdown = makeSenderBreakdown(
+    countBySenderGroup(invitations, (invitation) => invitation.senderGroup)
+  );
+  const rsvpBreakdown = makeSenderBreakdown(
+    countBySenderGroup(rsvps, (rsvp) => rsvp.invitationId?.senderGroup)
+  );
+  const attendingBreakdown = makeSenderBreakdown(
+    countBySenderGroup(attendingRsvps, (rsvp) => rsvp.invitationId?.senderGroup)
+  );
+  const notAttendingBreakdown = makeSenderBreakdown(
+    countBySenderGroup(notAttendingRsvps, (rsvp) => rsvp.invitationId?.senderGroup)
+  );
+  const pendingBreakdown = makeSenderBreakdown(
+    countBySenderGroup(pendingInvitations, (invitation) => invitation.senderGroup)
+  );
 
   // Group invitations by category
   const byCategory = CATEGORIES.reduce((acc, cat) => {
@@ -357,14 +408,14 @@ const AdminDashboardPage = () => {
 
         {/* Stats row */}
         <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-          <StatCard label="Total Invitations" value={invitations.length} color="text-white" loading={loading} />
-          <StatCard label="RSVPs" value={rsvps.length} color="text-[#7FA6D9]" loading={loading} />
-          <StatCard label="Attending" value={attending} color="text-emerald-400" loading={loading} />
-          <StatCard label="Not Attending" value={notAttending} color="text-red-400" loading={loading} />
+          <StatCard label="Total Invitations" value={invitations.length} color="text-white" loading={loading} breakdown={invitationBreakdown} />
+          <StatCard label="RSVPs" value={rsvps.length} color="text-[#7FA6D9]" loading={loading} breakdown={rsvpBreakdown} />
+          <StatCard label="Attending" value={attending} color="text-emerald-400" loading={loading} breakdown={attendingBreakdown} />
+          <StatCard label="Not Attending" value={notAttending} color="text-red-400" loading={loading} breakdown={notAttendingBreakdown} />
           {isDeadlinePassed ? (
-            <StatCard label="No Response" value={noResponse} color="text-rose-400" sub="deadline passed" loading={loading} />
+            <StatCard label="No Response" value={noResponse} color="text-rose-400" sub="deadline passed" loading={loading} breakdown={pendingBreakdown} />
           ) : (
-            <StatCard label="Pending" value={pending} color="text-[#D8B76A]" sub="awaiting response" loading={loading} />
+            <StatCard label="Pending" value={pending} color="text-[#D8B76A]" sub="awaiting response" loading={loading} breakdown={pendingBreakdown} />
           )}
         </div>
       </div>
