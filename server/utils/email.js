@@ -6,6 +6,7 @@ if (process.env.SENDGRID_API_KEY) {
 
 const FROM_EMAIL = "noreplybiru556@gmail.com";
 const BRAND_NAME = "VowLink";
+const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://vowlink.co").replace(/\/+$/, "");
 
 // ── Shared branded email wrapper ─────────────────────────────────────────────
 const wrapEmail = (bodyHtml) => `
@@ -266,7 +267,7 @@ const sendRsvpLimitReachedAlert = async ({ coupleEmail, coupleName, tier, limit 
     </div>
 
     <div style="text-align:center;margin:32px 0 20px 0;">
-      <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/admin/billing" style="display:inline-block;background:linear-gradient(135deg,#D8B76A 0%,#F2D894 100%);color:#070A13;text-decoration:none;font-weight:600;padding:14px 32px;border-radius:999px;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;box-shadow:0 8px 24px rgba(216,183,106,0.25);">
+      <a href="${PUBLIC_SITE_URL}/admin/billing" style="display:inline-block;background:linear-gradient(135deg,#D8B76A 0%,#F2D894 100%);color:#070A13;text-decoration:none;font-weight:600;padding:14px 32px;border-radius:999px;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;box-shadow:0 8px 24px rgba(216,183,106,0.25);">
         Upgrade Plan Now
       </a>
     </div>

@@ -8,6 +8,7 @@ import CustomSelect from '../../components/CustomSelect'
 import { invitationSchema } from '../../utils/schemas'
 import AiMessageAssist from '../../components/AiMessageAssist'
 import { Icon } from '@iconify/react'
+import { buildPublicUrl } from '../../utils/siteUrl'
 
 const CATEGORIES = [
   { value: 'Guest', label: 'Guest' },
@@ -64,7 +65,7 @@ const AdminNewInvitationPage = () => {
     try {
       const res = await api.post('/invitations', { ...data, allowedGuests: Number(data.allowedGuests) })
       const slug = res.data.data.slug
-      const link = `${window.location.origin}/invite/${slug}`
+      const link = buildPublicUrl(`/invite/${slug}`)
       toast.success('Invitation created!')
       navigate('/admin/invitations', { state: { newLink: link } })
     } catch (err) {

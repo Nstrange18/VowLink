@@ -27,8 +27,8 @@ const PLANS = [
   {
     id: "plus",
     name: "Plus Plan",
-    priceInUsd: 29,
-    priceInNgn: 2000,
+    priceInUsd: 34,
+    priceInNgn: 50000,
     period: "one-time",
     description: "Unlock multiple design choices and contact vendors directly.",
     color: "border-[#7FA6D9]/30 bg-[#7FA6D9]/5 hover:border-[#7FA6D9]/60",
@@ -51,8 +51,8 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro Plan",
-    priceInUsd: 69,
-    priceInNgn: 5000,
+    priceInUsd: 80,
+    priceInNgn: 120000,
     period: "one-time",
     description: "Ultimate wedding invitation and planning experience.",
     color: "border-[#D8B76A]/40 bg-[#D8B76A]/5 hover:border-[#D8B76A] shadow-[0_0_25px_rgba(216,183,106,0.15)]",

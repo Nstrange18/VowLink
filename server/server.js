@@ -21,7 +21,32 @@ const aiRoutes = require("./routes/aiRoutes");
 const app = express();
 app.set("trust proxy", 1);
 
-app.use(cors());
+const splitEnvList = (value) => String(value || "")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
+const allowedOrigins = new Set([
+  "http://localhost:5173",
+  "https://vow-link556.vercel.app",
+  "https://vowlink.co",
+  "https://www.vowlink.co",
+  process.env.CLIENT_URL,
+  process.env.FRONTEND_URL,
+  process.env.PUBLIC_SITE_URL,
+  ...splitEnvList(process.env.FRONTEND_URLS),
+  ...splitEnvList(process.env.ALLOWED_ORIGINS),
+].filter(Boolean).map((origin) => String(origin).replace(/\/+$/, "")));
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin.replace(/\/+$/, ""))) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked origin: ${origin}`));
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 

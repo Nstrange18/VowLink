@@ -1,18 +1,27 @@
+const trimTrailingSlash = (value) => String(value || '').replace(/\/+$/, '');
+
+const getPublicSiteUrl = (req) => {
+  const configured = trimTrailingSlash(
+    process.env.VITE_PUBLIC_SITE_URL || process.env.PUBLIC_SITE_URL || process.env.SITE_URL
+  );
+  return configured || `https://${req.headers.host}`;
+};
+
 module.exports = async (req, res) => {
   const { slug } = req.query;
   if (!slug) {
     return res.status(400).send('Slug is required');
   }
 
-  // Get backend URL from env, default to production Render API
-  let apiBaseUrl = process.env.VITE_API_URL;
-  if (!apiBaseUrl) {
-    apiBaseUrl = 'https://vow-link-dxj5.onrender.com/api';
-  }
-  // Trim trailing slash if present
-  apiBaseUrl = apiBaseUrl.replace(/\/$/, '');
+  let apiBaseUrl = process.env.VITE_API_URL || process.env.API_URL;
+  apiBaseUrl = apiBaseUrl ? trimTrailingSlash(apiBaseUrl) : '';
+  const publicSiteUrl = getPublicSiteUrl(req);
 
   try {
+    if (!apiBaseUrl) {
+      throw new Error('VITE_API_URL is required for share previews');
+    }
+
     const url = `${apiBaseUrl}/invitations/slug/${slug}`;
     const response = await fetch(url);
     if (!response.ok) {
@@ -30,7 +39,7 @@ module.exports = async (req, res) => {
     const coupleNames = partner1 && partner2 ? `${partner1} & ${partner2}` : 'Our';
     const coupleNamesText = partner1 && partner2 ? `${partner1} and ${partner2}` : 'us';
 
-    const title = `${coupleNames}’s Wedding Invitation`;
+    const title = `${coupleNames}'s Wedding Invitation`;
     
     let descriptionText = user.customShareMessage
       ? user.customShareMessage.trim()
@@ -62,13 +71,13 @@ module.exports = async (req, res) => {
         imageUrl = url;
       } else {
         const cleanBg = bg.startsWith('/') ? bg : `/${bg}`;
-        imageUrl = `https://${req.headers.host}${cleanBg}`;
+        imageUrl = `${publicSiteUrl}${cleanBg}`;
       }
     } else {
-      imageUrl = `https://${req.headers.host}/vowlink-logo.png`;
+      imageUrl = `${publicSiteUrl}/vowlink-logo.webp`;
     }
 
-    const inviteUrl = `https://${req.headers.host}/invite/${slug}`;
+    const inviteUrl = `${publicSiteUrl}/invite/${slug}`;
 
     const html = `
 <!DOCTYPE html>
@@ -110,8 +119,9 @@ module.exports = async (req, res) => {
     console.error('Error rendering preview:', error.message);
     const fallbackTitle = "Wedding Invitation | VowLink";
     const fallbackDesc = "You are specially invited to celebrate. Tap the link to view your invitation and RSVP. Powered by VowLink.";
-    const fallbackImg = `https://${req.headers.host}/vowlink-logo.png`;
-    const fallbackUrl = `https://${req.headers.host}/invite/${slug}`;
+    const publicSiteUrl = getPublicSiteUrl(req);
+    const fallbackImg = `${publicSiteUrl}/vowlink-logo.webp`;
+    const fallbackUrl = `${publicSiteUrl}/invite/${slug}`;
 
     const html = `
 <!DOCTYPE html>

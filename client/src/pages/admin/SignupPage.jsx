@@ -149,7 +149,7 @@ const SignupPage = () => {
         <span className="hidden sm:inline">Back to Home</span>
         <span className="sm:hidden">Home</span>
       </Link>
-      <div className="w-full max-w-md rounded-3xl border border-[#D8B76A]/40 bg-[#070A13]/85 px-6 sm:px-8 py-10 sm:py-12 shadow-2xl backdrop-blur-md max-h-[95vh] overflow-y-auto">
+      <div className="w-full max-w-md rounded-3xl border border-[#D8B76A]/40 bg-[#070A13]/85 px-6 sm:px-8 py-10 sm:py-12 shadow-2xl backdrop-blur-md max-h-[95vh] overflow-y-auto no-scrollbar">
         <p className="mb-2 text-center text-xs uppercase tracking-[0.35em] text-[#D8B76A]">
           Create Your Account
         </p>

@@ -2,10 +2,12 @@
 
 const getBaseURL = () => {
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL
+    return import.meta.env.VITE_API_URL.replace(/\/+$/, '')
   }
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  return isLocal ? 'http://localhost:5000/api' : 'https://vow-link-dxj5.onrender.com/api'
+  if (isLocal) return 'http://localhost:5000/api'
+  console.warn('VITE_API_URL is not set. Production API requests require this environment variable.')
+  return '/api'
 }
 
 const api = axios.create({

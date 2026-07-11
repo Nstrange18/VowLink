@@ -683,7 +683,7 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
     await user.save();
     console.log("[forgot-password] Reset token saved to database");
 
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const clientUrl = (process.env.PUBLIC_SITE_URL || process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://vowlink.co").replace(/\/+$/, "");
     const resetUrl = `${clientUrl}/admin/reset-password/${token}`;
     console.log("[forgot-password] Reset URL:", resetUrl);
 
@@ -859,7 +859,7 @@ router.post("/upgrade/verify", protect, async (req, res) => {
     const paystackAmount = paystackData.amount;
     const paystackCurrency = paystackData.currency;
 
-    const baseNgn = tier === "plus" ? 2000 : 5000;
+    const baseNgn = tier === "plus" ? 50000 : 120000;
     const priceInUsd = baseNgn / 1500;
 
     let expectedAmount = 0;

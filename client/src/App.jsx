@@ -6,11 +6,13 @@ import 'react-toastify/dist/ReactToastify.css'
 import ScrollToTop from './components/ScrollToTop'
 import ProtectedRoute from './components/ProtectedRoute'
 import ThemeToggle from './components/ThemeToggle'
+import SEO from './components/SEO'
 
 const InvitePage = lazy(() => import('./pages/InvitePage'))
 const RsvpResponsePage = lazy(() => import('./pages/RsvpResponsePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const LandingPage = lazy(() => import('./pages/LandingPage'))
+const MarketingPage = lazy(() => import('./pages/MarketingPage'))
 const AdminResetPasswordPage = lazy(() => import('./pages/admin/AdminResetPasswordPage'))
 const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'))
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
@@ -36,6 +38,63 @@ const VenueDashboardPage = lazy(() => import('./pages/venue/VenueDashboardPage')
 
 const APP_THEME_KEY = 'vowlink-theme'
 const GUEST_THEME_PREFIX = 'vowlink_guest_theme_'
+
+const PUBLIC_ROUTE_META = {
+  '/': {
+    title: 'VowLink | Digital Wedding Invitations, RSVP Tracking and Guest Planning',
+    description: 'Create elegant digital wedding invitations, send personalized guest links, collect RSVPs, manage WhatsApp sharing, and organize wedding details in one VowLink portal.',
+  },
+  '/features': {
+    title: 'VowLink Features | Wedding Invitations, RSVPs and Guest Planning',
+    description: 'Explore VowLink features for personalized wedding invite links, RSVP tracking, WhatsApp sharing, guest categories, seating tools, templates, and venue planning.',
+  },
+  '/pricing': {
+    title: 'VowLink Pricing | Digital Wedding Invitation Plans',
+    description: 'Compare VowLink wedding invitation plans for couples, from a free starter invite to premium RSVP tracking, templates, guest exports, and planning tools.',
+  },
+  '/templates': {
+    title: 'VowLink Templates | Elegant Digital Wedding Invitation Designs',
+    description: 'Browse VowLink digital wedding invitation template options for formal weddings, photo-led invite cards, custom colors, music, galleries, and guest details.',
+  },
+}
+
+const isPrivateRoute = (pathname) => (
+  pathname.startsWith('/admin') ||
+  pathname.startsWith('/super-admin') ||
+  pathname.startsWith('/venue') ||
+  pathname.startsWith('/signup') ||
+  pathname.startsWith('/rsvp-response') ||
+  pathname.startsWith('/invite/')
+)
+
+const RouteMetadata = () => {
+  const { pathname } = useLocation()
+  const publicMeta = PUBLIC_ROUTE_META[pathname]
+
+  if (publicMeta) {
+    return <SEO {...publicMeta} path={pathname} />
+  }
+
+  if (isPrivateRoute(pathname)) {
+    return (
+      <SEO
+        title="VowLink Private Wedding Portal"
+        description="Private VowLink wedding portal page for couples, guests, venue partners, or administrators."
+        path={pathname}
+        noindex
+      />
+    )
+  }
+
+  return (
+    <SEO
+      title="VowLink"
+      description="Digital wedding invitations, RSVP tracking, and guest planning tools."
+      path={pathname}
+      noindex
+    />
+  )
+}
 
 const getInviteThemeKey = (pathname) => {
   const slug = pathname.match(/^\/invite\/([^/?#]+)/)?.[1]
@@ -111,11 +170,15 @@ function AppContent() {
         }}
       />
       <ThemeToggle theme={theme} onToggle={toggleTheme} />
+      <RouteMetadata />
       <ScrollToTop />
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           {/* Default route */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/features" element={<MarketingPage page="features" />} />
+          <Route path="/pricing" element={<MarketingPage page="pricing" />} />
+          <Route path="/templates" element={<MarketingPage page="templates" />} />
 
         {/* Guest routes */}
         <Route path="/invite/:slug" element={<InvitePage setThemePreference={setThemePreference} />} />

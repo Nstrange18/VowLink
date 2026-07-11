@@ -5,6 +5,7 @@ import api from '../../utils/api'
 import Skeleton from '../../components/common/Skeleton'
 import { Icon } from '@iconify/react'
 import { showConfirmToast } from '../../utils/toastConfirm'
+import { buildPublicUrl } from '../../utils/siteUrl'
 
 const AdminInvitationsPage = () => {
   const [invitations, setInvitations] = useState([])
@@ -33,7 +34,7 @@ const AdminInvitationsPage = () => {
   useEffect(() => { fetchInvitations() }, [])
 
   const handleCopy = (slug) => {
-    const link = `${window.location.origin}/invite/${slug}`
+    const link = buildPublicUrl(`/invite/${slug}`)
     navigator.clipboard.writeText(link)
     setCopied(slug)
     setTimeout(() => setCopied(null), 2000)
@@ -377,7 +378,7 @@ const AdminInvitationsPage = () => {
                           </button>
                           <button
                             onClick={() => {
-                              const url = `${window.location.origin}/invite/${inv.slug}`
+                              const url = buildPublicUrl(`/invite/${inv.slug}`)
                               const msgBody = user.customShareMessage && user.customShareMessage.trim()
                                 ? user.customShareMessage.trim()
                                 : `We are so excited to celebrate our wedding with you. Please view your personal invitation and RSVP here:`;
@@ -442,7 +443,7 @@ const AdminInvitationsPage = () => {
                     </button>
                     <button
                       onClick={() => {
-                        const url = `${window.location.origin}/invite/${inv.slug}`
+                        const url = buildPublicUrl(`/invite/${inv.slug}`)
                         const msgBody = user.customShareMessage && user.customShareMessage.trim()
                           ? user.customShareMessage.trim()
                           : `We are so excited to celebrate our wedding with you. Please view your personal invitation and RSVP here:`;

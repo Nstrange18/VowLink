@@ -5,6 +5,7 @@ import api from "../../utils/api";
 import Skeleton from "../../components/common/Skeleton";
 import { showConfirmToast } from "../../utils/toastConfirm";
 import { Icon } from "@iconify/react";
+import { buildPublicUrl } from "../../utils/siteUrl";
 
 const cleanPhone = (phone) => {
   if (!phone) return "";
@@ -256,7 +257,7 @@ const AdminBulkWhatsAppPage = () => {
       return;
     }
 
-    const inviteLink = `${window.location.origin}/invite/${guest.slug}`;
+    const inviteLink = buildPublicUrl(`/invite/${guest.slug}`);
     const senderName = getSenderName();
     const rawMsg = formatMessage(messageTemplate, guest.guestName, coupleNames, inviteLink, senderName);
     const encodedMsg = encodeURIComponent(rawMsg);
@@ -646,7 +647,7 @@ const AdminBulkWhatsAppPage = () => {
                       const isSelected = selectedIds.includes(guest._id);
                       const cleaned = cleanPhone(guest.phoneNumber);
                       const isMissing = !cleaned;
-                      const inviteLink = `${window.location.origin}/invite/${guest.slug}`;
+                      const inviteLink = buildPublicUrl(`/invite/${guest.slug}`);
                       
                       const rawMsg = formatMessage(
                         messageTemplate,

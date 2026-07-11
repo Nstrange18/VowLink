@@ -194,29 +194,36 @@ router.post("/generate-invitation-background", protect, async (req, res) => {
     let response;
     try {
       response = await openai.images.generate({
-        model: "dall-e-3",
+        model: "gpt-image-1-mini",
         prompt: constructedPrompt,
         n: 1,
-        size: "1024x1792",
-        quality: "standard",
+        size: "1024x1536",
+        quality: "medium",
+        output_format: "png",
       });
     } catch (openAiErr) {
-      console.error("OpenAI DALL-E generation error:", openAiErr.message);
+      console.error("OpenAI image generation error:", openAiErr.message);
       return res.status(500).json({
         success: false,
         message: "AI image generation failed. " + (openAiErr.message || "Please try again later."),
       });
     }
 
-    const tempImageUrl = response?.data?.[0]?.url;
-    if (!tempImageUrl) {
+    const generatedImage = response?.data?.[0];
+    const imageBase64 = generatedImage?.b64_json;
+    const tempImageUrl = generatedImage?.url;
+    const uploadSource = imageBase64
+      ? `data:image/png;base64,${imageBase64}`
+      : tempImageUrl;
+
+    if (!uploadSource) {
       return res.status(500).json({ success: false, message: "AI returned no image output. Please try again." });
     }
 
     // Save image to Cloudinary
     let uploadResult;
     try {
-      uploadResult = await cloudinary.uploader.upload(tempImageUrl, {
+      uploadResult = await cloudinary.uploader.upload(uploadSource, {
         folder: "vowlink/ai_backgrounds",
       });
     } catch (cloudErr) {

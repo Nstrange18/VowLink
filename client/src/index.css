@@ -178,6 +178,107 @@ html.vowlink-light .landing-hero .text-white\/80 {
   color: #fffaf0 !important;
 }
 
+html.vowlink-light .landing-guest-cta {
+  background-color: #fffaf0 !important;
+}
+
+html.vowlink-light .landing-guest-cta-panel {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(244, 234, 214, 0.86)),
+    #fffaf0 !important;
+  border-color: rgba(138, 101, 24, 0.22) !important;
+  box-shadow: 0 26px 70px rgba(31, 41, 51, 0.12);
+}
+
+html.vowlink-light .landing-guest-cta-panel .text-white,
+html.vowlink-light .landing-guest-cta-panel .text-white\/45,
+html.vowlink-light .landing-guest-cta-panel .text-white\/55,
+html.vowlink-light .landing-guest-cta-panel .text-white\/75 {
+  color: #1f2933 !important;
+}
+
+html.vowlink-light .landing-guest-cta-panel .text-white\/45,
+html.vowlink-light .landing-guest-cta-panel .text-white\/55,
+html.vowlink-light .landing-guest-cta-panel .text-white\/75 {
+  opacity: 0.74;
+}
+
+html.vowlink-light .landing-guest-secondary {
+  background-color: rgba(255, 255, 255, 0.64) !important;
+  border-color: rgba(138, 101, 24, 0.22) !important;
+}
+
+html.vowlink-light .landing-guest-cta-list {
+  background-color: rgba(255, 255, 255, 0.62) !important;
+  border-color: rgba(138, 101, 24, 0.16) !important;
+}
+
+html.vowlink-light .landing-faq {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(216, 183, 106, 0.2), transparent 34%),
+    linear-gradient(180deg, #f4ead6, #fffaf0) !important;
+  border-color: rgba(31, 41, 51, 0.1) !important;
+}
+
+html.vowlink-light .landing-faq .text-white,
+html.vowlink-light .landing-faq .text-white\/45,
+html.vowlink-light .landing-faq .text-white\/50 {
+  color: #1f2933 !important;
+}
+
+html.vowlink-light .landing-faq .text-white\/45,
+html.vowlink-light .landing-faq .text-white\/50 {
+  opacity: 0.78;
+}
+
+html.vowlink-light .landing-faq-card {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 240, 0.82)) !important;
+  border-color: rgba(138, 101, 24, 0.2) !important;
+  box-shadow: 0 18px 42px rgba(31, 41, 51, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+html.vowlink-light .landing-faq-card:hover {
+  border-color: rgba(138, 101, 24, 0.38) !important;
+  box-shadow: 0 22px 52px rgba(31, 41, 51, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+html.vowlink-light .landing-faq-index {
+  background-color: rgba(216, 183, 106, 0.16) !important;
+  border-color: rgba(138, 101, 24, 0.24) !important;
+  color: #8a6518 !important;
+}
+
+html.vowlink-light .landing-footer {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(216, 183, 106, 0.2), transparent 42%),
+    #fffaf0 !important;
+  border-color: rgba(138, 101, 24, 0.2) !important;
+}
+
+html.vowlink-light .landing-footer .text-white,
+html.vowlink-light .landing-footer .text-white\/35,
+html.vowlink-light .landing-footer .text-white\/50,
+html.vowlink-light .landing-footer .text-white\/55,
+html.vowlink-light .landing-footer .text-white\/60 {
+  color: #1f2933 !important;
+}
+
+html.vowlink-light .landing-footer .text-white\/35,
+html.vowlink-light .landing-footer .text-white\/50,
+html.vowlink-light .landing-footer .text-white\/55,
+html.vowlink-light .landing-footer .text-white\/60 {
+  opacity: 0.72;
+}
+
+html.vowlink-light .landing-footer .bg-white\/\[0\.03\] {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+}
+
+html.vowlink-light .landing-footer .border-white\/10 {
+  border-color: rgba(138, 101, 24, 0.18) !important;
+}
+
 html.vowlink-light .auth-shell > .bg-\[\#070A13\]\/85,
 html.vowlink-light .auth-shell > .bg-\[\#070A13\]\/90 {
   background-color: rgba(255, 250, 240, 0.94) !important;

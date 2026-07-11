@@ -615,7 +615,7 @@ router.post("/subscribe", protectVenue, async (req, res) => {
       return res.status(400).json({ message: "Invalid subscription tier selection." });
     }
 
-    const price = tier === "listed" ? 5000 : 15000;
+    const price = tier === "listed" ? 20000 : 50000;
     
     // In a real app, this would query Paystack API:
     // POST https://api.paystack.co/transaction/initialize
@@ -678,7 +678,7 @@ router.post("/subscribe/verify", protectVenue, async (req, res) => {
     }
 
     const paystackData = response.data.data;
-    const expectedAmount = tier === "listed" ? 2000 * 100 : 5000 * 100;
+    const expectedAmount = tier === "listed" ? 20000 * 100 : 50000 * 100;
     const paystackAmount = paystackData.amount;
     const paystackCurrency = paystackData.currency;
 

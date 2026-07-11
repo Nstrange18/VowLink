@@ -22,6 +22,29 @@ const plans = [
   { name: 'Pro', detail: '500 guest links, RSVP export, seating chart, WhatsApp queues, AI themes.' },
 ]
 
+const faqs = [
+  {
+    question: 'Can guests RSVP from their phones?',
+    answer: 'Yes. Each guest receives a personal invite link that opens on mobile and lets them view details, RSVP, leave wishes, and follow any wedding instructions you add.',
+  },
+  {
+    question: 'Can we send invitations through WhatsApp?',
+    answer: 'Yes. VowLink prepares guest-specific invitation links and WhatsApp messages so you can send them without manually copying every detail.',
+  },
+  {
+    question: 'Can we control who invited each guest?',
+    answer: 'Yes. Guests can be grouped by bride, groom, or both, which keeps sender lists and dashboard counts easier to manage.',
+  },
+  {
+    question: 'Do we need a designer to create the invite?',
+    answer: 'No. You can choose a template, upload a couple photo, set colors, add music, and update wedding details directly from your couple dashboard.',
+  },
+  {
+    question: 'Will private wedding dashboard pages show on Google?',
+    answer: 'No. The public marketing pages are prepared for search indexing, while admin, login, dashboard, RSVP response, and guest invite routes are marked as private.',
+  },
+]
+
 const LandingPage = () => {
   return (
     <div className="min-h-screen bg-[#070A13] text-white">
@@ -65,7 +88,7 @@ const LandingPage = () => {
 
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50 animate-bounce">
           <span className="text-xs uppercase tracking-widest">Scroll</span>
-          <span className="text-lg">↓</span>
+          <Icon icon="lucide:arrow-down" className="h-4 w-4" />
         </div>
       </section>
 
@@ -134,6 +157,80 @@ const LandingPage = () => {
         </div>
       </section>
 
+      <section className="landing-guest-cta px-6 py-20">
+        <div className="landing-guest-cta-panel mx-auto grid max-w-6xl grid-cols-1 overflow-hidden rounded-[2rem] border border-[#D8B76A]/20 bg-[#111827] lg:grid-cols-12">
+          <div className="p-8 sm:p-10 lg:col-span-7 lg:p-12">
+            <p className="mb-4 text-xs uppercase tracking-[0.4em] text-[#D8B76A]">For Your Guest List</p>
+            <h2 className="font-serif text-3xl leading-tight text-white sm:text-5xl">
+              Send a polished invitation before the first RSVP reminder
+            </h2>
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/55">
+              Create the invite, assign guest categories, prepare WhatsApp messages, and give guests one beautiful link with the details they need.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/signup"
+                className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-8 py-3 text-center text-xs font-bold uppercase tracking-widest text-[#070A13]"
+              >
+                Create Your Portal
+              </Link>
+              <Link
+                to="/features"
+                className="landing-guest-secondary rounded-full border border-white/15 px-8 py-3 text-center text-xs font-semibold uppercase tracking-widest text-white/75"
+              >
+                Explore Features
+              </Link>
+            </div>
+          </div>
+          <div className="landing-guest-cta-list border-t border-white/10 bg-[#070A13]/70 p-8 sm:p-10 lg:col-span-5 lg:border-l lg:border-t-0 lg:p-12">
+            <div className="grid gap-5">
+              {[
+                ['Guest links', 'Personalized pages for each invitee'],
+                ['RSVP totals', 'Clear counts for attending and pending guests'],
+                ['WhatsApp-ready', 'Messages prepared around each guest link'],
+              ].map(([title, text]) => (
+                <div key={title} className="flex gap-4">
+                  <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D8B76A]/15 text-[#D8B76A]">
+                    <Icon icon="lucide:check" className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-white">{title}</h3>
+                    <p className="mt-1 text-sm text-white/45">{text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="landing-faq border-y border-white/5 bg-[#0D1220]/40 px-6 py-20">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <p className="mb-4 text-xs uppercase tracking-[0.4em] text-[#D8B76A]">FAQ</p>
+            <h2 className="font-serif text-3xl leading-tight text-white sm:text-4xl">Questions before you send the link</h2>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/45">
+              Clear answers for couples setting up their first digital wedding invitation portal.
+            </p>
+          </div>
+          <div className="grid gap-5 lg:col-span-8">
+            {faqs.map((faq, index) => (
+              <article key={faq.question} className="landing-faq-card group rounded-3xl border border-white/10 bg-[#070A13]/60 p-5 transition hover:border-[#D8B76A]/35 sm:p-6">
+                <div className="flex gap-4">
+                  <span className="landing-faq-index flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8B76A]/25 bg-[#D8B76A]/10 text-[10px] font-bold text-[#D8B76A]">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-white">{faq.question}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-white/50">{faq.answer}</p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="px-6 py-20 text-center border-t border-white/5">
         <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#D8B76A]/15 text-sm font-bold text-[#D8B76A]">
           VL
@@ -152,19 +249,76 @@ const LandingPage = () => {
         </p>
       </section>
 
-      <footer className="border-t border-white/5 px-6 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <img src="/vowlink-icon.webp" alt="" className="h-7 w-7 object-contain" />
-              <span className="font-serif text-xl text-white">Vowlink</span>
+      <footer className="landing-footer relative overflow-hidden border-t border-[#D8B76A]/15 bg-[#050814] px-6 py-12">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#D8B76A]/70 to-transparent" />
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-[36rem] -translate-x-1/2 rounded-full bg-[#D8B76A]/8 blur-3xl" />
+
+        <div className="relative mx-auto max-w-6xl">
+          <div className="grid gap-10 md:grid-cols-[1.4fr_0.8fr_0.8fr_1fr]">
+            <div className="max-w-sm">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/10">
+                  <img src="/vowlink-icon.webp" alt="" className="h-7 w-7 object-contain" />
+                </span>
+                <span className="font-serif text-2xl text-white">Vowlink</span>
+              </div>
+              <p className="mt-4 text-sm leading-relaxed text-white/50">
+                Digital wedding invitations, RSVP tracking, guest planning, and sharing tools for modern celebrations.
+              </p>
+              <Link
+                to="/signup"
+                className="mt-6 inline-flex rounded-full bg-[#D8B76A] px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:bg-[#F2D894]"
+              >
+                Start Free
+              </Link>
             </div>
-            <p className="mt-2 text-xs text-white/40">Digital wedding invitations, RSVP tracking, and guest planning tools.</p>
+
+            <div>
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Explore</p>
+              <div className="flex flex-col gap-3 text-sm text-white/55">
+                <Link to="/features" className="transition hover:text-[#D8B76A]">Features</Link>
+                <Link to="/templates" className="transition hover:text-[#D8B76A]">Templates</Link>
+                <Link to="/pricing" className="transition hover:text-[#D8B76A]">Pricing</Link>
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Portals</p>
+              <div className="flex flex-col gap-3 text-sm text-white/55">
+                <Link to="/signup" className="transition hover:text-[#D8B76A]">Create account</Link>
+                <Link to="/admin/login" className="transition hover:text-[#D8B76A]">Couple login</Link>
+                <Link to="/venue/login" className="transition hover:text-[#D8B76A]">Venue portal</Link>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Contact Us</p>
+              <div className="flex flex-col gap-3 text-sm text-white/60">
+                <a href="mailto:hello@vowlink.co" className="group flex items-center gap-3 transition hover:text-[#D8B76A]">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition group-hover:bg-[#D8B76A] group-hover:text-[#070A13]">
+                    <Icon icon="lucide:mail" className="h-4 w-4" />
+                  </span>
+                  <span>hello@vowlink.co</span>
+                </a>
+                <a href="https://wa.me/2349127315930" target="_blank" rel="noreferrer" className="group flex items-center gap-3 transition hover:text-[#D8B76A]">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition group-hover:bg-[#D8B76A] group-hover:text-[#070A13]">
+                    <Icon icon="ri:whatsapp-line" className="h-4 w-4" />
+                  </span>
+                  <span>09127315930</span>
+                </a>
+                <a href="https://instagram.com/vowlink.co" target="_blank" rel="noreferrer" className="group flex items-center gap-3 transition hover:text-[#D8B76A]">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition group-hover:bg-[#D8B76A] group-hover:text-[#070A13]">
+                    <Icon icon="ri:instagram-line" className="h-4 w-4" />
+                  </span>
+                  <span>@vowlink.co</span>
+                </a>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-4 text-xs text-white/50">
-            <Link to="/signup" className="hover:text-[#D8B76A]">Create account</Link>
-            <Link to="/admin/login" className="hover:text-[#D8B76A]">Couple login</Link>
-            <Link to="/venue/login" className="hover:text-[#D8B76A]">Venue portal</Link>
+
+          <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between">
+            <p>© {new Date().getFullYear()} Vowlink. All rights reserved.</p>
+            <p>Made for wedding planning, guest care, and beautiful invitations.</p>
           </div>
         </div>
       </footer>

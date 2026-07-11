@@ -589,7 +589,7 @@ const VenueDashboardPage = () => {
     setCheckoutModal({
       isOpen: true,
       tier,
-      price: tier === "listed" ? 5000 : 15000,
+      price: tier === "listed" ? 20000 : 50000,
       reference: "",
       submitting: true,
     });
@@ -612,7 +612,7 @@ const VenueDashboardPage = () => {
     const paystackOptions = {
       key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
       email: venue.ownerEmail,
-      amount: (tier === "listed" ? 5000 : 15000) * 100, // Price in kobo
+      amount: (tier === "listed" ? 20000 : 50000) * 100, // Price in kobo
       currency: "NGN",
       metadata: {
         paymentType: "venue_subscription",
@@ -620,7 +620,7 @@ const VenueDashboardPage = () => {
         venueId: venue._id,
       },
       onSuccess: async (transaction) => {
-        setCheckoutModal({ isOpen: true, tier, price: tier === "listed" ? 5000 : 15000, reference: transaction.reference, submitting: true });
+        setCheckoutModal({ isOpen: true, tier, price: tier === "listed" ? 20000 : 50000, reference: transaction.reference, submitting: true });
         toast.info("Payment successful! Verifying upgrade...");
         try {
           const res = await api.post(
