@@ -28,6 +28,9 @@ const splitEnvList = (value) => String(value || "")
 
 const allowedOrigins = new Set([
   "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174",
   "https://vow-link556.vercel.app",
   "https://vowlink.co",
   "https://www.vowlink.co",
@@ -38,15 +41,37 @@ const allowedOrigins = new Set([
   ...splitEnvList(process.env.ALLOWED_ORIGINS),
 ].filter(Boolean).map((origin) => String(origin).replace(/\/+$/, "")));
 
-app.use(cors({
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+
+  const normalizedOrigin = origin.replace(/\/+$/, "");
+  if (allowedOrigins.has(normalizedOrigin)) return true;
+
+  try {
+    const { hostname, protocol } = new URL(normalizedOrigin);
+    const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+    const isVercelPreview = protocol === "https:" && hostname.endsWith(".vercel.app");
+    const isVowLinkDomain = protocol === "https:" && (hostname === "vowlink.co" || hostname === "www.vowlink.co");
+
+    return isLocalhost || isVercelPreview || isVowLinkDomain;
+  } catch {
+    return false;
+  }
+};
+
+const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowedOrigins.has(origin.replace(/\/+$/, ""))) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     }
     return callback(new Error(`CORS blocked origin: ${origin}`));
   },
   credentials: true,
-}));
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
