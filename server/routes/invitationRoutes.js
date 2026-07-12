@@ -213,6 +213,7 @@ router.post("/check-in/:token", async (req, res) => {
     invitation.checkedIn = true;
     invitation.checkedInAt = new Date();
     invitation.checkedInBy = authUser?.id || undefined;
+    invitation.checkedInVia = isSuperAdmin ? "admin" : isOwner ? "couple" : hasCheckInAccess ? "pin" : "unknown";
     await invitation.save();
 
     res.status(200).json({ message: "Guest checked in successfully.", invitation });
@@ -561,4 +562,5 @@ router.post("/bulk-update-sender-group", protect, async (req, res) => {
 });
 
 module.exports = router;
+
 

@@ -102,6 +102,11 @@ const invitationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    checkedInVia: {
+      type: String,
+      enum: ["pin", "couple", "admin", "unknown"],
+      default: "unknown",
+    },
   },
   { timestamps: true }
 );

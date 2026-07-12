@@ -949,7 +949,7 @@ const AdminSettingsPageContent = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 block text-[9px] uppercase tracking-widest text-white/50 font-semibold font-semibold">Confirm New Password</label>
+                    <label className="mb-1 block text-[9px] uppercase tracking-widest text-white/50 font-semibold">Confirm New Password</label>
                     <div className="relative">
                       <input
                         type={showConfirmNewPassword ? "text" : "password"}

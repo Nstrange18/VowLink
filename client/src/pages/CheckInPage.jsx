@@ -23,6 +23,8 @@ const CheckInPage = () => {
 
   const isLoggedIn = Boolean(localStorage.getItem("token"));
   const getAccessKey = (eventId) => `vowlink_checkin_access_${eventId}`;
+  const pinAccessAvailable = record?.checkInPinEnabled !== false;
+  const needsPinAccess = Boolean(record && !isLoggedIn && !hasCheckInAccess && !record.checkedIn);
 
   useEffect(() => {
     const loadCheckIn = async () => {
@@ -48,7 +50,7 @@ const CheckInPage = () => {
     let accessToken = record.eventId ? sessionStorage.getItem(getAccessKey(record.eventId)) : "";
 
     if (!isLoggedIn && !accessToken) {
-      if (!record.checkInPinEnabled) {
+      if (record.checkInPinEnabled === false) {
         toast.info("This wedding has not enabled usher PIN access yet.");
         return;
       }
@@ -159,19 +161,29 @@ const CheckInPage = () => {
                 </div>
               </div>
 
-              {!isLoggedIn && !hasCheckInAccess && !record.checkedIn && (
-                <div className="rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 p-4">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#D8B76A]">
-                    Event check-in PIN
-                  </label>
+              {needsPinAccess && (
+                <div className="rounded-2xl border border-[#D8B76A]/35 bg-[#D8B76A]/10 p-4 shadow-[0_12px_35px_rgba(216,183,106,0.12)]">
+                  <div className="mb-3 flex items-start gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/25 bg-[#D8B76A]/15 text-[#D8B76A]">
+                      <Icon icon="lucide:key-round" className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[#D8B76A]">
+                        Usher authorization required
+                      </p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-white/50">
+                        Enter the event PIN from the couple to unlock check-in on this device.
+                      </p>
+                    </div>
+                  </div>
                   <input
                     type="password"
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={pin}
                     onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, 8))}
-                    placeholder={record.checkInPinEnabled ? "Enter usher PIN" : "PIN not enabled"}
-                    disabled={!record.checkInPinEnabled || checkingIn}
+                    placeholder={pinAccessAvailable ? "Enter event PIN" : "PIN not enabled"}
+                    disabled={!pinAccessAvailable || checkingIn}
                     className="mt-2 w-full rounded-xl border border-white/10 bg-[#070A13] px-4 py-3 text-center font-mono text-lg tracking-[0.35em] text-white outline-none transition placeholder:text-center placeholder:text-xs placeholder:tracking-wider placeholder:text-white/25 focus:border-[#D8B76A]/70 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                   <p className="mt-2 text-[11px] leading-relaxed text-white/45">
@@ -192,11 +204,11 @@ const CheckInPage = () => {
               <button
                 type="button"
                 onClick={handleCheckIn}
-                disabled={checkingIn || record.checkedIn}
+                disabled={checkingIn || record.checkedIn || (needsPinAccess && pinAccessAvailable && pin.trim().length < 4)}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-[#D8B76A] px-5 py-3 text-xs font-bold uppercase tracking-widest text-[#070A13] transition hover:bg-[#F2D894] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Icon icon={checkingIn ? "lucide:loader-2" : record.checkedIn ? "lucide:check" : "lucide:badge-check"} className={`h-4 w-4 ${checkingIn ? "animate-spin" : ""}`} />
-                {checkingIn ? "Checking In..." : record.checkedIn ? "Checked In" : "Check In Guest"}
+                {checkingIn ? "Checking In..." : record.checkedIn ? "Checked In" : needsPinAccess ? "Unlock and Check In" : "Check In Guest"}
               </button>
 
               {!isLoggedIn && (

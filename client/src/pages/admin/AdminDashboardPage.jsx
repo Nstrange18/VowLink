@@ -341,6 +341,9 @@ const AdminDashboardPage = () => {
   const pendingInvitations = invitations.filter((i) => !i.hasRSVPed);
   const attendingRsvps = rsvps.filter((r) => r.attending === 'Yes');
   const notAttendingRsvps = rsvps.filter((r) => r.attending === 'No');
+  const checkedInInvitations = invitations.filter((i) => i.checkedIn);
+  const checkedInCount = checkedInInvitations.length;
+  const checkedInPercent = invitations.length > 0 ? Math.round((checkedInCount / invitations.length) * 100) : 0;
 
   const countBySenderGroup = (items, getSenderGroup) => items.reduce((acc, item) => {
     const senderGroup = getSenderGroup(item) || 'general';
@@ -417,6 +420,37 @@ const AdminDashboardPage = () => {
           ) : (
             <StatCard label="Pending" value={pending} color="text-[#D8B76A]" sub="awaiting response" loading={loading} breakdown={pendingBreakdown} />
           )}
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-emerald-400/15 bg-emerald-400/10 p-5 shadow-[0_16px_40px_rgba(0,0,0,0.16)]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">
+                <Icon icon="lucide:scan-line" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-300">Event Check-in</p>
+                <h3 className="mt-1 font-serif text-2xl text-white">{checkedInCount} / {invitations.length} guests checked in</h3>
+                <p className="mt-1 text-xs leading-relaxed text-white/45">
+                  Track entrance progress as ushers scan guest QR codes on event day.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/admin/invitations"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-emerald-200 transition hover:bg-emerald-400/15"
+            >
+              <Icon icon="lucide:list-checks" className="h-3.5 w-3.5" />
+              Manage Check-ins
+            </Link>
+          </div>
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
+            <div className="h-full rounded-full bg-emerald-400 transition-all duration-700" style={{ width: `${checkedInPercent}%` }} />
+          </div>
+          <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-wider text-white/40">
+            <span>{checkedInPercent}% complete</span>
+            <span>{Math.max(invitations.length - checkedInCount, 0)} remaining</span>
+          </div>
         </div>
       </div>
 

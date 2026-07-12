@@ -16,12 +16,14 @@ const AdminInvitationsPage = () => {
   const [qrDataUrl, setQrDataUrl] = useState('')
   const [qrLoading, setQrLoading] = useState(false)
   const [downloadingQr, setDownloadingQr] = useState(false)
+  const [printingQrSheet, setPrintingQrSheet] = useState(false)
   const navigate = useNavigate()
   const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [checkInFilter, setCheckInFilter] = useState("all")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [senderGroupFilter, setSenderGroupFilter] = useState("all")
 
@@ -57,6 +59,32 @@ const AdminInvitationsPage = () => {
         light: '#FFFFFF',
       },
     })
+
+const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}[char]))
+
+const formatCheckInLog = (invitation) => {
+  if (!invitation?.checkedInAt) return ''
+
+  const checkedInAt = new Intl.DateTimeFormat('en-NG', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(invitation.checkedInAt))
+
+  const viaLabel = {
+    pin: 'usher PIN',
+    couple: 'couple account',
+    admin: 'admin',
+    unknown: 'check-in',
+  }[invitation.checkedInVia || 'unknown']
+
+  return `Checked in ${checkedInAt} via ${viaLabel}`
+}
 
   useEffect(() => {
     let cancelled = false
@@ -109,6 +137,89 @@ const AdminInvitationsPage = () => {
     }
   }
 
+  const handlePrintQrSheet = async () => {
+    if (printingQrSheet) return
+    const printableInvitations = invitations.filter((inv) => inv.checkInToken)
+
+    if (printableInvitations.length === 0) {
+      toast.info('No check-in QR codes are ready yet. Please refresh and try again.')
+      return
+    }
+
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      toast.error('Popup blocked. Allow popups to print the QR sheet.')
+      return
+    }
+
+    setPrintingQrSheet(true)
+    try {
+      printWindow.document.write('<html><head><title>VowLink Entry QR Sheet</title></head><body><p style="font-family:sans-serif">Preparing QR sheet...</p></body></html>')
+
+      const cards = await Promise.all(printableInvitations.map(async (inv) => {
+        const qr = await createQrDataUrl(getCheckInUrl(inv), 220)
+        const guestCount = inv.allowedGuests || 1
+        return `
+          <article class="qr-card">
+            <img src="${qr}" alt="QR for ${escapeHtml(inv.guestName)}" />
+            <div>
+              <h2>${escapeHtml(inv.guestName || 'Guest')}</h2>
+              <p>${escapeHtml(inv.category || 'Guest')} • ${guestCount} guest${guestCount === 1 ? '' : 's'}</p>
+              <p class="slug">/invite/${escapeHtml(inv.slug)}</p>
+            </div>
+          </article>
+        `
+      }))
+
+      printWindow.document.open()
+      printWindow.document.write(`
+        <!doctype html>
+        <html>
+          <head>
+            <title>VowLink Entry QR Sheet</title>
+            <style>
+              * { box-sizing: border-box; }
+              body { margin: 0; padding: 24px; font-family: Inter, Arial, sans-serif; color: #070A13; background: #fff; }
+              header { margin-bottom: 20px; border-bottom: 2px solid #070A13; padding-bottom: 12px; }
+              h1 { margin: 0; font-family: Georgia, serif; font-size: 28px; }
+              .meta { margin: 6px 0 0; color: #555; font-size: 12px; }
+              .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+              .qr-card { display: grid; grid-template-columns: 116px 1fr; gap: 12px; min-height: 138px; border: 1px solid #d8d8d8; border-radius: 12px; padding: 10px; break-inside: avoid; }
+              .qr-card img { width: 112px; height: 112px; }
+              .qr-card h2 { margin: 10px 0 6px; font-size: 18px; }
+              .qr-card p { margin: 0 0 6px; font-size: 12px; color: #333; }
+              .slug { font-family: monospace; color: #777; word-break: break-all; }
+              @media print {
+                body { padding: 12mm; }
+                .grid { gap: 10px; }
+              }
+            </style>
+          </head>
+          <body>
+            <header>
+              <h1>VowLink Entry QR Sheet</h1>
+              <p class="meta">${escapeHtml(user.partner1Name || 'Couple')} & ${escapeHtml(user.partner2Name || 'Partner')} • ${printableInvitations.length} guest QR codes</p>
+            </header>
+            <main class="grid">${cards.join('')}</main>
+            <script>
+              window.onload = () => {
+                window.focus();
+                window.print();
+              };
+            </script>
+          </body>
+        </html>
+      `)
+      printWindow.document.close()
+      toast.success('QR sheet opened for printing.')
+    } catch {
+      printWindow.close()
+      toast.error('Unable to prepare QR sheet.')
+    } finally {
+      setPrintingQrSheet(false)
+    }
+  }
+
   const handleDeleteClick = (id) => {
     const invitation = invitations.find((inv) => inv._id === id)
     showConfirmToast({
@@ -136,6 +247,9 @@ const AdminInvitationsPage = () => {
   const limit = tier === 'free' ? 1 : tier === 'plus' ? 100 : 500;
   const count = invitations.length;
   const progressPercent = Math.min((count / limit) * 100, 100);
+  const checkedInCount = invitations.filter((inv) => inv.checkedIn).length;
+  const notCheckedInCount = Math.max(count - checkedInCount, 0);
+  const checkInPercent = count > 0 ? Math.round((checkedInCount / count) * 100) : 0;
 
   // Dynamic unique categories from invitations
   const categories = ["all", ...new Set(invitations.map(inv => inv.category || "Guest").filter(Boolean))];
@@ -160,6 +274,10 @@ const AdminInvitationsPage = () => {
     const matchesSearch = inv.guestName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || (inv.category || "Guest") === categoryFilter;
     const matchesSenderGroup = senderGroupFilter === "all" || (inv.senderGroup || "general") === senderGroupFilter;
+    const matchesCheckIn =
+      checkInFilter === "all" ||
+      (checkInFilter === "checked_in" && inv.checkedIn) ||
+      (checkInFilter === "not_checked_in" && !inv.checkedIn);
 
     const status = inv.hasRSVPed
       ? "rsvped"
@@ -168,7 +286,7 @@ const AdminInvitationsPage = () => {
         : "pending";
     const matchesStatus = statusFilter === "all" || status === statusFilter;
 
-    return matchesSearch && matchesCategory && matchesStatus && matchesSenderGroup;
+    return matchesSearch && matchesCategory && matchesStatus && matchesSenderGroup && matchesCheckIn;
   });
 
   return (
@@ -260,7 +378,16 @@ const AdminInvitationsPage = () => {
             </span>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handlePrintQrSheet}
+            disabled={printingQrSheet || invitations.length === 0}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-emerald-200 transition hover:bg-emerald-400/15 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
+          >
+            <Icon icon={printingQrSheet ? "lucide:loader-2" : "lucide:printer"} className={`h-4 w-4 ${printingQrSheet ? "animate-spin" : ""}`} />
+            {printingQrSheet ? "Preparing..." : "Print QR Sheet"}
+          </button>
           <Link
             to="/admin/invitations/bulk"
             className={`rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition duration-300 whitespace-nowrap ${tier === 'free'
@@ -294,6 +421,28 @@ const AdminInvitationsPage = () => {
         </div>
       </div>
 
+      <div className="mb-6 rounded-3xl border border-emerald-400/15 bg-emerald-400/10 p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">
+              <Icon icon="lucide:badge-check" className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-emerald-300">Check-in Progress</p>
+              <h3 className="mt-1 font-serif text-2xl text-white">{checkedInCount} / {count} checked in</h3>
+              <p className="mt-1 text-xs text-white/45">{notCheckedInCount} guests still pending entrance check-in.</p>
+            </div>
+          </div>
+          <div className="min-w-36 text-left sm:text-right">
+            <p className="font-mono text-3xl text-emerald-300">{checkInPercent}%</p>
+            <p className="text-[10px] uppercase tracking-widest text-white/40">complete</p>
+          </div>
+        </div>
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+          <div className="h-full rounded-full bg-emerald-400 transition-all duration-700" style={{ width: `${checkInPercent}%` }} />
+        </div>
+      </div>
+
       {/* Settings customization note */}
       <div className="mb-6 rounded-2xl border border-white/5 bg-white/3 px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg backdrop-blur-md">
         <div className="flex items-center gap-3">
@@ -315,7 +464,7 @@ const AdminInvitationsPage = () => {
       </div>
 
       {/* Search and Filters Bar */}
-      <div className="mb-6 grid grid-cols-1 sm:grid-cols-4 gap-4 bg-[#0D1220] border border-white/10 rounded-2xl p-4 shadow-lg backdrop-blur-md">
+      <div className="mb-6 grid grid-cols-1 gap-4 rounded-2xl border border-white/10 bg-[#0D1220] p-4 shadow-lg backdrop-blur-md sm:grid-cols-2 xl:grid-cols-5">
         {/* Search Input */}
         <div className="relative">
           <Icon icon="lucide:search" className="absolute left-3.5 top-3.5 text-white/30 w-3.5 h-3.5" />
@@ -347,6 +496,19 @@ const AdminInvitationsPage = () => {
             <option value="pending">Status: Pending</option>
             <option value="rsvped">Status: RSVPed</option>
             <option value="no_response">Status: No Response (Deadline Passed)</option>
+          </select>
+        </div>
+
+        {/* Check-in Filter */}
+        <div>
+          <select
+            value={checkInFilter}
+            onChange={(e) => setCheckInFilter(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-[#0D1220] px-4 py-2.5 text-xs text-white/80 outline-none focus:border-[#D8B76A]/60 transition"
+          >
+            <option value="all">Check-in: All</option>
+            <option value="checked_in">Check-in: Checked In</option>
+            <option value="not_checked_in">Check-in: Not Checked In</option>
           </select>
         </div>
 
@@ -506,6 +668,12 @@ const AdminInvitationsPage = () => {
                           )}
                         </div>
                         <p className="text-xs text-white/40 mt-0.5">/invite/{inv.slug}</p>
+                        {inv.checkedIn && inv.checkedInAt && (
+                          <p className="mt-1 inline-flex items-center gap-1 text-[10px] text-emerald-300/75">
+                            <Icon icon="lucide:clock-3" className="h-3 w-3" />
+                            {formatCheckInLog(inv)}
+                          </p>
+                        )}
                       </td>
                       <td className="px-5 py-4 text-white/60">{inv.category || 'Guest'}</td>
                       <td className="px-5 py-4 text-white/60">{inv.allowedGuests}</td>
@@ -611,6 +779,12 @@ const AdminInvitationsPage = () => {
                         )}
                       </div>
                       <p className="text-xs text-white/40 mt-0.5">{inv.category || 'Guest'} · {inv.allowedGuests} guest{inv.allowedGuests !== 1 ? 's' : ''}</p>
+                      {inv.checkedIn && inv.checkedInAt && (
+                        <p className="mt-1 inline-flex items-center gap-1 text-[10px] text-emerald-300/75">
+                          <Icon icon="lucide:clock-3" className="h-3 w-3" />
+                          {formatCheckInLog(inv)}
+                        </p>
+                      )}
                     </div>
                     <span className={`inline-flex min-w-22 items-center justify-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${getRsvpBadgeClass(inv)}`}>
                       {getRsvpStatusText(inv)}
@@ -685,3 +859,4 @@ const AdminInvitationsPage = () => {
 }
 
 export default AdminInvitationsPage;
+
