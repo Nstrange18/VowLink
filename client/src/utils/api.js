@@ -51,6 +51,42 @@ api.interceptors.response.use(
       original?.url?.includes('/auth/reset-password')
 
     const isVenueRequest = original?.url?.includes('/venues')
+    const isVenueAuthRequest =
+      original?.url?.includes('/venues/auth/login') ||
+      original?.url?.includes('/venues/auth/register') ||
+      original?.url?.includes('/venues/auth/refresh')
+
+    if (error.response?.status === 401 && !original._retry && isVenueRequest && !isVenueAuthRequest) {
+      const venueRefreshToken = localStorage.getItem('venueRefreshToken')
+
+      if (!venueRefreshToken) {
+        localStorage.removeItem('venueToken')
+        localStorage.removeItem('venueRefreshToken')
+        localStorage.removeItem('venue')
+        window.location.href = '/venue/login'
+        return Promise.reject(error)
+      }
+
+      original._retry = true
+
+      try {
+        const res = await axios.post(
+          `${getBaseURL()}/venues/auth/refresh`,
+          { refreshToken: venueRefreshToken }
+        )
+
+        const newToken = res.data.token
+        localStorage.setItem('venueToken', newToken)
+        original.headers.Authorization = `Bearer ${newToken}`
+        return api(original)
+      } catch (refreshError) {
+        localStorage.removeItem('venueToken')
+        localStorage.removeItem('venueRefreshToken')
+        localStorage.removeItem('venue')
+        window.location.href = '/venue/login'
+        return Promise.reject(refreshError)
+      }
+    }
 
     // If 401 and we haven't retried yet, refresh token ONLY for protected non-venue requests
     if (error.response?.status === 401 && !original._retry && !isAuthPageRequest && !isVenueRequest) {

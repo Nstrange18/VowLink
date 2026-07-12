@@ -85,8 +85,25 @@ const invitationSchema = new mongoose.Schema(
     whatsappSentBy: {
       type: String,
     },
+    checkInToken: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+    checkedIn: {
+      type: Boolean,
+      default: false,
+    },
+    checkedInAt: {
+      type: Date,
+    },
+    checkedInBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Invitation", invitationSchema);
+module.exports = mongoose.model("Invitation", invitationSchema);

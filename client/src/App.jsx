@@ -9,6 +9,7 @@ import ThemeToggle from './components/ThemeToggle'
 import SEO from './components/SEO'
 
 const InvitePage = lazy(() => import('./pages/InvitePage'))
+const CheckInPage = lazy(() => import('./pages/CheckInPage'))
 const RsvpResponsePage = lazy(() => import('./pages/RsvpResponsePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const LandingPage = lazy(() => import('./pages/LandingPage'))
@@ -26,6 +27,7 @@ const AdminTemplatesPage = lazy(() => import('./pages/admin/AdminTemplatesPage')
 const AdminBillingPage = lazy(() => import('./pages/admin/AdminBillingPage'))
 const AdminVenuesPage = lazy(() => import('./pages/admin/AdminVenuesPage'))
 const VenueDetailsPage = lazy(() => import('./pages/admin/VenueDetailsPage'))
+const AdminVenueInquiriesPage = lazy(() => import('./pages/admin/AdminVenueInquiriesPage'))
 const AdminBulkInvitationPage = lazy(() => import('./pages/admin/AdminBulkInvitationPage'))
 const AdminBulkWhatsAppPage = lazy(() => import('./pages/admin/AdminBulkWhatsAppPage'))
 const AdminSeatingPage = lazy(() => import('./pages/admin/AdminSeatingPage'))
@@ -61,9 +63,11 @@ const PUBLIC_ROUTE_META = {
 const isPrivateRoute = (pathname) => (
   pathname.startsWith('/admin') ||
   pathname.startsWith('/super-admin') ||
-  pathname.startsWith('/venue') ||
+  pathname === '/venue' ||
+  pathname.startsWith('/venue/') ||
   pathname.startsWith('/signup') ||
   pathname.startsWith('/rsvp-response') ||
+  pathname.startsWith('/check-in/') ||
   pathname.startsWith('/invite/')
 )
 
@@ -73,6 +77,16 @@ const RouteMetadata = () => {
 
   if (publicMeta) {
     return <SEO {...publicMeta} path={pathname} />
+  }
+
+  if (pathname.startsWith('/venues/')) {
+    return (
+      <SEO
+        title="VowLink Venue Profile | Wedding Venue Details"
+        description="View a public VowLink wedding venue profile with photos, location details, style, pricing guidance, and contact options."
+        path={pathname}
+      />
+    )
   }
 
   if (isPrivateRoute(pathname)) {
@@ -182,6 +196,8 @@ function AppContent() {
 
         {/* Guest routes */}
         <Route path="/invite/:slug" element={<InvitePage setThemePreference={setThemePreference} />} />
+        <Route path="/check-in/:token" element={<CheckInPage />} />
+        <Route path="/venues/:id" element={<VenueDetailsPage />} />
         <Route path="/rsvp-response" element={<RsvpResponsePage />} />
 
         {/* Auth */}
@@ -215,6 +231,7 @@ function AppContent() {
           <Route path="billing" element={<AdminBillingPage />} />
           <Route path="venues" element={<AdminVenuesPage />} />
           <Route path="venues/:id" element={<VenueDetailsPage />} />
+          <Route path="venue-inquiries" element={<AdminVenueInquiriesPage />} />
           <Route path="seating" element={<AdminSeatingPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="templates" element={<AdminTemplatesPage />} />

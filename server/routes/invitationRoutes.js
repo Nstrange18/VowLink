@@ -1,4 +1,5 @@
-﻿const express = require("express");
+const express = require("express");
+const crypto = require("crypto");
 const Invitation = require("../models/Invitation");
 const RSVP = require("../models/RSVP");
 const User = require("../models/User");
@@ -12,6 +13,20 @@ const createSlug = (name) =>
     .trim()
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-");
+const createCheckInToken = () => crypto.randomBytes(24).toString("hex");
+
+const ensureInvitationCheckInToken = async (invitation) => {
+  if (invitation.checkInToken) return invitation.checkInToken;
+
+  let token = createCheckInToken();
+  while (await Invitation.exists({ checkInToken: token })) {
+    token = createCheckInToken();
+  }
+
+  invitation.checkInToken = token;
+  await invitation.save();
+  return token;
+};
 
 const cleanWhatsAppNumber = (phone) => {
   if (!phone) return "";
@@ -46,7 +61,7 @@ router.get("/slug/:slug", async (req, res) => {
   }
 });
 
-// GET /api/invitations/slug/:slug/wishes — public endpoint to fetch wedding guest wishes
+// GET /api/invitations/slug/:slug/wishes � public endpoint to fetch wedding guest wishes
 router.get("/slug/:slug/wishes", async (req, res) => {
   try {
     const invitation = await Invitation.findOne({ slug: req.params.slug });
@@ -72,7 +87,74 @@ router.get("/slug/:slug/wishes", async (req, res) => {
   }
 });
 
-// ─── PROTECTED: All routes below require login ───────────────────────────────
+// GET /api/invitations/check-in/:token - QR scan preview for ushers
+router.get("/check-in/:token", async (req, res) => {
+  try {
+    const invitation = await Invitation.findOne({ checkInToken: req.params.token }).populate(
+      "userId",
+      "partner1Name partner2Name weddingDate venue venueName"
+    );
+
+    if (!invitation) {
+      return res.status(404).json({ message: "Invalid or expired check-in QR code." });
+    }
+
+    res.status(200).json({
+      invitationId: invitation._id,
+      guestName: invitation.guestName,
+      category: invitation.category,
+      allowedGuests: invitation.allowedGuests,
+      hasRSVPed: invitation.hasRSVPed,
+      checkedIn: invitation.checkedIn,
+      checkedInAt: invitation.checkedInAt,
+      couple: invitation.userId
+        ? {
+            partner1Name: invitation.userId.partner1Name,
+            partner2Name: invitation.userId.partner2Name,
+            weddingDate: invitation.userId.weddingDate,
+            venue: invitation.userId.venueName || invitation.userId.venue,
+          }
+        : null,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to load check-in details", error: error.message });
+  }
+});
+
+// POST /api/invitations/check-in/:token - mark a guest as checked in
+router.post("/check-in/:token", protect, async (req, res) => {
+  try {
+    const invitation = await Invitation.findOne({ checkInToken: req.params.token });
+
+    if (!invitation) {
+      return res.status(404).json({ message: "Invalid or expired check-in QR code." });
+    }
+
+    const isOwner = String(invitation.userId) === String(req.user.id);
+    const isSuperAdmin =
+      req.user.role === "admin" &&
+      req.user.email?.toLowerCase() === "nwubachukwuemelie@gmail.com";
+
+    if (!isOwner && !isSuperAdmin) {
+      return res.status(403).json({ message: "You are not allowed to check in this guest." });
+    }
+
+    if (invitation.checkedIn) {
+      return res.status(200).json({ message: "Guest was already checked in.", invitation });
+    }
+
+    invitation.checkedIn = true;
+    invitation.checkedInAt = new Date();
+    invitation.checkedInBy = req.user.id;
+    await invitation.save();
+
+    res.status(200).json({ message: "Guest checked in successfully.", invitation });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to check in guest", error: error.message });
+  }
+});
+
+// --- PROTECTED: All routes below require login -------------------------------
 
 // Create invitation
 router.post("/", protect, async (req, res) => {
@@ -133,6 +215,7 @@ router.post("/", protect, async (req, res) => {
       phoneNumber: phoneNumber || "",
       senderGroup: senderGroup || "general",
       createdByPartner: senderGroup || "general",
+      checkInToken: createCheckInToken(),
     });
 
     res.status(201).json({
@@ -219,6 +302,7 @@ router.post("/bulk", protect, async (req, res) => {
         whatsappStatus,
         senderGroup,
         createdByPartner: senderGroup,
+        checkInToken: createCheckInToken(),
       });
     }
 
@@ -244,6 +328,8 @@ router.get("/", protect, async (req, res) => {
     const invitations = await Invitation.find({ userId: req.user.id }).sort({
       createdAt: -1,
     });
+    await Promise.all(invitations.map((inv) => ensureInvitationCheckInToken(inv)));
+
     const updatedInvitations = invitations.map(inv => {
       const doc = inv.toObject();
       if (!doc.senderGroup) doc.senderGroup = "general";

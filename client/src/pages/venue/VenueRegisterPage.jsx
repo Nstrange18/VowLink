@@ -77,6 +77,7 @@ const VenueRegisterPage = () => {
     try {
       const res = await api.post("/venues/auth/register", data);
       localStorage.setItem("venueToken", res.data.token);
+      localStorage.setItem("venueRefreshToken", res.data.refreshToken);
       localStorage.setItem("venue", JSON.stringify(res.data.venue));
       toast.success(res.data.message || "Registration successful! Welcome to VowLink.");
       navigate("/venue/dashboard");

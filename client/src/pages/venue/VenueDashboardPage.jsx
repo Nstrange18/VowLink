@@ -11,6 +11,7 @@ import VenueListingForm from "../../components/venue/VenueListingForm";
 import VenuePhotosGallery from "../../components/venue/VenuePhotosGallery";
 import VenueSubscriptions from "../../components/venue/VenueSubscriptions";
 import Skeleton from "../../components/common/Skeleton";
+import { buildPublicUrl } from "../../utils/siteUrl";
 
 const detailsSchema = z.object({
   name: z.string().min(3, "Venue name must be at least 3 characters"),
@@ -118,17 +119,219 @@ const VenueDashboardSkeleton = () => (
 
 const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 
+const formatShortDate = (date) => {
+  if (!date) return "";
+  return new Intl.DateTimeFormat("en-NG", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(date));
+};
+
+const hasProofDocuments = (venue, proofUrls = []) => {
+  return Boolean(
+    proofUrls.length ||
+      venue?.verificationProofUrls?.length ||
+      venue?.verificationProofUrl
+  );
+};
+
+const buildVenueChecklist = (venue, photos = [], proofUrls = []) => {
+  const photoCount = photos.length || venue?.photos?.length || 0;
+  const checks = [
+    { label: "Description", complete: (venue?.description || "").trim().length >= 80 },
+    { label: "Address", complete: Boolean(venue?.city && venue?.fullAddress && venue?.generalLocation) },
+    { label: "WhatsApp", complete: Boolean(venue?.whatsapp) },
+    { label: "Map link", complete: Boolean(venue?.mapLink) },
+    { label: "Photos", complete: photoCount >= 3 },
+    { label: "Proof documents", complete: hasProofDocuments(venue, proofUrls) },
+    { label: "Price range", complete: Boolean(venue?.priceRange) },
+  ];
+
+  const completed = checks.filter((item) => item.complete).length;
+  return {
+    checks,
+    completed,
+    total: checks.length,
+    percent: Math.round((completed / checks.length) * 100),
+  };
+};
+
+const isVenuePublicShareReady = (venue, photos = [], proofUrls = []) => {
+  const photoCount = photos.length || venue?.photos?.length || 0;
+
+  return Boolean(
+    (venue?.description || "").trim().length >= 80 &&
+      (venue?.city || "").trim() &&
+      (venue?.fullAddress || "").trim() &&
+      (venue?.generalLocation || "").trim() &&
+      photoCount >= 3 &&
+      (venue?.whatsapp || "").trim() &&
+      (venue?.mapLink || "").trim() &&
+      hasProofDocuments(venue, proofUrls) &&
+      (venue?.priceRange || "").trim()
+  );
+};
+
+const getVisibilityStatus = (venue, photos = [], proofUrls = []) => {
+  if (!venue?.isApproved) {
+    return {
+      label: "Pending review",
+      tone: "text-amber-300 border-amber-400/25 bg-amber-400/10",
+      detail: "Complete the profile checklist while VowLink reviews the listing.",
+    };
+  }
+  if (!venue?.isActive) {
+    return {
+      label: "Approved, not visible",
+      tone: "text-white/60 border-white/15 bg-white/5",
+      detail: "Your listing is approved but currently inactive.",
+    };
+  }
+  if (!isVenuePublicShareReady(venue, photos, proofUrls)) {
+    return {
+      label: "Needs profile details",
+      tone: "text-amber-300 border-amber-400/25 bg-amber-400/10",
+      detail: "Add the required profile details before your public share link becomes available.",
+    };
+  }
+  if (venue.subscriptionTier === "featured") {
+    return {
+      label: venue.subscriptionExpiry ? `Featured until ${formatShortDate(venue.subscriptionExpiry)}` : "Featured",
+      tone: "text-[#D8B76A] border-[#D8B76A]/35 bg-[#D8B76A]/10",
+      detail: "Your venue can appear with featured placement for couples.",
+    };
+  }
+  return {
+    label: "Visible to couples",
+    tone: "text-emerald-300 border-emerald-400/25 bg-emerald-400/10",
+    detail: "Approved couples can view your public venue details.",
+  };
+};
+
+const getVerificationStatusMeta = (status) => {
+  const map = {
+    not_submitted: {
+      label: "Verification not submitted",
+      detail: "Select the safety standards your venue holds and upload proof documents for admin review.",
+      tone: "border-white/10 bg-white/5 text-white/55",
+      icon: "lucide:shield-question",
+    },
+    pending_review: {
+      label: "Verification pending review",
+      detail: "Your updated safety claims and proof documents are waiting for VowLink admin review.",
+      tone: "border-amber-400/25 bg-amber-400/10 text-amber-200",
+      icon: "lucide:clock-3",
+    },
+    verified: {
+      label: "Verification approved",
+      detail: "Verified safety checks can appear in the trust and safety section for couples.",
+      tone: "border-emerald-400/25 bg-emerald-400/10 text-emerald-200",
+      icon: "lucide:shield-check",
+    },
+    changes_requested: {
+      label: "Changes requested",
+      detail: "VowLink needs clearer or additional proof before approving these safety claims.",
+      tone: "border-[#D8B76A]/30 bg-[#D8B76A]/10 text-[#F2D894]",
+      icon: "lucide:file-warning",
+    },
+    rejected: {
+      label: "Verification rejected",
+      detail: "The submitted documents did not validate the selected safety claims. Update your documents and resubmit.",
+      tone: "border-red-400/25 bg-red-400/10 text-red-200",
+      icon: "lucide:shield-x",
+    },
+  };
+
+  return map[status] || map.not_submitted;
+};
+
+const getPerformanceTips = (venue, photos = [], completionPercent = 0, proofUrls = []) => {
+  const tips = [];
+  const photoCount = photos.length || venue?.photos?.length || 0;
+
+  if (photoCount < 6) tips.push("Add at least 6 clear photos to improve trust.");
+  if (!hasProofDocuments(venue, proofUrls)) tips.push("Upload proof documents so admins can verify your venue faster.");
+  if (!venue?.mapLink) tips.push("Add a Google Maps link so couples can judge location quickly.");
+  if ((venue?.description || "").trim().length < 140) tips.push("Write a fuller description with ambience, parking, and event flow.");
+  if (!venue?.priceRange) tips.push("Add a price range to reduce unqualified inquiries.");
+  if (completionPercent === 100 && tips.length === 0) tips.push("Your listing is strong. Keep photos updated when your setup changes.");
+
+  return tips.slice(0, 4);
+};
+
+const getInquiryAgeDays = (date) => {
+  if (!date) return 0;
+  const created = new Date(date).getTime();
+  if (Number.isNaN(created)) return 0;
+  return Math.floor((Date.now() - created) / (1000 * 60 * 60 * 24));
+};
+
+const getInquiryStatusMeta = (inquiry) => {
+  const ageDays = getInquiryAgeDays(inquiry?.createdAt);
+  if ((inquiry?.status || "new") === "archived") {
+    return {
+      label: "Archived",
+      tone: "border-white/10 bg-white/5 text-white/45",
+      icon: "lucide:archive",
+    };
+  }
+  if (inquiry?.status === "replied") {
+    return {
+      label: "Replied",
+      tone: "border-emerald-400/25 bg-emerald-400/10 text-emerald-200",
+      icon: "lucide:check-check",
+    };
+  }
+  if (inquiry?.status === "unavailable") {
+    return {
+      label: "Unavailable",
+      tone: "border-red-400/25 bg-red-400/10 text-red-200",
+      icon: "lucide:calendar-x",
+    };
+  }
+  if (ageDays >= 2) {
+    return {
+      label: `Needs reply (${ageDays}d)`,
+      tone: "border-amber-400/30 bg-amber-400/10 text-amber-200",
+      icon: "lucide:clock-alert",
+    };
+  }
+  return {
+    label: "New",
+    tone: "border-sky-400/25 bg-sky-400/10 text-sky-200",
+    icon: "lucide:sparkle",
+  };
+};
+
+const inquiryFilters = [
+  { value: "active", label: "Active" },
+  { value: "new", label: "Unreplied" },
+  { value: "replied", label: "Replied" },
+  { value: "unavailable", label: "Unavailable" },
+  { value: "archived", label: "Archived" },
+  { value: "all", label: "All" },
+];
+
 const VenueDashboardPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const tabContentRef = useRef(null);
+  const isProduction = import.meta.env.PROD;
 
   const [venue, setVenue] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("listing"); // listing, photos, billing, security
+  const [copyingVenueLink, setCopyingVenueLink] = useState(false);
 
   // Live performance stats (polled every 30s)
   const [stats, setStats] = useState({ views: null, inquiries: null });
+  const [venueInquiries, setVenueInquiries] = useState([]);
+  const [loadingInquiries, setLoadingInquiries] = useState(false);
+  const [inquiryFilter, setInquiryFilter] = useState("active");
+  const [inquiryCounts, setInquiryCounts] = useState({ active: 0, new: 0, replied: 0, unavailable: 0, archived: 0, all: 0, overdue: 0 });
+  const [updatingInquiryId, setUpdatingInquiryId] = useState("");
 
   // Photo management state
   const [photos, setPhotos] = useState([]);
@@ -359,6 +562,7 @@ const VenueDashboardPage = () => {
       toast.success("Your venue account has been deleted. Goodbye!");
 
       localStorage.removeItem("venueToken");
+      localStorage.removeItem("venueRefreshToken");
       localStorage.removeItem("venue");
 
       navigate("/");
@@ -405,10 +609,15 @@ const VenueDashboardPage = () => {
       setProofUrls(existingUrls);
       reset({ ...res.data, verificationProofUrls: existingUrls });
     } catch (err) {
-      toast.error("Failed to load profile. Please log in again.");
-      localStorage.removeItem("venueToken");
-      localStorage.removeItem("venue");
-      navigate("/venue/login");
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        toast.error("Your venue session expired. Please log in again.");
+        localStorage.removeItem("venueToken");
+        localStorage.removeItem("venueRefreshToken");
+        localStorage.removeItem("venue");
+        navigate("/venue/login");
+      } else {
+        toast.error("Failed to load profile. Please refresh and try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -428,9 +637,91 @@ const VenueDashboardPage = () => {
     }
   }, []);
 
+  const fetchInquiries = useCallback(async () => {
+    const token = localStorage.getItem("venueToken");
+    if (!token) return;
+    setLoadingInquiries(true);
+    try {
+      const res = await api.get(`/venues/auth/inquiries?status=${encodeURIComponent(inquiryFilter)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setVenueInquiries(Array.isArray(res.data?.inquiries) ? res.data.inquiries : []);
+      setInquiryCounts((current) => ({ ...current, ...(res.data?.counts || {}) }));
+    } catch {
+      toast.error("Failed to load venue inquiries.");
+    } finally {
+      setLoadingInquiries(false);
+    }
+  }, [inquiryFilter]);
+
+  const updateInquiryStatus = async (inquiryId, status) => {
+    const token = localStorage.getItem("venueToken");
+    if (!token || updatingInquiryId) return;
+
+    setUpdatingInquiryId(inquiryId);
+    try {
+      const res = await api.patch(`/venues/auth/inquiries/${inquiryId}/status`, { status }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      toast.success(res.data?.message || "Inquiry updated.");
+      await fetchInquiries();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update inquiry.");
+    } finally {
+      setUpdatingInquiryId("");
+    }
+  };
+
+  const handleArchiveInquiry = (inquiryId, coupleName) => {
+    toast.dismiss();
+    toast.warn(
+      ({ closeToast }) => (
+        <div className="flex flex-col gap-2 p-1 text-white">
+          <p className="font-semibold text-xs leading-relaxed">
+            Archive this inquiry from {coupleName || "this couple"}?
+          </p>
+          <p className="text-[11px] text-white/50">It will move out of the active inbox, but the record stays available under Archived.</p>
+          <div className="mt-1 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={closeToast}
+              className="rounded px-2.5 py-1 text-[10px] font-semibold text-white bg-white/10 hover:bg-white/20 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                closeToast();
+                updateInquiryStatus(inquiryId, "archived");
+              }}
+              className="rounded px-2.5 py-1 text-[10px] font-semibold text-[#070A13] bg-[#D8B76A] hover:bg-[#F2D894] transition"
+            >
+              Archive
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        position: "top-center",
+        autoClose: false,
+        closeOnClick: false,
+        draggable: false,
+        closeButton: false,
+      }
+    );
+  };
+
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  useEffect(() => {
+    if (activeTab === "inquiries") {
+      fetchInquiries();
+    }
+  }, [activeTab, fetchInquiries]);
 
   // Poll stats every 30 seconds for live updates
   const venueId = venue?._id;
@@ -490,6 +781,7 @@ const VenueDashboardPage = () => {
               type="button"
               onClick={() => {
                 localStorage.removeItem("venueToken");
+                localStorage.removeItem("venueRefreshToken");
                 localStorage.removeItem("venue");
                 closeToast();
                 toast.info("Logged out successfully.");
@@ -688,6 +980,45 @@ const VenueDashboardPage = () => {
     }
   };
 
+  const handleCopyVenueLink = async () => {
+    if (copyingVenueLink) return;
+    if (!venue?.isApproved || !venue?.isActive) {
+      toast.info("Your share link is available after the listing is approved and visible.");
+      return;
+    }
+    if (!isVenuePublicShareReady(venue, photos, proofUrls)) {
+      toast.info("Complete the required profile details before sharing this venue link.");
+      return;
+    }
+
+    const link = buildPublicUrl(`/venues/${venue._id}`);
+    setCopyingVenueLink(true);
+    try {
+      await api.get(`/venues/public/${venue._id}`);
+      await navigator.clipboard.writeText(link);
+      toast.success("Venue share link copied.");
+    } catch (err) {
+      const missing = Array.isArray(err.response?.data?.missing) ? err.response.data.missing : [];
+      const message = missing.length
+        ? `Complete these before sharing: ${missing.join(", ")}.`
+        : err.response?.data?.message || "This venue link is not public yet. Complete the required profile details first.";
+      toast.info(message);
+    } finally {
+      setCopyingVenueLink(false);
+    }
+  };
+
+  const handleVenueTabChange = (tab) => {
+    setActiveTab(tab);
+    window.setTimeout(() => {
+      const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      tabContentRef.current?.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "start",
+      });
+    }, 0);
+  };
+
 
 
   if (loading) {
@@ -698,15 +1029,20 @@ const VenueDashboardPage = () => {
   const isBasic = tier === "basic";
   const isListed = tier === "listed";
   const isFeatured = tier === "featured";
+  const checklist = buildVenueChecklist(venue, photos, proofUrls);
+  const visibilityStatus = getVisibilityStatus(venue, photos, proofUrls);
+  const verificationStatus = getVerificationStatusMeta(venue?.verificationStatus);
+  const performanceTips = getPerformanceTips(venue, photos, checklist.percent, proofUrls);
+  const mainPhoto = photos[0] || venue?.photos?.[0] || "";
 
   const inputBase =
     "w-full rounded-xl border bg-white/5 px-4 py-2.5 text-xs text-white placeholder-white/30 outline-none transition";
   const labelClass = "mb-1.5 block text-[10px] uppercase tracking-wider text-white/50 font-semibold";
 
   return (
-    <div className="min-h-screen bg-[#070A13] text-white flex flex-col overflow-x-clip">
+    <div className="venue-dashboard min-h-screen bg-[#070A13] text-white flex flex-col overflow-x-clip">
       {/* Header Bar */}
-      <header className="fixed inset-x-0 top-0 z-30 border-b border-white/10 bg-[#0D1220]/95 py-3 px-3 sm:py-4 sm:px-8 flex justify-between items-center animate-fade-in shadow-2xl shadow-black/20 backdrop-blur">
+      <header className="venue-dashboard-header fixed inset-x-0 top-0 z-30 border-b border-white/10 bg-[#0D1220]/95 py-3 px-3 sm:py-4 sm:px-8 flex justify-between items-center animate-fade-in shadow-2xl shadow-black/20 backdrop-blur">
         <div className="flex items-center gap-3">
           {/* Mobile Sidebar Toggle */}
           <button
@@ -788,7 +1124,7 @@ const VenueDashboardPage = () => {
         <div className="flex-1 py-4">
           <VenueSidebar
             activeTab={activeTab}
-            setActiveTab={setActiveTab}
+            setActiveTab={handleVenueTabChange}
             photosLength={photos.length}
             stats={stats}
             venue={venue}
@@ -814,12 +1150,12 @@ const VenueDashboardPage = () => {
       </aside>
 
       {/* Main Body */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 pb-4 pt-24 sm:px-8 sm:pb-8 sm:pt-28 grid grid-cols-12 gap-8">
+      <main className="venue-dashboard-content flex-1 max-w-6xl w-full mx-auto px-4 pb-4 pt-24 sm:px-8 sm:pb-8 sm:pt-28 grid grid-cols-12 gap-6 md:gap-8">
         {/* Left Column: Navigation / Quick Stats */}
         <aside className="hidden md:flex flex-col col-span-12 md:col-span-3 space-y-6 sticky top-28 self-start max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
           <VenueSidebar
             activeTab={activeTab}
-            setActiveTab={setActiveTab}
+            setActiveTab={handleVenueTabChange}
             photosLength={photos.length}
             stats={stats}
             venue={venue}
@@ -829,10 +1165,112 @@ const VenueDashboardPage = () => {
         </aside>
 
         {/* Right Column: Tab Content */}
-        <div className="col-span-12 md:col-span-9">
-          {/* Pending Approval Banner */}
-          {!venue?.isApproved && (
-            <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-6 space-y-4 mb-6 animate-fade-in">
+        <div className="col-span-12 min-w-0 md:col-span-9">
+          <section className="mb-6 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-5 sm:p-6">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-3">
+                  <span className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${visibilityStatus.tone}`}>
+                    <Icon icon={venue?.isApproved ? "lucide:badge-check" : "lucide:clock-3"} className="h-3.5 w-3.5" />
+                    {visibilityStatus.label}
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">Listing Control Center</p>
+                    <h2 className="mt-2 font-serif text-2xl text-white">{venue?.name || "Your venue listing"}</h2>
+                    <p className="mt-2 max-w-xl text-xs leading-relaxed text-white/50">{visibilityStatus.detail}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleVenueTabChange("preview")}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white/80 transition hover:border-[#D8B76A]/40 hover:text-[#D8B76A]"
+                  >
+                    <Icon icon="lucide:eye" className="h-3.5 w-3.5" />
+                    Preview
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopyVenueLink}
+                    disabled={copyingVenueLink}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#D8B76A] px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#070A13] transition hover:bg-[#F2D894] disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    <Icon icon={copyingVenueLink ? "lucide:loader-2" : "lucide:link"} className={`h-3.5 w-3.5 ${copyingVenueLink ? "animate-spin" : ""}`} />
+                    {copyingVenueLink ? "Copying..." : "Copy Link"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-white/10 bg-[#070A13]/60 p-4">
+                <div className="mb-3 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/45">Profile completion</p>
+                    <p className="mt-1 text-xs text-white/45">{checklist.completed} of {checklist.total} checks complete</p>
+                  </div>
+                  <span className="font-mono text-2xl text-[#D8B76A]">{checklist.percent}%</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full rounded-full bg-[#D8B76A]" style={{ width: `${checklist.percent}%` }} />
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {checklist.checks.map((item) => (
+                    <span
+                      key={item.label}
+                      className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-semibold ${
+                        item.complete
+                          ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+                          : "border-white/10 bg-white/5 text-[#D8B76A]"
+                      }`}
+                    >
+                      <Icon icon={item.complete ? "lucide:check" : "lucide:minus"} className="h-3.5 w-3.5 shrink-0" />
+                      {item.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className={`mt-4 rounded-2xl border p-4 ${verificationStatus.tone}`}>
+                <div className="flex items-start gap-3">
+                  <Icon icon={verificationStatus.icon} className="mt-0.5 h-4 w-4 shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest">{verificationStatus.label}</p>
+                    <p className="mt-1 text-xs leading-relaxed opacity-80">{verificationStatus.detail}</p>
+                    {venue?.verificationSubmittedAt && (
+                      <p className="mt-2 text-[10px] opacity-65">
+                        Submitted {formatShortDate(venue.verificationSubmittedAt)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">Performance tips</p>
+                  <p className="mt-2 text-xs text-white/45">Small changes that help couples trust the listing.</p>
+                </div>
+                <Icon icon="lucide:trending-up" className="h-5 w-5 text-[#D8B76A]" />
+              </div>
+              <div className="mt-5 grid gap-3">
+                {performanceTips.map((tip) => (
+                  <div key={tip} className="flex gap-3 rounded-2xl border border-white/10 bg-white/3 p-3">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#D8B76A]/12 text-[#D8B76A]">
+                      <Icon icon="lucide:sparkles" className="h-3.5 w-3.5" />
+                    </span>
+                    <p className="text-xs leading-relaxed text-white/55">{tip}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <div ref={tabContentRef} className="scroll-mt-28">
+            {/* Pending Approval Banner */}
+            {!venue?.isApproved && (
+              <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-6 space-y-4 mb-6 animate-fade-in">
               <div className="flex items-start gap-3">
                 <Icon icon="lucide:alert-triangle" className="text-2xl text-amber-500 shrink-0" />
                 <div>
@@ -843,36 +1281,115 @@ const VenueDashboardPage = () => {
                 </div>
               </div>
               <div className="pt-3 border-t border-white/5 flex items-center justify-between flex-wrap gap-4">
-                <span className="text-[10px] text-white/40 italic">Demo Mode: You can bypass validation and approve the listing instantly for testing.</span>
-                <button
-                  type="button"
-                  onClick={handleDemoApprove}
-                  className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-[10px] font-bold uppercase tracking-wider text-[#070A13] transition cursor-pointer"
-                >
-                  <Icon icon="lucide:zap" className="w-3.5 h-3.5" /> Approve Listing
-                </button>
+                {isProduction ? (
+                  <span className="text-[10px] text-white/40 italic">VowLink admins must approve this listing before couples can view it.</span>
+                ) : (
+                  <>
+                    <span className="text-[10px] text-white/40 italic">Demo Mode: You can bypass validation and approve the listing instantly for testing.</span>
+                    <button
+                      type="button"
+                      onClick={handleDemoApprove}
+                      className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-[10px] font-bold uppercase tracking-wider text-[#070A13] transition cursor-pointer"
+                    >
+                      <Icon icon="lucide:zap" className="w-3.5 h-3.5" /> Approve Listing
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+            )}
+
+            {/* TAB 1: LISTING DETAILS */}
+            {activeTab === "listing" && (
+              <VenueListingForm
+                register={register}
+                errors={errors}
+                handleSubmit={handleSubmit}
+                onUpdateDetails={onUpdateDetails}
+                saving={saving}
+                setValue={setValue}
+                watch={watch}
+                uploadingProof={uploadingProof}
+                handleProofUpload={handleProofUpload}
+                proofUrls={proofUrls}
+                removeProofUrl={removeProofUrl}
+                verificationStatus={venue?.verificationStatus}
+              />
+            )}
+
+          {/* TAB 2: PUBLIC PREVIEW */}
+          {activeTab === "preview" && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 sm:p-8">
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">Public listing preview</p>
+                    <h3 className="mt-2 font-serif text-2xl text-white">View how couples see your venue</h3>
+                    <p className="mt-2 max-w-xl text-xs leading-relaxed text-white/45">
+                      This preview uses the details currently saved on your listing.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyVenueLink}
+                    disabled={copyingVenueLink}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-[#D8B76A]/35 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#D8B76A] transition hover:bg-[#D8B76A] hover:text-[#070A13] disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    <Icon icon={copyingVenueLink ? "lucide:loader-2" : "lucide:copy"} className={`h-3.5 w-3.5 ${copyingVenueLink ? "animate-spin" : ""}`} />
+                    {copyingVenueLink ? "Copying..." : "Copy public link"}
+                  </button>
+                </div>
+
+                <article className="overflow-hidden rounded-3xl border border-white/10 bg-[#070A13]">
+                  <div className="relative aspect-video bg-white/5">
+                    {mainPhoto ? (
+                      <img src={mainPhoto} alt={venue?.name || "Venue preview"} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-white/35">
+                        <Icon icon="lucide:image" className="h-10 w-10" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-linear-to-t from-[#070A13] via-transparent to-transparent" />
+                    <span className={`absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${visibilityStatus.tone}`}>
+                      {visibilityStatus.label}
+                    </span>
+                    {isFeatured && (
+                      <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-[#D8B76A] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#070A13]">
+                        <Icon icon="lucide:sparkles" className="h-3.5 w-3.5" />
+                        Featured
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1fr_0.7fr]">
+                    <div>
+                      <h4 className="font-serif text-2xl text-white">{venue?.name || "Venue name"}</h4>
+                      <p className="mt-2 text-xs uppercase tracking-widest text-[#D8B76A]">
+                        {venue?.generalLocation || "Location"}{venue?.city ? `, ${venue.city}` : ""}
+                      </p>
+                      <p className="mt-4 text-sm leading-relaxed text-white/55">
+                        {venue?.description || "Add a warm venue description so couples understand the ambience, capacity, parking, and what makes your space right for a wedding."}
+                      </p>
+                    </div>
+                    <div className="venue-preview-specs grid gap-3 rounded-2xl border border-white/10 bg-white/3 p-4">
+                      {[
+                        ["Capacity", venue?.capacity || "Not set"],
+                        ["Price range", venue?.priceRange || "Not set"],
+                        ["Style", venue?.style || "Not set"],
+                        ["WhatsApp", venue?.whatsapp || "Not set"],
+                      ].map(([label, value]) => (
+                        <div key={label} className="flex items-center justify-between gap-4 border-b border-white/5 pb-2 last:border-b-0 last:pb-0">
+                          <span className="text-[10px] uppercase tracking-wider text-white/35">{label}</span>
+                          <span className="text-right text-xs font-semibold text-white/75">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </article>
               </div>
             </div>
           )}
 
-          {/* TAB 1: LISTING DETAILS */}
-          {activeTab === "listing" && (
-            <VenueListingForm
-              register={register}
-              errors={errors}
-              handleSubmit={handleSubmit}
-              onUpdateDetails={onUpdateDetails}
-              saving={saving}
-              setValue={setValue}
-              watch={watch}
-              uploadingProof={uploadingProof}
-              handleProofUpload={handleProofUpload}
-              proofUrls={proofUrls}
-              removeProofUrl={removeProofUrl}
-            />
-          )}
-
-          {/* TAB 2: GALLERY PHOTOS */}
+          {/* TAB 3: GALLERY PHOTOS */}
           {activeTab === "photos" && (
             <VenuePhotosGallery
               photos={photos}
@@ -889,7 +1406,183 @@ const VenueDashboardPage = () => {
             />
           )}
 
-          {/* TAB 3: SUBSCRIPTIONS & CHECKOUT */}
+          {/* TAB 4: INQUIRY INBOX */}
+          {activeTab === "inquiries" && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 sm:p-8">
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">Lead tracker</p>
+                    <h3 className="mt-2 font-serif text-2xl text-white">Inquiry inbox</h3>
+                    <p className="mt-2 text-xs text-white/45">
+                      {inquiryCounts.overdue
+                        ? `${inquiryCounts.overdue} ${inquiryCounts.overdue === 1 ? "lead needs" : "leads need"} a reply.`
+                        : "Unreplied leads stay visible until you reply or archive them."}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={fetchInquiries}
+                    disabled={loadingInquiries}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#c2b17b] transition hover:text-[#D8B76A] disabled:opacity-50"
+                  >
+                    <Icon icon="lucide:refresh-cw" className={`h-3.5 w-3.5 ${loadingInquiries ? "animate-spin" : ""}`} />
+                    Refresh
+                  </button>
+                </div>
+
+                <div className="mb-6 flex flex-wrap gap-2">
+                  {inquiryFilters.map((filter) => (
+                    <button
+                      key={filter.value}
+                      type="button"
+                      onClick={() => setInquiryFilter(filter.value)}
+                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${
+                        inquiryFilter === filter.value
+                          ? "border-[#D8B76A] bg-[#D8B76A] text-[#070A13]"
+                          : "border-white/10 bg-white/5 text-white/55 hover:border-[#D8B76A]/35 hover:text-[#D8B76A]"
+                      }`}
+                    >
+                      {filter.label}
+                      <span className={`rounded-full px-1.5 py-0.5 font-mono text-[9px] ${
+                        inquiryFilter === filter.value ? "bg-[#070A13]/15" : "bg-white/10 text-white/60"
+                      }`}>
+                        {inquiryCounts[filter.value] || 0}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {loadingInquiries ? (
+                  <div className="grid gap-3">
+                    {[0, 1, 2].map((item) => (
+                      <Skeleton key={item} className="h-24 w-full rounded-2xl" />
+                    ))}
+                  </div>
+                ) : venueInquiries.length ? (
+                  <div className="grid gap-3">
+                    {venueInquiries.map((inquiry) => (
+                      <article key={inquiry._id} className={`rounded-2xl border p-4 ${
+                        (inquiry.status || "new") === "new" && getInquiryAgeDays(inquiry.createdAt) >= 2
+                          ? "border-amber-400/25 bg-amber-400/4"
+                          : "border-white/10 bg-[#070A13]/70"
+                      }`}>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className="font-semibold text-white">{inquiry.coupleName}</h4>
+                              {(() => {
+                                const statusMeta = getInquiryStatusMeta(inquiry);
+                                return (
+                                  <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${statusMeta.tone}`}>
+                                    <Icon icon={statusMeta.icon} className="h-3 w-3" />
+                                    {statusMeta.label}
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                            <div className="mt-1 flex flex-wrap gap-3 text-[11px] text-white/40">
+                              {inquiry.coupleEmail && <span>{inquiry.coupleEmail}</span>}
+                              {inquiry.weddingDate && <span>Wedding: {formatShortDate(inquiry.weddingDate)}</span>}
+                              <span>Sent: {formatShortDate(inquiry.createdAt)}</span>
+                              {inquiry.repliedAt && <span>Replied: {formatShortDate(inquiry.repliedAt)}</span>}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                            {inquiry.coupleEmail && (
+                              <a
+                                href={`mailto:${inquiry.coupleEmail}`}
+                                onClick={() => {
+                                  if ((inquiry.status || "new") !== "replied") {
+                                    updateInquiryStatus(inquiry._id, "replied");
+                                  }
+                                }}
+                                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#D8B76A] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#070A13]"
+                              >
+                                <Icon icon="lucide:send" className="h-3.5 w-3.5" />
+                                Reply
+                              </a>
+                            )}
+                            {(inquiry.status || "new") !== "replied" && (
+                              <button
+                                type="button"
+                                onClick={() => updateInquiryStatus(inquiry._id, "replied")}
+                                disabled={updatingInquiryId === inquiry._id}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-200 transition hover:bg-emerald-400/15 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Icon icon={updatingInquiryId === inquiry._id ? "lucide:loader-2" : "lucide:check-check"} className={`h-3.5 w-3.5 ${updatingInquiryId === inquiry._id ? "animate-spin" : ""}`} />
+                                Mark replied
+                              </button>
+                            )}
+                            {(inquiry.status || "new") !== "unavailable" && (
+                              <button
+                                type="button"
+                                onClick={() => updateInquiryStatus(inquiry._id, "unavailable")}
+                                disabled={updatingInquiryId === inquiry._id}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-red-400/25 bg-red-400/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-red-200 transition hover:bg-red-400/15 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Icon icon="lucide:calendar-x" className="h-3.5 w-3.5" />
+                                Unavailable
+                              </button>
+                            )}
+                            {(inquiry.status || "new") === "unavailable" && (
+                              <button
+                                type="button"
+                                onClick={() => updateInquiryStatus(inquiry._id, "new")}
+                                disabled={updatingInquiryId === inquiry._id}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-sky-200 transition hover:bg-sky-400/15 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Icon icon="lucide:calendar-check" className="h-3.5 w-3.5" />
+                                Available now
+                              </button>
+                            )}
+                            {(inquiry.status || "new") === "archived" && (
+                              <button
+                                type="button"
+                                onClick={() => updateInquiryStatus(inquiry._id, "new")}
+                                disabled={updatingInquiryId === inquiry._id}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/65 transition hover:text-[#D8B76A] disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Icon icon="lucide:rotate-ccw" className="h-3.5 w-3.5" />
+                                Reopen
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleArchiveInquiry(inquiry._id, inquiry.coupleName)}
+                              disabled={updatingInquiryId === inquiry._id || (inquiry.status || "new") === "archived"}
+                              className="venue-archive-action inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/55 transition hover:border-[#D8B76A]/35 hover:text-[#D8B76A] disabled:cursor-not-allowed disabled:opacity-35"
+                              aria-label={`Archive inquiry from ${inquiry.coupleName}`}
+                              title="Archive inquiry"
+                            >
+                              <Icon
+                                icon={updatingInquiryId === inquiry._id ? "lucide:loader-2" : "lucide:archive"}
+                                className={`h-3.5 w-3.5 ${updatingInquiryId === inquiry._id ? "animate-spin" : ""}`}
+                              />
+                              Archive
+                            </button>
+                          </div>
+                        </div>
+                        <p className="mt-4 rounded-2xl border border-white/5 bg-white/3 p-3 text-sm leading-relaxed text-white/60">
+                          {inquiry.message}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-white/15 bg-white/3 p-8 text-center">
+                    <Icon icon="lucide:mail-open" className="mx-auto h-8 w-8 text-white/30" />
+                    <h4 className="mt-4 font-serif text-xl text-white">No inquiries yet</h4>
+                    <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-white/45">
+                      Once couples send a venue inquiry, it will appear here with their message and reply email.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: SUBSCRIPTIONS & CHECKOUT */}
           {activeTab === "billing" && (
             <VenueSubscriptions
               venue={venue}
@@ -901,9 +1594,9 @@ const VenueDashboardPage = () => {
             />
           )}
 
-          {/* TAB 4: SECURITY & DANGER ZONE */}
-          {activeTab === "security" && (
-            <div className="space-y-6 animate-fade-in">
+          {/* TAB 6: SECURITY & DANGER ZONE */}
+            {activeTab === "security" && (
+              <div className="space-y-6 animate-fade-in">
               {/* Change Password Block */}
               <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 sm:p-8 space-y-6">
                 <div>
@@ -1045,8 +1738,9 @@ const VenueDashboardPage = () => {
                   </div>
                 )}
               </div>
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </main>
 

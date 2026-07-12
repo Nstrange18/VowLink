@@ -67,7 +67,7 @@ router.post("/venues/status/:id", async (req, res) => {
   }
 });
 
-// POST /api/super-admin/venues/featured/:id — toggle isFeatured
+// POST /api/super-admin/venues/featured/:id — manually grant/revoke featured placement
 router.post("/venues/featured/:id", async (req, res) => {
   try {
     const venue = await Venue.findById(req.id || req.params.id);
@@ -75,7 +75,12 @@ router.post("/venues/featured/:id", async (req, res) => {
 
     venue.isFeatured = !venue.isFeatured;
     await venue.save();
-    res.status(200).json({ message: `Venue featured status toggled to ${venue.isFeatured}`, venue });
+    res.status(200).json({
+      message: venue.isFeatured
+        ? "Featured placement manually granted."
+        : "Featured placement manually revoked.",
+      venue,
+    });
   } catch (error) {
     res.status(500).json({ message: "Failed to toggle featured status", error: error.message });
   }
@@ -106,11 +111,17 @@ router.put("/venues/verify/:id", async (req, res) => {
       safetyStructural,
       safetyInsurance,
       trustScore,
+      verificationStatus,
       verificationNotes,
     } = req.body;
 
     const venue = await Venue.findById(req.params.id);
     if (!venue) return res.status(404).json({ message: "Venue not found." });
+
+    const validVerificationStatuses = ["pending_review", "verified", "changes_requested", "rejected", "not_submitted"];
+    if (verificationStatus && !validVerificationStatuses.includes(verificationStatus)) {
+      return res.status(400).json({ message: "Invalid verification status." });
+    }
 
     if (safetyFireExits !== undefined) venue.safetyFireExits = safetyFireExits;
     if (safetyCctv !== undefined) venue.safetyCctv = safetyCctv;
@@ -118,6 +129,15 @@ router.put("/venues/verify/:id", async (req, res) => {
     if (safetyStructural !== undefined) venue.safetyStructural = safetyStructural;
     if (safetyInsurance !== undefined) venue.safetyInsurance = safetyInsurance;
     if (trustScore !== undefined) venue.trustScore = trustScore;
+    if (verificationStatus !== undefined) {
+      venue.verificationStatus = verificationStatus;
+      venue.verificationReviewedAt = ["verified", "changes_requested", "rejected"].includes(verificationStatus)
+        ? new Date()
+        : undefined;
+    } else {
+      venue.verificationStatus = "verified";
+      venue.verificationReviewedAt = new Date();
+    }
     if (verificationNotes !== undefined) venue.verificationNotes = verificationNotes;
 
     await venue.save();

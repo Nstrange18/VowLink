@@ -228,14 +228,14 @@ const AdminRsvpsPage = () => {
             <>
               {/* Desktop table */}
               <div className="hidden sm:block overflow-x-auto rounded-2xl border border-white/10">
-                <table className="w-full text-sm">
+                <table className="w-full min-w-[860px] text-sm">
                   <thead>
                     <tr className="border-b border-white/10 text-left text-xs uppercase tracking-widest text-white/40">
                       <th className="px-4 py-4">Guest</th>
                       <th className="px-4 py-4">Phone</th>
                       <th className="px-4 py-4">Attending</th>
                       <th className="px-4 py-4">Guests</th>
-                      <th className="px-4 py-4">Meal</th>
+                      <th className="px-4 py-4 min-w-[150px]">Meal</th>
                       <th className="px-4 py-4">Message</th>
                       <th className="px-4 py-4">Submitted</th>
                     </tr>
@@ -263,7 +263,7 @@ const AdminRsvpsPage = () => {
                     </td>
                     <td className="px-4 py-4 text-white/60">{r.numberOfGuests}</td>
                     <td className="px-4 py-4">
-                      <span className="rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-2.5 py-0.5 text-xs text-[#D8B76A]/80">
+                      <span className="inline-flex min-w-[120px] items-center justify-center whitespace-nowrap rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-3 py-1 text-xs text-[#D8B76A]/80">
                         {r.mealPreference || 'No Preference'}
                       </span>
                     </td>
@@ -303,7 +303,7 @@ const AdminRsvpsPage = () => {
                   <div><span className="text-white/30">Guests</span><br />{r.numberOfGuests}</div>
                 </div>
                 <div className="mt-2">
-                  <span className="rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-2.5 py-0.5 text-xs text-[#D8B76A]/80">
+                  <span className="inline-flex max-w-full rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-3 py-1 text-xs text-[#D8B76A]/80">
                     <span className="inline-flex items-center gap-1.5">
                       <Icon icon="mdi:silverware-fork-knife" className="h-3.5 w-3.5" />
                       {r.mealPreference || 'No Preference'}

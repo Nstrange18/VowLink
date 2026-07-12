@@ -16,7 +16,7 @@ const categoryColors = {
 
 const StatCard = ({ label, value, color, sub, loading, breakdown }) => (
   <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-4 sm:p-6">
-    <p className="text-[10px] sm:text-xs uppercase tracking-widest text-white/40 mb-2 leading-tight">{label}</p>
+    <p className="text-[10px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-widest text-white/40 mb-2 leading-tight break-words">{label}</p>
     {loading ? (
       <div className="space-y-4">
         <Skeleton className="h-10 w-16 mt-1" />
@@ -30,7 +30,7 @@ const StatCard = ({ label, value, color, sub, loading, breakdown }) => (
           <div className="mt-4 space-y-1.5 border-t border-white/5 pt-3">
             {breakdown.map((item) => (
               <div key={item.label} className="flex items-center justify-between gap-3 text-[10px] sm:text-xs">
-                <span className="text-white/35">{item.label}</span>
+                <span className="min-w-0 text-white/35">{item.label}</span>
                 <span className={`font-semibold ${item.color || 'text-white/70'}`}>{item.value}</span>
               </div>
             ))}

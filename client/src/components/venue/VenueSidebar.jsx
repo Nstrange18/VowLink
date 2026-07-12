@@ -9,8 +9,10 @@ const VenueSidebar = ({
   venue,
   setSidebarOpen,
 }) => {
+  const inquiryCount = stats.inquiries !== null ? stats.inquiries : (venue?.inquiries ?? 0);
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="venue-sidebar flex flex-col gap-6">
       {/* Navigation Card */}
       <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-4 flex flex-col gap-2">
         <button
@@ -29,6 +31,20 @@ const VenueSidebar = ({
         </button>
         <button
           onClick={() => {
+            setActiveTab("preview");
+            if (setSidebarOpen) setSidebarOpen(false);
+          }}
+          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition flex items-center gap-2 ${
+            activeTab === "preview"
+              ? "bg-[#D8B76A] text-[#070A13]"
+              : "text-white/60 hover:bg-white/5"
+          }`}
+        >
+          <Icon icon="lucide:eye" className="w-4 h-4 shrink-0" />
+          <span>Public Preview</span>
+        </button>
+        <button
+          onClick={() => {
             setActiveTab("photos");
             if (setSidebarOpen) setSidebarOpen(false);
           }}
@@ -44,6 +60,25 @@ const VenueSidebar = ({
           </span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white font-mono">
             {photosLength}
+          </span>
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab("inquiries");
+            if (setSidebarOpen) setSidebarOpen(false);
+          }}
+          className={`w-full text-left px-4 py-3 rounded-xl text-xs uppercase tracking-wider font-semibold transition flex justify-between items-center ${
+            activeTab === "inquiries"
+              ? "bg-[#D8B76A] text-[#070A13]"
+              : "text-white/60 hover:bg-white/5"
+          }`}
+        >
+          <span className="flex items-center gap-2">
+            <Icon icon="lucide:mail" className="w-4 h-4 shrink-0" />
+            <span>Inquiries</span>
+          </span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white font-mono">
+            {inquiryCount}
           </span>
         </button>
         <button

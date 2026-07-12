@@ -74,6 +74,13 @@ const venueSchema = new mongoose.Schema(
     trustScore: { type: Number, default: 0.0 },
     verificationProofUrl: { type: String, default: "" }, // legacy single URL field
     verificationProofUrls: { type: [String], default: [] }, // new multi-proof array (max 5)
+    verificationStatus: {
+      type: String,
+      enum: ["not_submitted", "pending_review", "verified", "changes_requested", "rejected"],
+      default: "not_submitted",
+    },
+    verificationSubmittedAt: { type: Date },
+    verificationReviewedAt: { type: Date },
     verificationNotes: { type: String, default: "" },
   },
   { timestamps: true }

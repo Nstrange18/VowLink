@@ -14,6 +14,119 @@ if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 }
 
+const isFilled = (value) => typeof value === "string" && value.trim().length > 0;
+
+const getVenueCompleteness = (venue) => {
+  const photos = Array.isArray(venue?.photos) ? venue.photos.filter(Boolean) : [];
+  const proofUrls = Array.isArray(venue?.verificationProofUrls) ? venue.verificationProofUrls.filter(Boolean) : [];
+  const checks = [
+    { key: "Description", complete: isFilled(venue?.description) && venue.description.trim().length >= 80 },
+    { key: "Address", complete: isFilled(venue?.city) && isFilled(venue?.generalLocation) && isFilled(venue?.fullAddress) },
+    { key: "WhatsApp", complete: isFilled(venue?.whatsapp) },
+    { key: "Map link", complete: isFilled(venue?.mapLink) },
+    { key: "Photos", complete: photos.length >= 3 },
+    { key: "Proof documents", complete: proofUrls.length > 0 || isFilled(venue?.verificationProofUrl) },
+    { key: "Price range", complete: isFilled(venue?.priceRange) },
+  ];
+
+  return {
+    checks,
+    missing: checks.filter((item) => !item.complete).map((item) => item.key),
+    isComplete: checks.every((item) => item.complete),
+  };
+};
+
+const isVenuePubliclyVisible = (venue) => {
+  return Boolean(venue?.isApproved && venue?.isActive !== false && getVenueCompleteness(venue).isComplete);
+};
+
+const isVenueUnlockedForFreeCouples = (venue) => ["listed", "featured"].includes(venue?.subscriptionTier);
+
+const normalizeProofUrls = (venue) => {
+  const urls = [
+    ...((Array.isArray(venue?.verificationProofUrls) ? venue.verificationProofUrls : []) || []),
+    ...(venue?.verificationProofUrl ? [venue.verificationProofUrl] : []),
+  ].filter(Boolean);
+
+  return [...new Set(urls)];
+};
+
+const sanitizeVenueForCouple = (venue, { redactContact = false } = {}) => {
+  const source = typeof venue?.toObject === "function" ? venue.toObject() : venue;
+  const safeVenue = {
+    _id: source._id,
+    name: source.name,
+    city: source.city,
+    generalLocation: source.generalLocation,
+    capacity: source.capacity,
+    description: source.description,
+    photos: redactContact ? (source.photos || []).slice(0, 1) : (source.photos || []),
+    isFeatured: source.isFeatured,
+    style: source.style,
+    subscriptionTier: source.subscriptionTier,
+    verificationStatus: source.verificationStatus,
+    trustScore: source.trustScore,
+    safetyFireExits: source.safetyFireExits,
+    safetyCctv: source.safetyCctv,
+    safetySecurity: source.safetySecurity,
+    safetyStructural: source.safetyStructural,
+    safetyInsurance: source.safetyInsurance,
+  };
+
+  if (redactContact) {
+    return {
+      ...safeVenue,
+      fullAddress: "[Locked - Upgrade to Plus]",
+      priceRange: "[Locked - Upgrade to Plus]",
+      phone: "[Locked]",
+      whatsapp: "[Locked]",
+      mapLink: "[Locked]",
+      email: "[Locked]",
+      website: "[Locked]",
+    };
+  }
+
+  return {
+    ...safeVenue,
+    fullAddress: source.fullAddress,
+    priceRange: source.priceRange,
+    phone: source.phone,
+    whatsapp: source.whatsapp,
+    mapLink: source.mapLink,
+    email: source.email,
+    website: source.website,
+    tags: source.tags || [],
+  };
+};
+
+const sendVenueInquiryReminderEmail = async ({ venue, inquiry, user }) => {
+  if (!process.env.SENDGRID_API_KEY || !venue?.ownerEmail || !user) return;
+
+  const coupleName = [user.partner1Name, user.partner2Name].filter(Boolean).join(" & ") || "A VowLink couple";
+
+  try {
+    await sgMail.send({
+      to: venue.ownerEmail,
+      from: "noreplybiru556@gmail.com",
+      subject: `Reminder: ${coupleName} is still waiting for your venue reply`,
+      html: `
+        <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:28px;background:#fdf8f0;border-radius:16px;border:1px solid #e2d1b9">
+          <h2 style="margin:0 0 12px;color:#1A2E4A">Venue inquiry waiting for reply</h2>
+          <p style="color:#444;line-height:1.6">A couple contacted <strong>${venue.name}</strong> through VowLink and the request has been waiting for more than 48 hours.</p>
+          <div style="background:#fff;padding:18px;border-radius:10px;margin:18px 0;border-left:4px solid #D8B76A">
+            <p style="margin:0 0 8px;color:#555"><strong>Couple:</strong> ${coupleName}</p>
+            <p style="margin:0 0 8px;color:#555"><strong>Email:</strong> <a href="mailto:${user.email}" style="color:#1A2E4A">${user.email}</a></p>
+            <p style="margin:0;color:#555"><strong>Message:</strong> ${inquiry.message}</p>
+          </div>
+          <p style="color:#777;font-size:12px">Please reply, mark unavailable, or archive the inquiry from your VowLink venue dashboard.</p>
+        </div>
+      `,
+    });
+  } catch (err) {
+    console.error("SendGrid venue inquiry reminder error:", err.response?.body || err.message);
+  }
+};
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -137,8 +250,9 @@ const seedVenues = async () => {
 // ── GET /api/venues (Fetch Suggested Venues) ──────────────────────────────
 router.get("/", protect, async (req, res) => {
   try {
-    // Run seed checking asynchronously
-    await seedVenues();
+    if (process.env.NODE_ENV !== "production") {
+      await seedVenues();
+    }
 
     const user = await User.findById(req.user.id);
     if (!user) {
@@ -147,38 +261,20 @@ router.get("/", protect, async (req, res) => {
 
     // Increment views for all approved venues by 1
     try {
-      await Venue.updateMany({ isApproved: true }, { $inc: { views: 1 } });
+      await Venue.updateMany({ isApproved: true, isActive: { $ne: false } }, { $inc: { views: 1 } });
     } catch (e) {
       console.error("Failed to increment views:", e.message);
     }
 
-    const venues = await Venue.find({ isApproved: true }).sort({ isFeatured: -1, createdAt: -1 });
+    const venues = (await Venue.find({ isApproved: true, isActive: { $ne: false } }).sort({ isFeatured: -1, createdAt: -1 }))
+      .filter(isVenuePubliclyVisible);
 
-    // Conditional Display logic based on User tier
-    if (user.tier === "free") {
-      // REDACT info for free users
-      const redactedVenues = venues.map((venue) => ({
-        _id: venue._id,
-        name: venue.name,
-        city: venue.city,
-        generalLocation: venue.generalLocation,
-        capacity: venue.capacity,
-        description: venue.description,
-        photos: venue.photos.slice(0, 1), // Only allow 1 image
-        isFeatured: venue.isFeatured,
-        style: venue.style,
-        // Block private fields
-        fullAddress: "[Locked - Upgrade to Plus]",
-        priceRange: "[Locked - Upgrade to Plus]",
-        phone: "[Locked]",
-        whatsapp: "[Locked]",
-        mapLink: "[Locked]",
-      }));
-      return res.status(200).json(redactedVenues);
-    }
+    const response = venues.map((venue) => {
+      const shouldRedact = user.tier === "free" && !isVenueUnlockedForFreeCouples(venue);
+      return sanitizeVenueForCouple(venue, { redactContact: shouldRedact });
+    });
 
-    // Return full details for plus & pro users
-    res.status(200).json(venues);
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: "Failed to load venues", error: error.message });
   }
@@ -303,6 +399,47 @@ router.post("/inquire", protect, async (req, res) => {
   }
 });
 
+// ── COUPLES: My Venue Inquiry History ───────────────────────────────────────
+router.get("/my-inquiries", protect, async (req, res) => {
+  try {
+    const inquiries = await Inquiry.find({ user: req.user.id })
+      .populate("venue", "name city generalLocation photos isFeatured style email whatsapp mapLink")
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    const response = inquiries.map((inquiry) => {
+      const rawStatus = inquiry.status || "new";
+      const status = rawStatus === "archived" ? (inquiry.repliedAt ? "replied" : "waiting") : rawStatus;
+
+      return {
+        _id: inquiry._id,
+        message: inquiry.message,
+        createdAt: inquiry.createdAt,
+        repliedAt: inquiry.repliedAt || null,
+        status,
+        venue: inquiry.venue
+          ? {
+              _id: inquiry.venue._id,
+              name: inquiry.venue.name,
+              city: inquiry.venue.city,
+              generalLocation: inquiry.venue.generalLocation,
+              photos: inquiry.venue.photos || [],
+              isFeatured: inquiry.venue.isFeatured,
+              style: inquiry.venue.style,
+              email: inquiry.venue.email,
+              whatsapp: inquiry.venue.whatsapp,
+              mapLink: inquiry.venue.mapLink,
+            }
+          : null,
+      };
+    });
+
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch venue inquiry history", error: error.message });
+  }
+});
+
 // ── JWT Helper for Venues ───────────────────────────────────────────────────
 const jwt = require("jsonwebtoken");
 
@@ -311,6 +448,14 @@ const generateVenueToken = (venue) => {
     { id: venue._id, role: "venue", email: venue.ownerEmail },
     process.env.JWT_SECRET,
     { expiresIn: "30d" }
+  );
+};
+
+const generateVenueRefreshToken = (venue) => {
+  return jwt.sign(
+    { id: venue._id, role: "venue" },
+    process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+    { expiresIn: "90d" }
   );
 };
 
@@ -420,6 +565,7 @@ router.post("/auth/register", async (req, res) => {
     res.status(201).json({
       message: "Venue registered successfully! Welcome to VowLink Venues. Your listing is pending admin review.",
       token: generateVenueToken(newVenue),
+      refreshToken: generateVenueRefreshToken(newVenue),
       venue: {
         id: newVenue._id,
         name: newVenue.name,
@@ -454,6 +600,7 @@ router.post("/auth/login", async (req, res) => {
     res.status(200).json({
       message: "Logged in successfully! Welcome back.",
       token: generateVenueToken(venue),
+      refreshToken: generateVenueRefreshToken(venue),
       venue: {
         id: venue._id,
         name: venue.name,
@@ -464,6 +611,34 @@ router.post("/auth/login", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Login failed", error: error.message });
+  }
+});
+
+// ── VENUE OWNER: Refresh Session ────────────────────────────────────────────
+router.post("/auth/refresh", async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Refresh token required." });
+    }
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+    );
+
+    if (decoded.role !== "venue") {
+      return res.status(403).json({ message: "Invalid venue refresh token." });
+    }
+
+    const venue = await Venue.findById(decoded.id);
+    if (!venue) {
+      return res.status(401).json({ message: "Venue account not found." });
+    }
+
+    res.status(200).json({ token: generateVenueToken(venue) });
+  } catch (error) {
+    res.status(401).json({ message: "Invalid or expired venue refresh token." });
   }
 });
 
@@ -481,6 +656,142 @@ router.get("/auth/stats", protectVenue, async (req, res) => {
     res.status(200).json({ views: fresh.views, inquiries: fresh.inquiries });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch stats", error: error.message });
+  }
+});
+
+// ── VENUE OWNER: Inquiry Inbox ──────────────────────────────────────────────
+router.get("/auth/inquiries", protectVenue, async (req, res) => {
+  try {
+    const status = String(req.query.status || "active").toLowerCase();
+    const validStatuses = ["new", "replied", "unavailable", "archived"];
+    const filter = { venue: req.venue._id };
+
+    if (status === "new") {
+      filter.$or = [{ status: "new" }, { status: { $exists: false } }, { status: null }];
+    } else if (validStatuses.includes(status)) {
+      filter.status = status;
+    } else if (status !== "all") {
+      filter.status = { $ne: "archived" };
+    }
+
+    const [inquiries, counts] = await Promise.all([
+      Inquiry.find(filter)
+      .populate("user", "partner1Name partner2Name email weddingDate")
+      .sort({ createdAt: -1 })
+        .limit(50),
+      Inquiry.aggregate([
+        { $match: { venue: req.venue._id } },
+        { $group: { _id: "$status", count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    const countMap = counts.reduce((acc, item) => {
+      acc[item._id || "new"] = item.count;
+      return acc;
+    }, {});
+
+    const now = new Date();
+    const reminderCutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const reminderThrottle = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const overdueInquiries = inquiries.filter((inquiry) => {
+      const status = inquiry.status || "new";
+      const createdAt = inquiry.createdAt ? new Date(inquiry.createdAt) : null;
+      const lastReminderAt = inquiry.lastReminderAt ? new Date(inquiry.lastReminderAt) : null;
+
+      return (
+        status === "new" &&
+        createdAt &&
+        createdAt <= reminderCutoff &&
+        (!lastReminderAt || lastReminderAt <= reminderThrottle)
+      );
+    });
+
+    overdueInquiries.forEach((inquiry) => {
+      sendVenueInquiryReminderEmail({ venue: req.venue, inquiry, user: inquiry.user }).catch(() => {});
+      inquiry.lastReminderAt = now;
+      inquiry.save().catch((err) => console.error("Failed to update inquiry reminder timestamp:", err.message));
+    });
+
+    res.status(200).json(
+      {
+        counts: {
+          all: counts.reduce((total, item) => total + item.count, 0),
+          active: (countMap.new || 0) + (countMap.replied || 0) + (countMap.unavailable || 0),
+          new: countMap.new || 0,
+          replied: countMap.replied || 0,
+          unavailable: countMap.unavailable || 0,
+          archived: countMap.archived || 0,
+          overdue: inquiries.filter((inquiry) => {
+            const createdAt = inquiry.createdAt ? new Date(inquiry.createdAt) : null;
+            return (inquiry.status || "new") === "new" && createdAt && createdAt <= reminderCutoff;
+          }).length,
+        },
+        inquiries: inquiries.map((inquiry) => {
+        const partnerNames = [inquiry.user?.partner1Name, inquiry.user?.partner2Name]
+          .filter(Boolean)
+          .join(" & ");
+
+        return {
+          _id: inquiry._id,
+          message: inquiry.message,
+          status: inquiry.status || "new",
+          createdAt: inquiry.createdAt,
+          repliedAt: inquiry.repliedAt || null,
+          archivedAt: inquiry.archivedAt || null,
+          lastReminderAt: inquiry.lastReminderAt || null,
+          needsReply: (inquiry.status || "new") === "new" && inquiry.createdAt && new Date(inquiry.createdAt) <= reminderCutoff,
+          coupleName: partnerNames || "VowLink couple",
+          coupleEmail: inquiry.user?.email || "",
+          weddingDate: inquiry.user?.weddingDate || null,
+        };
+        }),
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch venue inquiries", error: error.message });
+  }
+});
+
+// ── VENUE OWNER: Update Inquiry Status ──────────────────────────────────────
+router.patch("/auth/inquiries/:id/status", protectVenue, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const validStatuses = ["new", "replied", "unavailable", "archived"];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid inquiry status." });
+    }
+
+    const updates = { status };
+    if (status === "replied" || status === "unavailable") {
+      updates.repliedAt = new Date();
+      updates.archivedAt = null;
+    } else if (status === "archived") {
+      updates.archivedAt = new Date();
+    } else {
+      updates.repliedAt = null;
+      updates.archivedAt = null;
+    }
+
+    const inquiry = await Inquiry.findOneAndUpdate(
+      {
+      _id: req.params.id,
+      venue: req.venue._id,
+      },
+      updates,
+      { new: true }
+    );
+
+    if (!inquiry) {
+      return res.status(404).json({ message: "Inquiry not found." });
+    }
+
+    res.status(200).json({
+      message: status === "archived" ? "Inquiry archived." : `Inquiry marked as ${status}.`,
+      inquiry,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update inquiry status", error: error.message });
   }
 });
 
@@ -535,6 +846,15 @@ router.put("/auth/me", protectVenue, async (req, res) => {
     if (website) venue.website = website;
     if (Array.isArray(tags)) venue.tags = tags;
 
+    const previousClaims = {
+      claimedFireExits: venue.claimedFireExits,
+      claimedCctv: venue.claimedCctv,
+      claimedSecurity: venue.claimedSecurity,
+      claimedStructural: venue.claimedStructural,
+      claimedInsurance: venue.claimedInsurance,
+    };
+    const previousProofUrls = normalizeProofUrls(venue);
+
     if (claimedFireExits !== undefined) venue.claimedFireExits = claimedFireExits;
     if (claimedCctv !== undefined) venue.claimedCctv = claimedCctv;
     if (claimedSecurity !== undefined) venue.claimedSecurity = claimedSecurity;
@@ -544,6 +864,28 @@ router.put("/auth/me", protectVenue, async (req, res) => {
     if (Array.isArray(verificationProofUrls)) {
       // Enforce max 5 proof documents
       venue.verificationProofUrls = verificationProofUrls.slice(0, 5);
+    }
+
+    const currentClaims = {
+      claimedFireExits: venue.claimedFireExits,
+      claimedCctv: venue.claimedCctv,
+      claimedSecurity: venue.claimedSecurity,
+      claimedStructural: venue.claimedStructural,
+      claimedInsurance: venue.claimedInsurance,
+    };
+    const currentProofUrls = normalizeProofUrls(venue);
+    const claimsChanged = Object.keys(currentClaims).some((key) => currentClaims[key] !== previousClaims[key]);
+    const proofChanged = JSON.stringify(currentProofUrls) !== JSON.stringify(previousProofUrls);
+    const hasVerificationSubmission = Object.values(currentClaims).some(Boolean) || currentProofUrls.length > 0;
+
+    if ((claimsChanged || proofChanged) && hasVerificationSubmission) {
+      venue.verificationStatus = "pending_review";
+      venue.verificationSubmittedAt = new Date();
+      venue.verificationReviewedAt = undefined;
+    } else if (!hasVerificationSubmission) {
+      venue.verificationStatus = "not_submitted";
+      venue.verificationSubmittedAt = undefined;
+      venue.verificationReviewedAt = undefined;
     }
 
     // Enforce photo counts based on subscription tiers
@@ -716,6 +1058,44 @@ router.post("/subscribe/verify", protectVenue, async (req, res) => {
   }
 });
 
+// ── PUBLIC: Approved venue profile preview/share page ───────────────────────
+router.get("/public/:id", async (req, res) => {
+  try {
+    const venue = await Venue.findById(req.params.id).select(
+      "name city generalLocation fullAddress capacity description photos isFeatured subscriptionTier style priceRange email ownerEmail website mapLink whatsapp verificationStatus trustScore safetyFireExits safetySecurity safetyStructural safetyInsurance safetyCctv isApproved isActive verificationProofUrl verificationProofUrls"
+    );
+
+    if (!venue) {
+      return res.status(404).json({ message: "This venue link does not exist." });
+    }
+
+    if (!venue.isApproved) {
+      return res.status(403).json({ message: "This venue is still under review and is not public yet." });
+    }
+
+    if (venue.isActive === false) {
+      return res.status(403).json({ message: "This venue listing is currently inactive." });
+    }
+
+    const completeness = getVenueCompleteness(venue);
+    if (!completeness.isComplete) {
+      return res.status(409).json({
+        message: "This venue profile is not ready for public sharing yet.",
+        missing: completeness.missing,
+      });
+    }
+
+    const publicVenue = venue.toObject();
+    delete publicVenue.ownerEmail;
+    delete publicVenue.verificationProofUrl;
+    delete publicVenue.verificationProofUrls;
+
+    res.status(200).json(publicVenue);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch public venue profile", error: error.message });
+  }
+});
+
 // ── COUPLES: Get single venue public profile details ────────────────────────
 router.get("/:id", protect, async (req, res) => {
   try {
@@ -729,29 +1109,8 @@ router.get("/:id", protect, async (req, res) => {
       return res.status(404).json({ message: "Venue not found" });
     }
 
-    // Redaction check for free tier couples
-    if (user.tier === "free") {
-      return res.status(200).json({
-        _id: venue._id,
-        name: venue.name,
-        city: venue.city,
-        generalLocation: venue.generalLocation,
-        capacity: venue.capacity,
-        description: venue.description,
-        photos: venue.photos.slice(0, 1),
-        isFeatured: venue.isFeatured,
-        style: venue.style,
-        fullAddress: "[Locked - Upgrade to Plus]",
-        priceRange: "[Locked - Upgrade to Plus]",
-        phone: "[Locked]",
-        whatsapp: "[Locked]",
-        mapLink: "[Locked]",
-        email: "[Locked]",
-        website: "[Locked]",
-      });
-    }
-
-    res.status(200).json(venue);
+    const shouldRedact = user.tier === "free" && !isVenueUnlockedForFreeCouples(venue);
+    res.status(200).json(sanitizeVenueForCouple(venue, { redactContact: shouldRedact }));
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch venue details", error: error.message });
   }

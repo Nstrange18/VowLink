@@ -10,6 +10,7 @@ const navLinks = [
   { to: '/admin/rsvps', label: 'RSVPs', icon: 'lucide:check-square' },
   { to: '/admin/seating', label: 'Seating Chart', icon: 'lucide:grid' },
   { to: '/admin/venues', label: 'Suggested Venues', icon: 'lucide:map-pin' },
+  { to: '/admin/venue-inquiries', label: 'Venue Requests', icon: 'lucide:inbox' },
   { to: '/admin/billing', label: 'Billing & Tiers', icon: 'lucide:credit-card' },
   { to: '/admin/settings', label: 'Settings', icon: 'lucide:settings' },
 ]

@@ -55,6 +55,7 @@ const VenueLoginPage = () => {
     try {
       const res = await api.post("/venues/auth/login", data);
       localStorage.setItem("venueToken", res.data.token);
+      localStorage.setItem("venueRefreshToken", res.data.refreshToken);
       localStorage.setItem("venue", JSON.stringify(res.data.venue));
       toast.success(res.data.message || "Logged in successfully!");
       navigate("/venue/dashboard");

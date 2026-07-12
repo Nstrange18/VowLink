@@ -239,10 +239,10 @@ const AdminVenuesPage = () => {
                 key={venue._id}
                 className="rounded-3xl border border-white/10 bg-[#0D1220] overflow-hidden flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-2xl duration-300 relative"
               >
-                {/* Sponsored Badge */}
+                {/* Placement Badge */}
                 {venue.isFeatured && (
                   <span className="absolute top-4 left-4 z-10 rounded-full bg-linear-to-r from-amber-400 to-yellow-500 px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-[#070A13] shadow-md">
-                    Sponsored
+                    {venue.subscriptionTier === "featured" ? "Sponsored" : "Featured"}
                   </span>
                 )}
 
@@ -268,7 +268,7 @@ const AdminVenuesPage = () => {
                       e.target.src = "/default_venue.svg";
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D1220] to-transparent opacity-80" />
+                  <div className="absolute inset-0 bg-linear-to-t from-[#0D1220] to-transparent opacity-80" />
                   <div className="absolute bottom-4 left-5 right-5 flex justify-between items-baseline z-10">
                     <span className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A] bg-[#D8B76A]/10 border border-[#D8B76A]/20 px-2 py-0.5 rounded-full">
                       {venue.style}

@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
+import SEO from "../../components/SEO";
 
 const VenueDetailsPage = () => {
   const { id } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const [venue, setVenue] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [user] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
+  const isPublicListing = location.pathname.startsWith("/venues/");
 
   // Slideshow state
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
@@ -24,16 +28,23 @@ const VenueDetailsPage = () => {
 
   const fetchVenue = useCallback(async () => {
     try {
-      const res = await api.get(`/venues/${id}`);
+      const res = await api.get(isPublicListing ? `/venues/public/${id}` : `/venues/${id}`);
       setVenue(res.data);
+      setLoadError("");
       setActivePhotoIndex(0);
     } catch (err) {
-      toast.error("Failed to load venue details.");
-      navigate("/admin/venues");
+      const message = err.response?.data?.message || "Failed to load venue details.";
+      if (isPublicListing) {
+        setLoadError(message);
+        setVenue(null);
+      } else {
+        toast.error(message);
+        navigate("/admin/venues");
+      }
     } finally {
       setLoading(false);
     }
-  }, [id, navigate]);
+  }, [id, isPublicListing, navigate]);
 
   useEffect(() => {
     fetchVenue();
@@ -77,26 +88,49 @@ const VenueDetailsPage = () => {
 
   if (!venue) {
     return (
-      <div className="p-8 max-w-6xl mx-auto text-center">
-        <p className="text-white/50 text-sm">Venue not found.</p>
-        <Link to="/admin/venues" className="text-[#D8B76A] underline mt-4 inline-block">
-          Return to Suggested Venues
-        </Link>
+      <div className="min-h-screen bg-[#070A13] px-4 py-24 text-white">
+        <SEO
+          title="Venue Not Available | VowLink"
+          description="This VowLink venue profile is not public yet or is no longer available."
+          path={isPublicListing ? `/venues/${id}` : "/admin/venues"}
+          noindex
+        />
+        <div className="mx-auto max-w-xl rounded-3xl border border-white/10 bg-[#0D1220] p-8 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.35em] text-[#D8B76A]">Venue unavailable</p>
+          <h1 className="mt-4 font-serif text-3xl text-white">This venue profile is not public yet</h1>
+          <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-white/55">
+            {loadError || "The venue may still be under review, inactive, incomplete, or the link may be incorrect."}
+          </p>
+          <Link to={isPublicListing ? "/" : "/admin/venues"} className="mt-6 inline-flex rounded-full bg-[#D8B76A] px-6 py-3 text-xs font-bold uppercase tracking-widest text-[#070A13]">
+            {isPublicListing ? "Return to VowLink" : "Return to Suggested Venues"}
+          </Link>
+        </div>
       </div>
     );
   }
 
   // Retrieve safety checklist from venue DB fields
+  const hasStoredTrust = (venue.trustScore || 0) > 0 || [
+    venue.safetyFireExits,
+    venue.safetySecurity,
+    venue.safetyStructural,
+    venue.safetyInsurance,
+    venue.safetyCctv,
+  ].some(Boolean);
+  const verificationApproved =
+    venue.verificationStatus === "verified" ||
+    (!["pending_review", "changes_requested", "rejected"].includes(venue.verificationStatus) && hasStoredTrust);
   const safetyChecklist = [
-    { name: "Certified Fire Extinguishers & Exit Signage", checked: !!venue.safetyFireExits },
-    { name: "24/7 Professional Guard Security Personnel", checked: !!venue.safetySecurity },
-    { name: "Structural Integrity and Safety Certification", checked: !!venue.safetyStructural },
-    { name: "Public Liability and Venue Insurance Coverage", checked: !!venue.safetyInsurance },
-    { name: "Full CCTV Coverage in Public/Parking Areas", checked: !!venue.safetyCctv },
+    { name: "Certified Fire Extinguishers & Exit Signage", checked: verificationApproved && !!venue.safetyFireExits },
+    { name: "24/7 Professional Guard Security Personnel", checked: verificationApproved && !!venue.safetySecurity },
+    { name: "Structural Integrity and Safety Certification", checked: verificationApproved && !!venue.safetyStructural },
+    { name: "Public Liability and Venue Insurance Coverage", checked: verificationApproved && !!venue.safetyInsurance },
+    { name: "Full CCTV Coverage in Public/Parking Areas", checked: verificationApproved && !!venue.safetyCctv },
   ];
 
   const trustScore = (venue.trustScore !== undefined && venue.trustScore > 0) ? venue.trustScore : null;
-  const trustVerified = trustScore !== null;
+  const trustVerified = verificationApproved && trustScore !== null;
+  const placementLabel = venue.subscriptionTier === "featured" ? "Sponsored" : "Featured";
 
   // Determine active photos list
   const photosList = venue.photos && venue.photos.length > 0 ? venue.photos : ["/default_venue.svg"];
@@ -104,13 +138,20 @@ const VenueDetailsPage = () => {
 
   return (
     <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-8">
+      <SEO
+        title={`${venue.name} | VowLink Wedding Venue`}
+        description={`${venue.name} in ${venue.generalLocation || venue.city || "Nigeria"} is available to view on VowLink for wedding venue planning.`}
+        path={isPublicListing ? `/venues/${venue._id}` : location.pathname}
+        image={photosList[0] || "/default_venue.svg"}
+        noindex={!isPublicListing}
+      />
       {/* Back navigation */}
       <div>
         <Link
-          to="/admin/venues"
+          to={isPublicListing ? "/" : "/admin/venues"}
           className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-[#D8B76A] hover:text-[#F2D894] transition"
         >
-          <Icon icon="lucide:arrow-left" className="w-3.5 h-3.5" /> Back to Suggested Venues
+          <Icon icon="lucide:arrow-left" className="w-3.5 h-3.5" /> {isPublicListing ? "Back to VowLink" : "Back to Suggested Venues"}
         </Link>
       </div>
 
@@ -121,7 +162,12 @@ const VenueDetailsPage = () => {
             <h1 className="font-serif text-3xl sm:text-4xl text-white">{venue.name}</h1>
             {venue.isFeatured && (
               <span className="rounded-full bg-linear-to-r from-amber-400 to-yellow-500 px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-[#070A13] shadow-md">
-                Sponsored
+                {placementLabel}
+              </span>
+            )}
+            {trustVerified && (
+              <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-emerald-200">
+                Verified
               </span>
             )}
           </div>
@@ -162,7 +208,7 @@ const VenueDetailsPage = () => {
                   e.target.src = "/default_venue.svg";
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0D1220]/80 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-[#0D1220]/80 via-transparent to-transparent" />
             </div>
 
             {/* Thumbnail Navigation */}
@@ -395,7 +441,20 @@ const VenueDetailsPage = () => {
           <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 space-y-4">
             <h3 className="font-serif text-lg text-white">Direct Inquiry</h3>
 
-            {!isPro ? (
+            {isPublicListing ? (
+              <div className="p-4 rounded-2xl bg-white/5 border border-dashed border-white/10 text-center space-y-3 flex flex-col items-center">
+                <Icon icon="lucide:user-plus" className="w-8 h-8 text-white/40 mb-1" />
+                <p className="text-[11px] text-white/50 leading-relaxed">
+                  Create a VowLink couple account to shortlist venues and send tracked inquiries.
+                </p>
+                <Link
+                  to="/signup"
+                  className="w-full text-center bg-linear-to-r from-[#D8B76A] to-[#F2D894] text-[#070A13] py-2 rounded-xl text-xs font-semibold uppercase tracking-wider hover:opacity-95 transition inline-block"
+                >
+                  Create Couple Account
+                </Link>
+              </div>
+            ) : !isPro ? (
               <div className="p-4 rounded-2xl bg-white/5 border border-dashed border-white/10 text-center space-y-3 flex flex-col items-center">
                 <Icon icon="lucide:mail" className="w-8 h-8 text-white/40 mb-1" />
                 <p className="text-[11px] text-white/50 leading-relaxed">

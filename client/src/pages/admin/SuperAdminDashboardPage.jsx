@@ -4,18 +4,49 @@ import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
 
+const getVenueVerifiedClaims = (venue) =>
+  [
+    venue.safetyFireExits,
+    venue.safetySecurity,
+    venue.safetyStructural,
+    venue.safetyInsurance,
+    venue.safetyCctv,
+  ].filter(Boolean).length;
+
+const isVenueTrustVerified = (venue) => {
+  const status = venue?.verificationStatus;
+  const hasVerifiedClaims = getVenueVerifiedClaims(venue) > 0 || (venue?.trustScore || 0) > 0;
+  if (status === "verified") return hasVerifiedClaims;
+  if (["pending_review", "changes_requested", "rejected"].includes(status)) return false;
+  return hasVerifiedClaims;
+};
+
+const getVerificationStatusLabel = (status) => {
+  const labels = {
+    not_submitted: "Not Submitted",
+    pending_review: "Pending Verification",
+    verified: "Verified",
+    changes_requested: "Changes Requested",
+    rejected: "Rejected",
+  };
+  return labels[status] || "Not Submitted";
+};
+
 const SuperAdminDashboardPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("analytics");
-  const [venueFilter, setVenueFilter] = useState("all"); // "all" | "pending" | "approved" | "featured"
+  const [venueFilter, setVenueFilter] = useState("all");
   const [venues, setVenues] = useState([]);
   const [couples, setCouples] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState({});
 
   // Deletion confirmation modals
   const [venueToDelete, setVenueToDelete] = useState(null);
   const [coupleToDelete, setCoupleToDelete] = useState(null);
+  const [deletingVenue, setDeletingVenue] = useState(false);
+  const [deletingCouple, setDeletingCouple] = useState(false);
 
   // Verification Edit inline states
   const [verifyingVenueId, setVerifyingVenueId] = useState(null);
@@ -26,8 +57,18 @@ const SuperAdminDashboardPage = () => {
     safetyStructural: false,
     safetyInsurance: false,
     trustScore: 0,
+    verificationStatus: "verified",
     verificationNotes: "",
   });
+
+  const setActionBusy = (key, busy) => {
+    setActionLoading((prev) => {
+      if (busy) return { ...prev, [key]: true };
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
 
   const handleCheckboxChange = (field, checked) => {
     setVerificationForm((prev) => {
@@ -52,11 +93,15 @@ const SuperAdminDashboardPage = () => {
       safetyStructural: !!venue.safetyStructural,
       safetyInsurance: !!venue.safetyInsurance,
       trustScore: venue.trustScore !== undefined ? venue.trustScore : 0,
+      verificationStatus: venue.verificationStatus || "not_submitted",
       verificationNotes: venue.verificationNotes || "",
     });
   };
 
   const handleSaveVerification = async (venueId) => {
+    const actionKey = `verify-${venueId}`;
+    if (actionLoading[actionKey]) return;
+    setActionBusy(actionKey, true);
     try {
       const res = await api.put(`/super-admin/venues/verify/${venueId}`, verificationForm);
       toast.success(res.data.message);
@@ -71,6 +116,9 @@ const SuperAdminDashboardPage = () => {
                 safetyStructural: res.data.venue.safetyStructural,
                 safetyInsurance: res.data.venue.safetyInsurance,
                 trustScore: res.data.venue.trustScore,
+                verificationStatus: res.data.venue.verificationStatus,
+                verificationSubmittedAt: res.data.venue.verificationSubmittedAt,
+                verificationReviewedAt: res.data.venue.verificationReviewedAt,
                 verificationNotes: res.data.venue.verificationNotes,
               }
             : v
@@ -79,6 +127,8 @@ const SuperAdminDashboardPage = () => {
       setVerifyingVenueId(null);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to save verification settings.");
+    } finally {
+      setActionBusy(actionKey, false);
     }
   };
 
@@ -107,6 +157,9 @@ const SuperAdminDashboardPage = () => {
 
   // Venue actions
   const handleUpdateVenueStatus = async (venueId, status) => {
+    const actionKey = `status-${venueId}`;
+    if (actionLoading[actionKey]) return;
+    setActionBusy(actionKey, true);
     try {
       const res = await api.post(`/super-admin/venues/status/${venueId}`, { status });
       toast.success(res.data.message);
@@ -116,10 +169,15 @@ const SuperAdminDashboardPage = () => {
       );
     } catch (err) {
       toast.error(err.response?.data?.message || "Action failed.");
+    } finally {
+      setActionBusy(actionKey, false);
     }
   };
 
   const handleToggleFeatured = async (venueId) => {
+    const actionKey = `featured-${venueId}`;
+    if (actionLoading[actionKey]) return;
+    setActionBusy(actionKey, true);
     try {
       const res = await api.post(`/super-admin/venues/featured/${venueId}`);
       toast.success(res.data.message);
@@ -128,6 +186,8 @@ const SuperAdminDashboardPage = () => {
       );
     } catch (err) {
       toast.error(err.response?.data?.message || "Action failed.");
+    } finally {
+      setActionBusy(actionKey, false);
     }
   };
 
@@ -136,7 +196,8 @@ const SuperAdminDashboardPage = () => {
   };
 
   const confirmDeleteVenue = async () => {
-    if (!venueToDelete) return;
+    if (!venueToDelete || deletingVenue) return;
+    setDeletingVenue(true);
     try {
       const res = await api.delete(`/super-admin/venues/${venueToDelete}`);
       toast.success(res.data.message);
@@ -146,12 +207,16 @@ const SuperAdminDashboardPage = () => {
     } catch (err) {
       toast.error(err.response?.data?.message || "Delete failed.");
     } finally {
+      setDeletingVenue(false);
       setVenueToDelete(null);
     }
   };
 
   // Couple actions
   const handleUpdateCoupleTier = async (userId, tier) => {
+    const actionKey = `couple-tier-${userId}`;
+    if (actionLoading[actionKey]) return;
+    setActionBusy(actionKey, true);
     try {
       const res = await api.put(`/super-admin/couples/tier/${userId}`, { tier });
       toast.success(res.data.message);
@@ -160,6 +225,8 @@ const SuperAdminDashboardPage = () => {
       );
     } catch (err) {
       toast.error(err.response?.data?.message || "Action failed.");
+    } finally {
+      setActionBusy(actionKey, false);
     }
   };
 
@@ -168,7 +235,8 @@ const SuperAdminDashboardPage = () => {
   };
 
   const confirmDeleteCouple = async () => {
-    if (!coupleToDelete) return;
+    if (!coupleToDelete || deletingCouple) return;
+    setDeletingCouple(true);
     try {
       const res = await api.delete(`/super-admin/couples/${coupleToDelete}`);
       toast.success(res.data.message);
@@ -178,6 +246,7 @@ const SuperAdminDashboardPage = () => {
     } catch (err) {
       toast.error(err.response?.data?.message || "Delete failed.");
     } finally {
+      setDeletingCouple(false);
       setCoupleToDelete(null);
     }
   };
@@ -190,7 +259,11 @@ const SuperAdminDashboardPage = () => {
     totalVenues: venues.length,
     approvedVenues: venues.filter((v) => v.isApproved).length,
     pendingVenues: venues.filter((v) => !v.isApproved).length,
+    verifiedVenues: venues.filter(isVenueTrustVerified).length,
+    pendingVerificationVenues: venues.filter((v) => v.verificationStatus === "pending_review").length,
     featuredVenues: venues.filter((v) => v.isFeatured).length,
+    paidFeaturedVenues: venues.filter((v) => v.subscriptionTier === "featured").length,
+    manualFeaturedVenues: venues.filter((v) => v.isFeatured && v.subscriptionTier !== "featured").length,
     totalInquiries: inquiries.length,
   };
 
@@ -200,7 +273,7 @@ const SuperAdminDashboardPage = () => {
       {/* ── Venue Deletion Confirmation Modal ── */}
       {venueToDelete && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setVenueToDelete(null)} />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => !deletingVenue && setVenueToDelete(null)} />
           <div className="relative z-10 w-full max-w-md rounded-3xl border border-red-500/25 bg-[#0D1220] p-8 shadow-2xl space-y-5">
             <div className="flex items-center gap-3">
               <Icon icon="lucide:trash-2" className="text-2xl text-red-500 shrink-0" />
@@ -214,15 +287,18 @@ const SuperAdminDashboardPage = () => {
             <div className="flex gap-3 justify-end pt-2">
               <button
                 onClick={() => setVenueToDelete(null)}
+                disabled={deletingVenue}
                 className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold hover:bg-white/10 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeleteVenue}
-                className="px-5 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-400 transition cursor-pointer shadow-lg shadow-red-500/25"
+                disabled={deletingVenue}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-400 transition cursor-pointer shadow-lg shadow-red-500/25 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                Yes, Delete Venue
+                <Icon icon={deletingVenue ? "lucide:loader-2" : "lucide:trash-2"} className={`h-4 w-4 ${deletingVenue ? "animate-spin" : ""}`} />
+                {deletingVenue ? "Deleting..." : "Yes, Delete Venue"}
               </button>
             </div>
           </div>
@@ -232,7 +308,7 @@ const SuperAdminDashboardPage = () => {
       {/* ── Couple Deletion Confirmation Modal ── */}
       {coupleToDelete && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setCoupleToDelete(null)} />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => !deletingCouple && setCoupleToDelete(null)} />
           <div className="relative z-10 w-full max-w-md rounded-3xl border border-red-500/25 bg-[#0D1220] p-8 shadow-2xl space-y-5">
             <div className="flex items-center gap-3">
               <Icon icon="lucide:alert-triangle" className="text-2xl text-red-500 shrink-0" />
@@ -253,15 +329,18 @@ const SuperAdminDashboardPage = () => {
             <div className="flex gap-3 justify-end pt-2">
               <button
                 onClick={() => setCoupleToDelete(null)}
+                disabled={deletingCouple}
                 className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold hover:bg-white/10 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeleteCouple}
-                className="px-5 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-400 transition cursor-pointer shadow-lg shadow-red-500/25"
+                disabled={deletingCouple}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-400 transition cursor-pointer shadow-lg shadow-red-500/25 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                Yes, Delete Account
+                <Icon icon={deletingCouple ? "lucide:loader-2" : "lucide:trash-2"} className={`h-4 w-4 ${deletingCouple ? "animate-spin" : ""}`} />
+                {deletingCouple ? "Deleting..." : "Yes, Delete Account"}
               </button>
             </div>
           </div>
@@ -429,7 +508,7 @@ const SuperAdminDashboardPage = () => {
         <div className="space-y-6">
           {/* TAB 1: STATS OVERVIEW */}
           {activeTab === "analytics" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+            <div className="grid grid-cols-1 items-start md:grid-cols-2 gap-6 animate-fade-in">
               <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 space-y-4">
                 <h3 className="font-serif text-lg text-[#D8B76A]">Couples Workspace Breakdown</h3>
                 <div className="space-y-3">
@@ -438,11 +517,11 @@ const SuperAdminDashboardPage = () => {
                     <span className="font-bold font-mono">{couples.filter((c) => c.tier === "free").length}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/60">Plus Invitation accounts (₦2,000 upgrade)</span>
+                    <span className="text-white/60">Plus Invitation accounts (NGN 50,000 upgrade)</span>
                     <span className="font-bold font-mono text-[#7FA6D9]">{stats.plusCouples}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/60">Pro Invitation accounts (₦5,000 upgrade)</span>
+                    <span className="text-white/60">Pro Invitation accounts (NGN 120,000 upgrade)</span>
                     <span className="font-bold font-mono text-[#D8B76A]">{stats.proCouples}</span>
                   </div>
                 </div>
@@ -460,11 +539,27 @@ const SuperAdminDashboardPage = () => {
                     <span className="font-bold font-mono text-emerald-400">{stats.approvedVenues}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/60">Sponsored Featured tier (₦5,000/mo)</span>
+                    <span className="text-white/60">Verified venues</span>
+                    <span className="font-bold font-mono text-sky-300">{stats.verifiedVenues}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-white/60">Pending verification review</span>
+                    <span className="font-bold font-mono text-amber-300">{stats.pendingVerificationVenues}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-white/60">Featured placement (paid + manual)</span>
                     <span className="font-bold font-mono text-[#D8B76A]">{stats.featuredVenues}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/60">Priority Listed tier (₦2,000/mo)</span>
+                    <span className="text-white/60">Paid Featured tier (NGN 50,000/mo)</span>
+                    <span className="font-bold font-mono text-amber-300">{stats.paidFeaturedVenues}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-white/60">Manual featured grants</span>
+                    <span className="font-bold font-mono text-amber-300">{stats.manualFeaturedVenues}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-white/60">Priority Listed tier (NGN 20,000/mo)</span>
                     <span className="font-bold font-mono text-[#7FA6D9]">{venues.filter((v) => v.subscriptionTier === "listed").length}</span>
                   </div>
                 </div>
@@ -480,7 +575,10 @@ const SuperAdminDashboardPage = () => {
                 {[
                   { key: "all",      label: "All",      count: venues.length },
                   { key: "approved", label: "Approved", count: venues.filter(v => v.isApproved).length },
-                  { key: "featured", label: "Featured", icon: "mdi:star", count: venues.filter(v => v.isFeatured).length },
+                  { key: "verified", label: "Verified", icon: "mdi:shield-check-outline", count: venues.filter(isVenueTrustVerified).length },
+                  { key: "pendingVerification", label: "Pending Verification", icon: "mdi:shield-clock-outline", count: venues.filter(v => v.verificationStatus === "pending_review").length },
+                  { key: "sponsored", label: "Sponsored", icon: "mdi:star-four-points", count: venues.filter(v => v.subscriptionTier === "featured").length },
+                  { key: "manualFeatured", label: "Manual Featured", icon: "mdi:star", count: venues.filter(v => v.isFeatured && v.subscriptionTier !== "featured").length },
                   { key: "pending",  label: "Pending",  count: venues.filter(v => !v.isApproved).length },
                 ].map(({ key, label, icon, count }) => (
                   <button
@@ -490,8 +588,12 @@ const SuperAdminDashboardPage = () => {
                       venueFilter === key
                         ? key === "pending"
                           ? "bg-red-500/20 border-red-500/40 text-red-400"
-                          : key === "featured"
+                          : key === "sponsored" || key === "manualFeatured"
                           ? "bg-[#D8B76A]/20 border-[#D8B76A]/40 text-[#D8B76A]"
+                          : key === "pendingVerification"
+                          ? "bg-amber-500/20 border-amber-500/40 text-amber-300"
+                          : key === "verified"
+                          ? "bg-sky-500/20 border-sky-500/40 text-sky-300"
                           : "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
                         : "bg-white/5 border-white/10 text-white/40 hover:text-white hover:border-white/20"
                     }`}
@@ -508,8 +610,11 @@ const SuperAdminDashboardPage = () => {
                 ...venues.filter(v => !v.isApproved),
               ].filter((v) => {
                 if (venueFilter === "pending") return !v.isApproved;
-                if (venueFilter === "approved") return v.isApproved && !v.isFeatured;
-                if (venueFilter === "featured") return v.isFeatured;
+                if (venueFilter === "approved") return v.isApproved;
+                if (venueFilter === "verified") return isVenueTrustVerified(v);
+                if (venueFilter === "pendingVerification") return v.verificationStatus === "pending_review";
+                if (venueFilter === "sponsored") return v.subscriptionTier === "featured";
+                if (venueFilter === "manualFeatured") return v.isFeatured && v.subscriptionTier !== "featured";
                 return true;
               }).length === 0 ? (
                 <p className="text-center text-xs text-white/40 py-10 bg-[#0D1220] rounded-3xl border border-white/10">No venues match this filter.</p>
@@ -521,9 +626,19 @@ const SuperAdminDashboardPage = () => {
                   ].filter((v) => {
                     if (venueFilter === "pending") return !v.isApproved;
                     if (venueFilter === "approved") return v.isApproved;
-                    if (venueFilter === "featured") return v.isFeatured;
+                    if (venueFilter === "verified") return isVenueTrustVerified(v);
+                    if (venueFilter === "pendingVerification") return v.verificationStatus === "pending_review";
+                    if (venueFilter === "sponsored") return v.subscriptionTier === "featured";
+                    if (venueFilter === "manualFeatured") return v.isFeatured && v.subscriptionTier !== "featured";
                     return true;
-                  }).map((venue) => (
+                  }).map((venue) => {
+                    const verifiedClaims = getVenueVerifiedClaims(venue);
+                    const isVerified = isVenueTrustVerified(venue);
+                    const statusBusy = !!actionLoading[`status-${venue._id}`];
+                    const featuredBusy = !!actionLoading[`featured-${venue._id}`];
+                    const verificationBusy = !!actionLoading[`verify-${venue._id}`];
+
+                    return (
 
                     <div
                       key={venue._id}
@@ -532,12 +647,21 @@ const SuperAdminDashboardPage = () => {
                       }`}
                     >
                       <div>
-                        {/* Status Badges */}
+                        {/* Approval, verification, and placement badges */}
                         <div className="flex gap-1.5 flex-wrap">
                           <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                             venue.isApproved ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20 animate-pulse"
                           }`}>
-                            {venue.isApproved ? "Approved" : "Pending Approval"}
+                            Listing: {venue.isApproved ? "Approved" : "Pending Approval"}
+                          </span>
+                          <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                            venue.verificationStatus === "pending_review"
+                              ? "bg-amber-500/10 text-amber-300 border-amber-400/25"
+                              : isVerified
+                                ? "bg-sky-500/10 text-sky-300 border-sky-400/20"
+                                : "bg-white/5 text-white/45 border-white/10"
+                          }`}>
+                            Verification: {venue.verificationStatus === "pending_review" ? "Pending Review" : isVerified ? `${verifiedClaims} Claims` : getVerificationStatusLabel(venue.verificationStatus)}
                           </span>
                           <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                             venue.isActive ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"
@@ -545,13 +669,13 @@ const SuperAdminDashboardPage = () => {
                             {venue.isActive ? "Active" : "Suspended"}
                           </span>
                           <span className="text-[9px] font-mono text-[#D8B76A] bg-[#D8B76A]/10 px-2 py-0.5 rounded-full uppercase">
-                            Tier: {venue.subscriptionTier}
+                            Plan: {venue.subscriptionTier}
                           </span>
                           {venue.isFeatured && (
                             <span className="text-[9px] font-bold text-[#070A13] bg-[#D8B76A] px-2 py-0.5 rounded-full uppercase tracking-wider">
                               <span className="inline-flex items-center gap-1">
                                 <Icon icon="mdi:star" className="w-3 h-3 shrink-0" />
-                                Featured
+                                {venue.subscriptionTier === "featured" ? "Paid Featured" : "Manual Featured"}
                               </span>
                             </span>
                           )}
@@ -599,6 +723,12 @@ const SuperAdminDashboardPage = () => {
                               <p className="text-[#D8B76A] italic flex items-center gap-1.5">
                                 <Icon icon="mdi:note-edit-outline" className="w-3.5 h-3.5 shrink-0" />
                                 <span>Admin Notes: {venue.verificationNotes}</span>
+                              </p>
+                            )}
+                            {venue.verificationSubmittedAt && (
+                              <p className="flex items-center gap-1.5">
+                                <Icon icon="mdi:clock-outline" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
+                                <span>Submitted: {new Date(venue.verificationSubmittedAt).toLocaleDateString()}</span>
                               </p>
                             )}
                           </div>
@@ -733,6 +863,21 @@ const SuperAdminDashboardPage = () => {
                           </div>
 
                           <div className="flex flex-col gap-1.5 pt-2">
+                            <label className="text-[10px] uppercase font-bold tracking-wider text-white/50">Review Decision:</label>
+                            <select
+                              value={verificationForm.verificationStatus}
+                              onChange={(e) => setVerificationForm((prev) => ({ ...prev, verificationStatus: e.target.value }))}
+                              className="w-full rounded-xl border bg-[#070A13]/50 border-white/10 px-3 py-2 text-xs text-white outline-none focus:border-[#D8B76A]/60"
+                            >
+                              <option value="verified">Verified - publish approved checks</option>
+                              <option value="changes_requested">Changes requested - ask for clearer proof</option>
+                              <option value="rejected">Rejected - proof does not validate claims</option>
+                              <option value="pending_review">Keep pending review</option>
+                              <option value="not_submitted">Not submitted</option>
+                            </select>
+                          </div>
+
+                          <div className="flex flex-col gap-1.5 pt-2">
                             <label className="text-[10px] uppercase font-bold tracking-wider text-white/50">Verification Audit Notes / Feedback:</label>
                             <textarea
                               value={verificationForm.verificationNotes}
@@ -747,16 +892,19 @@ const SuperAdminDashboardPage = () => {
                             <button
                               type="button"
                               onClick={() => setVerifyingVenueId(null)}
-                              className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 text-xs font-semibold"
+                              disabled={verificationBusy}
+                              className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               Cancel
                             </button>
                             <button
                               type="button"
                               onClick={() => handleSaveVerification(venue._id)}
-                              className="px-3 py-1 rounded bg-[#D8B76A] text-[#070A13] hover:opacity-90 text-xs font-bold"
+                              disabled={verificationBusy}
+                              className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded bg-[#D8B76A] text-[#070A13] hover:opacity-90 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-70"
                             >
-                              Save Verification
+                              <Icon icon={verificationBusy ? "lucide:loader-2" : "mdi:shield-check-outline"} className={`w-3.5 h-3.5 shrink-0 ${verificationBusy ? "animate-spin" : ""}`} />
+                              {verificationBusy ? "Saving..." : "Save Verification"}
                             </button>
                           </div>
                         </div>
@@ -768,36 +916,48 @@ const SuperAdminDashboardPage = () => {
                           {!venue.isApproved ? (
                             <button
                               onClick={() => handleUpdateVenueStatus(venue._id, "approved")}
-                              className="px-3 py-1.5 rounded-lg bg-emerald-500 text-xs font-bold text-[#070A13] hover:bg-emerald-400 transition cursor-pointer"
+                              disabled={statusBusy}
+                              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-xs font-bold text-[#070A13] hover:bg-emerald-400 transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
                             >
-                              Approve Listing
+                              <Icon icon={statusBusy ? "lucide:loader-2" : "mdi:check-circle-outline"} className={`w-3.5 h-3.5 shrink-0 ${statusBusy ? "animate-spin" : ""}`} />
+                              {statusBusy ? "Approving..." : "Approve Listing"}
                             </button>
                           ) : (
                             <>
                               <button
                                 onClick={() => handleUpdateVenueStatus(venue._id, venue.isActive ? "suspended" : "active")}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                disabled={statusBusy}
+                                className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-70 ${
                                   venue.isActive ? "bg-amber-500 text-[#070A13] hover:bg-amber-400" : "bg-emerald-500 text-[#070A13] hover:bg-emerald-400"
                                 }`}
                               >
-                                {venue.isActive ? "Suspend" : "Activate"}
+                                <Icon icon={statusBusy ? "lucide:loader-2" : venue.isActive ? "mdi:pause-circle-outline" : "mdi:play-circle-outline"} className={`w-3.5 h-3.5 shrink-0 ${statusBusy ? "animate-spin" : ""}`} />
+                                {statusBusy ? (venue.isActive ? "Suspending..." : "Activating...") : venue.isActive ? "Suspend" : "Activate"}
                               </button>
                               <button
                                 onClick={() => handleToggleFeatured(venue._id)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                                disabled={featuredBusy}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-70 ${
                                   venue.isFeatured ? "border-[#D8B76A] text-[#D8B76A] bg-[#D8B76A]/10 hover:bg-[#D8B76A]/20" : "border-white/20 text-white hover:bg-white/5"
                                 }`}
                               >
                                 <span className="inline-flex items-center gap-1.5">
-                                  <Icon icon="mdi:star" className="w-3.5 h-3.5 shrink-0" />
-                                  {venue.isFeatured ? "Unfeature" : "Feature"}
+                                  <Icon icon={featuredBusy ? "lucide:loader-2" : "mdi:star"} className={`w-3.5 h-3.5 shrink-0 ${featuredBusy ? "animate-spin" : ""}`} />
+                                  {featuredBusy
+                                    ? venue.isFeatured
+                                      ? "Revoking..."
+                                      : "Granting..."
+                                    : venue.isFeatured
+                                      ? "Revoke Featured"
+                                      : "Grant Featured"}
                                 </span>
                               </button>
                             </>
                           )}
                           <button
                             onClick={() => startVerificationEdit(venue)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/35 transition cursor-pointer"
+                            disabled={verificationBusy}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/35 transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             <span className="inline-flex items-center gap-1.5">
                               <Icon icon="mdi:shield-edit-outline" className="w-3.5 h-3.5 shrink-0" />
@@ -817,7 +977,8 @@ const SuperAdminDashboardPage = () => {
                         </button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -843,7 +1004,10 @@ const SuperAdminDashboardPage = () => {
                         <td colSpan={5} className="p-8 text-center text-white/30">No couple workspaces active.</td>
                       </tr>
                     ) : (
-                      couples.map((couple) => (
+                      couples.map((couple) => {
+                        const tierBusy = !!actionLoading[`couple-tier-${couple._id}`];
+
+                        return (
                         <tr key={couple._id} className="hover:bg-white/2 transition">
                           <td className="p-4 font-serif text-sm font-medium">
                             {couple.partner1Name} & {couple.partner2Name}
@@ -856,17 +1020,25 @@ const SuperAdminDashboardPage = () => {
                             <select
                               value={couple.tier}
                               onChange={(e) => handleUpdateCoupleTier(couple._id, e.target.value)}
-                              className="bg-[#070A13] border border-white/10 px-2 py-1 rounded text-xs outline-none text-white focus:border-[#D8B76A]/60 font-semibold"
+                              disabled={tierBusy}
+                              className="bg-[#070A13] border border-white/10 px-2 py-1 rounded text-xs outline-none text-white focus:border-[#D8B76A]/60 font-semibold disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               <option value="free">Free Tier</option>
                               <option value="plus">Plus Plan</option>
                               <option value="pro">Pro Plan</option>
                             </select>
+                            {tierBusy && (
+                              <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#D8B76A]">
+                                <Icon icon="lucide:loader-2" className="w-3 h-3 animate-spin" />
+                                Saving
+                              </span>
+                            )}
                           </td>
                           <td className="p-4 text-right">
                             <button
                               onClick={() => handleDeleteCouple(couple._id)}
-                              className="px-2.5 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 transition text-[11px] font-bold cursor-pointer"
+                              disabled={tierBusy}
+                              className="px-2.5 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 transition text-[11px] font-bold cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               <span className="inline-flex items-center gap-1.5">
                                 <Icon icon="mdi:trash-can-outline" className="w-3.5 h-3.5 shrink-0" />
@@ -875,7 +1047,8 @@ const SuperAdminDashboardPage = () => {
                             </button>
                           </td>
                         </tr>
-                      ))
+                        );
+                      })
                     )}
                   </tbody>
                 </table>

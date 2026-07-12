@@ -17,6 +17,24 @@ const inquirySchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    status: {
+      type: String,
+      enum: ["new", "replied", "unavailable", "archived"],
+      default: "new",
+      index: true,
+    },
+    repliedAt: {
+      type: Date,
+      default: null,
+    },
+    archivedAt: {
+      type: Date,
+      default: null,
+    },
+    lastReminderAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

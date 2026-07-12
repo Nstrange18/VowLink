@@ -4,6 +4,7 @@ import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import Skeleton from '../../components/common/Skeleton'
 import { Icon } from '@iconify/react'
+import QRCode from 'qrcode'
 import { showConfirmToast } from '../../utils/toastConfirm'
 import { buildPublicUrl } from '../../utils/siteUrl'
 
@@ -11,6 +12,10 @@ const AdminInvitationsPage = () => {
   const [invitations, setInvitations] = useState([])
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(null)
+  const [qrInvitation, setQrInvitation] = useState(null)
+  const [qrDataUrl, setQrDataUrl] = useState('')
+  const [qrLoading, setQrLoading] = useState(false)
+  const [downloadingQr, setDownloadingQr] = useState(false)
   const navigate = useNavigate()
   const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
 
@@ -38,6 +43,70 @@ const AdminInvitationsPage = () => {
     navigator.clipboard.writeText(link)
     setCopied(slug)
     setTimeout(() => setCopied(null), 2000)
+  }
+
+  const getCheckInUrl = (invitation) => buildPublicUrl(`/check-in/${invitation.checkInToken}`)
+
+  const createQrDataUrl = (url, width = 360) =>
+    QRCode.toDataURL(url, {
+      width,
+      margin: 2,
+      errorCorrectionLevel: 'M',
+      color: {
+        dark: '#070A13',
+        light: '#FFFFFF',
+      },
+    })
+
+  useEffect(() => {
+    let cancelled = false
+
+    const renderQr = async () => {
+      if (!qrInvitation?.checkInToken) {
+        setQrDataUrl('')
+        return
+      }
+
+      setQrLoading(true)
+      try {
+        const dataUrl = await createQrDataUrl(getCheckInUrl(qrInvitation), 360)
+        if (!cancelled) setQrDataUrl(dataUrl)
+      } catch {
+        if (!cancelled) {
+          setQrDataUrl('')
+          toast.error('Unable to generate this QR code.')
+        }
+      } finally {
+        if (!cancelled) setQrLoading(false)
+      }
+    }
+
+    renderQr()
+
+    return () => {
+      cancelled = true
+    }
+  }, [qrInvitation])
+
+  const handleDownloadQr = async () => {
+    if (!qrInvitation) return
+    const checkInUrl = getCheckInUrl(qrInvitation)
+    const filename = `check-in-qr-${qrInvitation.slug || qrInvitation.guestName || 'guest'}.png`
+
+    setDownloadingQr(true)
+    try {
+      const dataUrl = await createQrDataUrl(checkInUrl, 720)
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+    } catch {
+      toast.error('Unable to download this QR code.')
+    } finally {
+      setDownloadingQr(false)
+    }
   }
 
   const handleDeleteClick = (id) => {
@@ -104,6 +173,76 @@ const AdminInvitationsPage = () => {
 
   return (
     <div className="p-4 sm:p-8">
+      {qrInvitation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#0D1220] p-6 text-white shadow-2xl">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">Check-In QR</p>
+                <h3 className="mt-2 font-serif text-2xl">{qrInvitation.guestName}</h3>
+                <p className="mt-1 text-xs text-white/45">{qrInvitation.category || 'Guest'} · {qrInvitation.allowedGuests || 1} guest{qrInvitation.allowedGuests === 1 ? '' : 's'}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQrInvitation(null)}
+                className="rounded-full border border-white/10 bg-white/5 p-2 text-white/55 transition hover:text-white"
+                aria-label="Close QR modal"
+              >
+                <Icon icon="lucide:x" className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex min-h-80 items-center justify-center rounded-3xl bg-white p-5">
+              {qrLoading ? (
+                <div className="flex flex-col items-center gap-3 text-[#070A13]/55">
+                  <Icon icon="lucide:loader-2" className="h-8 w-8 animate-spin" />
+                  <p className="text-[10px] font-bold uppercase tracking-wider">Generating QR</p>
+                </div>
+              ) : qrDataUrl ? (
+                <img
+                  src={qrDataUrl}
+                  alt={`Check-in QR for ${qrInvitation.guestName}`}
+                  className="mx-auto h-72 w-72 max-w-full"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-3 text-center text-[#070A13]/55">
+                  <Icon icon="lucide:triangle-alert" className="h-8 w-8" />
+                  <p className="text-[10px] font-bold uppercase tracking-wider">QR unavailable</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">Check-in link</p>
+              <p className="mt-1 break-all font-mono text-[11px] text-white/65">{getCheckInUrl(qrInvitation)}</p>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(getCheckInUrl(qrInvitation))
+                  toast.success('Check-in link copied.')
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/75 transition hover:bg-white/10"
+              >
+                <Icon icon="lucide:copy" className="h-3.5 w-3.5" />
+                Copy Link
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadQr}
+                disabled={downloadingQr || qrLoading || !qrInvitation.checkInToken}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#D8B76A] px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#070A13] transition hover:bg-[#F2D894] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                <Icon icon={downloadingQr ? "lucide:loader-2" : "lucide:download"} className={`h-3.5 w-3.5 ${downloadingQr ? 'animate-spin' : ''}`} />
+                {downloadingQr ? 'Saving...' : 'Download'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Manage</p>
@@ -359,22 +498,44 @@ const AdminInvitationsPage = () => {
                               {inv.senderGroup === 'bride' ? 'Bride' : inv.senderGroup === 'groom' ? 'Groom' : 'Both'}
                             </span>
                           )}
+                          {inv.checkedIn && (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wider text-emerald-300">
+                              <Icon icon="lucide:badge-check" className="h-3 w-3" />
+                              Checked In
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-white/40 mt-0.5">/invite/{inv.slug}</p>
                       </td>
                       <td className="px-5 py-4 text-white/60">{inv.category || 'Guest'}</td>
                       <td className="px-5 py-4 text-white/60">{inv.allowedGuests}</td>
                       <td className="px-5 py-4">
-                        <span className={`rounded-full px-3 py-1 text-xs font-medium ${getRsvpBadgeClass(inv)}`}>
+                        <span className={`inline-flex min-w-[92px] items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${getRsvpBadgeClass(inv)}`}>
                           {getRsvpStatusText(inv)}
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <button onClick={() => handleCopy(inv.slug)} className="text-xs text-[#7FA6D9] hover:text-white transition">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            onClick={() => handleCopy(inv.slug)}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#7FA6D9]/20 bg-[#7FA6D9]/10 text-[#7FA6D9] transition hover:border-[#7FA6D9]/50 hover:bg-[#7FA6D9]/15 hover:text-white"
+                            title={copied === inv.slug ? "Copied" : "Copy invite link"}
+                            aria-label={copied === inv.slug ? "Copied" : "Copy invite link"}
+                          >
                             {copied === inv.slug ? (
-                              <span className="inline-flex items-center gap-1"><Icon icon="lucide:check" className="h-3 w-3" /> Copied</span>
-                            ) : 'Copy Link'}
+                              <Icon icon="lucide:check" className="h-4 w-4" />
+                            ) : (
+                              <Icon icon="lucide:copy" className="h-4 w-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setQrInvitation(inv)}
+                            disabled={!inv.checkInToken}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition hover:border-[#D8B76A]/50 hover:bg-[#D8B76A]/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                            title={inv.checkInToken ? "View check-in QR" : "Preparing QR token"}
+                            aria-label={inv.checkInToken ? "View check-in QR" : "Preparing QR token"}
+                          >
+                            <Icon icon="lucide:qr-code" className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => {
@@ -388,13 +549,28 @@ const AdminInvitationsPage = () => {
                                 : `https://wa.me/?text=${msg}`;
                               window.open(targetUrl, '_blank')
                             }}
-                            className="text-xs text-[#25D366] hover:text-white transition font-medium"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#25D366]/20 bg-[#25D366]/10 text-[#25D366] transition hover:border-[#25D366]/50 hover:bg-[#25D366]/15 hover:text-white"
                             title={inv.phoneNumber ? `Send direct RSVP reminder to WhatsApp (${inv.phoneNumber})` : "Share via WhatsApp"}
+                            aria-label={inv.phoneNumber ? `Send direct RSVP reminder to WhatsApp (${inv.phoneNumber})` : "Share via WhatsApp"}
                           >
-                            <div className="flex items-center gap-1"><Icon icon="ri:whatsapp-line" /> WhatsApp</div>
+                            <Icon icon="ri:whatsapp-line" className="h-4 w-4" />
                           </button>
-                          <button onClick={() => handleEdit(inv)} className="text-xs text-white/50 hover:text-white transition">Edit</button>
-                          <button onClick={() => handleDeleteClick(inv._id)} className="text-xs text-red-400/70 hover:text-red-400 transition">Delete</button>
+                          <button
+                            onClick={() => handleEdit(inv)}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/55 transition hover:border-white/25 hover:bg-white/10 hover:text-white"
+                            title="Edit invitation"
+                            aria-label="Edit invitation"
+                          >
+                            <Icon icon="lucide:pencil" className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(inv._id)}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-400/15 bg-red-400/10 text-red-400/80 transition hover:border-red-400/40 hover:bg-red-400/15 hover:text-red-300"
+                            title="Delete invitation"
+                            aria-label="Delete invitation"
+                          >
+                            <Icon icon="lucide:trash-2" className="h-4 w-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -427,19 +603,41 @@ const AdminInvitationsPage = () => {
                             {inv.senderGroup === 'bride' ? 'Bride' : inv.senderGroup === 'groom' ? 'Groom' : 'Both'}
                           </span>
                         )}
+                        {inv.checkedIn && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider text-emerald-300">
+                            <Icon icon="lucide:badge-check" className="h-3 w-3" />
+                            Checked In
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-white/40 mt-0.5">{inv.category || 'Guest'} · {inv.allowedGuests} guest{inv.allowedGuests !== 1 ? 's' : ''}</p>
                     </div>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${getRsvpBadgeClass(inv)}`}>
+                    <span className={`inline-flex min-w-[88px] items-center justify-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${getRsvpBadgeClass(inv)}`}>
                       {getRsvpStatusText(inv)}
                     </span>
                   </div>
                   <p className="text-xs text-white/30 mb-3">/invite/{inv.slug}</p>
-                  <div className="flex items-center gap-4 border-t border-white/5 pt-3 flex-wrap">
-                    <button onClick={() => handleCopy(inv.slug)} className="text-xs text-[#7FA6D9] hover:text-white transition">
+                  <div className="flex items-center gap-2 border-t border-white/5 pt-3 flex-wrap">
+                    <button
+                      onClick={() => handleCopy(inv.slug)}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#7FA6D9]/20 bg-[#7FA6D9]/10 text-[#7FA6D9] transition hover:text-white"
+                      title={copied === inv.slug ? "Copied" : "Copy invite link"}
+                      aria-label={copied === inv.slug ? "Copied" : "Copy invite link"}
+                    >
                       {copied === inv.slug ? (
-                        <span className="inline-flex items-center gap-1"><Icon icon="lucide:check" className="h-3 w-3" /> Copied</span>
-                      ) : 'Copy Link'}
+                        <Icon icon="lucide:check" className="h-4 w-4" />
+                      ) : (
+                        <Icon icon="lucide:copy" className="h-4 w-4" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setQrInvitation(inv)}
+                      disabled={!inv.checkInToken}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                      title={inv.checkInToken ? "View check-in QR" : "Preparing QR token"}
+                      aria-label={inv.checkInToken ? "View check-in QR" : "Preparing QR token"}
+                    >
+                      <Icon icon="lucide:qr-code" className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => {
@@ -453,13 +651,28 @@ const AdminInvitationsPage = () => {
                           : `https://wa.me/?text=${msg}`;
                         window.open(targetUrl, '_blank')
                       }}
-                      className="text-xs text-[#25D366] hover:text-white transition font-medium"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#25D366]/20 bg-[#25D366]/10 text-[#25D366] transition hover:text-white"
                       title={inv.phoneNumber ? `Send direct RSVP reminder to WhatsApp (${inv.phoneNumber})` : "Share via WhatsApp"}
+                      aria-label={inv.phoneNumber ? `Send direct RSVP reminder to WhatsApp (${inv.phoneNumber})` : "Share via WhatsApp"}
                     >
-                      <span className="inline-flex items-center gap-1"><Icon icon="ri:whatsapp-line" className="h-3.5 w-3.5" /> WhatsApp</span>
+                      <Icon icon="ri:whatsapp-line" className="h-4 w-4" />
                     </button>
-                    <button onClick={() => handleEdit(inv)} className="text-xs text-white/50 hover:text-white transition">Edit</button>
-                    <button onClick={() => handleDeleteClick(inv._id)} className="text-xs text-red-400/70 hover:text-red-400 transition">Delete</button>
+                    <button
+                      onClick={() => handleEdit(inv)}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/55 transition hover:text-white"
+                      title="Edit invitation"
+                      aria-label="Edit invitation"
+                    >
+                      <Icon icon="lucide:pencil" className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(inv._id)}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-400/15 bg-red-400/10 text-red-400/80 transition hover:text-red-300"
+                      title="Delete invitation"
+                      aria-label="Delete invitation"
+                    >
+                      <Icon icon="lucide:trash-2" className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               ))

@@ -8,6 +8,14 @@ const inputOk =
 const inputErr = "border-red-400/50 focus:border-red-400/70";
 const labelClass = "mb-1.5 block text-[10px] uppercase tracking-wider text-white/50 font-semibold";
 
+const verificationStatusCopy = {
+  pending_review: "Pending admin review. New claims will not be shown to couples until approved.",
+  verified: "Approved by VowLink. Future checklist or proof changes will be sent for review again.",
+  changes_requested: "Changes requested. Upload clearer proof documents and save again to resubmit.",
+  rejected: "Rejected. Update the claims or upload stronger proof documents before resubmitting.",
+  not_submitted: "Not submitted. Select applicable checks and upload proof documents to begin review.",
+};
+
 const VenueListingForm = ({
   register,
   errors,
@@ -19,7 +27,10 @@ const VenueListingForm = ({
   handleProofUpload,
   proofUrls = [],
   removeProofUrl,
+  verificationStatus = "not_submitted",
 }) => {
+  const statusMessage = verificationStatusCopy[verificationStatus] || verificationStatusCopy.not_submitted;
+
   return (
     <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-6 sm:p-8 space-y-6">
       <div>
@@ -191,6 +202,14 @@ const VenueListingForm = ({
             </p>
           </div>
 
+          <div className="rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 p-3.5 text-[10px] leading-relaxed text-white/65">
+            <span className="inline-flex items-center gap-1.5 font-bold uppercase tracking-wider text-[#D8B76A]">
+              <Icon icon="lucide:shield-alert" className="h-3.5 w-3.5" />
+              Verification status
+            </span>
+            <p className="mt-1">{statusMessage}</p>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-white/5 border border-white/10 p-4 rounded-2xl">
             <label className="flex items-start gap-2.5 cursor-pointer py-1">
               <input
@@ -265,6 +284,13 @@ const VenueListingForm = ({
               </h4>
               <p className="text-[9px] text-white/40 mt-0.5">
                 Upload certificates, structural test results, or insurance policy documents as proof for the Super Admin to review.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-[#070A13]/55 p-3 text-[10px] leading-relaxed text-white/55">
+              <p className="font-bold uppercase tracking-wider text-white/70">Accepted proof examples</p>
+              <p className="mt-1">
+                Fire certificate or extinguisher service record, insurance policy, structural report, CCTV/security proof, or signed venue safety declaration. Upload documents that clearly match the checks you selected.
               </p>
             </div>
 
