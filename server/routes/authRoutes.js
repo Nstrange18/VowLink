@@ -345,11 +345,69 @@ router.post("/refresh", async (req, res) => {
 // ── GET /api/auth/me — fetch full profile (including media fields) ────────────
 router.get("/me", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password -resetPasswordToken -resetPasswordExpires");
+    const user = await User.findById(req.user.id).select("-password -checkInPinHash -resetPasswordToken -resetPasswordExpires");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch profile", error: error.message });
+  }
+});
+
+// ── CHECK-IN PIN: status for couple dashboard ───────────────────────────────
+router.get("/check-in-pin", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("checkInPinHash checkInPinUpdatedAt");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json({
+      enabled: Boolean(user.checkInPinHash),
+      updatedAt: user.checkInPinUpdatedAt || null,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to load check-in PIN status", error: error.message });
+  }
+});
+
+// ── CHECK-IN PIN: create/reset event access PIN ─────────────────────────────
+router.put("/check-in-pin", protect, async (req, res) => {
+  try {
+    const { pin } = req.body;
+    const normalizedPin = String(pin || "").trim();
+
+    if (!/^\d{4,8}$/.test(normalizedPin)) {
+      return res.status(400).json({ message: "Check-in PIN must be 4 to 8 digits." });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.checkInPinHash = await bcrypt.hash(normalizedPin, 10);
+    user.checkInPinUpdatedAt = new Date();
+    await user.save();
+
+    res.status(200).json({
+      message: "Check-in PIN updated. Ushers can use it for event entry only.",
+      enabled: true,
+      updatedAt: user.checkInPinUpdatedAt,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update check-in PIN", error: error.message });
+  }
+});
+
+// ── CHECK-IN PIN: disable event access PIN ──────────────────────────────────
+router.delete("/check-in-pin", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.checkInPinHash = "";
+    user.checkInPinUpdatedAt = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Check-in PIN disabled.", enabled: false, updatedAt: null });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to disable check-in PIN", error: error.message });
   }
 });
 

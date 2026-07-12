@@ -40,6 +40,27 @@ const isVenuePubliclyVisible = (venue) => {
   return Boolean(venue?.isApproved && venue?.isActive !== false && getVenueCompleteness(venue).isComplete);
 };
 
+const getVenuePublicReadiness = (venue) => {
+  const completeness = getVenueCompleteness(venue);
+  const reasons = [];
+
+  if (!venue) {
+    reasons.push("Venue record was not found");
+  } else {
+    if (!venue.isApproved) reasons.push("Not approved by VowLink admin yet");
+    if (venue.isActive === false) reasons.push("Listing is currently inactive or suspended");
+    if (!completeness.isComplete) {
+      reasons.push(`Missing profile details: ${completeness.missing.join(", ")}`);
+    }
+  }
+
+  return {
+    isReady: Boolean(venue && reasons.length === 0),
+    missing: completeness.missing,
+    reasons,
+  };
+};
+
 const isVenueUnlockedForFreeCouples = (venue) => ["listed", "featured"].includes(venue?.subscriptionTier);
 
 const normalizeProofUrls = (venue) => {
@@ -647,6 +668,22 @@ router.get("/auth/me", protectVenue, async (req, res) => {
   res.status(200).json(req.venue);
 });
 
+// ── VENUE OWNER: Check public sharing readiness ────────────────────────────
+router.get("/auth/public-readiness", protectVenue, async (req, res) => {
+  const readiness = getVenuePublicReadiness(req.venue);
+
+  res.status(200).json({
+    ...readiness,
+    publicUrlPath: `/venues/${req.venue._id}`,
+    status: {
+      isApproved: Boolean(req.venue.isApproved),
+      isActive: req.venue.isActive !== false,
+      verificationStatus: req.venue.verificationStatus || "not_submitted",
+      subscriptionTier: req.venue.subscriptionTier || "basic",
+    },
+  });
+});
+
 // ── VENUE OWNER: Get Live Stats (views + inquiries only) ──────────────────
 router.get("/auth/stats", protectVenue, async (req, res) => {
   try {
@@ -1069,19 +1106,29 @@ router.get("/public/:id", async (req, res) => {
       return res.status(404).json({ message: "This venue link does not exist." });
     }
 
+    const readiness = getVenuePublicReadiness(venue);
+
     if (!venue.isApproved) {
-      return res.status(403).json({ message: "This venue is still under review and is not public yet." });
+      return res.status(403).json({
+        message: "This venue is still under review and is not public yet.",
+        missing: readiness.missing,
+        reasons: readiness.reasons,
+      });
     }
 
     if (venue.isActive === false) {
-      return res.status(403).json({ message: "This venue listing is currently inactive." });
+      return res.status(403).json({
+        message: "This venue listing is currently inactive.",
+        missing: readiness.missing,
+        reasons: readiness.reasons,
+      });
     }
 
-    const completeness = getVenueCompleteness(venue);
-    if (!completeness.isComplete) {
+    if (!readiness.isReady) {
       return res.status(409).json({
         message: "This venue profile is not ready for public sharing yet.",
-        missing: completeness.missing,
+        missing: readiness.missing,
+        reasons: readiness.reasons,
       });
     }
 

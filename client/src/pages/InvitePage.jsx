@@ -4,12 +4,14 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { toPng } from "html-to-image";
+import QRCode from "qrcode";
 import { getTemplateLayout, getBlockStyles } from "../utils/templateLayouts";
 import { normalizePublicImageUrl } from "../utils/publicAssets";
 import api from "../utils/api";
 import { rsvpSchema } from "../utils/schemas";
 import { WEDDING_COLORS } from "../components/ColorPicker";
 import { Icon } from "@iconify/react";
+import { buildPublicUrl } from "../utils/siteUrl";
 
 const getGuestThemeStorageKey = (slug) => `vowlink_guest_theme_${slug}`;
 const WISHES_PAGE_SIZE = 10;
@@ -811,6 +813,9 @@ const InvitePage = ({ setThemePreference }) => {
   const [giftMessage, setGiftMessage] = useState("");
   const [loadingGiftPayment, setLoadingGiftPayment] = useState(false);
   const giftCheckoutRef = useRef(false);
+  const [showCheckInQr, setShowCheckInQr] = useState(false);
+  const [checkInQrDataUrl, setCheckInQrDataUrl] = useState("");
+  const [checkInQrLoading, setCheckInQrLoading] = useState(false);
 
   // Declare variables unconditionally at the very top of the render scope 
   // to completely eliminate any Temporal Dead Zone (TDZ) reference errors.
@@ -825,6 +830,10 @@ const InvitePage = ({ setThemePreference }) => {
   const visibleWishes = useMemo(
     () => wishes.slice(0, visibleWishCount),
     [visibleWishCount, wishes]
+  );
+  const checkInUrl = useMemo(
+    () => invitation?.checkInToken ? buildPublicUrl(`/check-in/${invitation.checkInToken}`) : "",
+    [invitation?.checkInToken]
   );
   const hasMoreWishes = wishes.length > visibleWishCount;
   const canShowLessWishes = visibleWishCount > WISHES_PAGE_SIZE;
@@ -904,6 +913,44 @@ const InvitePage = ({ setThemePreference }) => {
     // Re-run only when the actual audio URL changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [musicUrl]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const renderCheckInQr = async () => {
+      if (!showCheckInQr || !checkInUrl) {
+        setCheckInQrDataUrl("");
+        return;
+      }
+
+      setCheckInQrLoading(true);
+      try {
+        const dataUrl = await QRCode.toDataURL(checkInUrl, {
+          width: 420,
+          margin: 2,
+          errorCorrectionLevel: "M",
+          color: {
+            dark: "#070A13",
+            light: "#FFFFFF",
+          },
+        });
+        if (!cancelled) setCheckInQrDataUrl(dataUrl);
+      } catch {
+        if (!cancelled) {
+          setCheckInQrDataUrl("");
+          toast.error("Unable to generate your entry QR code.");
+        }
+      } finally {
+        if (!cancelled) setCheckInQrLoading(false);
+      }
+    };
+
+    renderCheckInQr();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [checkInUrl, showCheckInQr]);
 
   // Pause background music when user switches tabs or minimizes browser, and resume when they return
   useEffect(() => {
@@ -1293,6 +1340,29 @@ const InvitePage = ({ setThemePreference }) => {
         err.response?.data?.message || "Failed to submit RSVP. Please try again."
       );
     }
+  };
+
+  const handleOpenCheckInQr = () => {
+    if (!checkInUrl) {
+      toast.info("Your entry QR is still being prepared. Please try again in a moment.");
+      return;
+    }
+
+    setShowCheckInQr(true);
+  };
+
+  const handleDownloadCheckInQr = () => {
+    if (!checkInQrDataUrl) {
+      toast.info("Your entry QR is still loading.");
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.href = checkInQrDataUrl;
+    link.download = `entry-qr-${invitation?.guestName?.toLowerCase().replace(/\s+/g, "-") || "guest"}.png`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   const handleDownload = async () => {
@@ -1851,6 +1921,78 @@ const InvitePage = ({ setThemePreference }) => {
 
   return (
     <div className={`invite-page min-h-screen relative ${isOpen ? "overflow-x-hidden" : "h-screen overflow-hidden"}`} style={{ background: "#070A13" }}>
+      {showCheckInQr && (
+        <div className="download-exclude fixed inset-0 z-90 flex items-end justify-center bg-black/65 px-4 pb-4 backdrop-blur-md sm:items-center sm:pb-0">
+          <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/25 bg-[#0D1220] p-5 text-white shadow-2xl">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">Entry QR</p>
+                <h3 className="mt-2 font-serif text-2xl">{invitation.guestName}</h3>
+                <p className="mt-1 text-xs text-white/45">
+                  Show this at the entrance for usher check-in.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCheckInQr(false)}
+                className="rounded-full border border-white/10 bg-white/5 p-2 text-white/55 transition hover:text-white"
+                aria-label="Close entry QR"
+              >
+                <Icon icon="lucide:x" className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex min-h-72 items-center justify-center rounded-3xl bg-white p-4">
+              {checkInQrLoading ? (
+                <div className="flex flex-col items-center gap-3 text-[#070A13]/55">
+                  <Icon icon="lucide:loader-2" className="h-8 w-8 animate-spin" />
+                  <p className="text-[10px] font-bold uppercase tracking-wider">Preparing QR</p>
+                </div>
+              ) : checkInQrDataUrl ? (
+                <img
+                  src={checkInQrDataUrl}
+                  alt={`Entry QR for ${invitation.guestName}`}
+                  className="h-64 w-64 max-w-full"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-3 text-center text-[#070A13]/55">
+                  <Icon icon="lucide:triangle-alert" className="h-8 w-8" />
+                  <p className="text-[10px] font-bold uppercase tracking-wider">QR unavailable</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-[11px] leading-relaxed text-white/55">
+              Ushers will scan this code and enter the event PIN on their own device. This QR alone cannot check you in.
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(checkInUrl);
+                  toast.success("Entry QR link copied.");
+                }}
+                disabled={!checkInUrl}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/75 transition hover:bg-white/10 disabled:opacity-50"
+              >
+                <Icon icon="lucide:copy" className="h-3.5 w-3.5" />
+                Copy Link
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadCheckInQr}
+                disabled={checkInQrLoading || !checkInQrDataUrl}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#D8B76A] px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#070A13] transition hover:bg-[#F2D894] disabled:opacity-60"
+              >
+                <Icon icon="lucide:download" className="h-3.5 w-3.5" />
+                Save QR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         .is-exporting .download-exclude,
         .is-exporting #rsvp-open-btn,
@@ -2559,6 +2701,15 @@ const InvitePage = ({ setThemePreference }) => {
 
           {/* Download */}
           <div id="download-actions-bar" className="flex flex-wrap items-center justify-center gap-3 pb-4 download-exclude">
+            <button
+              type="button"
+              onClick={handleOpenCheckInQr}
+              disabled={!checkInUrl}
+              className="flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/15 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#F2D894] backdrop-blur-sm transition hover:bg-[#D8B76A]/25 hover:shadow-[0_8px_24px_rgba(216,183,106,0.2)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Icon icon="lucide:qr-code" className="h-4 w-4" />
+              Entry QR
+            </button>
             <button
               onClick={handleDownload}
               disabled={downloading}

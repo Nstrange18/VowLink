@@ -18,8 +18,11 @@ const CheckInPage = () => {
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
   const [error, setError] = useState("");
+  const [pin, setPin] = useState("");
+  const [hasCheckInAccess, setHasCheckInAccess] = useState(false);
 
   const isLoggedIn = Boolean(localStorage.getItem("token"));
+  const getAccessKey = (eventId) => `vowlink_checkin_access_${eventId}`;
 
   useEffect(() => {
     const loadCheckIn = async () => {
@@ -27,6 +30,7 @@ const CheckInPage = () => {
         setLoading(true);
         const res = await api.get(`/invitations/check-in/${token}`);
         setRecord(res.data);
+        setHasCheckInAccess(Boolean(res.data?.eventId && sessionStorage.getItem(getAccessKey(res.data.eventId))));
         setError("");
       } catch (err) {
         setError(err.response?.data?.message || "This check-in QR code could not be loaded.");
@@ -39,14 +43,46 @@ const CheckInPage = () => {
   }, [token]);
 
   const handleCheckIn = async () => {
-    if (!isLoggedIn) {
-      toast.info("Please sign in to check in guests.");
+    if (!record) return;
+
+    let accessToken = record.eventId ? sessionStorage.getItem(getAccessKey(record.eventId)) : "";
+
+    if (!isLoggedIn && !accessToken) {
+      if (!record.checkInPinEnabled) {
+        toast.info("This wedding has not enabled usher PIN access yet.");
+        return;
+      }
+
+      if (!/^\d{4,8}$/.test(pin.trim())) {
+        toast.info("Enter the 4 to 8 digit event check-in PIN.");
+        return;
+      }
+
+      setCheckingIn(true);
+      try {
+        const accessRes = await api.post(`/invitations/check-in/${token}/access`, { pin: pin.trim() });
+        accessToken = accessRes.data.accessToken;
+        if (record.eventId && accessToken) {
+          sessionStorage.setItem(getAccessKey(record.eventId), accessToken);
+          setHasCheckInAccess(true);
+        }
+        setPin("");
+        toast.success("Check-in access granted for this wedding.");
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Invalid check-in PIN.");
+        setCheckingIn(false);
+        return;
+      }
+    }
+
+    if (!isLoggedIn && !accessToken) {
+      toast.info("Enter the event check-in PIN before checking in guests.");
       return;
     }
 
     setCheckingIn(true);
     try {
-      const res = await api.post(`/invitations/check-in/${token}`);
+      const res = await api.post(`/invitations/check-in/${token}`, { accessToken });
       setRecord((prev) => ({
         ...prev,
         checkedIn: true,
@@ -123,6 +159,36 @@ const CheckInPage = () => {
                 </div>
               </div>
 
+              {!isLoggedIn && !hasCheckInAccess && !record.checkedIn && (
+                <div className="rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 p-4">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#D8B76A]">
+                    Event check-in PIN
+                  </label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={pin}
+                    onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, 8))}
+                    placeholder={record.checkInPinEnabled ? "Enter usher PIN" : "PIN not enabled"}
+                    disabled={!record.checkInPinEnabled || checkingIn}
+                    className="mt-2 w-full rounded-xl border border-white/10 bg-[#070A13] px-4 py-3 text-center font-mono text-lg tracking-[0.35em] text-white outline-none transition placeholder:text-center placeholder:text-xs placeholder:tracking-wider placeholder:text-white/25 focus:border-[#D8B76A]/70 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                  <p className="mt-2 text-[11px] leading-relaxed text-white/45">
+                    Ushers only need the event PIN. This does not give access to the couple dashboard.
+                  </p>
+                </div>
+              )}
+
+              {!isLoggedIn && hasCheckInAccess && !record.checkedIn && (
+                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-xs text-emerald-100">
+                  <span className="inline-flex items-center gap-2">
+                    <Icon icon="lucide:shield-check" className="h-4 w-4" />
+                    Check-in access is active on this device.
+                  </span>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={handleCheckIn}
@@ -135,7 +201,7 @@ const CheckInPage = () => {
 
               {!isLoggedIn && (
                 <p className="text-center text-[11px] leading-relaxed text-white/45">
-                  Ushers must sign in to mark guests as checked in.{" "}
+                  Couple/admin sign-in also works for check-in control.{" "}
                   <Link to="/admin/login" className="font-semibold text-[#D8B76A] underline">Sign in</Link>
                 </p>
               )}

@@ -10,6 +10,7 @@ import ThemeSelector from "../../components/settings/ThemeSelector";
 import MusicSelector from "../../components/settings/MusicSelector";
 import ImageEditorModal from "../../components/ImageEditorModal";
 import { Icon } from "@iconify/react";
+import api from "../../utils/api";
 
 const TIMELINE_ICONS = [
   { icon: "mdi:church", label: "Church/Ceremony" },
@@ -215,6 +216,11 @@ const AdminSettingsPageContent = () => {
 
   const [showCouplePortrait, setShowCouplePortrait] = React.useState(true);
   const [showSocialShare, setShowSocialShare] = React.useState(false);
+  const [checkInPin, setCheckInPin] = React.useState("");
+  const [checkInPinStatus, setCheckInPinStatus] = React.useState({ enabled: false, updatedAt: null });
+  const [loadingCheckInPin, setLoadingCheckInPin] = React.useState(false);
+  const [savingCheckInPin, setSavingCheckInPin] = React.useState(false);
+  const [disablingCheckInPin, setDisablingCheckInPin] = React.useState(false);
   const location = useLocation();
 
   React.useEffect(() => {
@@ -224,6 +230,62 @@ const AdminSettingsPageContent = () => {
       setActiveTab(tabParam);
     }
   }, [location, setActiveTab]);
+
+  React.useEffect(() => {
+    const loadCheckInPinStatus = async () => {
+      setLoadingCheckInPin(true);
+      try {
+        const res = await api.get("/auth/check-in-pin");
+        setCheckInPinStatus({
+          enabled: Boolean(res.data?.enabled),
+          updatedAt: res.data?.updatedAt || null,
+        });
+      } catch {
+        setCheckInPinStatus({ enabled: false, updatedAt: null });
+      } finally {
+        setLoadingCheckInPin(false);
+      }
+    };
+
+    loadCheckInPinStatus();
+  }, []);
+
+  const handleSaveCheckInPin = async () => {
+    const normalizedPin = checkInPin.trim();
+    if (!/^\d{4,8}$/.test(normalizedPin)) {
+      toast.info("Use a 4 to 8 digit check-in PIN.");
+      return;
+    }
+
+    setSavingCheckInPin(true);
+    try {
+      const res = await api.put("/auth/check-in-pin", { pin: normalizedPin });
+      setCheckInPin("");
+      setCheckInPinStatus({
+        enabled: Boolean(res.data?.enabled),
+        updatedAt: res.data?.updatedAt || new Date().toISOString(),
+      });
+      toast.success(res.data?.message || "Check-in PIN updated.");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update check-in PIN.");
+    } finally {
+      setSavingCheckInPin(false);
+    }
+  };
+
+  const handleDisableCheckInPin = async () => {
+    setDisablingCheckInPin(true);
+    try {
+      const res = await api.delete("/auth/check-in-pin");
+      setCheckInPin("");
+      setCheckInPinStatus({ enabled: false, updatedAt: null });
+      toast.success(res.data?.message || "Check-in PIN disabled.");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to disable check-in PIN.");
+    } finally {
+      setDisablingCheckInPin(false);
+    }
+  };
 
   return (
     <div className="p-4 sm:p-8 max-w-6xl mx-auto text-white overflow-x-hidden lg:h-full lg:flex lg:flex-col">
@@ -917,11 +979,78 @@ const AdminSettingsPageContent = () => {
                 </div>
               </div>
 
+              {/* Event Check-in PIN Card */}
+              <div className="p-3 sm:p-5 rounded-2xl border border-[#D8B76A]/20 bg-[#0D1220] space-y-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">8. Event Check-in PIN</h3>
+                    <p className="mt-1 text-[10px] leading-relaxed text-white/40">
+                      Give this PIN to ushers so they can scan QR codes and check guests in without your account login.
+                    </p>
+                  </div>
+                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[9px] font-bold uppercase tracking-wider ${
+                    checkInPinStatus.enabled
+                      ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200"
+                      : "border-white/10 bg-white/5 text-white/45"
+                  }`}>
+                    <Icon icon={checkInPinStatus.enabled ? "lucide:shield-check" : "lucide:shield"} className="h-3.5 w-3.5" />
+                    {loadingCheckInPin ? "Checking" : checkInPinStatus.enabled ? "Active" : "Off"}
+                  </span>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-[11px] leading-relaxed text-white/50">
+                  Ushers can enter this PIN once on their phone after scanning a guest QR. Their browser gets temporary event access only. It cannot open settings, payments, guests, or your dashboard.
+                </div>
+
+                {checkInPinStatus.enabled && checkInPinStatus.updatedAt && (
+                  <p className="text-[10px] text-white/40">
+                    Last updated {new Date(checkInPinStatus.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  </p>
+                )}
+
+                <div>
+                  <label className="mb-1 block text-[9px] uppercase tracking-widest text-white/50 font-semibold">
+                    {checkInPinStatus.enabled ? "New PIN" : "Create PIN"}
+                  </label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center font-mono text-lg tracking-[0.35em] text-white placeholder:text-center placeholder:text-xs placeholder:tracking-wider placeholder:text-white/25 outline-none focus:border-[#D8B76A]/60"
+                    value={checkInPin}
+                    onChange={(e) => setCheckInPin(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                    placeholder="4 to 8 digits"
+                    disabled={savingCheckInPin || disablingCheckInPin}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={handleSaveCheckInPin}
+                    disabled={savingCheckInPin || disablingCheckInPin}
+                    className="flex-1 rounded-xl bg-[#D8B76A] py-2.5 text-xs font-semibold uppercase tracking-wider text-[#070A13] transition hover:opacity-90 disabled:opacity-50"
+                  >
+                    {savingCheckInPin ? "Saving..." : checkInPinStatus.enabled ? "Reset PIN" : "Enable PIN"}
+                  </button>
+                  {checkInPinStatus.enabled && (
+                    <button
+                      type="button"
+                      onClick={handleDisableCheckInPin}
+                      disabled={savingCheckInPin || disablingCheckInPin}
+                      className="flex-1 rounded-xl border border-red-500/30 bg-red-600/10 py-2.5 text-xs font-semibold uppercase tracking-wider text-red-300 transition hover:bg-red-600/20 disabled:opacity-50"
+                    >
+                      {disablingCheckInPin ? "Disabling..." : "Disable PIN"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* Danger Zone Card */}
               <div className="p-3 sm:p-5 rounded-2xl border border-red-500/20 bg-[#1A0A0F] space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h3 className="text-sm font-semibold uppercase tracking-widest text-red-400">8. Danger Zone</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-widest text-red-400">9. Danger Zone</h3>
                     <p className="text-[10px] text-red-200/50 mt-1 max-w-xs leading-relaxed">
                       Permanently purge your VowLink account, invitations, and guest RSVPs. This action is irreversible.
                     </p>

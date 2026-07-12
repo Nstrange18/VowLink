@@ -1,5 +1,7 @@
 const express = require("express");
 const crypto = require("crypto");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const Invitation = require("../models/Invitation");
 const RSVP = require("../models/RSVP");
 const User = require("../models/User");
@@ -14,6 +16,24 @@ const createSlug = (name) =>
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-");
 const createCheckInToken = () => crypto.randomBytes(24).toString("hex");
+
+const createCheckInAccessToken = (userId) =>
+  jwt.sign(
+    { type: "check_in", userId: String(userId) },
+    process.env.JWT_SECRET,
+    { expiresIn: "18h" }
+  );
+
+const getOptionalUserFromRequest = (req) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+
+  try {
+    return jwt.verify(authHeader.split(" ")[1], process.env.JWT_SECRET);
+  } catch {
+    return null;
+  }
+};
 
 const ensureInvitationCheckInToken = async (invitation) => {
   if (invitation.checkInToken) return invitation.checkInToken;
@@ -52,6 +72,8 @@ router.get("/slug/:slug", async (req, res) => {
     if (!invitation) {
       return res.status(404).json({ message: "Invitation not found" });
     }
+
+    await ensureInvitationCheckInToken(invitation);
 
     res.status(200).json(invitation);
   } catch (error) {
@@ -92,7 +114,7 @@ router.get("/check-in/:token", async (req, res) => {
   try {
     const invitation = await Invitation.findOne({ checkInToken: req.params.token }).populate(
       "userId",
-      "partner1Name partner2Name weddingDate venue venueName"
+      "partner1Name partner2Name weddingDate venue venueName checkInPinHash"
     );
 
     if (!invitation) {
@@ -101,6 +123,8 @@ router.get("/check-in/:token", async (req, res) => {
 
     res.status(200).json({
       invitationId: invitation._id,
+      eventId: invitation.userId?._id || invitation.userId,
+      checkInPinEnabled: Boolean(invitation.userId?.checkInPinHash),
       guestName: invitation.guestName,
       category: invitation.category,
       allowedGuests: invitation.allowedGuests,
@@ -121,8 +145,40 @@ router.get("/check-in/:token", async (req, res) => {
   }
 });
 
+// POST /api/invitations/check-in/:token/access - validate event check-in PIN
+router.post("/check-in/:token/access", async (req, res) => {
+  try {
+    const { pin } = req.body;
+    const invitation = await Invitation.findOne({ checkInToken: req.params.token }).populate(
+      "userId",
+      "checkInPinHash checkInPinUpdatedAt"
+    );
+
+    if (!invitation || !invitation.userId) {
+      return res.status(404).json({ message: "Invalid or expired check-in QR code." });
+    }
+
+    if (!invitation.userId.checkInPinHash) {
+      return res.status(403).json({ message: "This wedding has not enabled check-in PIN access yet." });
+    }
+
+    const isValidPin = await bcrypt.compare(String(pin || "").trim(), invitation.userId.checkInPinHash);
+    if (!isValidPin) {
+      return res.status(403).json({ message: "Invalid check-in PIN." });
+    }
+
+    res.status(200).json({
+      message: "Check-in access granted.",
+      accessToken: createCheckInAccessToken(invitation.userId._id),
+      expiresIn: "18h",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to validate check-in PIN", error: error.message });
+  }
+});
+
 // POST /api/invitations/check-in/:token - mark a guest as checked in
-router.post("/check-in/:token", protect, async (req, res) => {
+router.post("/check-in/:token", async (req, res) => {
   try {
     const invitation = await Invitation.findOne({ checkInToken: req.params.token });
 
@@ -130,13 +186,24 @@ router.post("/check-in/:token", protect, async (req, res) => {
       return res.status(404).json({ message: "Invalid or expired check-in QR code." });
     }
 
-    const isOwner = String(invitation.userId) === String(req.user.id);
+    const authUser = getOptionalUserFromRequest(req);
+    const isOwner = authUser && String(invitation.userId) === String(authUser.id);
     const isSuperAdmin =
-      req.user.role === "admin" &&
-      req.user.email?.toLowerCase() === "nwubachukwuemelie@gmail.com";
+      authUser?.role === "admin" &&
+      authUser?.email?.toLowerCase() === "nwubachukwuemelie@gmail.com";
 
-    if (!isOwner && !isSuperAdmin) {
-      return res.status(403).json({ message: "You are not allowed to check in this guest." });
+    let hasCheckInAccess = false;
+    if (req.body?.accessToken) {
+      try {
+        const decoded = jwt.verify(req.body.accessToken, process.env.JWT_SECRET);
+        hasCheckInAccess = decoded.type === "check_in" && String(decoded.userId) === String(invitation.userId);
+      } catch {
+        hasCheckInAccess = false;
+      }
+    }
+
+    if (!isOwner && !isSuperAdmin && !hasCheckInAccess) {
+      return res.status(403).json({ message: "Enter the event check-in PIN before checking in guests." });
     }
 
     if (invitation.checkedIn) {
@@ -145,7 +212,7 @@ router.post("/check-in/:token", protect, async (req, res) => {
 
     invitation.checkedIn = true;
     invitation.checkedInAt = new Date();
-    invitation.checkedInBy = req.user.id;
+    invitation.checkedInBy = authUser?.id || undefined;
     await invitation.save();
 
     res.status(200).json({ message: "Guest checked in successfully.", invitation });
@@ -153,7 +220,6 @@ router.post("/check-in/:token", protect, async (req, res) => {
     res.status(500).json({ message: "Failed to check in guest", error: error.message });
   }
 });
-
 // --- PROTECTED: All routes below require login -------------------------------
 
 // Create invitation
@@ -495,3 +561,4 @@ router.post("/bulk-update-sender-group", protect, async (req, res) => {
 });
 
 module.exports = router;
+

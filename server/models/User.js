@@ -135,6 +135,13 @@ const userSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    checkInPinHash: {
+      type: String,
+      default: "",
+    },
+    checkInPinUpdatedAt: {
+      type: Date,
+    },
     coupleOverlayOpacity: {
       type: Number,
       default: 0.45,

@@ -982,25 +982,37 @@ const VenueDashboardPage = () => {
 
   const handleCopyVenueLink = async () => {
     if (copyingVenueLink) return;
-    if (!venue?.isApproved || !venue?.isActive) {
-      toast.info("Your share link is available after the listing is approved and visible.");
-      return;
-    }
-    if (!isVenuePublicShareReady(venue, photos, proofUrls)) {
-      toast.info("Complete the required profile details before sharing this venue link.");
+    if (!venue?._id) {
+      toast.info("Venue profile is still loading. Please try again.");
       return;
     }
 
     const link = buildPublicUrl(`/venues/${venue._id}`);
     setCopyingVenueLink(true);
     try {
+      const readiness = await api.get("/venues/auth/public-readiness");
+      if (!readiness.data?.isReady) {
+        const reasons = Array.isArray(readiness.data?.reasons) ? readiness.data.reasons : [];
+        const missing = Array.isArray(readiness.data?.missing) ? readiness.data.missing : [];
+        const message = reasons.length
+          ? reasons.join(". ")
+          : missing.length
+            ? `Missing profile details: ${missing.join(", ")}.`
+            : "This venue profile is not ready for public sharing yet.";
+        toast.info(message);
+        return;
+      }
+
       await api.get(`/venues/public/${venue._id}`);
       await navigator.clipboard.writeText(link);
       toast.success("Venue share link copied.");
     } catch (err) {
+      const reasons = Array.isArray(err.response?.data?.reasons) ? err.response.data.reasons : [];
       const missing = Array.isArray(err.response?.data?.missing) ? err.response.data.missing : [];
-      const message = missing.length
-        ? `Complete these before sharing: ${missing.join(", ")}.`
+      const message = reasons.length
+        ? reasons.join(". ")
+        : missing.length
+          ? `Missing profile details: ${missing.join(", ")}.`
         : err.response?.data?.message || "This venue link is not public yet. Complete the required profile details first.";
       toast.info(message);
     } finally {
@@ -1166,7 +1178,7 @@ const VenueDashboardPage = () => {
 
         {/* Right Column: Tab Content */}
         <div className="col-span-12 min-w-0 md:col-span-9">
-          <section className="mb-6 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+          <section className="mb-6 grid gap-4 items-start lg:grid-cols-[1.15fr_0.85fr]">
             <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-5 sm:p-6">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-3">
