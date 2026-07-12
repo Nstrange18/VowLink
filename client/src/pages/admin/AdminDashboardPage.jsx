@@ -16,7 +16,7 @@ const categoryColors = {
 
 const StatCard = ({ label, value, color, sub, loading, breakdown }) => (
   <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-4 sm:p-6">
-    <p className="text-[10px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-widest text-white/40 mb-2 leading-tight break-words">{label}</p>
+    <p className="text-[10px] sm:text-xs uppercase tracking-[0.14em] sm:tracking-widest text-white/40 mb-2 leading-tight wrap-break-word">{label}</p>
     {loading ? (
       <div className="space-y-4">
         <Skeleton className="h-10 w-16 mt-1" />
@@ -110,7 +110,7 @@ const CountdownWidget = ({ weddingDate, loading }) => {
       ? `${user.partner1Name} & ${user.partner2Name}`
       : "Allen & Justina"
     return (
-      <div className="rounded-3xl border border-white/10 bg-[#0A0D16] p-8 text-center relative overflow-hidden shadow-[0_15px_50px_rgba(0,0,0,0.3)] min-h-[220px] flex flex-col justify-center items-center">
+      <div className="rounded-3xl border border-white/10 bg-[#0A0D16] p-8 text-center relative overflow-hidden shadow-[0_15px_50px_rgba(0,0,0,0.3)] min-h-55 flex flex-col justify-center items-center">
         <style dangerouslySetInnerHTML={{ __html: `
           @keyframes textShimmer {
             0% { background-position: 0% 50%; }
@@ -146,7 +146,7 @@ const CountdownWidget = ({ weddingDate, loading }) => {
       ? `${user.partner1Name} & ${user.partner2Name}`
       : "Allen & Justina"
     return (
-      <div className="rounded-3xl border border-[#D8B76A]/40 bg-[#0B0F19] p-8 text-center relative overflow-hidden shadow-[0_15px_50px_rgba(216,183,106,0.15)] min-h-[240px] flex flex-col justify-center items-center">
+      <div className="rounded-3xl border border-[#D8B76A]/40 bg-[#0B0F19] p-8 text-center relative overflow-hidden shadow-[0_15px_50px_rgba(216,183,106,0.15)] min-h-60 flex flex-col justify-center items-center">
         <style dangerouslySetInnerHTML={{ __html: `
           @keyframes floatUp {
             0% {
@@ -250,9 +250,9 @@ const CountdownWidget = ({ weddingDate, loading }) => {
   const months = Math.floor(daysLeft / 30)
 
   return (
-    <div className="rounded-2xl border border-[#D8B76A]/25 bg-gradient-to-br from-[#0D1220] to-[#111827] px-6 py-7 relative overflow-hidden">
+    <div className="rounded-2xl border border-[#D8B76A]/25 bg-linear-to-br from-[#0D1220] to-[#111827] px-6 py-7 relative overflow-hidden">
       {/* Gold glow top */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D8B76A]/40 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-[#D8B76A]/40 to-transparent" />
       <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-32 rounded-full opacity-8 blur-2xl" style={{ background: '#D8B76A' }} />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
@@ -291,7 +291,7 @@ const CountdownWidget = ({ weddingDate, loading }) => {
           </div>
           <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-[#D8B76A] to-[#F2D894] rounded-full transition-all duration-1000"
+              className="h-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] rounded-full transition-all duration-1000"
               style={{ width: `${Math.min(((365 - daysLeft) / 365) * 100, 100)}%` }}
             />
           </div>
@@ -457,7 +457,7 @@ const AdminDashboardPage = () => {
                   {/* Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <div className="flex items-center gap-2">
-                      <span className={`h-2 w-2 rounded-full flex-shrink-0 ${colors.dot}`} />
+                      <span className={`h-2 w-2 rounded-full shrink-0 ${colors.dot}`} />
                       <span className={`text-sm font-semibold uppercase tracking-widest ${colors.text}`}>
                         {category}
                       </span>

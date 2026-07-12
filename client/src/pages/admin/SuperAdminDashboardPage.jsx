@@ -272,7 +272,7 @@ const SuperAdminDashboardPage = () => {
 
       {/* ── Venue Deletion Confirmation Modal ── */}
       {venueToDelete && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => !deletingVenue && setVenueToDelete(null)} />
           <div className="relative z-10 w-full max-w-md rounded-3xl border border-red-500/25 bg-[#0D1220] p-8 shadow-2xl space-y-5">
             <div className="flex items-center gap-3">
@@ -307,7 +307,7 @@ const SuperAdminDashboardPage = () => {
 
       {/* ── Couple Deletion Confirmation Modal ── */}
       {coupleToDelete && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => !deletingCouple && setCoupleToDelete(null)} />
           <div className="relative z-10 w-full max-w-md rounded-3xl border border-red-500/25 bg-[#0D1220] p-8 shadow-2xl space-y-5">
             <div className="flex items-center gap-3">
@@ -1090,7 +1090,7 @@ const SuperAdminDashboardPage = () => {
                         </div>
                       </div>
 
-                      <div className="bg-white/3 border border-white/5 p-3.5 rounded-xl text-white/75 font-mono leading-relaxed break-words whitespace-pre-wrap">
+                      <div className="bg-white/3 border border-white/5 p-3.5 rounded-xl text-white/75 font-mono leading-relaxed wrap-break-word whitespace-pre-wrap">
                         {inq.message}
                       </div>
 

@@ -228,14 +228,14 @@ const AdminRsvpsPage = () => {
             <>
               {/* Desktop table */}
               <div className="hidden sm:block overflow-x-auto rounded-2xl border border-white/10">
-                <table className="w-full min-w-[860px] text-sm">
+                <table className="w-full min-w-215 text-sm">
                   <thead>
                     <tr className="border-b border-white/10 text-left text-xs uppercase tracking-widest text-white/40">
                       <th className="px-4 py-4">Guest</th>
                       <th className="px-4 py-4">Phone</th>
                       <th className="px-4 py-4">Attending</th>
                       <th className="px-4 py-4">Guests</th>
-                      <th className="px-4 py-4 min-w-[150px]">Meal</th>
+                      <th className="px-4 py-4 min-w-38">Meal</th>
                       <th className="px-4 py-4">Message</th>
                       <th className="px-4 py-4">Submitted</th>
                     </tr>
@@ -263,11 +263,11 @@ const AdminRsvpsPage = () => {
                     </td>
                     <td className="px-4 py-4 text-white/60">{r.numberOfGuests}</td>
                     <td className="px-4 py-4">
-                      <span className="inline-flex min-w-[120px] items-center justify-center whitespace-nowrap rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-3 py-1 text-xs text-[#D8B76A]/80">
+                      <span className="inline-flex min-w-30 items-center justify-center whitespace-nowrap rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-3 py-1 text-xs text-[#D8B76A]/80">
                         {r.mealPreference || 'No Preference'}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-white/50 max-w-[160px] truncate">{r.message || '—'}</td>
+                    <td className="px-4 py-4 text-white/50 max-w-40 truncate">{r.message || '—'}</td>
                     <td className="px-4 py-4 text-white/40 text-xs">
                       {new Date(r.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </td>

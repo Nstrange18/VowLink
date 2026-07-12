@@ -209,7 +209,7 @@ const LandingPage = () => {
       </section>
 
       <section className="landing-guest-cta px-6 py-20">
-        <div className="landing-guest-cta-panel mx-auto grid max-w-6xl grid-cols-1 overflow-hidden rounded-[2rem] border border-[#D8B76A]/20 bg-[#111827] lg:grid-cols-12">
+        <div className="landing-guest-cta-panel mx-auto grid max-w-6xl grid-cols-1 overflow-hidden rounded-4xl border border-[#D8B76A]/20 bg-[#111827] lg:grid-cols-12">
           <div className="p-8 sm:p-10 lg:col-span-7 lg:p-12">
             <p className="mb-4 text-xs uppercase tracking-[0.4em] text-[#D8B76A]">For Your Guest List</p>
             <h2 className="font-serif text-3xl leading-tight text-white sm:text-5xl">
@@ -302,7 +302,7 @@ const LandingPage = () => {
 
       <footer className="landing-footer relative overflow-hidden border-t border-[#D8B76A]/15 bg-[#050814] px-6 py-12">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#D8B76A]/70 to-transparent" />
-        <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-[36rem] -translate-x-1/2 rounded-full bg-[#D8B76A]/8 blur-3xl" />
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-xl -translate-x-1/2 rounded-full bg-[#D8B76A]/8 blur-3xl" />
 
         <div className="relative mx-auto max-w-6xl">
           <div className="grid gap-10 md:grid-cols-[1.4fr_0.8fr_0.8fr_1fr]">
@@ -343,7 +343,7 @@ const LandingPage = () => {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="rounded-3xl border border-white/10 bg-white/3 p-5">
               <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Contact Us</p>
               <div className="flex flex-col gap-3 text-sm text-white/60">
                 <a href="mailto:hello@vowlink.co" className="group flex items-center gap-3 transition hover:text-[#D8B76A]">

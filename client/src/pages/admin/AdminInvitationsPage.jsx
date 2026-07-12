@@ -510,7 +510,7 @@ const AdminInvitationsPage = () => {
                       <td className="px-5 py-4 text-white/60">{inv.category || 'Guest'}</td>
                       <td className="px-5 py-4 text-white/60">{inv.allowedGuests}</td>
                       <td className="px-5 py-4">
-                        <span className={`inline-flex min-w-[92px] items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${getRsvpBadgeClass(inv)}`}>
+                        <span className={`inline-flex min-w-23 items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${getRsvpBadgeClass(inv)}`}>
                           {getRsvpStatusText(inv)}
                         </span>
                       </td>
@@ -612,7 +612,7 @@ const AdminInvitationsPage = () => {
                       </div>
                       <p className="text-xs text-white/40 mt-0.5">{inv.category || 'Guest'} · {inv.allowedGuests} guest{inv.allowedGuests !== 1 ? 's' : ''}</p>
                     </div>
-                    <span className={`inline-flex min-w-[88px] items-center justify-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${getRsvpBadgeClass(inv)}`}>
+                    <span className={`inline-flex min-w-22 items-center justify-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${getRsvpBadgeClass(inv)}`}>
                       {getRsvpStatusText(inv)}
                     </span>
                   </div>
