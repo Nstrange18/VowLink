@@ -43,6 +43,9 @@ const isSuperAdminUser = (authUser) =>
   authUser?.role === "admin" &&
   authUser?.email?.toLowerCase() === "nwubachukwuemelie@gmail.com";
 
+const canUseCheckIn = (user) => ["plus", "pro"].includes(user?.tier || "free");
+const canUseAdvancedCheckIn = (user) => (user?.tier || "free") === "pro";
+
 const getCheckInAccessForEvent = async (req, userId) => {
   if (!req.body?.accessToken) return false;
 
@@ -50,7 +53,7 @@ const getCheckInAccessForEvent = async (req, userId) => {
     const decoded = jwt.verify(req.body.accessToken, process.env.JWT_SECRET);
     if (decoded.type !== "check_in" || String(decoded.userId) !== String(userId)) return false;
 
-    const user = await User.findById(userId).select("checkInPinHash checkInPinUpdatedAt");
+    const user = await User.findById(userId).select("checkInPinHash checkInPinUpdatedAt tier");
     if (!user?.checkInPinHash || !user.checkInPinUpdatedAt || !decoded.pinUpdatedAt) return false;
 
     return new Date(user.checkInPinUpdatedAt).toISOString() === decoded.pinUpdatedAt;
@@ -117,7 +120,7 @@ router.get("/slug/:slug", async (req, res) => {
   }
 });
 
-// GET /api/invitations/slug/:slug/wishes — public endpoint to fetch wedding guest wishes
+// GET /api/invitations/slug/:slug/wishes â€” public endpoint to fetch wedding guest wishes
 router.get("/slug/:slug/wishes", async (req, res) => {
   try {
     const invitation = await Invitation.findOne({ slug: req.params.slug });
@@ -148,11 +151,15 @@ router.get("/check-in/:token", async (req, res) => {
   try {
     const invitation = await Invitation.findOne({ checkInToken: req.params.token }).populate(
       "userId",
-      "partner1Name partner2Name weddingDate venue venueName checkInPinHash"
+      "partner1Name partner2Name weddingDate venue venueName checkInPinHash tier"
     );
 
     if (!invitation) {
       return res.status(404).json({ message: "Invalid or expired check-in QR code." });
+    }
+
+    if (!canUseCheckIn(invitation.userId)) {
+      return res.status(403).json({ message: "Guest entry QR check-in is available on Plus and Pro plans." });
     }
 
     res.status(200).json({
@@ -185,11 +192,15 @@ router.post("/check-in/:token/access", async (req, res) => {
     const { pin } = req.body;
     const invitation = await Invitation.findOne({ checkInToken: req.params.token }).populate(
       "userId",
-      "checkInPinHash checkInPinUpdatedAt"
+      "checkInPinHash checkInPinUpdatedAt tier"
     );
 
     if (!invitation || !invitation.userId) {
       return res.status(404).json({ message: "Invalid or expired check-in QR code." });
+    }
+
+    if (!canUseCheckIn(invitation.userId)) {
+      return res.status(403).json({ message: "Guest entry QR check-in is available on Plus and Pro plans." });
     }
 
     if (!invitation.userId.checkInPinHash) {
@@ -214,13 +225,18 @@ router.post("/check-in/:token/access", async (req, res) => {
 // POST /api/invitations/check-in/:token - mark a guest as checked in
 router.post("/check-in/:token", async (req, res) => {
   try {
-    const invitation = await Invitation.findOne({ checkInToken: req.params.token });
+    const invitation = await Invitation.findOne({ checkInToken: req.params.token }).populate("userId", "tier");
 
     if (!invitation) {
       return res.status(404).json({ message: "Invalid or expired check-in QR code." });
     }
 
-    const { authUser, isOwner, isSuperAdmin, hasCheckInAccess, via } = await getCheckInAuthority(req, invitation.userId);
+    if (!canUseCheckIn(invitation.userId)) {
+      return res.status(403).json({ message: "Guest entry QR check-in is available on Plus and Pro plans." });
+    }
+
+    const eventUserId = invitation.userId?._id || invitation.userId;
+    const { authUser, isOwner, isSuperAdmin, hasCheckInAccess, via } = await getCheckInAuthority(req, eventUserId);
 
     if (!isOwner && !isSuperAdmin && !hasCheckInAccess) {
       return res.status(403).json({ message: "Enter the event check-in PIN before checking in guests." });
@@ -255,6 +271,11 @@ router.post("/check-in/staff/search", async (req, res) => {
 
     if (!eventId || !accessToken) {
       return res.status(400).json({ message: "Event access is required for staff search." });
+    }
+
+    const eventOwner = await User.findById(eventId).select("tier");
+    if (!canUseAdvancedCheckIn(eventOwner)) {
+      return res.status(403).json({ message: "Staff check-in search mode is available on the Pro plan." });
     }
 
     const hasCheckInAccess = await getCheckInAccessForEvent({ body: { accessToken } }, eventId);
@@ -292,6 +313,11 @@ router.post("/check-in/staff/:id", async (req, res) => {
     const invitation = await Invitation.findById(req.params.id);
     if (!invitation) {
       return res.status(404).json({ message: "Invitation not found." });
+    }
+
+    const eventOwner = await User.findById(invitation.userId).select("tier");
+    if (!canUseAdvancedCheckIn(eventOwner)) {
+      return res.status(403).json({ message: "Staff check-in mode is available on the Pro plan." });
     }
 
     const hasCheckInAccess = await getCheckInAccessForEvent(req, invitation.userId);
@@ -524,6 +550,11 @@ router.patch("/:id/check-in/reset", protect, async (req, res) => {
       return res.status(404).json({ message: "Invitation not found" });
     }
 
+    const user = await User.findById(req.user.id).select("tier");
+    if (!canUseAdvancedCheckIn(user)) {
+      return res.status(403).json({ message: "Check-in reset controls are available on the Pro plan." });
+    }
+
     if (!invitation.checkedIn) {
       return res.status(200).json({ message: "Guest is already marked as not checked in.", invitation });
     }
@@ -695,6 +726,7 @@ router.post("/bulk-update-sender-group", protect, async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 

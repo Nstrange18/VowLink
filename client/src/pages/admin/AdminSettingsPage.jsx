@@ -251,6 +251,12 @@ const AdminSettingsPageContent = () => {
   }, []);
 
   const handleSaveCheckInPin = async () => {
+    if (isFree) {
+      toast.info("Event check-in PINs are available on Plus and Pro plans.");
+      navigate("/admin/billing");
+      return;
+    }
+
     const normalizedPin = checkInPin.trim();
     if (!/^\d{4,8}$/.test(normalizedPin)) {
       toast.info("Use a 4 to 8 digit check-in PIN.");
@@ -274,6 +280,12 @@ const AdminSettingsPageContent = () => {
   };
 
   const handleDisableCheckInPin = async () => {
+    if (isFree) {
+      toast.info("Event check-in PINs are available on Plus and Pro plans.");
+      navigate("/admin/billing");
+      return;
+    }
+
     setDisablingCheckInPin(true);
     try {
       const res = await api.delete("/auth/check-in-pin");
@@ -838,7 +850,7 @@ const AdminSettingsPageContent = () => {
                           <Icon icon="lucide:gift" className="w-3.5 h-3.5 text-[#D8B76A]" /> Recent Cash Gifts
                         </h4>
                         <p className="text-[10px] text-white/40 leading-relaxed">
-                          Here are the cash gifts sent by your guests via Paystack.
+                          Historical cash gifts recorded from the old online gifting flow will appear here.
                         </p>
 
                         {gifts.length === 0 ? (
@@ -994,13 +1006,14 @@ const AdminSettingsPageContent = () => {
                       : "border-white/10 bg-white/5 text-white/45"
                   }`}>
                     <Icon icon={checkInPinStatus.enabled ? "lucide:shield-check" : "lucide:shield"} className="h-3.5 w-3.5" />
-                    {loadingCheckInPin ? "Checking" : checkInPinStatus.enabled ? "Active" : "Off"}
+                    {isFree ? "Plus" : loadingCheckInPin ? "Checking" : checkInPinStatus.enabled ? "Active" : "Off"}
                   </span>
                 </div>
 
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-[11px] leading-relaxed text-white/50">
-                  Ushers can enter this PIN once on their phone after scanning a guest QR. Their browser gets temporary event access only. It cannot open settings, payments, guests, or your dashboard.
-                  Resetting or disabling this PIN is useful if it was shared with the wrong person; ushers may need to enter the new PIN again on their devices.
+                  {isFree
+                    ? "Upgrade to Plus or Pro to enable guest entry QR codes and event PIN check-in."
+                    : "Ushers can enter this PIN once on their phone after scanning a guest QR. Their browser gets temporary event access only. It cannot open settings, payments, guests, or your dashboard. Resetting or disabling this PIN is useful if it was shared with the wrong person; ushers may need to enter the new PIN again on their devices."}
                 </div>
 
                 {checkInPinStatus.enabled && checkInPinStatus.updatedAt && (
@@ -1021,7 +1034,7 @@ const AdminSettingsPageContent = () => {
                     value={checkInPin}
                     onChange={(e) => setCheckInPin(e.target.value.replace(/\D/g, "").slice(0, 8))}
                     placeholder="4 to 8 digits"
-                    disabled={savingCheckInPin || disablingCheckInPin}
+                    disabled={isFree || savingCheckInPin || disablingCheckInPin}
                   />
                 </div>
 
@@ -1032,7 +1045,7 @@ const AdminSettingsPageContent = () => {
                     disabled={savingCheckInPin || disablingCheckInPin}
                     className="flex-1 rounded-xl bg-[#D8B76A] py-2.5 text-xs font-semibold uppercase tracking-wider text-[#070A13] transition hover:opacity-90 disabled:opacity-50"
                   >
-                    {savingCheckInPin ? "Saving..." : checkInPinStatus.enabled ? "Reset PIN" : "Enable PIN"}
+                    {isFree ? "Upgrade to Enable" : savingCheckInPin ? "Saving..." : checkInPinStatus.enabled ? "Reset PIN" : "Enable PIN"}
                   </button>
                   {checkInPinStatus.enabled && (
                     <button

@@ -806,13 +806,7 @@ const InvitePage = ({ setThemePreference }) => {
   const wasPlayingRef = useRef(false);
   const pendingPlayRef = useRef(false); // tracks a play request made before audio was ready
 
-  // Paystack & Gifting premium states
-  const [showGiftModal, setShowGiftModal] = useState(false);
-  const [giftGuestName, setGiftGuestName] = useState("");
-  const [giftAmount, setGiftAmount] = useState("");
-  const [giftMessage, setGiftMessage] = useState("");
-  const [loadingGiftPayment, setLoadingGiftPayment] = useState(false);
-  const giftCheckoutRef = useRef(false);
+  // Entry QR state
   const [showCheckInQr, setShowCheckInQr] = useState(false);
   const [checkInQrDataUrl, setCheckInQrDataUrl] = useState("");
   const [checkInQrLoading, setCheckInQrLoading] = useState(false);
@@ -1075,117 +1069,6 @@ const InvitePage = ({ setThemePreference }) => {
     };
   }, [isOpen, invitation, customTextSize]);
 
-  const loadPaystackScript = () => {
-    return new Promise((resolve) => {
-      if (window.PaystackPop) {
-        resolve(true);
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = "https://js.paystack.co/v2/inline.js";
-      script.async = true;
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  const handleGiftCheckout = async () => {
-    if (giftCheckoutRef.current) return;
-
-    if (!giftGuestName.trim() || !giftAmount || Number(giftAmount) < 100) {
-      toast.warning("Please enter your name and a valid amount (minimum ₦100).");
-      return;
-    }
-
-    giftCheckoutRef.current = true;
-    setLoadingGiftPayment(true);
-    const loaded = await loadPaystackScript();
-
-    if (!loaded) {
-      giftCheckoutRef.current = false;
-      setLoadingGiftPayment(false);
-      toast.error("Failed to load Paystack payment gateway. Please check your connection.");
-      return;
-    }
-
-    const releaseGiftCheckout = () => {
-      giftCheckoutRef.current = false;
-      setLoadingGiftPayment(false);
-    };
-
-    const paystackCurrency = "NGN";
-    const amountInMinor = Number(giftAmount) * 100;
-
-    const paystackOptions = {
-      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
-      email: invitation.userId?.email || "guest@vowlink.com",
-      amount: amountInMinor,
-      currency: paystackCurrency,
-      metadata: {
-        paymentType: "registry_gift",
-        coupleId: invitation.userId?._id,
-        guestName: giftGuestName,
-        message: giftMessage,
-      },
-      onSuccess: async (transaction) => {
-        toast.info("Payment successful! Recording contribution...");
-        try {
-          const res = await api.post("/auth/registry/verify", {
-            reference: transaction.reference,
-            coupleId: invitation.userId?._id,
-            guestName: giftGuestName,
-            amount: Number(giftAmount),
-            message: giftMessage,
-          });
-          setInvitation(prev => ({
-            ...prev,
-            userId: {
-              ...prev.userId,
-              honeymoonFundCurrent: res.data.couple.honeymoonFundCurrent
-            }
-          }));
-          toast.success("Thank you for your generous contribution!");
-          setShowGiftModal(false);
-          setGiftAmount("");
-          setGiftMessage("");
-        } catch (err) {
-          toast.error(err.response?.data?.message || "Failed to verify contribution. Please contact the couple.");
-        } finally {
-          releaseGiftCheckout();
-        }
-      },
-      onCancel: () => {
-        releaseGiftCheckout();
-        toast.info("Payment cancelled.");
-      },
-    };
-
-    if (typeof window.PaystackPop === "function") {
-      try {
-        const paystack = new window.PaystackPop();
-        paystack.newTransaction(paystackOptions);
-        return;
-      } catch (e) {
-        console.warn("Paystack Pop V2 instantiation failed, falling back to V1 setup", e);
-      }
-    }
-
-    if (window.PaystackPop && typeof window.PaystackPop.setup === "function") {
-      const handler = window.PaystackPop.setup({
-        ...paystackOptions,
-        callback: paystackOptions.onSuccess,
-        onClose: paystackOptions.onCancel
-      });
-      handler.openIframe();
-    } else {
-      releaseGiftCheckout();
-      toast.error("Paystack payment SDK is not initialized. Please refresh the page.");
-    }
-  };
-
-
-
   const handleOpenInvitation = () => {
     setIsOpen(true);
     window.scrollTo(0, 0); // Reset scroll to top to center card in viewport
@@ -1268,7 +1151,6 @@ const InvitePage = ({ setThemePreference }) => {
           }
         } catch { }
         setValue("guestName", res.data.guestName);
-        setGiftGuestName(res.data.guestName || "");
       })
       .catch((err) => {
         if (err.response?.status === 404) setNotFound(true);
@@ -3225,96 +3107,19 @@ const InvitePage = ({ setThemePreference }) => {
                 </div>
               )}
 
-              {/* Paystack Cash Gifting Option */}
-              <div className="space-y-4 pt-4 border-t border-white/5 flex flex-col items-center">
-                <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-white/50 w-full text-left">
-                  <Icon icon="mdi:credit-card-outline" className="h-4 w-4" />
-                  Secure Online Gifting
+              <div className="space-y-3 pt-4 border-t border-white/5">
+                <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-white/50">
+                  <Icon icon="lucide:copy-check" className="h-4 w-4" />
+                  Copy and Transfer
                 </h4>
-                <p className="text-xs text-white/40 leading-relaxed w-full">
-                  You can send a cash gift instantly using your debit card or bank transfer via Paystack.
+                <p className="text-xs text-white/45 leading-relaxed">
+                  Gifts are received by direct bank transfer only. Copy the account number above and complete the transfer in your banking app.
                 </p>
-                <button
-                  onClick={() => setShowGiftModal(true)}
-                  className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-3.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(216,183,106,0.35)]"
-                >
-                  <span className="inline-flex items-center justify-center gap-1.5">
-                    <Icon icon="mdi:gift-outline" className="h-4 w-4" />
-                    Send Cash Gift
-                  </span>
-                </button>
               </div>
             </div>
           </section>
         )}
       </div>
-
-      {/* GIFT REGISTRY MODAL */}
-      {showGiftModal && (
-        <div className="fixed inset-0 z-55 flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4 backdrop-blur-sm">
-          <div className="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-[#D8B76A]/20 bg-white p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto animate-fade-in">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-serif text-2xl text-[#1A2E4A]">Send Cash Gift</h2>
-              <button
-                onClick={() => setShowGiftModal(false)}
-                className="text-[#1A2E4A]/40 hover:text-[#1A2E4A] transition text-lg"
-              >
-                <Icon icon="lucide:x" className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {/* Guest Name */}
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Your Name *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. John Doe"
-                  value={giftGuestName}
-                  onChange={(e) => setGiftGuestName(e.target.value)}
-                  className="w-full rounded-xl border border-[#1A2E4A]/15 bg-[#F8F8F8] px-4 py-3 text-sm text-[#1A2E4A] placeholder-[#1A2E4A]/30 outline-none focus:border-[#B8963A]/60 focus:ring-1 focus:ring-[#B8963A]/30 transition"
-                />
-              </div>
-
-              {/* Amount */}
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Gift Amount (₦) *</label>
-                <input
-                  type="number"
-                  min="100"
-                  placeholder="e.g. 5000"
-                  value={giftAmount}
-                  onChange={(e) => setGiftAmount(e.target.value)}
-                  className="w-full rounded-xl border border-[#1A2E4A]/15 bg-[#F8F8F8] px-4 py-3 text-sm text-[#1A2E4A] placeholder-[#1A2E4A]/30 outline-none focus:border-[#B8963A]/60 focus:ring-1 focus:ring-[#B8963A]/30 transition"
-                />
-              </div>
-
-              {/* Message */}
-              <div>
-                <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Blessing / Message (optional)</label>
-                <textarea
-                  rows={3}
-                  placeholder="Send a warm wish to the couple..."
-                  value={giftMessage}
-                  onChange={(e) => setGiftMessage(e.target.value)}
-                  className="w-full rounded-xl border border-[#1A2E4A]/15 bg-[#F8F8F8] px-4 py-3 text-sm text-[#1A2E4A] placeholder-[#1A2E4A]/30 outline-none focus:border-[#B8963A]/60 focus:ring-1 focus:ring-[#B8963A]/30 transition resize-none"
-                />
-              </div>
-
-              {/* Checkout Button */}
-              <button
-                onClick={handleGiftCheckout}
-                disabled={loadingGiftPayment}
-                className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.4)] disabled:opacity-60 mt-2"
-              >
-                {loadingGiftPayment ? "Initializing gateway..." : "Proceed to Paystack"}
-              </button>
-
-
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Wish Wall / Guestbook Section */}
       {wishes.length > 0 && (

@@ -381,6 +381,10 @@ router.put("/check-in-pin", protect, async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    if (!["plus", "pro"].includes(user.tier || "free")) {
+      return res.status(403).json({ message: "Event check-in PINs are available on Plus and Pro plans." });
+    }
+
     user.checkInPinHash = await bcrypt.hash(normalizedPin, 10);
     user.checkInPinUpdatedAt = new Date();
     await user.save();

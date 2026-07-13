@@ -135,6 +135,11 @@ const formatCheckInActivity = (entry) => {
 
   const handleDownloadQr = async () => {
     if (!qrInvitation) return
+    if (!canUseCheckIn) {
+      toast.info('Guest entry QR codes are available on Plus and Pro plans.')
+      navigate('/admin/billing')
+      return
+    }
     const checkInUrl = getCheckInUrl(qrInvitation)
     const filename = `check-in-qr-${qrInvitation.slug || qrInvitation.guestName || 'guest'}.png`
 
@@ -156,6 +161,11 @@ const formatCheckInActivity = (entry) => {
 
   const handlePrintQrSheet = async () => {
     if (printingQrSheet) return
+    if (!canUseAdvancedCheckIn) {
+      toast.info('Printable QR sheets are a Pro plan feature.')
+      navigate('/admin/billing')
+      return
+    }
     const printableInvitations = invitations.filter((inv) => inv.checkInToken)
 
     if (printableInvitations.length === 0) {
@@ -257,6 +267,11 @@ const formatCheckInActivity = (entry) => {
 
   const handleResetCheckIn = async (invitation) => {
     if (!invitation?.checkedIn || resettingCheckInId) return
+    if (!canUseAdvancedCheckIn) {
+      toast.info('Check-in reset controls are a Pro plan feature.')
+      navigate('/admin/billing')
+      return
+    }
 
     showConfirmToast({
       title: 'Reset guest check-in?',
@@ -290,6 +305,8 @@ const formatCheckInActivity = (entry) => {
 
   const tier = user.tier || 'free';
   const limit = tier === 'free' ? 1 : tier === 'plus' ? 100 : 500;
+  const canUseCheckIn = tier === 'plus' || tier === 'pro';
+  const canUseAdvancedCheckIn = tier === 'pro';
   const count = invitations.length;
   const progressPercent = Math.min((count / limit) * 100, 100);
   const checkedInCount = invitations.filter((inv) => inv.checkedIn).length;
@@ -424,20 +441,38 @@ const formatCheckInActivity = (entry) => {
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link
-            to="/check-in/staff"
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white/65 transition hover:bg-white/10 hover:text-white whitespace-nowrap"
-          >
-            <Icon icon="lucide:scan-line" className="h-4 w-4" />
-            Staff Mode
-          </Link>
+          {canUseAdvancedCheckIn ? (
+            <Link
+              to="/check-in/staff"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white/65 transition hover:bg-white/10 hover:text-white whitespace-nowrap"
+            >
+              <Icon icon="lucide:scan-line" className="h-4 w-4" />
+              Staff Mode
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                toast.info('Staff check-in mode is available on the Pro plan.')
+                navigate('/admin/billing')
+              }}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-dashed border-white/15 bg-white/5 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white/35 transition hover:border-[#D8B76A]/35 hover:text-[#D8B76A] whitespace-nowrap"
+            >
+              <Icon icon="lucide:lock" className="h-4 w-4" />
+              Staff Mode
+            </button>
+          )}
           <button
             type="button"
             onClick={handlePrintQrSheet}
             disabled={printingQrSheet || invitations.length === 0}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-emerald-200 transition hover:bg-emerald-400/15 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
+            className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap ${
+              canUseAdvancedCheckIn
+                ? 'border border-emerald-400/20 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/15'
+                : 'border border-dashed border-white/15 bg-white/5 text-white/35 hover:border-[#D8B76A]/35 hover:text-[#D8B76A]'
+            }`}
           >
-            <Icon icon={printingQrSheet ? "lucide:loader-2" : "lucide:printer"} className={`h-4 w-4 ${printingQrSheet ? "animate-spin" : ""}`} />
+            <Icon icon={printingQrSheet ? "lucide:loader-2" : canUseAdvancedCheckIn ? "lucide:printer" : "lucide:lock"} className={`h-4 w-4 ${printingQrSheet ? "animate-spin" : ""}`} />
             {printingQrSheet ? "Preparing..." : "Print QR Sheet"}
           </button>
           <Link
@@ -726,7 +761,7 @@ const formatCheckInActivity = (entry) => {
                             {formatCheckInLog(inv)}
                           </p>
                         )}
-                        {Array.isArray(inv.checkInHistory) && inv.checkInHistory.length > 0 && (
+                        {canUseAdvancedCheckIn && Array.isArray(inv.checkInHistory) && inv.checkInHistory.length > 0 && (
                           <div className="mt-1 space-y-0.5">
                             {inv.checkInHistory.slice(-2).reverse().map((entry, index) => (
                               <p key={`${entry.at || index}-${entry.action}`} className="text-[10px] text-white/35">
@@ -758,15 +793,26 @@ const formatCheckInActivity = (entry) => {
                             )}
                           </button>
                           <button
-                            onClick={() => setQrInvitation(inv)}
-                            disabled={!inv.checkInToken}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition hover:border-[#D8B76A]/50 hover:bg-[#D8B76A]/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                            title={inv.checkInToken ? "View check-in QR" : "Preparing QR token"}
-                            aria-label={inv.checkInToken ? "View check-in QR" : "Preparing QR token"}
+                            onClick={() => {
+                              if (!canUseCheckIn) {
+                                toast.info('Guest entry QR codes are available on Plus and Pro plans.')
+                                navigate('/admin/billing')
+                                return
+                              }
+                              setQrInvitation(inv)
+                            }}
+                            disabled={canUseCheckIn && !inv.checkInToken}
+                            className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40 ${
+                              canUseCheckIn
+                                ? 'border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] hover:border-[#D8B76A]/50 hover:bg-[#D8B76A]/15'
+                                : 'border-white/10 bg-white/5 text-white/35 hover:border-[#D8B76A]/40 hover:text-[#D8B76A]'
+                            }`}
+                            title={canUseCheckIn ? (inv.checkInToken ? "View check-in QR" : "Preparing QR token") : "Upgrade to Plus for guest QR"}
+                            aria-label={canUseCheckIn ? (inv.checkInToken ? "View check-in QR" : "Preparing QR token") : "Upgrade to Plus for guest QR"}
                           >
-                            <Icon icon="lucide:qr-code" className="h-4 w-4" />
+                            <Icon icon={canUseCheckIn ? "lucide:qr-code" : "lucide:lock"} className="h-4 w-4" />
                           </button>
-                          {inv.checkedIn && (
+                          {canUseAdvancedCheckIn && inv.checkedIn && (
                             <button
                               onClick={() => handleResetCheckIn(inv)}
                               disabled={resettingCheckInId === inv._id}
@@ -857,7 +903,7 @@ const formatCheckInActivity = (entry) => {
                           {formatCheckInLog(inv)}
                         </p>
                       )}
-                      {Array.isArray(inv.checkInHistory) && inv.checkInHistory.length > 0 && (
+                      {canUseAdvancedCheckIn && Array.isArray(inv.checkInHistory) && inv.checkInHistory.length > 0 && (
                         <div className="mt-1 space-y-0.5">
                           {inv.checkInHistory.slice(-2).reverse().map((entry, index) => (
                             <p key={`${entry.at || index}-${entry.action}`} className="text-[10px] text-white/35">
@@ -886,15 +932,26 @@ const formatCheckInActivity = (entry) => {
                       )}
                     </button>
                     <button
-                      onClick={() => setQrInvitation(inv)}
-                      disabled={!inv.checkInToken}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                      title={inv.checkInToken ? "View check-in QR" : "Preparing QR token"}
-                      aria-label={inv.checkInToken ? "View check-in QR" : "Preparing QR token"}
+                      onClick={() => {
+                        if (!canUseCheckIn) {
+                          toast.info('Guest entry QR codes are available on Plus and Pro plans.')
+                          navigate('/admin/billing')
+                          return
+                        }
+                        setQrInvitation(inv)
+                      }}
+                      disabled={canUseCheckIn && !inv.checkInToken}
+                      className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40 ${
+                        canUseCheckIn
+                          ? 'border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A]'
+                          : 'border-white/10 bg-white/5 text-white/35 hover:border-[#D8B76A]/40 hover:text-[#D8B76A]'
+                      }`}
+                      title={canUseCheckIn ? (inv.checkInToken ? "View check-in QR" : "Preparing QR token") : "Upgrade to Plus for guest QR"}
+                      aria-label={canUseCheckIn ? (inv.checkInToken ? "View check-in QR" : "Preparing QR token") : "Upgrade to Plus for guest QR"}
                     >
-                      <Icon icon="lucide:qr-code" className="h-4 w-4" />
+                      <Icon icon={canUseCheckIn ? "lucide:qr-code" : "lucide:lock"} className="h-4 w-4" />
                     </button>
-                    {inv.checkedIn && (
+                    {canUseAdvancedCheckIn && inv.checkedIn && (
                       <button
                         onClick={() => handleResetCheckIn(inv)}
                         disabled={resettingCheckInId === inv._id}
