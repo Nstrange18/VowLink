@@ -231,23 +231,23 @@ const ThemeSelector = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       {/* Invitation Theme Options */}
-      <div className="settings-theme-panel p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6 relative isolate overflow-hidden">
+      <div className="settings-theme-panel relative isolate min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#0D1220] p-3 sm:p-5 space-y-6">
         <button
           type="button"
           onClick={() => setShowThemeLayout(!showThemeLayout)}
-          className="w-full flex justify-between items-center text-sm font-semibold uppercase tracking-widest text-[#D8B76A] hover:text-white transition py-1 cursor-pointer outline-none"
+          className="flex w-full min-w-0 items-start justify-between gap-3 py-1 text-sm font-semibold uppercase tracking-widest text-[#D8B76A] transition hover:text-white cursor-pointer outline-none"
         >
-          <span className="flex items-center gap-2">
+          <span className="flex min-w-0 items-start gap-2 text-left leading-snug">
             <Icon icon="lucide:palette" className="w-4 h-4 text-[#D8B76A] shrink-0" /> 2. Invitation Theme Layout
             {isFree && (
-              <span className="text-[9px] uppercase font-bold tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30">
+              <span className="shrink-0 rounded border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400">
                 Upgrade
               </span>
             )}
           </span>
-          <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[#D8B76A]">
+          <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] text-[#D8B76A]">
             <Icon icon={showThemeLayout ? "lucide:chevron-up" : "lucide:chevron-down"} className="h-3 w-3" />
             {showThemeLayout ? "Hide" : "Show"}
           </span>
@@ -255,14 +255,14 @@ const ThemeSelector = () => {
 
         {showThemeLayout && (
           <div className="space-y-6 pt-2 border-t border-white/5 animate-fade-in">
-            <div className="settings-theme-subpanel rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3 relative isolate overflow-hidden">
+            <div className="settings-theme-subpanel relative isolate min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4 space-y-3">
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-[#D8B76A] font-bold">Default Guest Invite Theme</p>
                 <p className="mt-1 text-[10px] text-white/45 leading-relaxed">
                   Controls the first theme guests see. Their theme toggle still saves their own choice on their device.
                 </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="grid min-w-0 grid-cols-1 gap-2 min-[360px]:grid-cols-2 sm:grid-cols-3">
                 {[
                   { value: "dark", label: "Dark Theme", icon: "lucide:moon" },
                   { value: "light", label: "Light Theme", icon: "lucide:sun" },
@@ -272,14 +272,14 @@ const ThemeSelector = () => {
                     key={option.value}
                     type="button"
                     onClick={() => setDefaultGuestTheme(option.value)}
-                    className={`rounded-xl border px-3 py-3 text-left transition flex items-center gap-2 ${
+                    className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-3 text-left transition ${
                       defaultGuestTheme === option.value
                         ? "border-[#D8B76A] bg-[#D8B76A]/12 text-[#D8B76A]"
                         : "border-white/10 bg-[#070A13]/60 text-white/60 hover:border-white/25 hover:text-white"
                     }`}
                   >
                     <Icon icon={option.icon} className="h-4 w-4 shrink-0" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider leading-tight">{option.label}</span>
+                    <span className="min-w-0 text-[10px] font-bold uppercase tracking-wider leading-tight">{option.label}</span>
                   </button>
                 ))}
               </div>
@@ -312,7 +312,7 @@ const ThemeSelector = () => {
               </select>
 
               {/* Theme Previews Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+              <div className="mt-4 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3">
                 {THEMES.map((theme) => {
                   const isLocked =
                     (isFree && theme.value !== "floral") ||
@@ -463,16 +463,16 @@ const ThemeSelector = () => {
 
             {/* Guidelines and Pre-made Templates (All Tiers) */}
             <div className="space-y-4 border-t border-white/5 pt-4">
-              <div className="theme-guideline-alert bg-amber-500/10 border border-amber-500/25 rounded-xl p-3.5 text-xs text-amber-200/90 leading-relaxed">
-                <p className="font-semibold flex items-center gap-1.5 mb-1 text-amber-300">
+              <div className="theme-guideline-alert rounded-xl border border-amber-500/25 bg-amber-500/10 p-3.5 text-xs leading-relaxed text-amber-200/90">
+                <p className="mb-1 flex items-start gap-1.5 font-semibold text-amber-300">
                   <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5 text-amber-300 shrink-0" /> Design Guidelines: Text-Free Images Only
                 </p>
                 All background card designs (both pre-made templates and custom uploads) must be **completely blank background designs containing no pre-printed text or names**. VowLink dynamically overlays the couple names, RSVP details, and dates in real-time. If your design has text on it, the live invitation text will overlap and clash.
               </div>
 
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h4 className="text-xs uppercase tracking-widest text-[#D8B76A] font-bold">Select Pre-made Background Design</h4>
+                <div className="flex min-w-0 items-start justify-between">
+                  <h4 className="min-w-0 text-xs font-bold uppercase tracking-widest text-[#D8B76A] leading-snug">Select Pre-made Background Design</h4>
                 </div>
 
                 {/* Plain Background option */}
@@ -485,7 +485,7 @@ const ThemeSelector = () => {
                       setCustomTextColor(getSmartTextColor("plain", ""));
                       setUserHasCustomTextColor(false);
                     }}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${cardTheme === "plain"
+                    className={`rounded-xl border px-3 py-2 text-left text-xs font-semibold transition sm:px-4 ${cardTheme === "plain"
                       ? "bg-[#D8B76A] text-[#070A13] border-[#D8B76A]"
                       : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
                       }`}
@@ -497,7 +497,7 @@ const ThemeSelector = () => {
                 {/* Free Templates */}
                 <div className="space-y-2">
                   <p className="text-[9px] uppercase tracking-wider text-white/40 font-bold">Free Tier Templates (Unlocked)</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
                     {PREMADE_TEMPLATES.filter(t => t.tier === "free" && !t.onlyInGallery).map(t => {
                       const isSelected = cardTheme === "custom" && customCardBg === t.url;
                       return (
@@ -541,7 +541,7 @@ const ThemeSelector = () => {
                 {/* Plus Templates */}
                 <div className="space-y-2">
                   <p className="text-[9px] uppercase tracking-wider text-white/40 font-bold">Plus Tier Templates</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
                     {PREMADE_TEMPLATES.filter(t => t.tier === "plus" && !t.onlyInGallery).map(t => {
                       const isLocked = isFree;
                       const isSelected = cardTheme === "custom" && customCardBg === t.url;
@@ -600,7 +600,7 @@ const ThemeSelector = () => {
                 {/* Pro Templates */}
                 <div className="space-y-2">
                   <p className="text-[9px] uppercase tracking-wider text-white/40 font-bold">Pro Tier Templates</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
                     {PREMADE_TEMPLATES.filter(t => t.tier === "pro" && !t.onlyInGallery).map(t => {
                       const isLocked = isFree || isPlus;
                       const isSelected = cardTheme === "custom" && customCardBg === t.url;

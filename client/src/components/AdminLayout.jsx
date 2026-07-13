@@ -152,7 +152,7 @@ const AdminLayout = () => {
   )
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-[#070A13]">
+    <div className="relative h-screen w-full overflow-hidden overflow-x-clip bg-[#070A13]">
       {/* ── Mobile sidebar overlay ────────────────────────────── */}
       {sidebarOpen && (
         <div
@@ -189,9 +189,9 @@ const AdminLayout = () => {
               <span className="block h-0.5 w-5 rounded bg-current" />
               <span className="block h-0.5 w-6 rounded bg-current" />
             </button>
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex min-w-0 items-center gap-1 sm:gap-2">
               <img src="/vowlink-icon.webp" alt="" className="h-5 w-5 object-contain opacity-80" />
-              <span className="font-serif text-sm sm:text-base text-white">Vowlink</span>
+              <span className="min-w-0 font-serif text-sm text-white sm:text-base">Vowlink</span>
               <span className={`text-[7px] sm:text-[8px] uppercase font-bold tracking-widest px-1.5 sm:px-2 py-0.5 rounded-full ${
                 user.tier === 'pro'
                   ? 'bg-linear-to-r from-amber-400 to-yellow-500 text-[#070A13]'
@@ -202,12 +202,12 @@ const AdminLayout = () => {
                 {user.tier || 'free'}
               </span>
             </div>
-            <div className="flex items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-1.5 sm:px-2 py-0.5">
+            <div className="hidden min-[390px]:flex items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-1.5 sm:px-2 py-0.5">
               <span className="text-[10px] sm:text-xs font-medium text-[#D8B76A]">{initials}</span>
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto overflow-x-auto">
+          <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
             <Outlet />
           </main>
         </div>

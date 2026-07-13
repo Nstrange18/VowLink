@@ -10,6 +10,7 @@ import SEO from './components/SEO'
 
 const InvitePage = lazy(() => import('./pages/InvitePage'))
 const CheckInPage = lazy(() => import('./pages/CheckInPage'))
+const CheckInStaffPage = lazy(() => import('./pages/CheckInStaffPage'))
 const RsvpResponsePage = lazy(() => import('./pages/RsvpResponsePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const LandingPage = lazy(() => import('./pages/LandingPage'))
@@ -196,6 +197,7 @@ function AppContent() {
 
         {/* Guest routes */}
         <Route path="/invite/:slug" element={<InvitePage setThemePreference={setThemePreference} />} />
+        <Route path="/check-in/staff" element={<CheckInStaffPage />} />
         <Route path="/check-in/:token" element={<CheckInPage />} />
         <Route path="/venues/:id" element={<VenueDetailsPage />} />
         <Route path="/rsvp-response" element={<RsvpResponsePage />} />

@@ -194,10 +194,19 @@ const CheckInPage = () => {
 
               {!isLoggedIn && hasCheckInAccess && !record.checkedIn && (
                 <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-xs text-emerald-100">
-                  <span className="inline-flex items-center gap-2">
-                    <Icon icon="lucide:shield-check" className="h-4 w-4" />
-                    Check-in access is active on this device.
-                  </span>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="inline-flex items-center gap-2">
+                      <Icon icon="lucide:shield-check" className="h-4 w-4" />
+                      Check-in access is active on this device.
+                    </span>
+                    <Link
+                      to={`/check-in/staff?event=${record.eventId}`}
+                      className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-100 transition hover:bg-emerald-400/15"
+                    >
+                      <Icon icon="lucide:list-checks" className="h-3.5 w-3.5" />
+                      Staff Mode
+                    </Link>
+                  </div>
                 </div>
               )}
 

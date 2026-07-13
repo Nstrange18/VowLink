@@ -51,17 +51,22 @@ const VenuePhotosGallery = ({
       {photos.length === 0 ? (
         <p className="text-center text-xs text-white/30 py-8">No photos uploaded yet. Staged photos will be listed here.</p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
           {photos.map((photo, index) => (
             <div key={index} className="h-32 rounded-xl overflow-hidden border border-white/10 relative group bg-white/5">
               <img src={photo} alt={`Venue ${index + 1}`} className="w-full h-full object-cover" />
               <button
                 type="button"
                 onClick={() => removePhoto(index)}
-                className="absolute inset-0 bg-black/75 flex items-center justify-center text-[10px] text-red-400 font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition"
+                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-red-300/35 bg-black/70 text-red-200 shadow-lg backdrop-blur transition hover:bg-red-500 hover:text-white sm:opacity-0 sm:group-hover:opacity-100"
+                aria-label={`Remove venue photo ${index + 1}`}
+                title="Remove photo"
               >
-                Remove
+                <Icon icon="lucide:trash-2" className="h-4 w-4" />
               </button>
+              <div className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-black/65 px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-white/80 backdrop-blur sm:opacity-0 sm:group-hover:opacity-100">
+                Tap trash to remove
+              </div>
             </div>
           ))}
         </div>

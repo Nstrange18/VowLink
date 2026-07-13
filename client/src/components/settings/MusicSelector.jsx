@@ -127,11 +127,11 @@ const MusicSelector = () => {
       </div>
 
       {/* Background Music */}
-      <div className="p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">6. Background Music (Plus / Pro)</h3>
+      <div className="min-w-0 rounded-2xl border border-white/10 bg-[#0D1220] p-3 sm:p-5 space-y-4">
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <h3 className="min-w-0 text-sm font-semibold uppercase tracking-widest text-[#D8B76A] leading-snug">6. Background Music (Plus / Pro)</h3>
           {isFree && (
-            <span className="text-[9px] uppercase font-bold tracking-wider text-white/30 bg-white/5 px-2 py-0.5 rounded">
+            <span className="shrink-0 rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/30">
               Locked
             </span>
           )}
@@ -157,13 +157,13 @@ const MusicSelector = () => {
                     type="button"
                     disabled={isFree}
                     onClick={() => handleCuratedSelect(p.url)}
-                    className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2 ${isSelected
+                    className={`flex min-w-0 items-center gap-2 rounded-xl border p-2.5 text-left transition ${isSelected
                       ? "border-[#D8B76A] bg-[#D8B76A]/10 text-white"
                       : "border-white/10 bg-white/3 text-white/70 hover:border-white/20"
                       } disabled:opacity-30 disabled:cursor-not-allowed`}
                   >
                     <Icon icon={p.icon} className="text-lg text-[#D8B76A] shrink-0" />
-                    <div className="truncate">
+                    <div className="min-w-0 truncate">
                       <p className="text-xs font-semibold truncate">{p.name}</p>
                       <p className="text-[8px] text-white/40 truncate font-mono">wedding cover</p>
                     </div>

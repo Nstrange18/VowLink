@@ -107,6 +107,33 @@ const invitationSchema = new mongoose.Schema(
       enum: ["pin", "couple", "admin", "unknown"],
       default: "unknown",
     },
+    checkInHistory: [
+      {
+        action: {
+          type: String,
+          enum: ["checked_in", "reset"],
+          required: true,
+        },
+        at: {
+          type: Date,
+          default: Date.now,
+        },
+        via: {
+          type: String,
+          enum: ["pin", "couple", "admin", "unknown"],
+          default: "unknown",
+        },
+        by: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        note: {
+          type: String,
+          trim: true,
+          default: "",
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

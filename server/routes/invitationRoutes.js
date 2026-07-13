@@ -17,9 +17,13 @@ const createSlug = (name) =>
     .replace(/\s+/g, "-");
 const createCheckInToken = () => crypto.randomBytes(24).toString("hex");
 
-const createCheckInAccessToken = (userId) =>
+const createCheckInAccessToken = (userId, pinUpdatedAt) =>
   jwt.sign(
-    { type: "check_in", userId: String(userId) },
+    {
+      type: "check_in",
+      userId: String(userId),
+      pinUpdatedAt: pinUpdatedAt ? new Date(pinUpdatedAt).toISOString() : null,
+    },
     process.env.JWT_SECRET,
     { expiresIn: "18h" }
   );
@@ -33,6 +37,36 @@ const getOptionalUserFromRequest = (req) => {
   } catch {
     return null;
   }
+};
+
+const isSuperAdminUser = (authUser) =>
+  authUser?.role === "admin" &&
+  authUser?.email?.toLowerCase() === "nwubachukwuemelie@gmail.com";
+
+const getCheckInAccessForEvent = async (req, userId) => {
+  if (!req.body?.accessToken) return false;
+
+  try {
+    const decoded = jwt.verify(req.body.accessToken, process.env.JWT_SECRET);
+    if (decoded.type !== "check_in" || String(decoded.userId) !== String(userId)) return false;
+
+    const user = await User.findById(userId).select("checkInPinHash checkInPinUpdatedAt");
+    if (!user?.checkInPinHash || !user.checkInPinUpdatedAt || !decoded.pinUpdatedAt) return false;
+
+    return new Date(user.checkInPinUpdatedAt).toISOString() === decoded.pinUpdatedAt;
+  } catch {
+    return false;
+  }
+};
+
+const getCheckInAuthority = async (req, userId) => {
+  const authUser = getOptionalUserFromRequest(req);
+  const isOwner = authUser && String(userId) === String(authUser.id);
+  const isSuperAdmin = isSuperAdminUser(authUser);
+  const hasCheckInAccess = await getCheckInAccessForEvent(req, userId);
+  const via = isSuperAdmin ? "admin" : isOwner ? "couple" : hasCheckInAccess ? "pin" : "unknown";
+
+  return { authUser, isOwner, isSuperAdmin, hasCheckInAccess, via };
 };
 
 const ensureInvitationCheckInToken = async (invitation) => {
@@ -169,7 +203,7 @@ router.post("/check-in/:token/access", async (req, res) => {
 
     res.status(200).json({
       message: "Check-in access granted.",
-      accessToken: createCheckInAccessToken(invitation.userId._id),
+      accessToken: createCheckInAccessToken(invitation.userId._id, invitation.userId.checkInPinUpdatedAt),
       expiresIn: "18h",
     });
   } catch (error) {
@@ -186,21 +220,7 @@ router.post("/check-in/:token", async (req, res) => {
       return res.status(404).json({ message: "Invalid or expired check-in QR code." });
     }
 
-    const authUser = getOptionalUserFromRequest(req);
-    const isOwner = authUser && String(invitation.userId) === String(authUser.id);
-    const isSuperAdmin =
-      authUser?.role === "admin" &&
-      authUser?.email?.toLowerCase() === "nwubachukwuemelie@gmail.com";
-
-    let hasCheckInAccess = false;
-    if (req.body?.accessToken) {
-      try {
-        const decoded = jwt.verify(req.body.accessToken, process.env.JWT_SECRET);
-        hasCheckInAccess = decoded.type === "check_in" && String(decoded.userId) === String(invitation.userId);
-      } catch {
-        hasCheckInAccess = false;
-      }
-    }
+    const { authUser, isOwner, isSuperAdmin, hasCheckInAccess, via } = await getCheckInAuthority(req, invitation.userId);
 
     if (!isOwner && !isSuperAdmin && !hasCheckInAccess) {
       return res.status(403).json({ message: "Enter the event check-in PIN before checking in guests." });
@@ -213,7 +233,86 @@ router.post("/check-in/:token", async (req, res) => {
     invitation.checkedIn = true;
     invitation.checkedInAt = new Date();
     invitation.checkedInBy = authUser?.id || undefined;
-    invitation.checkedInVia = isSuperAdmin ? "admin" : isOwner ? "couple" : hasCheckInAccess ? "pin" : "unknown";
+    invitation.checkedInVia = via;
+    invitation.checkInHistory.push({
+      action: "checked_in",
+      at: invitation.checkedInAt,
+      via,
+      by: authUser?.id || undefined,
+      note: via === "pin" ? "Checked in by usher PIN access." : "Checked in from authorized account.",
+    });
+    await invitation.save();
+
+    res.status(200).json({ message: "Guest checked in successfully.", invitation });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to check in guest", error: error.message });
+  }
+});
+// POST /api/invitations/check-in/staff/search - search guests for event-day check-in
+router.post("/check-in/staff/search", async (req, res) => {
+  try {
+    const { eventId, accessToken, query = "", status = "all" } = req.body;
+
+    if (!eventId || !accessToken) {
+      return res.status(400).json({ message: "Event access is required for staff search." });
+    }
+
+    const hasCheckInAccess = await getCheckInAccessForEvent({ body: { accessToken } }, eventId);
+    if (!hasCheckInAccess) {
+      return res.status(403).json({ message: "Enter the event check-in PIN before searching guests." });
+    }
+
+    const filter = { userId: eventId };
+    const trimmedQuery = String(query || "").trim();
+    if (trimmedQuery) {
+      filter.$or = [
+        { guestName: { $regex: trimmedQuery, $options: "i" } },
+        { phoneNumber: { $regex: trimmedQuery, $options: "i" } },
+        { slug: { $regex: trimmedQuery, $options: "i" } },
+        { category: { $regex: trimmedQuery, $options: "i" } },
+      ];
+    }
+    if (status === "checked_in") filter.checkedIn = true;
+    if (status === "not_checked_in") filter.checkedIn = { $ne: true };
+
+    const invitations = await Invitation.find(filter)
+      .select("guestName category allowedGuests phoneNumber slug hasRSVPed checkedIn checkedInAt checkedInVia checkInHistory")
+      .sort({ checkedIn: 1, guestName: 1 })
+      .limit(30);
+
+    res.status(200).json({ invitations });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to search check-in guests", error: error.message });
+  }
+});
+
+// POST /api/invitations/check-in/staff/:id - check in guest from staff search
+router.post("/check-in/staff/:id", async (req, res) => {
+  try {
+    const invitation = await Invitation.findById(req.params.id);
+    if (!invitation) {
+      return res.status(404).json({ message: "Invitation not found." });
+    }
+
+    const hasCheckInAccess = await getCheckInAccessForEvent(req, invitation.userId);
+    if (!hasCheckInAccess) {
+      return res.status(403).json({ message: "Enter the event check-in PIN before checking in guests." });
+    }
+
+    if (invitation.checkedIn) {
+      return res.status(200).json({ message: "Guest was already checked in.", invitation });
+    }
+
+    invitation.checkedIn = true;
+    invitation.checkedInAt = new Date();
+    invitation.checkedInBy = undefined;
+    invitation.checkedInVia = "pin";
+    invitation.checkInHistory.push({
+      action: "checked_in",
+      at: invitation.checkedInAt,
+      via: "pin",
+      note: "Checked in from staff mode.",
+    });
     await invitation.save();
 
     res.status(200).json({ message: "Guest checked in successfully.", invitation });
@@ -413,6 +512,40 @@ router.get("/", protect, async (req, res) => {
   }
 });
 
+// Reset guest check-in status (owner only)
+router.patch("/:id/check-in/reset", protect, async (req, res) => {
+  try {
+    const invitation = await Invitation.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+
+    if (!invitation) {
+      return res.status(404).json({ message: "Invitation not found" });
+    }
+
+    if (!invitation.checkedIn) {
+      return res.status(200).json({ message: "Guest is already marked as not checked in.", invitation });
+    }
+
+    invitation.checkedIn = false;
+    invitation.checkedInAt = undefined;
+    invitation.checkedInBy = undefined;
+    invitation.checkedInVia = "unknown";
+    invitation.checkInHistory.push({
+      action: "reset",
+      at: new Date(),
+      via: "couple",
+      by: req.user.id,
+      note: "Check-in reset from couple dashboard.",
+    });
+    await invitation.save();
+
+    res.status(200).json({ message: "Guest check-in has been reset.", invitation });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to reset check-in", error: error.message });
+  }
+});
 // Update invitation (owner only)
 router.put("/:id", protect, async (req, res) => {
   try {
@@ -562,5 +695,10 @@ router.post("/bulk-update-sender-group", protect, async (req, res) => {
 });
 
 module.exports = router;
+
+
+
+
+
 
 

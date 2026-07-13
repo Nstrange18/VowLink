@@ -17,6 +17,7 @@ const AdminInvitationsPage = () => {
   const [qrLoading, setQrLoading] = useState(false)
   const [downloadingQr, setDownloadingQr] = useState(false)
   const [printingQrSheet, setPrintingQrSheet] = useState(false)
+  const [resettingCheckInId, setResettingCheckInId] = useState('')
   const navigate = useNavigate()
   const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
 
@@ -84,6 +85,22 @@ const formatCheckInLog = (invitation) => {
   }[invitation.checkedInVia || 'unknown']
 
   return `Checked in ${checkedInAt} via ${viaLabel}`
+}
+
+const formatCheckInActivity = (entry) => {
+  if (!entry?.at) return ''
+  const actionLabel = entry.action === 'reset' ? 'Reset' : 'Checked in'
+  const viaLabel = {
+    pin: 'usher PIN',
+    couple: 'couple account',
+    admin: 'admin',
+    unknown: 'check-in',
+  }[entry.via || 'unknown']
+
+  return `${actionLabel} ${new Intl.DateTimeFormat('en-NG', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(entry.at))} via ${viaLabel}`
 }
 
   useEffect(() => {
@@ -238,6 +255,34 @@ const formatCheckInLog = (invitation) => {
     })
   }
 
+  const handleResetCheckIn = async (invitation) => {
+    if (!invitation?.checkedIn || resettingCheckInId) return
+
+    showConfirmToast({
+      title: 'Reset guest check-in?',
+      message: `${invitation.guestName} will return to the not checked-in list. Use this only for accidental check-ins.`,
+      confirmText: 'Reset Check-in',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        setResettingCheckInId(invitation._id)
+        try {
+          const res = await api.patch(`/invitations/${invitation._id}/check-in/reset`)
+          const updated = res.data?.invitation
+          if (updated) {
+            setInvitations((current) => current.map((item) => (item._id === updated._id ? updated : item)))
+          } else {
+            fetchInvitations()
+          }
+          toast.success(res.data?.message || 'Guest check-in has been reset.')
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to reset check-in.')
+        } finally {
+          setResettingCheckInId('')
+        }
+      },
+    })
+  }
+
 
   const handleEdit = (invitation) => {
     navigate(`/admin/invitations/edit/${invitation._id}`, { state: { invitation } })
@@ -379,6 +424,13 @@ const formatCheckInLog = (invitation) => {
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
+          <Link
+            to="/check-in/staff"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white/65 transition hover:bg-white/10 hover:text-white whitespace-nowrap"
+          >
+            <Icon icon="lucide:scan-line" className="h-4 w-4" />
+            Staff Mode
+          </Link>
           <button
             type="button"
             onClick={handlePrintQrSheet}
@@ -674,6 +726,15 @@ const formatCheckInLog = (invitation) => {
                             {formatCheckInLog(inv)}
                           </p>
                         )}
+                        {Array.isArray(inv.checkInHistory) && inv.checkInHistory.length > 0 && (
+                          <div className="mt-1 space-y-0.5">
+                            {inv.checkInHistory.slice(-2).reverse().map((entry, index) => (
+                              <p key={`${entry.at || index}-${entry.action}`} className="text-[10px] text-white/35">
+                                {formatCheckInActivity(entry)}
+                              </p>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td className="px-5 py-4 text-white/60">{inv.category || 'Guest'}</td>
                       <td className="px-5 py-4 text-white/60">{inv.allowedGuests}</td>
@@ -705,6 +766,17 @@ const formatCheckInLog = (invitation) => {
                           >
                             <Icon icon="lucide:qr-code" className="h-4 w-4" />
                           </button>
+                          {inv.checkedIn && (
+                            <button
+                              onClick={() => handleResetCheckIn(inv)}
+                              disabled={resettingCheckInId === inv._id}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-amber-300/20 bg-amber-300/10 text-amber-200 transition hover:border-amber-300/50 hover:bg-amber-300/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+                              title="Reset guest check-in"
+                              aria-label="Reset guest check-in"
+                            >
+                              <Icon icon={resettingCheckInId === inv._id ? "lucide:loader-2" : "lucide:rotate-ccw"} className={`h-4 w-4 ${resettingCheckInId === inv._id ? 'animate-spin' : ''}`} />
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               const url = buildPublicUrl(`/invite/${inv.slug}`)
@@ -785,6 +857,15 @@ const formatCheckInLog = (invitation) => {
                           {formatCheckInLog(inv)}
                         </p>
                       )}
+                      {Array.isArray(inv.checkInHistory) && inv.checkInHistory.length > 0 && (
+                        <div className="mt-1 space-y-0.5">
+                          {inv.checkInHistory.slice(-2).reverse().map((entry, index) => (
+                            <p key={`${entry.at || index}-${entry.action}`} className="text-[10px] text-white/35">
+                              {formatCheckInActivity(entry)}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <span className={`inline-flex min-w-22 items-center justify-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${getRsvpBadgeClass(inv)}`}>
                       {getRsvpStatusText(inv)}
@@ -813,6 +894,17 @@ const formatCheckInLog = (invitation) => {
                     >
                       <Icon icon="lucide:qr-code" className="h-4 w-4" />
                     </button>
+                    {inv.checkedIn && (
+                      <button
+                        onClick={() => handleResetCheckIn(inv)}
+                        disabled={resettingCheckInId === inv._id}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-300/20 bg-amber-300/10 text-amber-200 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+                        title="Reset guest check-in"
+                        aria-label="Reset guest check-in"
+                      >
+                        <Icon icon={resettingCheckInId === inv._id ? "lucide:loader-2" : "lucide:rotate-ccw"} className={`h-4 w-4 ${resettingCheckInId === inv._id ? 'animate-spin' : ''}`} />
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         const url = buildPublicUrl(`/invite/${inv.slug}`)
@@ -859,4 +951,5 @@ const formatCheckInLog = (invitation) => {
 }
 
 export default AdminInvitationsPage;
+
 

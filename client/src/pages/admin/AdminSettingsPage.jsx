@@ -288,8 +288,8 @@ const AdminSettingsPageContent = () => {
   };
 
   return (
-    <div className="p-4 sm:p-8 max-w-6xl mx-auto text-white overflow-x-hidden lg:h-full lg:flex lg:flex-col">
-      <div className="mb-6 lg:shrink-0">
+    <div className="mx-auto w-full max-w-[calc(100dvw-2rem)] overflow-x-hidden py-4 text-white sm:max-w-6xl sm:p-8 lg:h-full lg:flex lg:flex-col">
+      <div className="mb-6 min-w-0 lg:shrink-0">
         <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Account</p>
         <h2 className="font-serif text-3xl sm:text-4xl">Settings & Customization</h2>
         <p className="text-white/40 text-sm mt-1">
@@ -298,7 +298,7 @@ const AdminSettingsPageContent = () => {
       </div>
 
       {/* Glassmorphic Tabs Selector */}
-      <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-8 border-b border-white/10 pb-4 lg:shrink-0">
+      <div className="mb-8 flex min-w-0 flex-wrap gap-1.5 border-b border-white/10 pb-4 sm:gap-2 lg:shrink-0">
         {[
           { id: "details", label: "Details", fullLabel: "Wedding Details", icon: "lucide:calendar-days" },
           { id: "design", label: "Design", fullLabel: "Design & Theme", icon: "lucide:palette" },
@@ -315,7 +315,7 @@ const AdminSettingsPageContent = () => {
                 setShowDeleteConfirm(false);
               }
             }}
-            className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === tab.id
+            className={`min-w-0 px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === tab.id
               ? "bg-[#D8B76A] text-[#070A13] shadow-[0_8px_20px_rgba(216,183,106,0.25)]"
               : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
               }`}
@@ -331,19 +331,19 @@ const AdminSettingsPageContent = () => {
 
       {/* Mobile Live Preview Indicator */}
       {activeTab !== "security" && (
-        <div className="lg:hidden flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 mb-6 text-xs text-white/80 animate-pulse">
-          <div className="flex items-center gap-2">
+        <div className="mb-6 flex min-w-0 items-start justify-between gap-3 rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-3 py-3 text-xs text-white/80 animate-pulse lg:hidden">
+          <div className="flex min-w-0 items-start gap-2">
             <Icon icon="lucide:eye" className="text-[#D8B76A] w-4 h-4 shrink-0" />
-            <span>Live changes are updating on the card below</span>
+            <span className="min-w-0 leading-relaxed">Live changes are updating on the card below</span>
           </div>
           <button
             type="button"
             onClick={() => {
               document.getElementById("live-card-preview")?.scrollIntoView({ behavior: "smooth" });
             }}
-            className="text-[10px] uppercase font-bold text-[#D8B76A] hover:underline shrink-0 flex items-center gap-1"
+            className="flex shrink-0 items-center gap-1 text-right text-[10px] font-bold uppercase leading-tight text-[#D8B76A] hover:underline"
           >
-            <span>Scroll to Preview</span>
+            <span>Preview</span>
             <Icon icon="lucide:arrow-down" className="w-3 h-3 text-[#D8B76A]" />
           </button>
         </div>
@@ -364,7 +364,7 @@ const AdminSettingsPageContent = () => {
 
           {/* Main Form for Details, Design, Media, and Registry settings */}
           {(activeTab === "details" || activeTab === "design" || activeTab === "media" || activeTab === "registry") && (
-            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8 animate-fade-in">
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="min-w-0 space-y-8 animate-fade-in">
 
               {/* TAB 1: Wedding Details */}
               {activeTab === "details" && (
@@ -547,16 +547,16 @@ const AdminSettingsPageContent = () => {
                   <ThemeSelector />
 
                   {/* AI Invitation Background Generator — teaser linking to Templates page */}
-                  <div className="p-3 sm:p-5 rounded-2xl border border-[#D8B76A]/20 bg-[#0D1220] space-y-4 relative isolate overflow-hidden">
+                  <div className="relative isolate min-w-0 overflow-hidden rounded-2xl border border-[#D8B76A]/20 bg-[#0D1220] p-3 sm:p-5 space-y-4">
                     {/* shimmer gradient decoration */}
                     <div className="absolute inset-0 bg-linear-to-br from-[#D8B76A]/5 via-transparent to-transparent pointer-events-none" />
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] flex items-center gap-1.5">
+                    <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <h3 className="flex min-w-0 items-start gap-1.5 text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">
                         <Icon icon="lucide:sparkles" className="w-4 h-4 text-[#D8B76A]" />
-                        <span>AI Invitation Background Generator</span>
+                        <span className="min-w-0 leading-snug">AI Invitation Background Generator</span>
                       </h3>
                       {!isPro && !isPlus && (
-                        <span className="text-[9px] uppercase font-bold tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded flex items-center gap-1">
+                        <span className="inline-flex w-fit max-w-full items-center gap-1 rounded border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400">
                           <Icon icon="lucide:lock" className="w-2.5 h-2.5" /> Plus / Pro Feature
                         </span>
                       )}
@@ -564,8 +564,8 @@ const AdminSettingsPageContent = () => {
                     <p className="text-[10px] text-white/40 leading-relaxed">
                       Generate stunning, one-of-a-kind AI wedding invitation backgrounds tailored to your exact colors, style, and cultural influence. The AI creates beautiful frame graphics — VowLink overlays your text automatically.
                     </p>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                      <div className="flex flex-wrap gap-2">
+                    <div className="flex min-w-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+                      <div className="flex min-w-0 flex-wrap gap-2">
                         {["Luxury Gold", "Soft Floral", "Burgundy Velvet", "Traditional Nigerian", "Navy & Gold", "Emerald Green"].map((style) => (
                           <span key={style} className="px-2.5 py-1 text-[9px] rounded-full border border-white/10 text-white/50 bg-white/5">
                             {style}
@@ -576,13 +576,13 @@ const AdminSettingsPageContent = () => {
                       <button
                         type="button"
                         onClick={() => navigate("/admin/templates#ai-backgrounds")}
-                        className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer shrink-0 ${!isPro && !isPlus
+                        className={`w-full min-w-0 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer sm:w-auto sm:shrink-0 ${!isPro && !isPlus
                           ? "bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white"
                           : "bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13] shadow-[0_4px_16px_rgba(216,183,106,0.25)]"
                           }`}
                       >
                         <Icon icon="lucide:sparkles" className="w-3.5 h-3.5" />
-                        <span className="inline-flex items-center gap-1.5">
+                        <span className="inline-flex min-w-0 items-center justify-center gap-1.5 text-center leading-tight">
                           {!isPro && !isPlus ? "Upgrade to Generate" : "Generate AI Background"}
                           {!isPro && !isPlus && <Icon icon="lucide:lock" className="h-3.5 w-3.5" />}
                         </span>
@@ -591,13 +591,13 @@ const AdminSettingsPageContent = () => {
                   </div>
 
                   {/* Couple Portrait Image (Autoplays as card backdrop) */}
-                  <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4">
+                  <div className="min-w-0 rounded-2xl border border-white/10 bg-[#0D1220] p-3 sm:p-5 space-y-4">
                     <button
                       type="button"
                       onClick={() => setShowCouplePortrait(!showCouplePortrait)}
-                      className="w-full flex justify-between items-center text-sm font-semibold uppercase tracking-widest text-[#D8B76A] hover:text-white transition py-1 cursor-pointer outline-none"
+                      className="flex w-full min-w-0 items-start justify-between gap-3 py-1 text-sm font-semibold uppercase tracking-widest text-[#D8B76A] transition hover:text-white cursor-pointer outline-none"
                     >
-                      <span className="flex items-center gap-2 text-left">
+                      <span className="flex min-w-0 items-start gap-2 text-left leading-snug">
                         <Icon icon="lucide:camera" className="w-4 h-4 text-[#D8B76A]" /> 4. Couple Portrait Page Background
                         {isFree && (
                           <span className="text-[9px] uppercase font-bold tracking-wider text-white/30 bg-white/5 px-2 py-0.5 rounded shrink-0">
@@ -605,7 +605,7 @@ const AdminSettingsPageContent = () => {
                           </span>
                         )}
                       </span>
-                      <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[#D8B76A] shrink-0">
+                      <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] text-[#D8B76A]">
                         <Icon icon={showCouplePortrait ? "lucide:chevron-up" : "lucide:chevron-down"} className="h-3 w-3" />
                         {showCouplePortrait ? "Hide" : "Show"}
                       </span>
@@ -623,13 +623,13 @@ const AdminSettingsPageContent = () => {
                             accept="image/*"
                             disabled={isFree}
                             onChange={handleCouplePhotoUpload}
-                            className="w-full text-xs text-white/40 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#D8B76A]/10 file:text-[#D8B76A] hover:file:bg-[#D8B76A]/20 disabled:opacity-30"
+                            className="block w-full max-w-full min-w-0 text-[11px] text-white/40 file:mr-2 file:max-w-full file:rounded-full file:border-0 file:bg-[#D8B76A]/10 file:px-3 file:py-2 file:text-[11px] file:font-semibold file:text-[#D8B76A] hover:file:bg-[#D8B76A]/20 disabled:opacity-30"
                           />
                         </div>
 
                         {couplePhotoUrl && (
                           <div className="space-y-3">
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-3">
                               <img src={couplePhotoUrl} alt="Couple portrait" className="h-16 w-16 rounded-xl object-cover border border-white/10" />
                               <button
                                 type="button"
@@ -670,7 +670,7 @@ const AdminSettingsPageContent = () => {
                                     closeButton: false,
                                   });
                                 }}
-                                className="px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-[10px] font-semibold text-red-400 hover:bg-red-500/20 transition"
+                                className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-[10px] font-semibold text-red-400 transition hover:bg-red-500/20"
                               >
                                 Delete Photo
                               </button>
@@ -700,16 +700,16 @@ const AdminSettingsPageContent = () => {
                   </div>
 
                   {/* WhatsApp/Social Share Preview Message */}
-                  <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4 animate-fade-in relative isolate overflow-hidden">
+                  <div className="relative isolate min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#0D1220] p-3 sm:p-5 space-y-4 animate-fade-in">
                     <button
                       type="button"
                       onClick={() => setShowSocialShare(!showSocialShare)}
-                      className="w-full flex justify-between items-center text-sm font-semibold uppercase tracking-widest text-[#D8B76A] hover:text-white transition py-1 cursor-pointer outline-none"
+                      className="flex w-full min-w-0 items-start justify-between gap-3 py-1 text-sm font-semibold uppercase tracking-widest text-[#D8B76A] transition hover:text-white cursor-pointer outline-none"
                     >
-                      <span className="flex items-center gap-2">
+                      <span className="flex min-w-0 items-start gap-2 text-left leading-snug">
                         <Icon icon="lucide:link" className="w-4 h-4 text-[#D8B76A]" /> 5. Social Share Preview Message
                       </span>
-                      <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[#D8B76A] shrink-0">
+                      <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] text-[#D8B76A]">
                         <Icon icon={showSocialShare ? "lucide:chevron-up" : "lucide:chevron-down"} className="h-3 w-3" />
                         {showSocialShare ? "Hide" : "Show"}
                       </span>
@@ -1000,6 +1000,7 @@ const AdminSettingsPageContent = () => {
 
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-[11px] leading-relaxed text-white/50">
                   Ushers can enter this PIN once on their phone after scanning a guest QR. Their browser gets temporary event access only. It cannot open settings, payments, guests, or your dashboard.
+                  Resetting or disabling this PIN is useful if it was shared with the wrong person; ushers may need to enter the new PIN again on their devices.
                 </div>
 
                 {checkInPinStatus.enabled && checkInPinStatus.updatedAt && (
