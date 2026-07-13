@@ -192,7 +192,7 @@ const CheckInPage = () => {
                 </div>
               )}
 
-              {!isLoggedIn && hasCheckInAccess && !record.checkedIn && (
+              {!isLoggedIn && hasCheckInAccess && (
                 <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-xs text-emerald-100">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <span className="inline-flex items-center gap-2">
