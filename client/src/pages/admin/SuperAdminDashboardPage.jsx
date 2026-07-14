@@ -513,11 +513,15 @@ const SuperAdminDashboardPage = () => {
                 <h3 className="font-serif text-lg text-[#D8B76A]">Couples Workspace Breakdown</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/60">Free Invitation accounts</span>
+                    <span className="text-white/60">Unpaid onboarding accounts</span>
+                    <span className="font-bold font-mono">{couples.filter((c) => (c.tier || "unpaid") === "unpaid").length}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-white/60">Classic Invitation accounts</span>
                     <span className="font-bold font-mono">{couples.filter((c) => c.tier === "free").length}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/60">Plus Invitation accounts (NGN 50,000 upgrade)</span>
+                    <span className="text-white/60">Plus Invitation accounts (NGN 68,000 upgrade)</span>
                     <span className="font-bold font-mono text-[#7FA6D9]">{stats.plusCouples}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
@@ -1023,7 +1027,8 @@ const SuperAdminDashboardPage = () => {
                               disabled={tierBusy}
                               className="bg-[#070A13] border border-white/10 px-2 py-1 rounded text-xs outline-none text-white focus:border-[#D8B76A]/60 font-semibold disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                              <option value="free">Free Tier</option>
+                              <option value="unpaid">Unpaid</option>
+                              <option value="free">Classic Plan</option>
                               <option value="plus">Plus Plan</option>
                               <option value="pro">Pro Plan</option>
                             </select>

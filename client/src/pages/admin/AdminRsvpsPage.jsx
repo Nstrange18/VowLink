@@ -9,8 +9,8 @@ const AdminRsvpsPage = () => {
   const [loading, setLoading] = useState(true)
   const [senderGroupFilter, setSenderGroupFilter] = useState('all')
   const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
-  const tier = user.tier || 'free';
-  const rsvpLimit = tier === 'free' ? 20 : tier === 'plus' ? 100 : 500;
+  const tier = user.tier || 'unpaid';
+  const rsvpLimit = tier === 'unpaid' ? 0 : tier === 'free' ? 20 : tier === 'plus' ? 100 : 500;
   const percent = Math.min((rsvps.length / rsvpLimit) * 100, 100);
 
   useEffect(() => {

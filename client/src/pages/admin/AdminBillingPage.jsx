@@ -6,16 +6,17 @@ import { Icon } from "@iconify/react";
 const PLANS = [
   {
     id: "free",
-    name: "Free Plan",
-    priceInUsd: 0,
-    period: "forever",
-    description: "Perfect for testing and small intimate gatherings.",
+    name: "Classic Plan",
+    priceInUsd: 20,
+    priceInNgn: 30000,
+    period: "one-time",
+    description: "A polished starter invitation package for intimate weddings.",
     color: "border-white/10 bg-white/5",
     features: [
       { text: "1 generic invitation link", enabled: true },
       { text: "Up to 20 RSVP responses", enabled: true },
       { text: "Basic invitation dashboard", enabled: true },
-      { text: "Free invitation templates", enabled: true },
+      { text: "Classic Floral and Modern Minimalist templates", enabled: true },
       { text: "Limited venue preview", enabled: true },
       { text: "VowLink watermark visible", enabled: true },
       { text: "Guest entry QR and check-in tools", enabled: false },
@@ -28,8 +29,8 @@ const PLANS = [
   {
     id: "plus",
     name: "Plus Plan",
-    priceInUsd: 34,
-    priceInNgn: 50000,
+    priceInUsd: 45.33,
+    priceInNgn: 68000,
     period: "one-time",
     description: "Unlock multiple design choices and contact vendors directly.",
     color: "border-[#7FA6D9]/30 bg-[#7FA6D9]/5 hover:border-[#7FA6D9]/60",
@@ -126,7 +127,7 @@ const AdminBillingPage = () => {
   const [devBypassLocked, setDevBypassLocked] = useState(false);
   const devBypassSubmittingRef = useRef(false);
 
-  const currentTier = user.tier || "free";
+  const currentTier = user.tier || "unpaid";
 
   const getFormattedPrice = (plan) => {
     if (plan.priceInNgn === 0 || plan.priceInUsd === 0) {

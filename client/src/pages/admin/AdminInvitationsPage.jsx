@@ -326,12 +326,13 @@ const AdminInvitationsPage = () => {
     });
   };
 
-  const tier = user.tier || "free";
-  const limit = tier === "free" ? 1 : tier === "plus" ? 100 : 500;
+  const tier = user.tier || "unpaid";
+  const isUnpaid = tier === "unpaid";
+  const limit = isUnpaid ? 0 : tier === "free" ? 1 : tier === "plus" ? 100 : 500;
   const canUseCheckIn = tier === "plus" || tier === "pro";
   const canUseAdvancedCheckIn = tier === "pro";
   const count = invitations.length;
-  const progressPercent = Math.min((count / limit) * 100, 100);
+  const progressPercent = limit > 0 ? Math.min((count / limit) * 100, 100) : 0;
   const checkedInCount = invitations.filter((inv) => inv.checkedIn).length;
   const notCheckedInCount = Math.max(count - checkedInCount, 0);
   const checkInPercent =
@@ -504,7 +505,7 @@ const AdminInvitationsPage = () => {
               <div
                 className="h-full bg-[#D8B76A] transition-all duration-300"
                 style={{
-                  width: `${limit === Infinity ? 0 : progressPercent}%`,
+              width: `${limit === Infinity || limit === 0 ? 0 : progressPercent}%`,
                 }}
               />
             </div>
@@ -530,7 +531,7 @@ const AdminInvitationsPage = () => {
                 navigate("/admin/billing");
               }}
               className={`inline-flex items-center justify-center gap-2 rounded-full border border-dashed border-white/15 bg-white/5 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white/35 transition whitespace-nowrap ${
-                tier === "free"
+                tier === "free" || isUnpaid
                   ? "bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed"
                   : "bg-white/10 text-white hover:bg-white/15"
               }`}
@@ -544,7 +545,7 @@ const AdminInvitationsPage = () => {
             onClick={handlePrintQrSheet}
             disabled={printingQrSheet || invitations.length === 0}
             className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition disabled:cursor-not-allowed ${
-              tier === "free"
+              tier === "free" || isUnpaid
                 ? "bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed"
                 : "bg-white/10 text-white hover:bg-white/15"
             } disabled:opacity-50 whitespace-nowrap ${
@@ -568,15 +569,17 @@ const AdminInvitationsPage = () => {
           <Link
             to="/admin/invitations/bulk"
             className={`rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition duration-300 whitespace-nowrap ${
-              tier === "free"
+              tier === "free" || isUnpaid
                 ? "bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed"
                 : "bg-white/10 text-white hover:bg-white/15"
             }`}
             onClick={(e) => {
-              if (tier === "free") {
+              if (tier === "free" || isUnpaid) {
                 e.preventDefault();
                 toast.info(
-                  "Bulk creation is a Plus and Pro plan feature! Upgrade to unlock.",
+                  isUnpaid
+                    ? "Choose a plan to activate your wedding workspace."
+                    : "Bulk creation is a Plus and Pro plan feature! Upgrade to unlock.",
                 );
                 navigate("/admin/billing");
               }
@@ -585,15 +588,19 @@ const AdminInvitationsPage = () => {
             + Bulk Import
           </Link>
           <Link
-            to={count >= limit ? "#" : "/admin/invitations/new"}
+            to={isUnpaid || count >= limit ? "#" : "/admin/invitations/new"}
             id="new-invitation-btn"
             onClick={(e) => {
-              if (count >= limit) {
+              if (isUnpaid || count >= limit) {
                 e.preventDefault();
-                toast.warning(
-                  `You have reached the limit of ${limit} invitation${limit === 1 ? "" : "s"} for the ${tier.toUpperCase()} plan. Please upgrade your plan to create more!`,
-                  { toastId: "limit-reached-new" },
-                );
+                if (isUnpaid) {
+                  toast.info("Choose Classic, Plus, or Pro to activate live invitations.", { toastId: "activate-plan-new" });
+                } else {
+                  toast.warning(
+                    `You have reached the limit of ${limit} invitation${limit === 1 ? "" : "s"} for the ${tier === "free" ? "CLASSIC" : tier.toUpperCase()} plan. Please upgrade your plan to create more!`,
+                    { toastId: "limit-reached-new" },
+                  );
+                }
                 navigate("/admin/billing");
               }
             }}

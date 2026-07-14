@@ -90,7 +90,7 @@ const AdminLayout = () => {
               ? 'bg-[#7FA6D9] text-[#070A13]'
               : 'bg-white/10 text-white/60'
           }`}>
-            {user.tier || 'free'}
+            {user.tier === 'free' ? 'classic' : user.tier || 'unpaid'}
           </span>
         </div>
         <h2 className="font-serif text-xl leading-tight text-white">{coupleName}</h2>
@@ -199,7 +199,7 @@ const AdminLayout = () => {
                   ? 'bg-[#7FA6D9] text-[#070A13]'
                   : 'bg-white/10 text-white/60'
               }`}>
-                {user.tier || 'free'}
+                {user.tier === 'free' ? 'classic' : user.tier || 'unpaid'}
               </span>
             </div>
             <div className="hidden min-[390px]:flex items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-1.5 sm:px-2 py-0.5">

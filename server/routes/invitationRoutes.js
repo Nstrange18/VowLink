@@ -43,8 +43,8 @@ const isSuperAdminUser = (authUser) =>
   authUser?.role === "admin" &&
   authUser?.email?.toLowerCase() === "nwubachukwuemelie@gmail.com";
 
-const canUseCheckIn = (user) => ["plus", "pro"].includes(user?.tier || "free");
-const canUseAdvancedCheckIn = (user) => (user?.tier || "free") === "pro";
+const canUseCheckIn = (user) => ["plus", "pro"].includes(user?.tier || "unpaid");
+const canUseAdvancedCheckIn = (user) => (user?.tier || "unpaid") === "pro";
 
 const getCheckInAccessForEvent = async (req, userId) => {
   if (!req.body?.accessToken) return false;
@@ -108,6 +108,10 @@ router.get("/slug/:slug", async (req, res) => {
 
     if (!invitation) {
       return res.status(404).json({ message: "Invitation not found" });
+    }
+
+    if ((invitation.userId?.tier || "unpaid") === "unpaid") {
+      return res.status(403).json({ message: "This wedding workspace is not active yet." });
     }
 
     await ensureInvitationCheckInToken(invitation);
@@ -372,10 +376,15 @@ router.post("/", protect, async (req, res) => {
     }
 
     // Limit check based on tier
+    if ((user.tier || "unpaid") === "unpaid") {
+      return res.status(403).json({
+        message: "Choose a plan to activate your wedding workspace before creating live invitations.",
+      });
+    }
     const count = await Invitation.countDocuments({ userId: req.user.id });
     if (user.tier === "free" && count >= 1) {
       return res.status(403).json({
-        message: "You have reached the maximum limit of 1 generic invitation link for the Free plan. Please upgrade to Plus or Pro to create personalized guest links.",
+        message: "You have reached the maximum limit of 1 invitation link for the Classic plan. Please upgrade to Plus or Pro to create personalized guest links.",
       });
     }
     if (user.tier === "plus" && count >= 100) {
@@ -433,7 +442,7 @@ router.post("/bulk", protect, async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (user.tier === "free") {
+    if ((user.tier || "unpaid") === "unpaid" || user.tier === "free") {
       return res.status(403).json({
         message: "Bulk invitation creation is a Plus and Pro plan feature. Please upgrade.",
       });

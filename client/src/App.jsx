@@ -53,7 +53,7 @@ const PUBLIC_ROUTE_META = {
   },
   '/pricing': {
     title: 'VowLink Pricing | Digital Wedding Invitation Plans',
-    description: 'Compare VowLink wedding invitation plans for couples, from a free starter invite to premium RSVP tracking, templates, guest exports, and planning tools.',
+    description: 'Compare VowLink wedding invitation plans for couples, from the Classic starter invite to premium RSVP tracking, templates, guest exports, and planning tools.',
   },
   '/templates': {
     title: 'VowLink Templates | Elegant Digital Wedding Invitation Designs',

@@ -151,7 +151,7 @@ const LandingPage = () => {
         <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.4em] text-[#D8B76A] mb-4">Plans</p>
-            <h2 className="font-serif text-3xl sm:text-4xl text-white">Start free, upgrade when you need more</h2>
+            <h2 className="font-serif text-3xl sm:text-4xl text-white">Start with Classic, upgrade when you need more</h2>
           </div>
           <Link to="/admin/billing" className="text-sm font-semibold text-[#D8B76A] hover:underline">
             View billing after signup
@@ -320,7 +320,7 @@ const LandingPage = () => {
                 to="/signup"
                 className="mt-6 inline-flex rounded-full bg-[#D8B76A] px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:bg-[#F2D894]"
               >
-                Start Free
+                Start with Classic
               </Link>
             </div>
 

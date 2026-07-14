@@ -22,8 +22,8 @@ const AdminVenuesPage = () => {
   const [inquiryMsg, setInquiryMsg] = useState("");
   const [submittingInquiry, setSubmittingInquiry] = useState(false);
 
-  const tier = user.tier || "free";
-  const isFree = tier === "free";
+  const tier = user.tier || "unpaid";
+  const isFree = tier === "free" || tier === "unpaid";
   const isPro = tier === "pro";
 
   const fetchVenues = async () => {
@@ -135,8 +135,8 @@ const AdminVenuesPage = () => {
           <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 max-w-sm flex items-start gap-3">
             <Icon icon="lucide:lightbulb" className="h-5 w-5 shrink-0 text-[#D8B76A]" />
             <div>
-              <p className="text-xs font-semibold text-[#D8B76A] uppercase tracking-wider">Free Plan Preview</p>
-              <p className="text-white/60 text-[11px] mt-0.5">Upgrade to Plus or Pro to see full addresses, exact pricing, and vendor contacts.</p>
+              <p className="text-xs font-semibold text-[#D8B76A] uppercase tracking-wider">{tier === "unpaid" ? "Activate Your Plan" : "Classic Plan Preview"}</p>
+              <p className="text-white/60 text-[11px] mt-0.5">{tier === "unpaid" ? "Choose a plan to unlock live wedding tools and venue previews." : "Upgrade to Plus or Pro to see full addresses, exact pricing, and vendor contacts."}</p>
               <Link to="/admin/billing" className="text-xs text-[#D8B76A] underline mt-1.5 inline-block font-semibold">
                 <span className="inline-flex items-center gap-1">
                   Upgrade Workspace <Icon icon="lucide:arrow-right" className="h-3 w-3" />

@@ -30,8 +30,8 @@ const userSchema = new mongoose.Schema(
     kidsAllowed: { type: Boolean, default: true },
     tier: {
       type: String,
-      enum: ["free", "plus", "pro"],
-      default: "free",
+      enum: ["unpaid", "free", "plus", "pro"],
+      default: "unpaid",
       trim: true,
     },
     galleryPhotos: {

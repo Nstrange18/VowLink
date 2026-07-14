@@ -48,13 +48,19 @@ router.post("/", rsvpLimiter, async (req, res) => {
     const couple = invitation.userId;
     let currentRsvpCount = 0;
     if (couple) {
+      if ((couple.tier || "unpaid") === "unpaid") {
+        return res.status(403).json({
+          message: "This wedding workspace is not active yet.",
+        });
+      }
+
       const coupleInvitations = await Invitation.find({ userId: couple._id }).select("_id");
       const invitationIds = coupleInvitations.map((i) => i._id);
       currentRsvpCount = await RSVP.countDocuments({ invitationId: { $in: invitationIds } });
 
       if (couple.tier === "free" && currentRsvpCount >= 20) {
         return res.status(403).json({
-          message: "This wedding invitation has reached the maximum limit of 20 RSVP responses for the Free plan. To accept more RSVPs, the couple needs to upgrade their plan.",
+          message: "This wedding invitation has reached the maximum limit of 20 RSVP responses for the Classic plan. To accept more RSVPs, the couple needs to upgrade their plan.",
         });
       }
       if (couple.tier === "plus" && currentRsvpCount >= 100) {

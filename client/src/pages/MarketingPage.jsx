@@ -20,13 +20,13 @@ const pages = {
   },
   pricing: {
     eyebrow: 'Pricing',
-    title: 'Start free, then upgrade when your guest list needs more room',
+    title: 'Start with Classic, then upgrade when your guest list needs more room',
     description: 'VowLink has simple wedding invitation plans for small celebrations, growing guest lists, and full planning workflows with premium templates and exports.',
-    primary: 'Start Free',
+    primary: 'Start with Classic',
     secondary: 'View Features',
     secondaryTo: '/features',
     sections: [
-      ['Free', 'Create one invite link, collect up to 20 RSVPs, and test the basic invitation experience before sending to your wider guest list.'],
+      ['Classic', 'Create one invite link, collect up to 20 RSVPs, and use the Classic Floral and Modern Minimalist templates for intimate celebrations.'],
       ['Plus', 'Unlock more guest links, premium templates, music, gallery, venue details, and richer invitation personalization.'],
       ['Pro', 'Use larger guest limits, RSVP export, seating chart tools, WhatsApp queues, AI-assisted themes, and more advanced planning controls.'],
     ],

@@ -38,10 +38,15 @@ const AdminNewInvitationPage = () => {
       try {
         const res = await api.get('/invitations')
         const count = res.data.length
-        const tier = user.tier || 'free'
+        const tier = user.tier || 'unpaid'
+        if (tier === 'unpaid') {
+          toast.info('Choose Classic, Plus, or Pro to activate live invitations.', { toastId: 'activate-plan-new' })
+          navigate('/admin/billing')
+          return
+        }
         const limit = tier === 'free' ? 1 : tier === 'plus' ? 100 : 500
         if (count >= limit) {
-          toast.warning(`You have reached the limit of ${limit} invitation${limit === 1 ? '' : 's'} for the ${tier.toUpperCase()} plan. Redirecting to billing...`, { toastId: 'limit-reached-redirect' })
+          toast.warning(`You have reached the limit of ${limit} invitation${limit === 1 ? '' : 's'} for the ${tier === 'free' ? 'CLASSIC' : tier.toUpperCase()} plan. Redirecting to billing...`, { toastId: 'limit-reached-redirect' })
           navigate('/admin/billing')
         }
       } catch (err) {

@@ -94,7 +94,7 @@ export const getTemplateLayout = (theme, customCardBg) => {
           title: "#5C4A3C", subtitle: "#826D5F", coupleNames: "#A08068", greeting: "#5C4A3C", message: "#6B584B", details: "#826D5F", colourOfDay: "#A08068", chips: "#FFFFFF", divider: "#A08068"
         });
       case "minimalist":
-        return createPreset("plus", "center", 80, 90, 40, 40, "none", "minimalist", "minimalist", "85%", {}, {
+        return createPreset("free", "center", 80, 90, 40, 40, "none", "minimalist", "minimalist", "85%", {}, {
           title: "#1A2536", subtitle: "#475569", coupleNames: "#0F172A", greeting: "#334155", message: "#475569", details: "#475569", colourOfDay: "#0F172A", chips: "#475569", divider: "#0F172A"
         });
       case "navy":
@@ -410,57 +410,53 @@ export const getBlockStyles = (
 };
 
 export const PREMADE_TEMPLATES = [
-  // Free Tier
+  // Classic Tier
   {
     tier: "free",
-    name: "Blush Pink Watercolor",
+    name: "Classic Floral",
     url: "/templates/Blush Pink Watercolor.webp",
     preview: "/templates/Blush Pink Watercolor.webp",
   },
   {
     tier: "free",
-    name: "Cream Floral Elegance",
+    name: "Modern Minimalist",
     url: "/templates/Cream Floral Elegance.webp",
     preview: "/templates/Cream Floral Elegance.webp",
   },
   {
     tier: "free",
-    name: "Free Gallery Orchid Breeze",
+    name: "Classic Gallery Orchid Breeze",
     url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_09 AM (1).webp",
     preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_09 AM (1).webp",
-    onlyInGallery: true
   },
   {
     tier: "free",
-    name: "Free Gallery Classic Laurel",
+    name: "Classic Gallery Laurel",
     url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_10 AM (2).webp",
     preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_10 AM (2).webp",
-    onlyInGallery: true
   },
   {
     tier: "free",
-    name: "Free Gallery Spring Whimsy",
+    name: "Classic Gallery Spring Whimsy",
     url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_14 AM (3).webp",
     preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_14 AM (3).webp",
-    onlyInGallery: true
   },
   {
     tier: "free",
-    name: "Free Gallery Eucalyptus Arch",
+    name: "Classic Gallery Eucalyptus Arch",
     url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_16 AM (4).webp",
     preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_16 AM (4).webp",
-    onlyInGallery: true
   },
   {
     tier: "free",
-    name: "Free Gallery Peach Rose Border",
+    name: "Classic Gallery Peach Rose Border",
     url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_19 AM (5).webp",
     preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_19 AM (5).webp",
     onlyInGallery: true
   },
   {
     tier: "free",
-    name: "Free Gallery Pure Gold Accent",
+    name: "Classic Gallery Pure Gold Accent",
     url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_23 AM (6).webp",
     preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_23 AM (6).webp",
     onlyInGallery: true

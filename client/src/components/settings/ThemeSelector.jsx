@@ -7,8 +7,8 @@ import { getTemplateLayout } from "../../utils/templateLayouts";
 import { Icon } from "@iconify/react";
 
 export const THEMES = [
-  { value: "floral", label: "Classic Floral (Free / All plans)" },
-  { value: "minimalist", label: "Modern Minimalist (Plus / Pro)" },
+  { value: "floral", label: "Classic Floral (Classic / All plans)" },
+  { value: "minimalist", label: "Modern Minimalist (Classic / All plans)" },
   { value: "navy", label: "Royal Navy & Gold (Plus / Pro)" },
   { value: "stardust", label: "Animated Stardust (Pro Only)" },
   { value: "forest", label: "Animated Whimsical Forest (Pro Only)" },
@@ -31,15 +31,39 @@ export const PREMADE_TEMPLATES = [
   },
   {
     tier: "free",
-    name: "Blush Pink Watercolor",
+    name: "Classic Floral",
     url: "/templates/Blush Pink Watercolor.webp",
     preview: "/templates/Blush Pink Watercolor.webp",
   },
   {
     tier: "free",
-    name: "Cream Floral Elegance",
+    name: "Modern Minimalist",
     url: "/templates/Cream Floral Elegance.webp",
     preview: "/templates/Cream Floral Elegance.webp",
+  },
+  {
+    tier: "free",
+    name: "Classic Gallery Orchid Breeze",
+    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_09 AM (1).webp",
+    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_09 AM (1).webp",
+  },
+  {
+    tier: "free",
+    name: "Classic Gallery Laurel",
+    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_10 AM (2).webp",
+    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_10 AM (2).webp",
+  },
+  {
+    tier: "free",
+    name: "Classic Gallery Spring Whimsy",
+    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_14 AM (3).webp",
+    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_14 AM (3).webp",
+  },
+  {
+    tier: "free",
+    name: "Classic Gallery Eucalyptus Arch",
+    url: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_16 AM (4).webp",
+    preview: "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_16 AM (4).webp",
   },
   {
     tier: "plus",
@@ -297,7 +321,7 @@ const ThemeSelector = () => {
                   setCustomTextColor(getSmartTextColor(val, val !== "custom" ? "" : customCardBg));
                   setUserHasCustomTextColor(false);
 
-                  const isLocked = (isFree && val !== "floral") || (isPlus && val === "custom");
+                  const isLocked = (isFree && !["floral", "minimalist"].includes(val)) || (isPlus && val === "custom");
                   if (isLocked) {
                     const reqTier = (val === "custom" || val === "stardust" || val === "forest") ? "Pro" : "Plus / Pro";
                     toast.info(`Previewing premium theme layout! Upgrade to ${reqTier} to save this theme.`, { toastId: "theme-select-preview" });
@@ -315,7 +339,7 @@ const ThemeSelector = () => {
               <div className="mt-4 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3">
                 {THEMES.map((theme) => {
                   const isLocked =
-                    (isFree && theme.value !== "floral") ||
+                    (isFree && !["floral", "minimalist"].includes(theme.value)) ||
                     (isPlus && theme.value === "custom");
                   const isSelected = cardTheme === theme.value;
 
@@ -494,9 +518,9 @@ const ThemeSelector = () => {
                   </button>
                 </div>
 
-                {/* Free Templates */}
+                {/* Classic Templates */}
                 <div className="space-y-2">
-                  <p className="text-[9px] uppercase tracking-wider text-white/40 font-bold">Free Tier Templates (Unlocked)</p>
+                  <p className="text-[9px] uppercase tracking-wider text-white/40 font-bold">Classic Templates (Unlocked)</p>
                   <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
                     {PREMADE_TEMPLATES.filter(t => t.tier === "free" && !t.onlyInGallery).map(t => {
                       const isSelected = cardTheme === "custom" && customCardBg === t.url;
@@ -525,7 +549,7 @@ const ThemeSelector = () => {
                           <div className="template-preview-shade absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
                           <div className="template-preview-label text-left z-10 w-full">
                             <p className="text-[10px] font-bold text-white leading-tight mb-0.5">{t.name}</p>
-                            <span className="text-[7px] text-[#D8B76A] uppercase font-bold tracking-widest">Free</span>
+                            <span className="text-[7px] text-[#D8B76A] uppercase font-bold tracking-widest">Classic</span>
                           </div>
                           {isSelected && (
                             <span className="absolute top-2 right-2 bg-[#D8B76A] text-[#070A13] text-[8px] font-bold px-1.5 py-0.5 rounded shadow-md">

@@ -47,8 +47,8 @@ const AiBackgroundGenerator = () => {
   const navigate = useNavigate();
   const settings = useSettings();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const tier = user.tier || "free";
-  const isFree = tier === "free";
+  const tier = user.tier || "unpaid";
+  const isFree = tier === "free" || tier === "unpaid";
 
   // Form states
   const [stylePreset, setStylePreset] = useState(STYLE_PRESETS[0]);
@@ -219,7 +219,9 @@ const AiBackgroundGenerator = () => {
           {loadingCredits ? (
             <p className="text-xs text-white/40 animate-pulse">Checking...</p>
           ) : isFree ? (
-            <p className="text-xs text-amber-400 font-semibold mt-0.5">0 of 0 (Free Plan)</p>
+            <p className="text-xs text-amber-400 font-semibold mt-0.5">
+              {tier === "unpaid" ? "Activate a plan" : "0 of 0 (Classic Plan)"}
+            </p>
           ) : (
             <p className="text-xs text-[#D8B76A] font-bold mt-0.5">
               {credits.used} of {credits.limit} used ({credits.remaining} left)
@@ -228,7 +230,7 @@ const AiBackgroundGenerator = () => {
         </div>
       </div>
 
-      {/* Free Plan Lock Banner */}
+      {/* Classic Plan Lock Banner */}
       {isFree && (
         <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5 text-amber-300">

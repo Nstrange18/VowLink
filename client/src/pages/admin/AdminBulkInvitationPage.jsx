@@ -43,8 +43,12 @@ const AdminBulkInvitationPage = () => {
   const [user] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
 
   useEffect(() => {
-    if (user.tier === "free") {
-      toast.info("Bulk creation is a Plus and Pro plan feature! Redirecting...");
+    if (!["plus", "pro"].includes(user.tier)) {
+      toast.info(
+        user.tier === "unpaid"
+          ? "Choose a plan to activate your wedding workspace."
+          : "Bulk creation is a Plus and Pro plan feature! Redirecting..."
+      );
       navigate("/admin/billing");
     }
   }, [user, navigate]);

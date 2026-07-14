@@ -117,7 +117,7 @@ const AdminTemplatesPageContent = () => {
   };
 
   // Group templates by tier
-  const freeTemplates = PREMADE_TEMPLATES.filter((t) => t.tier === "free");
+  const freeTemplates = PREMADE_TEMPLATES.filter((t) => t.tier === "free" && !t.onlyInGallery);
   const plusTemplates = PREMADE_TEMPLATES.filter((t) => t.tier === "plus");
   const proTemplates = PREMADE_TEMPLATES.filter((t) => t.tier === "pro");
 
@@ -170,7 +170,7 @@ const AdminTemplatesPageContent = () => {
           {/* Plan badge */}
           <div className="absolute top-3 left-3">
             <span className={`text-[8px] uppercase tracking-widest px-2.5 py-1 rounded-full text-center ${badgeStyle}`}>
-              {t.tier}
+              {t.tier === "free" ? "classic" : t.tier}
             </span>
           </div>
 
@@ -308,13 +308,13 @@ const AdminTemplatesPageContent = () => {
       </div>
 
       <div className="space-y-12">
-        {/* Tier 1: Free Templates */}
+        {/* Tier 1: Classic Templates */}
         <div className="space-y-4">
           <div className="border-b border-white/5 pb-2">
             <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] flex items-center gap-2">
-              <Icon icon="lucide:flower" className="w-4 h-4 text-emerald-400 shrink-0" /> Free Tier Templates
+              <Icon icon="lucide:flower" className="w-4 h-4 text-emerald-400 shrink-0" /> Classic Templates
               <span className="text-[9px] lowercase font-normal tracking-wide text-white/40">
-                (Unlocked for everyone)
+                (Floral and Minimalist)
               </span>
             </h3>
           </div>

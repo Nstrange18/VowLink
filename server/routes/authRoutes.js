@@ -95,7 +95,7 @@ const userPayload = (user) => ({
   dressCode: user.dressCode || "",
   plusOnePolicy: user.plusOnePolicy || "invitation_only",
   kidsAllowed: typeof user.kidsAllowed === "boolean" ? user.kidsAllowed : true,
-  tier: user.tier || "free",
+  tier: user.tier || "unpaid",
   cardTheme: user.cardTheme || "floral",
   defaultGuestTheme: ["dark", "light", "system"].includes(user.defaultGuestTheme) ? user.defaultGuestTheme : "dark",
   customTextColor: user.customTextColor || "#1A2E4A",
@@ -154,7 +154,7 @@ const userPublic = (user) => ({
   dressCode: user.dressCode || "",
   plusOnePolicy: user.plusOnePolicy || "invitation_only",
   kidsAllowed: typeof user.kidsAllowed === "boolean" ? user.kidsAllowed : true,
-  tier: user.tier || "free",
+  tier: user.tier || "unpaid",
   // NOTE: galleryPhotos, customCardBg, couplePhotoUrl are intentionally excluded here.
   // They can be large base64 strings (MBs) that crash localStorage.setItem() with QuotaExceededError.
   // These are fetched separately by the settings page via GET /api/auth/me.
@@ -381,7 +381,7 @@ router.put("/check-in-pin", protect, async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (!["plus", "pro"].includes(user.tier || "free")) {
+    if (!["plus", "pro"].includes(user.tier || "unpaid")) {
       return res.status(403).json({ message: "Event check-in PINs are available on Plus and Pro plans." });
     }
 
@@ -541,15 +541,33 @@ router.put("/me", protect, async (req, res) => {
     }
 
     // Apply tier limitations for visual styles
-    if (user.tier === "free") {
+    if (user.tier === "unpaid") {
+      user.cardTheme = "floral";
+      user.customCardBg = "";
+      user.pageBgTemplate = "";
+      user.galleryPhotos = [];
+      user.musicUrl = "";
+      user.customFontFamily = "classic";
+      user.customTextColor = "#1A2E4A";
+      user.couplePhotoUrl = "";
+      user.coupleOverlayOpacity = 0.45;
+      user.registryEnabled = false;
+    } else if (user.tier === "free") {
       const allowedFreeBgs = [
         "/templates/Blush Pink Watercolor.webp",
-        "/templates/Cream Floral Elegance.webp"
+        "/templates/Cream Floral Elegance.webp",
+        "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_09 AM (1).webp",
+        "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_10 AM (2).webp",
+        "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_14 AM (3).webp",
+        "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_16 AM (4).webp"
       ];
-      // Free users can use floral or custom theme with free background templates
-      if (cardTheme === "custom" && normalizedCustomCardBg && (allowedFreeBgs.includes(normalizedCustomCardBg) || normalizedCustomCardBg.startsWith("/Free Plan Vowlink/"))) {
+      // Classic users can use floral/minimalist or the two classic background templates.
+      if (cardTheme === "custom" && normalizedCustomCardBg && allowedFreeBgs.includes(normalizedCustomCardBg)) {
         user.cardTheme = "custom";
         user.customCardBg = normalizedCustomCardBg;
+      } else if (cardTheme && ["floral", "minimalist"].includes(cardTheme)) {
+        user.cardTheme = cardTheme;
+        user.customCardBg = "";
       } else if (cardTheme === "plain") {
         user.cardTheme = "plain";
         user.customCardBg = "";
@@ -678,7 +696,7 @@ router.post("/upgrade", protect, async (req, res) => {
   }
   try {
     const { tier } = req.body;
-    if (!["free", "plus", "pro"].includes(tier)) {
+    if (!["unpaid", "free", "plus", "pro"].includes(tier)) {
       return res.status(400).json({ message: "Invalid subscription tier." });
     }
 
@@ -689,7 +707,7 @@ router.post("/upgrade", protect, async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: `Successfully upgraded to ${tier.toUpperCase()} tier! `,
+      message: `Successfully activated ${tier === "free" ? "CLASSIC" : tier.toUpperCase()} tier! `,
       accessToken: generateAccessToken(user),
       user: userPublic(user),
     });
@@ -899,7 +917,7 @@ router.post("/upgrade/verify", protect, async (req, res) => {
       user.tier = tier;
       await user.save();
       return res.status(200).json({
-        message: `[DEV BYPASS] Successfully verified and upgraded to ${tier.toUpperCase()} tier! `,
+        message: `[DEV BYPASS] Successfully verified and activated ${tier === "free" ? "CLASSIC" : tier.toUpperCase()} tier! `,
         accessToken: generateAccessToken(user),
         user: userPublic(user),
       });
@@ -921,7 +939,12 @@ router.post("/upgrade/verify", protect, async (req, res) => {
     const paystackAmount = paystackData.amount;
     const paystackCurrency = paystackData.currency;
 
-    const baseNgn = tier === "plus" ? 50000 : 120000;
+    const planPricesNgn = {
+      free: 30000,
+      plus: 68000,
+      pro: 120000,
+    };
+    const baseNgn = planPricesNgn[tier];
     const priceInUsd = baseNgn / 1500;
 
     let expectedAmount = 0;

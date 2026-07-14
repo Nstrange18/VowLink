@@ -22,8 +22,8 @@ const VenueDetailsPage = () => {
   const [inquiryMsg, setInquiryMsg] = useState("");
   const [submittingInquiry, setSubmittingInquiry] = useState(false);
 
-  const tier = user.tier || "free";
-  const isFree = tier === "free";
+  const tier = user.tier || "unpaid";
+  const isFree = tier === "free" || tier === "unpaid";
   const isPro = tier === "pro";
 
   const fetchVenue = useCallback(async () => {
@@ -339,7 +339,9 @@ const VenueDetailsPage = () => {
                 <div className="p-4 rounded-2xl bg-white/5 border border-dashed border-white/10 text-center space-y-3 flex flex-col items-center">
                   <Icon icon="lucide:lock" className="w-8 h-8 text-[#D8B76A] mb-1" />
                   <p className="text-xs text-white/60">
-                    Contact numbers, WhatsApp chats, full address and Google maps references are locked on the Free Plan.
+                    {tier === "unpaid"
+                      ? "Choose a plan to activate venue marketplace access."
+                      : "Contact numbers, WhatsApp chats, full address and Google maps references are locked on the Classic Plan."}
                   </p>
                   <Link
                     to="/admin/billing"

@@ -291,7 +291,9 @@ router.get("/", protect, async (req, res) => {
       .filter(isVenuePubliclyVisible);
 
     const response = venues.map((venue) => {
-      const shouldRedact = user.tier === "free" && !isVenueUnlockedForFreeCouples(venue);
+      const shouldRedact =
+        (user.tier || "unpaid") === "unpaid" ||
+        (user.tier === "free" && !isVenueUnlockedForFreeCouples(venue));
       return sanitizeVenueForCouple(venue, { redactContact: shouldRedact });
     });
 
@@ -1156,7 +1158,9 @@ router.get("/:id", protect, async (req, res) => {
       return res.status(404).json({ message: "Venue not found" });
     }
 
-    const shouldRedact = user.tier === "free" && !isVenueUnlockedForFreeCouples(venue);
+    const shouldRedact =
+      (user.tier || "unpaid") === "unpaid" ||
+      (user.tier === "free" && !isVenueUnlockedForFreeCouples(venue));
     res.status(200).json(sanitizeVenueForCouple(venue, { redactContact: shouldRedact }));
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch venue details", error: error.message });

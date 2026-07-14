@@ -68,8 +68,9 @@ const getSpotifyEmbedUrl = (url) => {
 export const SettingsProvider = ({ children }) => {
   const navigate = useNavigate();
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const tier = storedUser.tier || "free";
-  const isFree = tier === "free";
+  const tier = storedUser.tier || "unpaid";
+  const isUnpaid = tier === "unpaid";
+  const isFree = tier === "free" || isUnpaid;
   const isPlus = tier === "plus";
   const isPro = tier === "pro";
 
@@ -409,7 +410,7 @@ export const SettingsProvider = ({ children }) => {
       if (["stardust", "forest"].includes(theme)) {
         return userTier === "pro";
       }
-      if (["minimalist", "navy"].includes(theme)) {
+      if (theme === "navy") {
         return userTier === "plus" || userTier === "pro";
       }
       return true;
@@ -965,7 +966,7 @@ export const SettingsProvider = ({ children }) => {
   const activeFont = fontMap[customFontFamily] || fontMap.classic;
 
   const { primary: priHex, secondary: secHex, tertiary: terHex, selectedBgHex } = resolveWeddingColors(weddingColors, WEDDING_COLORS);
-  const isFreeUser = storedUser.tier === "free";
+  const isFreeUser = storedUser.tier === "free" || storedUser.tier === "unpaid";
 
   let cardStyles = {
     background: "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)",
