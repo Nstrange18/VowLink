@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
@@ -116,6 +116,28 @@ const loadPaystackScript = () => {
 
 const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 
+const PLAN_LABELS = {
+  unpaid: "Unpaid",
+  free: "Classic",
+  plus: "Plus",
+  pro: "Pro",
+};
+
+const ACTIVATION_COPY = {
+  free: {
+    title: "Classic activated",
+    body: "You can now create your invitation, collect up to 20 RSVPs, and use the Classic templates.",
+  },
+  plus: {
+    title: "Plus activated",
+    body: "You can now use personalized guest links, guest QR codes, event PIN check-in, gallery photos, music, and full venue details.",
+  },
+  pro: {
+    title: "Pro activated",
+    body: "You can now use staff mode, printable QR sheets, RSVP export, seating, bulk WhatsApp, custom designs, and AI tools.",
+  },
+};
+
 const AdminBillingPage = () => {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("user") || "{}")
@@ -126,8 +148,21 @@ const AdminBillingPage = () => {
   const checkoutSubmittingRef = useRef(false);
   const [devBypassLocked, setDevBypassLocked] = useState(false);
   const devBypassSubmittingRef = useRef(false);
+  const [activationNotice, setActivationNotice] = useState(null);
 
   const currentTier = user.tier || "unpaid";
+
+  useEffect(() => {
+    const stored = sessionStorage.getItem("vowlink-plan-activated");
+    if (!stored) return;
+    sessionStorage.removeItem("vowlink-plan-activated");
+    try {
+      const parsed = JSON.parse(stored);
+      setActivationNotice(parsed);
+    } catch {
+      setActivationNotice(null);
+    }
+  }, []);
 
   const getFormattedPrice = (plan) => {
     if (plan.priceInNgn === 0 || plan.priceInUsd === 0) {
@@ -195,6 +230,14 @@ const AdminBillingPage = () => {
           });
           localStorage.setItem("token", res.data.accessToken);
           localStorage.setItem("user", JSON.stringify(res.data.user));
+          sessionStorage.setItem(
+            "vowlink-plan-activated",
+            JSON.stringify({
+              tier: plan.id,
+              name: plan.name,
+              ...(ACTIVATION_COPY[plan.id] || {}),
+            }),
+          );
           setUser(res.data.user);
           toast.success(`Successfully upgraded to ${plan.name}!`);
           window.location.reload();
@@ -242,6 +285,14 @@ const AdminBillingPage = () => {
       const res = await api.post("/auth/upgrade", { tier: plan.id });
       localStorage.setItem("token", res.data.accessToken);
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      sessionStorage.setItem(
+        "vowlink-plan-activated",
+        JSON.stringify({
+          tier: plan.id,
+          name: plan.name,
+          ...(ACTIVATION_COPY[plan.id] || {}),
+        }),
+      );
       toast.success(`[DEV BYPASS] Instantly activated ${plan.name}!`);
       window.location.reload();
     } catch (err) {
@@ -269,6 +320,10 @@ const AdminBillingPage = () => {
           <p className="text-white/40 text-sm mt-2 max-w-2xl">
             Upgrade your wedding workspace to unlock beautiful designs, customizable themes, bulk guest creation, and suggested venue details.
           </p>
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/50">
+            <Icon icon="lucide:badge-check" className="h-3.5 w-3.5 text-[#D8B76A]" />
+            Current plan: <span className="text-white">{PLAN_LABELS[currentTier] || currentTier}</span>
+          </div>
         </div>
         <div className="bg-[#090D19] border border-white/10 p-4 rounded-2xl flex flex-col gap-1.5 min-w-44">
           <label className="block text-[10px] uppercase tracking-wider text-white/50 font-bold">Select Currency</label>
@@ -284,6 +339,61 @@ const AdminBillingPage = () => {
             ))}
           </select>
         </div>
+      </div>
+
+      {activationNotice && (
+        <div className="mb-6 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/25 bg-emerald-400/10 text-emerald-300">
+                <Icon icon="lucide:check-circle-2" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-300">Payment Confirmed</p>
+                <h3 className="mt-1 font-serif text-2xl text-white">{activationNotice.title || `${activationNotice.name} activated`}</h3>
+                <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/60">{activationNotice.body}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActivationNotice(null)}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-emerald-200 transition hover:bg-emerald-400/15"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
+      {currentTier === "unpaid" && (
+        <div className="mb-6 rounded-3xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 p-5">
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 text-[#D8B76A]">
+              <Icon icon="lucide:lock-keyhole" className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Workspace Not Active</p>
+              <h3 className="mt-1 font-serif text-2xl text-white">Choose a plan to publish invitations</h3>
+              <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/60">
+                Unpaid accounts can view the dashboard and compare plans, but live invitations, RSVPs, downloads, venue contacts, WhatsApp sending, and check-in tools stay locked until payment succeeds.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mb-6 grid gap-3 md:grid-cols-4">
+        {[
+          ["Unpaid", "Account only. Compare plans and activate billing."],
+          ["Classic", "NGN 30,000. 1 invite, 20 RSVPs, 6 Classic templates, no check-in."],
+          ["Plus", "NGN 68,000. 100 guests, personalized links, QR codes, event PIN check-in."],
+          ["Pro", "NGN 120,000. Staff mode, QR sheets, seating, bulk WhatsApp, exports, AI and custom design."],
+        ].map(([label, copy]) => (
+          <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#D8B76A]">{label}</p>
+            <p className="mt-2 text-xs leading-relaxed text-white/55">{copy}</p>
+          </div>
+        ))}
       </div>
 
       {/* Plans Grid */}

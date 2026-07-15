@@ -254,6 +254,8 @@ const SuperAdminDashboardPage = () => {
   // Calculations
   const stats = {
     totalCouples: couples.length,
+    unpaidCouples: couples.filter((c) => (c.tier || "unpaid") === "unpaid").length,
+    classicCouples: couples.filter((c) => c.tier === "free").length,
     plusCouples: couples.filter((c) => c.tier === "plus").length,
     proCouples: couples.filter((c) => c.tier === "pro").length,
     totalVenues: venues.length,
@@ -265,6 +267,13 @@ const SuperAdminDashboardPage = () => {
     paidFeaturedVenues: venues.filter((v) => v.subscriptionTier === "featured").length,
     manualFeaturedVenues: venues.filter((v) => v.isFeatured && v.subscriptionTier !== "featured").length,
     totalInquiries: inquiries.length,
+  };
+
+  const getCoupleTierMeta = (tier = "unpaid") => {
+    if (tier === "pro") return { label: "Pro", icon: "lucide:crown", className: "border-amber-400/30 bg-amber-400/15 text-amber-200" };
+    if (tier === "plus") return { label: "Plus", icon: "lucide:sparkles", className: "border-[#7FA6D9]/30 bg-[#7FA6D9]/15 text-[#B9D4F4]" };
+    if (tier === "free") return { label: "Classic", icon: "lucide:badge-check", className: "border-[#D8B76A]/30 bg-[#D8B76A]/15 text-[#F2D894]" };
+    return { label: "Unpaid", icon: "lucide:lock", className: "border-rose-400/25 bg-rose-500/15 text-rose-200" };
   };
 
   return (
@@ -517,7 +526,7 @@ const SuperAdminDashboardPage = () => {
                     <span className="font-bold font-mono">{couples.filter((c) => (c.tier || "unpaid") === "unpaid").length}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/60">Classic Invitation accounts</span>
+                    <span className="text-white/60">Classic Invitation accounts (NGN 30,000 upgrade)</span>
                     <span className="font-bold font-mono">{couples.filter((c) => c.tier === "free").length}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
@@ -1010,6 +1019,7 @@ const SuperAdminDashboardPage = () => {
                     ) : (
                       couples.map((couple) => {
                         const tierBusy = !!actionLoading[`couple-tier-${couple._id}`];
+                        const tierMeta = getCoupleTierMeta(couple.tier);
 
                         return (
                         <tr key={couple._id} className="hover:bg-white/2 transition">
@@ -1021,6 +1031,10 @@ const SuperAdminDashboardPage = () => {
                             {couple.weddingDate ? new Date(couple.weddingDate).toLocaleDateString() : "Not set"}
                           </td>
                           <td className="p-4">
+                            <div className={`mb-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${tierMeta.className}`}>
+                              <Icon icon={tierMeta.icon} className="h-3.5 w-3.5" />
+                              {tierMeta.label}
+                            </div>
                             <select
                               value={couple.tier}
                               onChange={(e) => handleUpdateCoupleTier(couple._id, e.target.value)}

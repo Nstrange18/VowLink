@@ -82,7 +82,7 @@ const AdminBulkWhatsAppPage = () => {
         </div>
         <h2 className="font-serif text-3xl text-white mb-3">Pro-Only Feature</h2>
         <p className="text-white/60 text-sm mb-8 leading-relaxed">
-          The **Bulk WhatsApp Invite Sender** is a premium pro tool. Upgrade to VowLink Pro to assign guests to partner queues, compose customized WhatsApp message templates, and track who has been sent their invite links.
+          The Bulk WhatsApp Invite Sender is a Pro tool. Upgrade to VowLink Pro to assign guests to partner queues, compose customized WhatsApp message templates, and track who has been sent their invite links.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button

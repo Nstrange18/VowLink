@@ -1,11 +1,27 @@
 ﻿const express = require("express");
 const Table = require("../models/Table");
+const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 
 const router = express.Router();
 
+const requireProPlan = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select("tier");
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    if ((user.tier || "unpaid") !== "pro") {
+      return res.status(403).json({ message: "Seating chart is available on the Pro plan." });
+    }
+    next();
+  } catch (error) {
+    res.status(500).json({ message: "Failed to verify plan access", error: error.message });
+  }
+};
+
 // GET all tables for logged in user
-router.get("/", protect, async (req, res) => {
+router.get("/", protect, requireProPlan, async (req, res) => {
   try {
     const tables = await Table.find({ userId: req.user.id }).sort({ createdAt: 1 });
     res.status(200).json(tables);
@@ -15,7 +31,7 @@ router.get("/", protect, async (req, res) => {
 });
 
 // POST a new table
-router.post("/", protect, async (req, res) => {
+router.post("/", protect, requireProPlan, async (req, res) => {
   try {
     const { name, shape, capacity, assignedGuests } = req.body;
     if (!name) {
@@ -37,7 +53,7 @@ router.post("/", protect, async (req, res) => {
 });
 
 // PUT update a table
-router.put("/:id", protect, async (req, res) => {
+router.put("/:id", protect, requireProPlan, async (req, res) => {
   try {
     const table = await Table.findOne({ _id: req.params.id, userId: req.user.id });
     if (!table) {
@@ -58,7 +74,7 @@ router.put("/:id", protect, async (req, res) => {
 });
 
 // DELETE a table
-router.delete("/:id", protect, async (req, res) => {
+router.delete("/:id", protect, requireProPlan, async (req, res) => {
   try {
     const table = await Table.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     if (!table) {

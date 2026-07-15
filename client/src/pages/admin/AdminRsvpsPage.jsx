@@ -10,8 +10,9 @@ const AdminRsvpsPage = () => {
   const [senderGroupFilter, setSenderGroupFilter] = useState('all')
   const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
   const tier = user.tier || 'unpaid';
+  const tierLabel = tier === 'free' ? 'Classic' : tier.charAt(0).toUpperCase() + tier.slice(1);
   const rsvpLimit = tier === 'unpaid' ? 0 : tier === 'free' ? 20 : tier === 'plus' ? 100 : 500;
-  const percent = Math.min((rsvps.length / rsvpLimit) * 100, 100);
+  const percent = rsvpLimit > 0 ? Math.min((rsvps.length / rsvpLimit) * 100, 100) : 0;
 
   useEffect(() => {
     api.get('/rsvps')
@@ -86,7 +87,7 @@ const AdminRsvpsPage = () => {
           {/* RSVP Limit Tracker */}
           <div className="mt-3 flex flex-col gap-1.5 w-72 sm:w-80">
             <div className="flex justify-between items-center text-[10px] text-white/50 uppercase tracking-wider">
-              <span>RSVP Limit ({tier.toUpperCase()})</span>
+              <span>RSVP Limit ({tierLabel})</span>
               <span className="font-semibold text-white">{rsvps.length} / {rsvpLimit}</span>
             </div>
             <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden border border-white/10 relative">

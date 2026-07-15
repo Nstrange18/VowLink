@@ -11,6 +11,7 @@ import MusicSelector from "../../components/settings/MusicSelector";
 import ImageEditorModal from "../../components/ImageEditorModal";
 import { Icon } from "@iconify/react";
 import api from "../../utils/api";
+import { PREMADE_TEMPLATES } from "../../components/settings/ThemeSelector";
 
 const TIMELINE_ICONS = [
   { icon: "mdi:church", label: "Church/Ceremony" },
@@ -156,6 +157,7 @@ const AdminSettingsPageContent = () => {
   const navigate = useNavigate();
   const {
     storedUser,
+    isUnpaid,
     isFree,
     isPlus,
     isPro,
@@ -164,6 +166,10 @@ const AdminSettingsPageContent = () => {
     couplePhotoInputRef,
 
     weddingColors, setWeddingColors,
+    cardTheme,
+    customCardBg,
+    savedCardBg,
+    savedCardTheme,
     couplePhotoUrl, setCouplePhotoUrl,
     customShareMessage, setCustomShareMessage,
     setCropperQueue,
@@ -213,6 +219,24 @@ const AdminSettingsPageContent = () => {
 
     weddingDate, weddingTime,
   } = useSettings();
+  const previewTemplateTier = PREMADE_TEMPLATES.find((template) => template.url === customCardBg)?.tier;
+  const hasPendingTemplatePreview =
+    cardTheme === "custom" &&
+    Boolean(customCardBg) &&
+    (savedCardTheme !== "custom" || savedCardBg !== customCardBg);
+  const hasLockedTemplatePreview =
+    hasPendingTemplatePreview &&
+    (
+      (isUnpaid && previewTemplateTier === "free") ||
+      (isFree && previewTemplateTier !== "free") ||
+      (isPlus && previewTemplateTier === "pro")
+    );
+  const lockedTemplatePlanLabel =
+    !previewTemplateTier || previewTemplateTier === "pro"
+      ? "Upgrade to Pro"
+      : previewTemplateTier === "plus"
+        ? "Upgrade to Plus"
+        : "Activate Classic";
 
   const [showCouplePortrait, setShowCouplePortrait] = React.useState(true);
   const [showSocialShare, setShowSocialShare] = React.useState(false);
@@ -565,7 +589,7 @@ const AdminSettingsPageContent = () => {
                     <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <h3 className="flex min-w-0 items-start gap-1.5 text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">
                         <Icon icon="lucide:sparkles" className="w-4 h-4 text-[#D8B76A]" />
-                        <span className="min-w-0 leading-snug">AI Invitation Background Generator</span>
+                        <span className="min-w-0 leading-snug">3. AI Invitation Background Generator</span>
                       </h3>
                       {!isPro && !isPlus && (
                         <span className="inline-flex w-fit max-w-full items-center gap-1 rounded border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400">
@@ -902,12 +926,20 @@ const AdminSettingsPageContent = () => {
                   </span>
                 </button>
                 <button
-                  type="submit"
+                  type={hasLockedTemplatePreview ? "button" : "submit"}
                   disabled={isSubmitting}
+                  onClick={
+                    hasLockedTemplatePreview
+                      ? () => {
+                          toast.info(`${lockedTemplatePlanLabel} to save this template to your live invitation.`, { toastId: "activate-classic-to-save" });
+                          navigate("/admin/billing");
+                        }
+                      : undefined
+                  }
                   id="save-settings-btn"
                   className="w-full sm:w-auto rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-6 sm:px-10 py-3.5 text-xs font-semibold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] disabled:opacity-60 text-center"
                 >
-                  {isSubmitting ? "Saving Config..." : "Save Customizations"}
+                  {isSubmitting ? "Saving Config..." : hasLockedTemplatePreview ? `${lockedTemplatePlanLabel} to Save` : "Save Customizations"}
                 </button>
               </div>
             </form>

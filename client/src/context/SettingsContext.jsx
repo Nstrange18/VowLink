@@ -1109,6 +1109,7 @@ export const SettingsProvider = ({ children }) => {
       value={{
         storedUser,
         tier,
+        isUnpaid,
         isFree,
         isPlus,
         isPro,

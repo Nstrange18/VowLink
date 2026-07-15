@@ -530,6 +530,7 @@ const AdminInvitationsPage = () => {
                 toast.info("Staff check-in mode is available on the Pro plan.");
                 navigate("/admin/billing");
               }}
+              title={isUnpaid ? "Choose a paid plan before using staff check-in." : "Staff mode is available on Pro."}
               className={`inline-flex items-center justify-center gap-2 rounded-full border border-dashed border-white/15 bg-white/5 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white/35 transition whitespace-nowrap ${
                 tier === "free" || isUnpaid
                   ? "bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed"
@@ -544,6 +545,13 @@ const AdminInvitationsPage = () => {
             type="button"
             onClick={handlePrintQrSheet}
             disabled={printingQrSheet || invitations.length === 0}
+            title={
+              canUseAdvancedCheckIn
+                ? "Print guest QR sheets for ushers."
+                : isUnpaid
+                  ? "Choose a paid plan before printing QR sheets."
+                  : "Printable QR sheets are available on Pro."
+            }
             className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition disabled:cursor-not-allowed ${
               tier === "free" || isUnpaid
                 ? "bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed"
@@ -568,6 +576,13 @@ const AdminInvitationsPage = () => {
           </button>
           <Link
             to="/admin/invitations/bulk"
+            title={
+              isUnpaid
+                ? "Choose a paid plan before importing guests."
+                : tier === "free"
+                  ? "Bulk import is available on Plus and Pro."
+                  : undefined
+            }
             className={`rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition duration-300 whitespace-nowrap ${
               tier === "free" || isUnpaid
                 ? "bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed"
@@ -590,6 +605,13 @@ const AdminInvitationsPage = () => {
           <Link
             to={isUnpaid || count >= limit ? "#" : "/admin/invitations/new"}
             id="new-invitation-btn"
+            title={
+              isUnpaid
+                ? "Choose Classic, Plus, or Pro before creating live invitations."
+                : count >= limit
+                  ? "You have reached this plan's invitation limit."
+                  : "Create a new guest invitation."
+            }
             onClick={(e) => {
               if (isUnpaid || count >= limit) {
                 e.preventDefault();
@@ -604,9 +626,16 @@ const AdminInvitationsPage = () => {
                 navigate("/admin/billing");
               }
             }}
-            className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] whitespace-nowrap"
+            className={`rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition whitespace-nowrap ${
+              isUnpaid || count >= limit
+                ? "cursor-not-allowed border border-dashed border-[#D8B76A]/25 bg-[#D8B76A]/10 text-[#D8B76A]/60"
+                : "bg-linear-to-r from-[#D8B76A] to-[#F2D894] text-[#070A13] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)]"
+            }`}
           >
-            + New Invitation
+            <span className="inline-flex items-center gap-2">
+              {isUnpaid || count >= limit ? <Icon icon="lucide:lock" className="h-3.5 w-3.5" /> : "+"}
+              New Invitation
+            </span>
           </Link>
         </div>
       </div>

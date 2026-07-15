@@ -203,6 +203,7 @@ const ThemeSelector = () => {
     getSmartTextColor,
     checkSmartAlignment,
   } = useSettings();
+  const isUnpaid = (JSON.parse(localStorage.getItem("user") || "{}").tier || "unpaid") === "unpaid";
 
   const [showDetailedScaling, setShowDetailedScaling] = useState(false);
   const [showDetailedColors, setShowDetailedColors] = useState(false);
@@ -520,7 +521,9 @@ const ThemeSelector = () => {
 
                 {/* Classic Templates */}
                 <div className="space-y-2">
-                  <p className="text-[9px] uppercase tracking-wider text-white/40 font-bold">Classic Templates (Unlocked)</p>
+                  <p className="text-[9px] uppercase tracking-wider text-white/40 font-bold">
+                    Classic Templates {isUnpaid ? "(Locked)" : "(Unlocked)"}
+                  </p>
                   <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
                     {PREMADE_TEMPLATES.filter(t => t.tier === "free" && !t.onlyInGallery).map(t => {
                       const isSelected = cardTheme === "custom" && customCardBg === t.url;
@@ -529,6 +532,18 @@ const ThemeSelector = () => {
                           key={t.name}
                           type="button"
                           onClick={() => {
+                            if (isUnpaid) {
+                              setCustomCardBg(t.url);
+                              setCardTheme("custom");
+                              setCustomTextColor(getSmartTextColor("custom", t.url));
+                              const layout = getTemplateLayout("custom", t.url);
+                              if (layout && layout.align) {
+                                setCustomTextAlign(layout.align);
+                              }
+                              setUserHasCustomTextColor(false);
+                              toast.info("Previewing Classic template. Activate Classic to save this template.", { toastId: "classic-template-preview" });
+                              return;
+                            }
                             setCustomCardBg(t.url);
                             setCardTheme("custom");
                             setCustomTextColor(getSmartTextColor("custom", t.url));
@@ -541,19 +556,29 @@ const ThemeSelector = () => {
                             // but if the user had manually overridden alignment, that override persists.
                             setUserHasCustomTextColor(false);
                           }}
-                          className={`template-preview-card relative isolate h-24 rounded-xl overflow-hidden border transition group hover:scale-102 flex flex-col justify-end p-3 ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
+                          className={`template-preview-card relative isolate h-24 rounded-xl overflow-hidden border transition group flex flex-col justify-end p-3 ${
+                            isUnpaid ? "hover:scale-102" : "hover:scale-102"
+                          } ${isSelected ? "border-[#D8B76A] ring-2 ring-[#D8B76A]" : "border-white/10"
                             }`}
                           style={getTemplatePreviewStyles(t.url)}
                         >
                           {renderTemplatePreviewOrnaments(t.url)}
-                          <div className="template-preview-shade absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
+                          <div className={`template-preview-shade absolute inset-0 transition ${isUnpaid ? "bg-black/65 backdrop-blur-[1px]" : "bg-black/45 group-hover:bg-black/30"}`} />
                           <div className="template-preview-label text-left z-10 w-full">
                             <p className="text-[10px] font-bold text-white leading-tight mb-0.5">{t.name}</p>
-                            <span className="text-[7px] text-[#D8B76A] uppercase font-bold tracking-widest">Classic</span>
+                            <span className="inline-flex items-center gap-1 text-[7px] text-[#D8B76A] uppercase font-bold tracking-widest">
+                              {isUnpaid && <Icon icon="lucide:lock" className="h-2.5 w-2.5" />}
+                              Classic
+                            </span>
                           </div>
+                          {isUnpaid && !isSelected && (
+                            <span className="absolute top-2 right-2 rounded bg-[#070A13]/80 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-[#D8B76A] shadow-md">
+                              Locked
+                            </span>
+                          )}
                           {isSelected && (
                             <span className="absolute top-2 right-2 bg-[#D8B76A] text-[#070A13] text-[8px] font-bold px-1.5 py-0.5 rounded shadow-md">
-                              Active
+                              {isUnpaid ? "Preview" : "Active"}
                             </span>
                           )}
                         </button>
@@ -592,27 +617,23 @@ const ThemeSelector = () => {
                           style={getTemplatePreviewStyles(t.url)}
                         >
                           {renderTemplatePreviewOrnaments(t.url)}
-                          <div className="template-preview-shade absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
-
-                          {isLocked && (
-                            <div className="template-lock-overlay absolute inset-0 bg-black/85 backdrop-blur-xs flex flex-col items-center justify-center text-center p-2 z-20 hover:bg-black/60 transition duration-300">
-                              <Icon icon="lucide:lock" className="h-4 w-4 text-[#D8B76A]" />
-                              <span className="text-[8px] uppercase tracking-wider text-white/80 mt-1 font-bold">
-                                Plus / Pro
-                              </span>
-                              <span className="text-[6px] text-white/50 uppercase mt-0.5 tracking-wide">
-                                Click to Preview
-                              </span>
-                            </div>
-                          )}
+                          <div className={`template-preview-shade absolute inset-0 transition ${isLocked ? "bg-black/65 backdrop-blur-[1px]" : "bg-black/45 group-hover:bg-black/30"}`} />
 
                           <div className="template-preview-label text-left z-10 w-full">
                             <p className="text-[10px] font-bold text-white leading-tight mb-0.5">{t.name}</p>
-                            <span className="text-[7px] text-amber-400 uppercase font-bold tracking-widest">Plus</span>
+                            <span className="inline-flex items-center gap-1 text-[7px] text-amber-400 uppercase font-bold tracking-widest">
+                              {isLocked && <Icon icon="lucide:lock" className="h-2.5 w-2.5" />}
+                              Plus
+                            </span>
                           </div>
+                          {isLocked && !isSelected && (
+                            <span className="absolute top-2 right-2 rounded bg-[#070A13]/80 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-[#D8B76A] shadow-md">
+                              Locked
+                            </span>
+                          )}
                           {isSelected && (
                             <span className="absolute top-2 right-2 bg-[#D8B76A] text-[#070A13] text-[8px] font-bold px-1.5 py-0.5 rounded shadow-md">
-                              Active
+                              {isLocked ? "Preview" : "Active"}
                             </span>
                           )}
                         </button>
@@ -651,27 +672,23 @@ const ThemeSelector = () => {
                           style={getTemplatePreviewStyles(t.url)}
                         >
                           {renderTemplatePreviewOrnaments(t.url)}
-                          <div className="template-preview-shade absolute inset-0 bg-black/45 group-hover:bg-black/30 transition" />
-
-                          {isLocked && (
-                            <div className="template-lock-overlay absolute inset-0 bg-black/85 backdrop-blur-xs flex flex-col items-center justify-center text-center p-2 z-20 hover:bg-black/60 transition duration-300">
-                              <Icon icon="lucide:lock" className="h-4 w-4 text-[#D8B76A]" />
-                              <span className="text-[8px] uppercase tracking-wider text-white/80 mt-1 font-bold">
-                                Pro Only
-                              </span>
-                              <span className="text-[6px] text-white/50 uppercase mt-0.5 tracking-wide">
-                                Click to Preview
-                              </span>
-                            </div>
-                          )}
+                          <div className={`template-preview-shade absolute inset-0 transition ${isLocked ? "bg-black/65 backdrop-blur-[1px]" : "bg-black/45 group-hover:bg-black/30"}`} />
 
                           <div className="template-preview-label text-left z-10 w-full">
                             <p className="text-[10px] font-bold text-white leading-tight mb-0.5">{t.name}</p>
-                            <span className="text-[7px] text-amber-500 uppercase font-bold tracking-widest">Pro</span>
+                            <span className="inline-flex items-center gap-1 text-[7px] text-amber-500 uppercase font-bold tracking-widest">
+                              {isLocked && <Icon icon="lucide:lock" className="h-2.5 w-2.5" />}
+                              Pro
+                            </span>
                           </div>
+                          {isLocked && !isSelected && (
+                            <span className="absolute top-2 right-2 rounded bg-[#070A13]/80 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-[#D8B76A] shadow-md">
+                              Locked
+                            </span>
+                          )}
                           {isSelected && (
                             <span className="absolute top-2 right-2 bg-[#D8B76A] text-[#070A13] text-[8px] font-bold px-1.5 py-0.5 rounded shadow-md">
-                              Active
+                              {isLocked ? "Preview" : "Active"}
                             </span>
                           )}
                         </button>

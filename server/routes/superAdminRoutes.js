@@ -163,7 +163,7 @@ router.get("/couples", async (req, res) => {
 router.put("/couples/tier/:id", async (req, res) => {
   try {
     const { tier } = req.body;
-    if (!["free", "plus", "pro"].includes(tier)) {
+    if (!["unpaid", "free", "plus", "pro"].includes(tier)) {
       return res.status(400).json({ message: "Invalid tier." });
     }
 
@@ -172,7 +172,7 @@ router.put("/couples/tier/:id", async (req, res) => {
 
     user.tier = tier;
     await user.save();
-    res.status(200).json({ message: `Manually set couple tier to ${tier.toUpperCase()}`, user });
+    res.status(200).json({ message: `Manually set couple tier to ${tier === "free" ? "CLASSIC" : tier.toUpperCase()}`, user });
   } catch (error) {
     res.status(500).json({ message: "Failed to update couple tier", error: error.message });
   }

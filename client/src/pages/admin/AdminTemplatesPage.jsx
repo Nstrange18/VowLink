@@ -11,6 +11,7 @@ const AdminTemplatesPageContent = () => {
   const location = useLocation();
   const {
     storedUser,
+    isUnpaid,
     isFree,
     isPlus,
     cardTheme,
@@ -50,11 +51,12 @@ const AdminTemplatesPageContent = () => {
 
   const handleSelectTemplate = (template) => {
     const isLocked =
+      (isUnpaid && template.tier === "free") ||
       (isFree && template.tier !== "free") ||
       (isPlus && template.tier === "pro");
 
     if (isLocked) {
-      setTargetTier(template.tier === "pro" ? "Pro" : "Plus / Pro");
+      setTargetTier(isUnpaid && template.tier === "free" ? "Classic" : template.tier === "pro" ? "Pro" : "Plus / Pro");
       setUpgradeModalOpen(true);
       return;
     }
@@ -126,6 +128,7 @@ const AdminTemplatesPageContent = () => {
     const isSelectedPendingSave = cardTheme === "custom" && customCardBg === t.url && !isCurrentlySaved;
     const isSelected = isCurrentlySaved || isSelectedPendingSave;
     const isLocked =
+      (isUnpaid && t.tier === "free") ||
       (isFree && t.tier !== "free") ||
       (isPlus && t.tier === "pro");
 
@@ -165,7 +168,9 @@ const AdminTemplatesPageContent = () => {
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-transparent to-transparent opacity-60" />
+          <div className={`absolute inset-0 transition ${
+            isLocked ? "bg-slate-950/70 backdrop-blur-[1px]" : "bg-linear-to-t from-slate-950 via-transparent to-transparent opacity-60"
+          }`} />
 
           {/* Plan badge */}
           <div className="absolute top-3 left-3">
@@ -174,17 +179,10 @@ const AdminTemplatesPageContent = () => {
             </span>
           </div>
 
-          {/* Locked State Overlay */}
-          {isLocked && (
-            <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-xs flex flex-col items-center justify-center text-center p-4">
-              <Icon icon="lucide:lock" className="text-3xl text-amber-400 mb-2 animate-bounce" />
-              <p className="text-sm font-serif text-[#D8B76A] font-bold uppercase tracking-wider">
-                {t.tier === "pro" ? "Pro Plan Only" : "Plus / Pro Plan"}
-              </p>
-              <p className="text-[10px] text-white/50 mt-1 max-w-[150px] leading-relaxed">
-                Click to unlock and review premium packages
-              </p>
-            </div>
+          {isLocked && !isSelectedPendingSave && !isCurrentlySaved && (
+            <span className="absolute top-3 right-3 z-10 rounded-md bg-[#070A13]/90 px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-[#D8B76A] shadow-sm">
+              Locked
+            </span>
           )}
 
           {/* Active selection badge */}
@@ -194,7 +192,7 @@ const AdminTemplatesPageContent = () => {
             </div>
           )}
           {isSelectedPendingSave && (
-            <div className="absolute top-3 right-3 bg-amber-500/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-md shadow-md animate-pulse">
+            <div className="absolute top-3 right-3 z-10 bg-amber-500/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-md shadow-md animate-pulse">
               Selected
             </div>
           )}

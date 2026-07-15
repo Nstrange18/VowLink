@@ -988,7 +988,7 @@ router.post("/upgrade/verify", protect, async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: `Successfully verified and upgraded to ${tier.toUpperCase()} tier! `,
+      message: `Successfully verified and upgraded to ${tier === "free" ? "CLASSIC" : tier.toUpperCase()} tier! `,
       accessToken: generateAccessToken(user),
       user: userPublic(user),
     });
@@ -1110,7 +1110,7 @@ router.post("/paystack/webhook", async (req, res) => {
       const paymentType = metadata?.paymentType || (reference.startsWith("VOWLINK-VENUE") ? "venue_subscription" : "couple_upgrade");
       const targetTier = metadata?.tier;
       
-      if (paymentType === "couple_upgrade" && targetTier) {
+      if (paymentType === "couple_upgrade" && targetTier && ["free", "plus", "pro"].includes(targetTier)) {
         const user = await User.findOne({ email: email.toLowerCase() });
         if (user) {
           user.tier = targetTier;

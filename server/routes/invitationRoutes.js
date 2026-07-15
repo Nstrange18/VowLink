@@ -46,6 +46,38 @@ const isSuperAdminUser = (authUser) =>
 const canUseCheckIn = (user) => ["plus", "pro"].includes(user?.tier || "unpaid");
 const canUseAdvancedCheckIn = (user) => (user?.tier || "unpaid") === "pro";
 
+const requireActiveWorkspace = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select("tier");
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    if ((user.tier || "unpaid") === "unpaid") {
+      return res.status(403).json({ message: "Choose a plan to activate your wedding workspace." });
+    }
+    req.currentUser = user;
+    next();
+  } catch (error) {
+    res.status(500).json({ message: "Failed to verify plan access", error: error.message });
+  }
+};
+
+const requireProWorkspace = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select("tier");
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    if ((user.tier || "unpaid") !== "pro") {
+      return res.status(403).json({ message: "This action is available on the Pro plan." });
+    }
+    req.currentUser = user;
+    next();
+  } catch (error) {
+    res.status(500).json({ message: "Failed to verify plan access", error: error.message });
+  }
+};
+
 const getCheckInAccessForEvent = async (req, userId) => {
   if (!req.body?.accessToken) return false;
 
@@ -587,7 +619,7 @@ router.patch("/:id/check-in/reset", protect, async (req, res) => {
   }
 });
 // Update invitation (owner only)
-router.put("/:id", protect, async (req, res) => {
+router.put("/:id", protect, requireActiveWorkspace, async (req, res) => {
   try {
     const invitation = await Invitation.findOne({
       _id: req.params.id,
@@ -650,7 +682,7 @@ router.delete("/:id", protect, async (req, res) => {
 });
 
 // Update single invitation's WhatsApp status
-router.patch("/:id/whatsapp-status", protect, async (req, res) => {
+router.patch("/:id/whatsapp-status", protect, requireProWorkspace, async (req, res) => {
   try {
     const invitation = await Invitation.findOne({
       _id: req.params.id,
@@ -685,7 +717,7 @@ router.patch("/:id/whatsapp-status", protect, async (req, res) => {
 });
 
 // Update single invitation's sender group
-router.patch("/:id/sender-group", protect, async (req, res) => {
+router.patch("/:id/sender-group", protect, requireActiveWorkspace, async (req, res) => {
   try {
     const invitation = await Invitation.findOne({
       _id: req.params.id,
@@ -713,7 +745,7 @@ router.patch("/:id/sender-group", protect, async (req, res) => {
 });
 
 // Bulk update sender group for selected invitations
-router.post("/bulk-update-sender-group", protect, async (req, res) => {
+router.post("/bulk-update-sender-group", protect, requireActiveWorkspace, async (req, res) => {
   try {
     const { invitationIds, senderGroup } = req.body;
     if (!Array.isArray(invitationIds) || invitationIds.length === 0) {

@@ -13,14 +13,20 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+          const normalizedId = id.replaceAll('\\', '/')
+          const packagePath = normalizedId.split('/node_modules/')[1] || ''
+          const packageName = packagePath.startsWith('@')
+            ? packagePath.split('/').slice(0, 2).join('/')
+            : packagePath.split('/')[0]
+
+          if (['react', 'react-dom', 'react-router', 'react-router-dom'].includes(packageName)) {
             return 'react-vendor'
           }
-          if (id.includes('@iconify')) return 'iconify-vendor'
-          if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+          if (packageName === '@iconify/react') return 'iconify-vendor'
+          if (['react-hook-form', '@hookform/resolvers', 'zod'].includes(packageName)) {
             return 'forms-vendor'
           }
-          if (id.includes('axios') || id.includes('react-toastify') || id.includes('html-to-image')) {
+          if (['axios', 'react-toastify', 'html-to-image', 'qrcode'].includes(packageName)) {
             return 'app-vendor'
           }
           return 'vendor'

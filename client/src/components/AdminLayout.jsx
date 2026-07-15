@@ -6,11 +6,11 @@ import { Icon } from '@iconify/react'
 const navLinks = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: 'lucide:layout-dashboard' },
   { to: '/admin/invitations', label: 'Invitations', icon: 'lucide:mail' },
-  { to: '/admin/whatsapp-bulk', label: 'WhatsApp Sender', icon: 'lucide:message-square' },
-  { to: '/admin/rsvps', label: 'RSVPs', icon: 'lucide:check-square' },
-  { to: '/admin/seating', label: 'Seating Chart', icon: 'lucide:grid' },
-  { to: '/admin/venues', label: 'Suggested Venues', icon: 'lucide:map-pin' },
-  { to: '/admin/venue-inquiries', label: 'Venue Requests', icon: 'lucide:inbox' },
+  { to: '/admin/whatsapp-bulk', label: 'WhatsApp Sender', icon: 'lucide:message-square', lockedForUnpaid: true, lockReason: 'Choose a plan to send WhatsApp invitations.' },
+  { to: '/admin/rsvps', label: 'RSVPs', icon: 'lucide:check-square', lockedForUnpaid: true, lockReason: 'Choose a plan to collect RSVP responses.' },
+  { to: '/admin/seating', label: 'Seating Chart', icon: 'lucide:grid', lockedForUnpaid: true, lockReason: 'Seating chart is available on Pro.' },
+  { to: '/admin/venues', label: 'Suggested Venues', icon: 'lucide:map-pin', lockedForUnpaid: true, lockReason: 'Choose a plan to view venue marketplace details.' },
+  { to: '/admin/venue-inquiries', label: 'Venue Requests', icon: 'lucide:inbox', lockedForUnpaid: true, lockReason: 'Choose a plan before contacting venues.' },
   { to: '/admin/billing', label: 'Billing & Tiers', icon: 'lucide:credit-card' },
   { to: '/admin/settings', label: 'Settings', icon: 'lucide:settings' },
 ]
@@ -18,10 +18,24 @@ const navLinks = [
 const getInitials = (name) =>
   name?.split(' ').map((n) => n[0]).join('').toUpperCase() || '?'
 
+const getTierLabel = (tier) => {
+  if (tier === 'free') return 'classic'
+  return tier || 'unpaid'
+}
+
+const getTierBadgeClass = (tier) => {
+  if (tier === 'pro') return 'bg-linear-to-r from-amber-400 to-yellow-500 text-[#070A13] shadow-[0_0_12px_rgba(250,204,21,0.3)] animate-pulse'
+  if (tier === 'plus') return 'bg-[#7FA6D9] text-[#070A13]'
+  if (tier === 'free') return 'bg-[#D8B76A]/15 text-[#D8B76A] border border-[#D8B76A]/20'
+  return 'bg-rose-500/15 text-rose-200 border border-rose-400/20'
+}
+
 const AdminLayout = () => {
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const user = JSON.parse(localStorage.getItem('user') || '{}')
+  const tier = user.tier || 'unpaid'
+  const isUnpaid = tier === 'unpaid'
   const p1 = user.partner1Name || ''
   const p2 = user.partner2Name || ''
   const initials = `${getInitials(p1)} & ${getInitials(p2)}`
@@ -83,14 +97,8 @@ const AdminLayout = () => {
           <div className="inline-flex items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-3 py-1">
             <span className="text-xs font-medium text-[#D8B76A]">{initials}</span>
           </div>
-          <span className={`text-[9px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full ${
-            user.tier === 'pro'
-              ? 'bg-linear-to-r from-amber-400 to-yellow-500 text-[#070A13] shadow-[0_0_12px_rgba(250,204,21,0.3)] animate-pulse'
-              : user.tier === 'plus'
-              ? 'bg-[#7FA6D9] text-[#070A13]'
-              : 'bg-white/10 text-white/60'
-          }`}>
-            {user.tier === 'free' ? 'classic' : user.tier || 'unpaid'}
+          <span className={`text-[9px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full ${getTierBadgeClass(tier)}`}>
+            {getTierLabel(tier)}
           </span>
         </div>
         <h2 className="font-serif text-xl leading-tight text-white">{coupleName}</h2>
@@ -104,13 +112,28 @@ const AdminLayout = () => {
 
       {/* Nav */}
       <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto min-h-0 custom-scrollbar">
-        {navLinks.map(({ to, label, icon }) => (
+        {navLinks.map(({ to, label, icon, lockedForUnpaid, lockReason }) => {
+          const locked = isUnpaid && lockedForUnpaid
+          return (
           <NavLink
             key={to}
             to={to}
-            onClick={() => setSidebarOpen(false)}
+            onClick={(event) => {
+              if (locked) {
+                event.preventDefault()
+                toast.info(lockReason || 'Choose a plan to unlock this feature.', { toastId: `locked-${to}` })
+                setSidebarOpen(false)
+                navigate('/admin/billing')
+                return
+              }
+              setSidebarOpen(false)
+            }}
+            title={locked ? lockReason : undefined}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                locked
+                  ? 'text-white/35 hover:bg-white/5'
+                  :
                 isActive
                   ? 'bg-[#D8B76A]/15 text-[#D8B76A]'
                   : 'text-white/60 hover:bg-white/5 hover:text-white'
@@ -120,9 +143,10 @@ const AdminLayout = () => {
             <span className="text-base flex items-center justify-center">
               <Icon icon={icon} className="w-4 h-4 shrink-0" />
             </span>
-            {label}
+            <span className="min-w-0 flex-1">{label}</span>
+            {locked && <Icon icon="lucide:lock" className="h-3.5 w-3.5 shrink-0 text-white/25" />}
           </NavLink>
-        ))}
+        )})}
       </nav>
 
       {/* Bottom Footer actions (pinned at bottom, with border separator and mt-auto gap) */}
@@ -192,14 +216,8 @@ const AdminLayout = () => {
             <div className="flex min-w-0 items-center gap-1 sm:gap-2">
               <img src="/vowlink-icon.webp" alt="" className="h-5 w-5 object-contain opacity-80" />
               <span className="min-w-0 font-serif text-sm text-white sm:text-base">Vowlink</span>
-              <span className={`text-[7px] sm:text-[8px] uppercase font-bold tracking-widest px-1.5 sm:px-2 py-0.5 rounded-full ${
-                user.tier === 'pro'
-                  ? 'bg-linear-to-r from-amber-400 to-yellow-500 text-[#070A13]'
-                  : user.tier === 'plus'
-                  ? 'bg-[#7FA6D9] text-[#070A13]'
-                  : 'bg-white/10 text-white/60'
-              }`}>
-                {user.tier === 'free' ? 'classic' : user.tier || 'unpaid'}
+              <span className={`text-[7px] sm:text-[8px] uppercase font-bold tracking-widest px-1.5 sm:px-2 py-0.5 rounded-full ${getTierBadgeClass(tier)}`}>
+                {getTierLabel(tier)}
               </span>
             </div>
             <div className="hidden min-[390px]:flex items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-1.5 sm:px-2 py-0.5">

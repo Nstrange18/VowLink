@@ -308,6 +308,9 @@ const AdminDashboardPage = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [weddingDate, setWeddingDate] = useState(null)
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const tier = storedUser.tier || 'unpaid';
+  const isUnpaid = tier === 'unpaid';
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
@@ -334,7 +337,6 @@ const AdminDashboardPage = () => {
   const attending = rsvps.filter((r) => r.attending === 'Yes').length
   const notAttending = rsvps.filter((r) => r.attending === 'No').length
   
-  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isDeadlinePassed = storedUser?.rsvpDeadline && new Date() > new Date(storedUser.rsvpDeadline);
   const pending = !isDeadlinePassed ? invitations.filter((i) => !i.hasRSVPed).length : 0;
   const noResponse = isDeadlinePassed ? invitations.filter((i) => !i.hasRSVPed).length : 0;
@@ -392,6 +394,32 @@ const AdminDashboardPage = () => {
       <div>
         <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Overview</p>
         <h2 className="font-serif text-3xl sm:text-4xl text-white mb-4">Dashboard</h2>
+
+        {isUnpaid && (
+          <div className="mb-6 rounded-3xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 p-5 shadow-[0_16px_40px_rgba(0,0,0,0.16)]">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 text-[#D8B76A]">
+                  <Icon icon="lucide:lock-keyhole" className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Workspace Not Active</p>
+                  <h3 className="mt-1 font-serif text-2xl text-white">Choose a plan to publish invitations</h3>
+                  <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/60">
+                    Your account is in onboarding mode. Billing is available, but live invitations, RSVP collection, downloads, WhatsApp sending, venue contacts, and check-in tools are locked until payment succeeds.
+                  </p>
+                </div>
+              </div>
+              <Link
+                to="/admin/billing"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#D8B76A] px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#070A13] transition hover:bg-[#F2D894]"
+              >
+                <Icon icon="lucide:credit-card" className="h-3.5 w-3.5" />
+                Activate Plan
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Customization Tip Banner */}
         <div className="mb-6 rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-5 py-4 flex items-start gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.15)] animate-fade-in">

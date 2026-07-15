@@ -2,8 +2,12 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
+import { useNavigate } from "react-router-dom";
 
 const AdminSeatingPage = () => {
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const isPro = user.tier === "pro";
   const [tables, setTables] = useState([]);
   const [rsvps, setRsvps] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,8 +34,13 @@ const AdminSeatingPage = () => {
   };
 
   useEffect(() => {
+    if (!isPro) {
+      toast.info("Seating chart is available on the Pro plan.", { toastId: "seating-pro-lock" });
+      navigate("/admin/billing");
+      return;
+    }
     fetchData();
-  }, []);
+  }, [isPro, navigate]);
 
   const handleAddTable = async (e) => {
     e.preventDefault();

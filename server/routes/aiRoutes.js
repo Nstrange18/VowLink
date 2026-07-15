@@ -70,7 +70,7 @@ router.post("/generate-invitation-text", protect, async (req, res) => {
     if (!allowed) {
       return res.status(403).json({
         success: false,
-        message: `You have used all ${limit} AI text generation${limit === 1 ? "" : "s"} included in your ${user.tier || "free"} plan. Upgrade to unlock more.`,
+        message: `You have used all ${limit} AI text generation${limit === 1 ? "" : "s"} included in your ${user.tier || "unpaid"} plan. Upgrade to unlock more.`,
         creditsRemaining: 0,
         upgradeRequired: true,
       });
@@ -155,16 +155,17 @@ router.post("/generate-invitation-background", protect, async (req, res) => {
     }
 
     const { allowed, limit, remaining } = checkAiImageCredits(user);
-    const isFree = (user.tier || "free") === "free";
+    const tier = user.tier || "unpaid";
+    const isLockedTier = tier === "unpaid" || tier === "free";
 
-    if (isFree || !allowed) {
+    if (isLockedTier || !allowed) {
       return res.status(403).json({
         success: false,
-        message: isFree
+        message: isLockedTier
           ? "AI image generation is available on Plus and Pro plans. Upgrade your plan to unlock."
-          : `You have used all ${limit} AI image generation credits included in your ${user.tier} plan.`,
+          : `You have used all ${limit} AI image generation credits included in your ${tier} plan.`,
         creditsRemaining: 0,
-        upgradeRequired: isFree || remaining <= 0,
+        upgradeRequired: isLockedTier || remaining <= 0,
       });
     }
 
@@ -276,6 +277,9 @@ router.post("/apply-background", protect, async (req, res) => {
 
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ success: false, message: "User not found." });
+    if (!["plus", "pro"].includes(user.tier || "unpaid")) {
+      return res.status(403).json({ success: false, message: "AI backgrounds are available on Plus and Pro plans." });
+    }
 
     user.customCardBg = imageUrl;
     user.cardTheme = "custom";
