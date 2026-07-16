@@ -613,7 +613,7 @@ const AdminSettingsPageContent = () => {
                   <ThemeSelector />
 
                   {/* AI Invitation Background Generator — teaser linking to Templates page */}
-                  <div className="relative isolate min-w-0 overflow-hidden rounded-2xl border border-[#D8B76A]/20 bg-[#0D1220] p-3 sm:p-5 space-y-4">
+                  <div className="relative isolate min-w-0 overflow-hidden rounded-2xl border border-[#D8B76A]/25 bg-[#111827] p-3 shadow-[0_18px_50px_rgba(0,0,0,0.22)] sm:p-5 space-y-4">
                     {/* shimmer gradient decoration */}
                     <div className="absolute inset-0 bg-linear-to-br from-[#D8B76A]/5 via-transparent to-transparent pointer-events-none" />
                     <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -627,17 +627,17 @@ const AdminSettingsPageContent = () => {
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-white/40 leading-relaxed">
+                    <p className="text-[10px] text-white/65 leading-relaxed">
                       Generate stunning, one-of-a-kind AI wedding invitation backgrounds tailored to your exact colors, style, and cultural influence. The AI creates beautiful frame graphics — VowLink overlays your text automatically.
                     </p>
                     <div className="flex min-w-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                       <div className="flex min-w-0 flex-wrap gap-2">
                         {["Luxury Gold", "Soft Floral", "Burgundy Velvet", "Traditional Nigerian", "Navy & Gold", "Emerald Green"].map((style) => (
-                          <span key={style} className="px-2.5 py-1 text-[9px] rounded-full border border-white/10 text-white/50 bg-white/5">
+                          <span key={style} className="px-2.5 py-1 text-[9px] rounded-full border border-white/15 text-white/70 bg-[#070A13]/70">
                             {style}
                           </span>
                         ))}
-                        <span className="px-2.5 py-1 text-[9px] rounded-full border border-white/10 text-white/50 bg-white/5">+ more</span>
+                        <span className="px-2.5 py-1 text-[9px] rounded-full border border-white/15 text-white/70 bg-[#070A13]/70">+ more</span>
                       </div>
                       <button
                         type="button"
@@ -657,7 +657,7 @@ const AdminSettingsPageContent = () => {
                   </div>
 
                   {/* Couple Portrait Image (Autoplays as card backdrop) */}
-                  <div className="min-w-0 rounded-2xl border border-white/10 bg-[#0D1220] p-3 sm:p-5 space-y-4">
+                  <div className="min-w-0 rounded-2xl border border-white/15 bg-[#111827] p-3 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-5 space-y-4">
                     <button
                       type="button"
                       onClick={() => setShowCouplePortrait(!showCouplePortrait)}
@@ -679,7 +679,7 @@ const AdminSettingsPageContent = () => {
 
                     {showCouplePortrait && (
                       <div className="space-y-4 mt-4 animate-fade-in">
-                        <p className="text-[10px] text-white/40 leading-relaxed">
+                        <p className="text-[10px] text-white/65 leading-relaxed">
                           Upload a romantic photo of the couple. It will serve as the fullscreen background backdrop behind your elegant invitation card, and will also be shown as the preview image when sharing your invitation links on WhatsApp, Slack, and other platforms.
                         </p>
                         <div>
@@ -766,7 +766,7 @@ const AdminSettingsPageContent = () => {
                   </div>
 
                   {/* WhatsApp/Social Share Preview Message */}
-                  <div className="relative isolate min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#0D1220] p-3 sm:p-5 space-y-4 animate-fade-in">
+                  <div className="relative isolate min-w-0 overflow-hidden rounded-2xl border border-white/15 bg-[#111827] p-3 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-5 space-y-4 animate-fade-in">
                     <button
                       type="button"
                       onClick={() => setShowSocialShare(!showSocialShare)}
@@ -783,7 +783,7 @@ const AdminSettingsPageContent = () => {
 
                     {showSocialShare && (
                       <div className="space-y-4 mt-4 animate-fade-in">
-                        <p className="text-[10px] text-white/40 leading-relaxed">
+                        <p className="text-[10px] text-white/65 leading-relaxed">
                           Customize the description text that guests see when you share their invitation links on WhatsApp, Slack, Facebook, etc. "Powered by VowLink" will automatically be appended.
                         </p>
 

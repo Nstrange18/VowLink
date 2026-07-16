@@ -258,7 +258,7 @@ const ThemeSelector = () => {
   return (
     <div className="min-w-0 space-y-6">
       {/* Invitation Theme Options */}
-      <div className="settings-theme-panel relative isolate min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#0D1220] p-3 sm:p-5 space-y-6">
+      <div className="settings-theme-panel relative isolate min-w-0 overflow-hidden rounded-2xl border border-[#D8B76A]/20 bg-[#111827] shadow-[0_18px_50px_rgba(0,0,0,0.22)] p-3 sm:p-5 space-y-6">
         <button
           type="button"
           onClick={() => setShowThemeLayout(!showThemeLayout)}
@@ -279,11 +279,11 @@ const ThemeSelector = () => {
         </button>
 
         {showThemeLayout && (
-          <div className="space-y-6 pt-2 border-t border-white/5 animate-fade-in">
-            <div className="settings-theme-subpanel relative isolate min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4 space-y-3">
+          <div className="space-y-6 pt-2 border-t border-[#D8B76A]/15 animate-fade-in">
+            <div className="settings-theme-subpanel relative isolate min-w-0 overflow-hidden rounded-2xl border border-white/15 bg-[#070A13]/65 p-3 shadow-inner sm:p-4 space-y-3">
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-[#D8B76A] font-bold">Default Guest Invite Theme</p>
-                <p className="mt-1 text-[10px] text-white/45 leading-relaxed">
+                <p className="mt-1 text-[10px] text-white/65 leading-relaxed">
                   Controls the first theme guests see. Their theme toggle still saves their own choice on their device.
                 </p>
               </div>
@@ -299,8 +299,8 @@ const ThemeSelector = () => {
                     onClick={() => setDefaultGuestTheme(option.value)}
                     className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-3 text-left transition ${
                       defaultGuestTheme === option.value
-                        ? "border-[#D8B76A] bg-[#D8B76A]/12 text-[#D8B76A]"
-                        : "border-white/10 bg-[#070A13]/60 text-white/60 hover:border-white/25 hover:text-white"
+                        ? "border-[#D8B76A] bg-[#D8B76A]/16 text-[#F2D894] shadow-[0_8px_22px_rgba(216,183,106,0.14)]"
+                        : "border-white/15 bg-[#0D1220] text-white/75 hover:border-[#D8B76A]/35 hover:text-white"
                     }`}
                   >
                     <Icon icon={option.icon} className="h-4 w-4 shrink-0" />
@@ -393,7 +393,7 @@ const ThemeSelector = () => {
                           toast.info(`Previewing premium theme layout! Upgrade to ${reqTier} to save this theme.`, { toastId: "theme-select-preview" });
                         }
                       }}
-                      className={`relative isolate h-20 rounded-xl overflow-hidden flex flex-col justify-between p-2.5 transition-all duration-300 ${borderClass} ${isSelected
+                      className={`relative isolate h-20 rounded-xl overflow-hidden flex flex-col justify-between p-2.5 shadow-[0_10px_24px_rgba(0,0,0,0.18)] transition-all duration-300 ${borderClass} ${isSelected
                         ? "ring-2 ring-[#D8B76A] ring-offset-2 ring-offset-[#070A13] scale-98"
                         : "hover:scale-102 hover:opacity-90"
                         }`}

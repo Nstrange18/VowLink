@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" role="img" aria-label="VowLink wedding invitation publicity poster">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#070A13"/>
+      <stop offset="0.55" stop-color="#0D1220"/>
+      <stop offset="1" stop-color="#15213A"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D8B76A"/>
+      <stop offset="1" stop-color="#F2D894"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="30%" r="60%">
+      <stop offset="0" stop-color="#D8B76A" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#D8B76A" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="26" stdDeviation="28" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+  <rect width="1080" height="1080" fill="url(#glow)"/>
+  <circle cx="900" cy="160" r="190" fill="#7FA6D9" opacity="0.08"/>
+  <circle cx="90" cy="890" r="260" fill="#D8B76A" opacity="0.08"/>
+
+  <g transform="translate(82 76)">
+    <image href="../vowlink-icon.webp" x="0" y="0" width="52" height="52"/>
+    <text x="68" y="38" fill="#F8F0DA" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="700">VowLink</text>
+    <text x="68" y="68" fill="#D8B76A" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="5">WEDDING LINKS MADE SIMPLE</text>
+  </g>
+
+  <g transform="translate(92 190)">
+    <text x="0" y="0" fill="#FFFFFF" font-family="Georgia, 'Times New Roman', serif" font-size="82" font-weight="700">Your wedding</text>
+    <text x="0" y="88" fill="#FFFFFF" font-family="Georgia, 'Times New Roman', serif" font-size="82" font-weight="700">invitation,</text>
+    <text x="0" y="176" fill="url(#gold)" font-family="Georgia, 'Times New Roman', serif" font-size="82" font-weight="700">online.</text>
+    <text x="0" y="245" fill="#C9D4EA" font-family="Arial, sans-serif" font-size="28">Create beautiful digital invites, collect RSVPs,</text>
+    <text x="0" y="284" fill="#C9D4EA" font-family="Arial, sans-serif" font-size="28">share on WhatsApp, and manage guest check-in.</text>
+  </g>
+
+  <g transform="translate(612 250)" filter="url(#shadow)">
+    <rect x="0" y="0" width="292" height="560" rx="44" fill="#05070D" stroke="#D8B76A" stroke-opacity="0.45" stroke-width="3"/>
+    <rect x="20" y="34" width="252" height="492" rx="28" fill="#F7F0E4"/>
+    <circle cx="146" cy="18" r="5" fill="#1F2937"/>
+    <text x="146" y="88" text-anchor="middle" fill="#1A2E4A" font-family="Georgia, 'Times New Roman', serif" font-size="22">Wedding Invitation</text>
+    <line x1="92" y1="112" x2="200" y2="112" stroke="#D8B76A" stroke-width="2"/>
+    <text x="146" y="164" text-anchor="middle" fill="#0D1220" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="700">Ada &amp; Tobi</text>
+    <text x="146" y="205" text-anchor="middle" fill="#64748B" font-family="Arial, sans-serif" font-size="14">Dear Guest Name</text>
+    <text x="146" y="258" text-anchor="middle" fill="#334155" font-family="Georgia, 'Times New Roman', serif" font-size="18">Join us as we celebrate</text>
+    <text x="146" y="286" text-anchor="middle" fill="#334155" font-family="Georgia, 'Times New Roman', serif" font-size="18">love, family and forever.</text>
+    <g transform="translate(44 330)">
+      <rect x="0" y="0" width="204" height="44" rx="22" fill="#0D1220"/>
+      <text x="102" y="28" text-anchor="middle" fill="#F2D894" font-family="Arial, sans-serif" font-size="14" font-weight="700">RSVP NOW</text>
+    </g>
+    <g transform="translate(44 404)">
+      <rect x="0" y="0" width="58" height="58" rx="18" fill="#D8B76A" opacity="0.22"/>
+      <rect x="73" y="0" width="58" height="58" rx="18" fill="#D8B76A" opacity="0.22"/>
+      <rect x="146" y="0" width="58" height="58" rx="18" fill="#D8B76A" opacity="0.22"/>
+      <text x="29" y="36" text-anchor="middle" fill="#0D1220" font-family="Arial, sans-serif" font-size="18" font-weight="700">QR</text>
+      <text x="102" y="36" text-anchor="middle" fill="#0D1220" font-family="Arial, sans-serif" font-size="18" font-weight="700">RS</text>
+      <text x="175" y="36" text-anchor="middle" fill="#0D1220" font-family="Arial, sans-serif" font-size="18" font-weight="700">WA</text>
+    </g>
+  </g>
+
+  <g transform="translate(92 575)">
+    <rect x="0" y="0" width="430" height="74" rx="37" fill="url(#gold)"/>
+    <text x="215" y="48" text-anchor="middle" fill="#070A13" font-family="Arial, sans-serif" font-size="24" font-weight="800" letter-spacing="2">LAUNCH YOUR WEDDING LINK</text>
+  </g>
+
+  <g transform="translate(92 710)">
+    <rect x="0" y="0" width="150" height="72" rx="22" fill="#FFFFFF" opacity="0.08" stroke="#FFFFFF" stroke-opacity="0.12"/>
+    <rect x="166" y="0" width="150" height="72" rx="22" fill="#FFFFFF" opacity="0.08" stroke="#FFFFFF" stroke-opacity="0.12"/>
+    <rect x="332" y="0" width="150" height="72" rx="22" fill="#FFFFFF" opacity="0.08" stroke="#FFFFFF" stroke-opacity="0.12"/>
+    <text x="75" y="30" text-anchor="middle" fill="#D8B76A" font-family="Arial, sans-serif" font-size="13" font-weight="800">INVITES</text>
+    <text x="75" y="52" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="18" font-weight="700">Digital</text>
+    <text x="241" y="30" text-anchor="middle" fill="#D8B76A" font-family="Arial, sans-serif" font-size="13" font-weight="800">RSVPs</text>
+    <text x="241" y="52" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="18" font-weight="700">Tracked</text>
+    <text x="407" y="30" text-anchor="middle" fill="#D8B76A" font-family="Arial, sans-serif" font-size="13" font-weight="800">ENTRY</text>
+    <text x="407" y="52" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="18" font-weight="700">QR Check-in</text>
+  </g>
+
+  <text x="92" y="965" fill="#8EA0C3" font-family="Arial, sans-serif" font-size="24">Perfect for couples who want a modern wedding experience.</text>
+</svg>

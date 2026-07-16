@@ -70,13 +70,13 @@ const AdminRsvpsPage = () => {
       toast.warning('Exporting RSVP list is a Pro feature! Upgrade to unlock.', { toastId: 'export-lock' });
       return;
     }
-    const headers = ['Guest Name', 'Category', 'Invited By', 'Phone', 'Attending', 'No. of Guests', 'Meal Preference', 'Message', 'Date Submitted']
+    const headers = ['Guest Name', 'Category', 'Invited By', 'Phone', 'Response (Yes/No)', 'No. of Guests', 'Meal Preference', 'Message', 'Date Submitted']
     const rows = filteredRsvps.map((r) => [
       r.guestName,
       r.invitationId?.category || 'Guest',
       getSenderGroupMeta(r).label,
       r.phone,
-      r.attending,
+      r.attending === 'Yes' ? 'Yes' : 'No',
       r.numberOfGuests,
       r.mealPreference || 'No Preference',
       r.message || '',
