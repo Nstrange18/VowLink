@@ -3,6 +3,30 @@ import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
+import PageMiniTour from "../../components/PageMiniTour";
+
+const SEATING_TOUR_STEPS = [
+  {
+    target: '[data-tour="seating-header"]',
+    title: "Seating chart",
+    body: "Create tables and assign attending guests so your reception seating is organized before the event.",
+  },
+  {
+    target: '[data-tour="seating-add-table"]',
+    title: "Create tables",
+    body: "Add each table with a name, shape, and guest capacity. You can adjust the seating by moving guests later.",
+  },
+  {
+    target: '[data-tour="seating-unassigned"]',
+    title: "Guests waiting",
+    body: "Only attending RSVP guests appear here. Assign them to tables as your seating plan takes shape.",
+  },
+  {
+    target: '[data-tour="seating-layout"]',
+    title: "Table layout",
+    body: "Review each table, seat count, assigned guests, and remove guests or tables when needed.",
+  },
+];
 
 const AdminSeatingPage = () => {
   const navigate = useNavigate();
@@ -143,21 +167,22 @@ const AdminSeatingPage = () => {
   const unassignedGuests = rsvps.filter((r) => !allAssignedGuests.includes(r.guestName));
 
   return (
-    <div className="p-4 sm:p-8 text-white max-w-7xl mx-auto">
+    <div className="mx-auto w-full max-w-7xl overflow-x-clip px-4 py-6 text-white sm:px-8 sm:py-8">
       {/* Header */}
-      <div className="mb-8">
+      <div data-tour="seating-header" className="mb-8">
         <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Arrangement</p>
         <h2 className="font-serif text-3xl sm:text-4xl">Seating Chart & Tables</h2>
         <p className="text-white/40 text-sm mt-1">
           Create wedding tables, specify capacities, and assign attending guests to their seats.
         </p>
+        <PageMiniTour title="Seating tour" storageKey="vowlink-tour-seating" steps={SEATING_TOUR_STEPS} className="mt-4" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8">
         {/* LEFT PANEL: Add Table Form & Guest List (Col 4) */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
+        <div className="col-span-12 min-w-0 space-y-6 lg:col-span-4">
           {/* Add Table form */}
-          <div className="p-5 rounded-2xl border border-white/10 bg-[#0D1220] shadow-lg">
+          <div data-tour="seating-add-table" className="min-w-0 rounded-2xl border border-white/10 bg-[#0D1220] p-4 shadow-lg sm:p-5">
             <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] mb-4 flex items-center gap-1.5">
               <Icon icon="mdi:table-furniture" className="w-4 h-4 text-[#D8B76A]" /> Add New Table
             </h3>
@@ -173,7 +198,7 @@ const AdminSeatingPage = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
                 <div>
                   <label className="block text-[10px] uppercase tracking-wider text-white/50 mb-1.5 font-bold">Shape</label>
                   <select
@@ -209,7 +234,7 @@ const AdminSeatingPage = () => {
           </div>
 
           {/* Guest List Sidebar */}
-          <div className="p-5 rounded-2xl border border-white/10 bg-[#0D1220] shadow-lg flex flex-col max-h-[500px]">
+          <div data-tour="seating-unassigned" className="flex min-w-0 max-h-[500px] flex-col rounded-2xl border border-white/10 bg-[#0D1220] p-4 shadow-lg sm:p-5">
             <div className="mb-4">
               <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] flex items-center gap-1.5">
                 <Icon icon="lucide:users" className="w-4 h-4 text-[#D8B76A]" /> Guests Waiting to sit
@@ -238,15 +263,15 @@ const AdminSeatingPage = () => {
                 unassignedGuests.map((guest) => (
                   <div
                     key={guest._id}
-                    className="flex justify-between items-center bg-white/5 border border-white/10 rounded-xl p-3 hover:bg-white/10 hover:border-white/20 transition-all group"
+                    className="flex min-w-0 flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition-all hover:border-white/20 hover:bg-white/10 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between group"
                   >
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs font-medium text-white">{guest.guestName}</p>
                       <p className="text-[9px] text-white/40 mt-0.5">Party Size: {guest.numberOfGuests || 1} guest(s)</p>
                     </div>
 
                     {tables.length > 0 ? (
-                      <div className="relative">
+                      <div className="relative shrink-0">
                         <select
                           onChange={(e) => {
                             if (e.target.value) {
@@ -275,7 +300,7 @@ const AdminSeatingPage = () => {
         </div>
 
         {/* RIGHT PANEL: Seating Layout (Col 8) */}
-        <div className="col-span-12 lg:col-span-8">
+        <div data-tour="seating-layout" className="col-span-12 min-w-0 lg:col-span-8">
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
               {Array.from({ length: 4 }).map((_, idx) => (

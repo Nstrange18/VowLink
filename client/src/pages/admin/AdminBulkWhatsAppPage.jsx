@@ -6,6 +6,35 @@ import Skeleton from "../../components/common/Skeleton";
 import { showConfirmToast } from "../../utils/toastConfirm";
 import { Icon } from "@iconify/react";
 import { buildPublicUrl } from "../../utils/siteUrl";
+import PageMiniTour from "../../components/PageMiniTour";
+
+const WHATSAPP_TOUR_STEPS = [
+  {
+    target: '[data-tour="whatsapp-header"]',
+    title: "WhatsApp sender",
+    body: "Prepare personalized invitation messages and manage your sending queue from this page.",
+  },
+  {
+    target: '[data-tour="whatsapp-compose"]',
+    title: "Compose message",
+    body: "Choose who the message appears to come from and edit the message template before preparing invites.",
+  },
+  {
+    target: '[data-tour="whatsapp-queues"]',
+    title: "Guest queues",
+    body: "Switch between bride, groom, general, missing numbers, sent, and all guests.",
+  },
+  {
+    target: '[data-tour="whatsapp-controls"]',
+    title: "Search and assign",
+    body: "Search guests, select multiple entries, assign queues, or delete selected guest records.",
+  },
+  {
+    target: '[data-tour="whatsapp-list"]',
+    title: "Send list",
+    body: "Review each guest, message preview, WhatsApp status, and actions before sending.",
+  },
+];
 
 const cleanPhone = (phone) => {
   if (!phone) return "";
@@ -38,6 +67,8 @@ const AdminBulkWhatsAppPage = () => {
   const [bulkQueueVal, setBulkQueueVal] = useState("");
   const [loadingIds, setLoadingIds] = useState(new Set());
   const [preparingInvites, setPreparingInvites] = useState(false);
+  const [cloudConfig, setCloudConfig] = useState(null);
+  const [cloudSending, setCloudSending] = useState(false);
 
   // Template settings
   const [messageTemplate, setMessageTemplate] = useState(
@@ -47,6 +78,23 @@ const AdminBulkWhatsAppPage = () => {
   const [customSenderName, setCustomSenderName] = useState("");
 
   const coupleNames = user.partner1Name && user.partner2Name ? `${user.partner1Name} and ${user.partner2Name}` : "us";
+  const cloudConfigured = Boolean(cloudConfig?.configured);
+
+  const sentStatuses = new Set(["sent", "delivered", "read"]);
+  const getStatusLabel = (guest) => {
+    if (!guest.phoneNumber || guest.whatsappStatus === "missing_number") return "Missing Num";
+    return (guest.whatsappStatus || "not_sent").replace("_", " ");
+  };
+
+  const getStatusClass = (status, isMissing) => {
+    if (isMissing) return "bg-red-500/15 text-red-400 border-red-500/25";
+    if (status === "read") return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+    if (status === "delivered") return "bg-teal-500/15 text-teal-300 border-teal-500/25";
+    if (status === "sent") return "bg-emerald-500/15 text-emerald-400 border-emerald-500/25";
+    if (status === "ready" || status === "queued") return "bg-blue-500/15 text-blue-400 border-blue-500/25";
+    if (status === "failed") return "bg-red-500/15 text-red-300 border-red-500/25";
+    return "bg-white/5 text-white/40 border-white/5";
+  };
 
   const getSenderName = () => {
     if (senderLabel === "partner1") return user.partner1Name || "Partner 1";
@@ -66,9 +114,19 @@ const AdminBulkWhatsAppPage = () => {
     }
   };
 
+  const fetchCloudConfig = async () => {
+    try {
+      const res = await api.get("/whatsapp/config-status");
+      setCloudConfig(res.data);
+    } catch {
+      setCloudConfig({ configured: false });
+    }
+  };
+
   useEffect(() => {
     if (user.tier === "pro") {
       fetchInvitations();
+      fetchCloudConfig();
     } else {
       setLoading(false);
     }
@@ -107,7 +165,7 @@ const AdminBulkWhatsAppPage = () => {
     let counts = { bride: 0, groom: 0, general: 0, missing: 0, sent: 0, all: invitations.length };
     invitations.forEach((inv) => {
       const isMissing = !inv.phoneNumber || inv.whatsappStatus === "missing_number";
-      if (inv.whatsappStatus === "sent") {
+      if (sentStatuses.has(inv.whatsappStatus)) {
         counts.sent++;
       } else {
         if (isMissing) {
@@ -132,11 +190,11 @@ const AdminBulkWhatsAppPage = () => {
     const isMissing = !inv.phoneNumber || inv.whatsappStatus === "missing_number";
 
     if (activeTab === "all") return true;
-    if (activeTab === "sent") return inv.whatsappStatus === "sent";
+    if (activeTab === "sent") return sentStatuses.has(inv.whatsappStatus);
     if (activeTab === "missing") return isMissing;
 
     // Partner/general queues show only active, valid, non-sent guests
-    if (inv.whatsappStatus === "sent" || isMissing) return false;
+    if (sentStatuses.has(inv.whatsappStatus) || isMissing) return false;
 
     if (activeTab === "bride") return inv.senderGroup === "bride" || inv.senderGroup === "both";
     if (activeTab === "groom") return inv.senderGroup === "groom" || inv.senderGroup === "both";
@@ -235,7 +293,7 @@ const AdminBulkWhatsAppPage = () => {
     let successCount = 0;
     for (const id of selectedIds) {
       const guest = invitations.find(g => g._id === id);
-      if (guest && guest.phoneNumber && guest.whatsappStatus !== "sent") {
+      if (guest && guest.phoneNumber && !sentStatuses.has(guest.whatsappStatus)) {
         try {
           const res = await api.patch(`/invitations/${id}/whatsapp-status`, { whatsappStatus: "ready" });
           setInvitations((prev) =>
@@ -272,7 +330,7 @@ const AdminBulkWhatsAppPage = () => {
   const handleOpenNextUnsent = () => {
     const nextGuest = filteredGuests.find((g) => {
       const isMissing = !g.phoneNumber || g.whatsappStatus === "missing_number";
-      return !isMissing && g.whatsappStatus !== "sent";
+      return !isMissing && !sentStatuses.has(g.whatsappStatus);
     });
 
     if (!nextGuest) {
@@ -282,6 +340,62 @@ const AdminBulkWhatsAppPage = () => {
 
     handleOpenWhatsApp(nextGuest);
     toast.info(`Opened WhatsApp chat for ${nextGuest.guestName}.`);
+  };
+
+  const handleCloudSendGuest = async (guest) => {
+    if (!cloudConfigured) {
+      toast.warning("WhatsApp Cloud API is not configured yet.");
+      return;
+    }
+
+    setLoadingIds((prev) => new Set(prev).add(guest._id));
+    try {
+      const res = await api.post(`/whatsapp/send/${guest._id}`);
+      setInvitations((prev) =>
+        prev.map((inv) => (inv._id === guest._id ? { ...inv, ...res.data.data } : inv))
+      );
+      toast.success(`Sent WhatsApp invite to ${guest.guestName}.`);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to send WhatsApp invite.");
+    } finally {
+      setLoadingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(guest._id);
+        return next;
+      });
+    }
+  };
+
+  const handleCloudSendSelected = async () => {
+    if (!cloudConfigured) {
+      toast.warning("WhatsApp Cloud API is not configured yet.");
+      return;
+    }
+    const sendableIds = selectedIds.filter((id) => {
+      const guest = invitations.find((inv) => inv._id === id);
+      const isMissing = !guest?.phoneNumber || guest?.whatsappStatus === "missing_number";
+      return guest && !isMissing && !sentStatuses.has(guest.whatsappStatus);
+    });
+
+    if (sendableIds.length === 0) {
+      toast.warning("Select guests before sending a broadcast.");
+      return;
+    }
+
+    setCloudSending(true);
+    try {
+      const res = await api.post("/whatsapp/send-bulk", { invitationIds: sendableIds });
+      const updates = new Map((res.data.results || []).map((item) => [String(item.id), item.data]));
+      setInvitations((prev) =>
+        prev.map((inv) => (updates.has(String(inv._id)) ? { ...inv, ...updates.get(String(inv._id)) } : inv))
+      );
+      setSelectedIds([]);
+      toast.success(res.data.message || "WhatsApp broadcast complete.");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to send WhatsApp broadcast.");
+    } finally {
+      setCloudSending(false);
+    }
   };
 
   const handleBulkQueueAssign = async () => {
@@ -330,7 +444,7 @@ const AdminBulkWhatsAppPage = () => {
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto text-white">
       {/* Header */}
-      <div className="mb-6 flex flex-wrap justify-between items-end gap-3">
+      <div data-tour="whatsapp-header" className="mb-6 flex flex-wrap justify-between items-end gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Premium Dashboard</p>
           <h2 className="font-serif text-3xl sm:text-4xl">Bulk WhatsApp Invite Sender</h2>
@@ -338,12 +452,13 @@ const AdminBulkWhatsAppPage = () => {
             VowLink prepares personalized messages and custom invitation links for each guest. Select your queue, verify the messages, and open each contact's WhatsApp chat to dispatch manually.
           </p>
         </div>
+        <PageMiniTour title="WhatsApp sender tour" storageKey="vowlink-tour-whatsapp" steps={WHATSAPP_TOUR_STEPS} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Template & Presets Column */}
         <div className="lg:col-span-4 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto space-y-6 no-scrollbar">
-          <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-5 sm:p-6 space-y-4">
+          <div data-tour="whatsapp-compose" className="rounded-2xl border border-white/10 bg-[#0D1220] p-5 sm:p-6 space-y-4">
             <h3 className="font-serif text-lg text-[#D8B76A] border-b border-white/5 pb-2">1. Compose Message</h3>
             
             {loading ? (
@@ -479,6 +594,52 @@ const AdminBulkWhatsAppPage = () => {
                   `Prepare WhatsApp Invites (${selectedIds.length})`
                 )}
               </button>
+
+              <div className={`rounded-2xl border p-4 ${
+                cloudConfigured
+                  ? "border-emerald-500/20 bg-emerald-500/10"
+                  : "border-yellow-500/20 bg-yellow-500/10"
+              }`}>
+                <div className="flex items-start gap-3">
+                  <Icon
+                    icon={cloudConfigured ? "lucide:badge-check" : "lucide:settings"}
+                    className={`mt-0.5 h-4 w-4 shrink-0 ${cloudConfigured ? "text-emerald-300" : "text-yellow-300"}`}
+                  />
+                  <div className="min-w-0">
+                    <p className={`text-[10px] font-bold uppercase tracking-widest ${
+                      cloudConfigured ? "text-emerald-200" : "text-yellow-200"
+                    }`}>
+                      {cloudConfigured ? "Cloud API Broadcast Ready" : "Cloud API Not Configured"}
+                    </p>
+                    <p className="mt-1 text-[10px] leading-relaxed text-white/55">
+                      {cloudConfigured
+                        ? `Using approved template: ${cloudConfig?.templateName || "vowlink_wedding_invite"}`
+                        : "Add the WhatsApp Cloud API env vars on Render, then use one button to send selected invite links officially."}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCloudSendSelected}
+                  disabled={!cloudConfigured || selectedIds.length === 0 || cloudSending}
+                  className="mt-3 w-full rounded-full border border-white/15 bg-white/10 py-2 px-3 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2"
+                >
+                  {cloudSending ? (
+                    <>
+                      <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Icon icon="lucide:send" className="h-4.5 w-4.5" />
+                      Send Selected via Cloud API ({selectedIds.length})
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             </>
             )}
@@ -488,7 +649,7 @@ const AdminBulkWhatsAppPage = () => {
         {/* Right Guest Queues Grid Column */}
         <div className="lg:col-span-8 space-y-5">
           {/* Tabs Navigation */}
-          <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-thin">
+          <div data-tour="whatsapp-queues" className="flex overflow-x-auto gap-2 pb-2 scrollbar-thin">
             {[
               { id: "bride", label: "Bride's Queue", count: counts.bride },
               { id: "groom", label: "Groom's Queue", count: counts.groom },
@@ -520,9 +681,9 @@ const AdminBulkWhatsAppPage = () => {
           </div>
 
           {/* Filtering, Search & Bulk Assignment controls */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border border-white/10 bg-[#0d1220]/70 backdrop-blur-md">
+          <div data-tour="whatsapp-controls" className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border border-white/10 bg-[#0d1220]/70 backdrop-blur-md">
             {/* Search Input */}
-            <div className="flex-1 min-w-[200px]">
+            <div className="min-w-50 flex-1">
               <input
                 type="text"
                 placeholder="Search guests by name..."
@@ -564,7 +725,7 @@ const AdminBulkWhatsAppPage = () => {
           </div>
 
           {/* Guests Table */}
-          <div className="rounded-2xl border border-white/10 bg-[#0d1220] overflow-hidden">
+          <div data-tour="whatsapp-list" className="rounded-2xl border border-white/10 bg-[#0d1220] overflow-hidden">
             {loading ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
@@ -715,27 +876,24 @@ const AdminBulkWhatsAppPage = () => {
 
                           {/* Status Badge */}
                           <td className="px-4 py-4 text-center">
-                            <span className={`inline-block px-2.5 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border ${
-                              guest.whatsappStatus === "sent"
-                                ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/25"
-                                : guest.whatsappStatus === "ready"
-                                ? "bg-blue-500/15 text-blue-400 border-blue-500/25"
-                                : isMissing
-                                ? "bg-red-500/15 text-red-400 border-red-500/25"
-                                : "bg-white/5 text-white/40 border-white/5"
-                            }`}>
-                              {isMissing ? "Missing Num" : guest.whatsappStatus.replace("_", " ")}
+                            <span className={`inline-block px-2.5 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border ${getStatusClass(guest.whatsappStatus, isMissing)}`}>
+                              {getStatusLabel(guest)}
                             </span>
-                            {guest.whatsappStatus === "sent" && guest.whatsappSentBy && (
+                            {sentStatuses.has(guest.whatsappStatus) && guest.whatsappSentBy && (
                               <div className="text-[9px] text-white/40 mt-1 block">
                                 by {guest.whatsappSentBy}
+                              </div>
+                            )}
+                            {guest.whatsappStatus === "failed" && guest.whatsappFailureReason && (
+                              <div className="mx-auto mt-1 block max-w-32 line-clamp-2 text-[9px] text-red-300/70">
+                                {guest.whatsappFailureReason}
                               </div>
                             )}
                           </td>
 
                           {/* Action Buttons */}
                           <td className="px-4 py-4 text-center">
-                            <div className="flex flex-col sm:flex-row gap-1.5 justify-center min-w-[5rem]">
+                            <div className="flex min-w-20 flex-col justify-center gap-1.5 sm:flex-row">
                               {!isMissing && (
                                 <button
                                   onClick={() => handleOpenWhatsApp(guest)}
@@ -744,8 +902,28 @@ const AdminBulkWhatsAppPage = () => {
                                   Open
                                 </button>
                               )}
+
+                              {!isMissing && cloudConfigured && !sentStatuses.has(guest.whatsappStatus) && (
+                                <button
+                                  onClick={() => handleCloudSendGuest(guest)}
+                                  disabled={loadingIds.has(guest._id)}
+                                  className="w-full sm:w-auto px-2 py-1 rounded border border-emerald-500/25 bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-300 font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                                >
+                                  {loadingIds.has(guest._id) ? (
+                                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                  ) : (
+                                    <>
+                                      <Icon icon="lucide:send" className="h-3 w-3" />
+                                      Cloud
+                                    </>
+                                  )}
+                                </button>
+                              )}
                               
-                              {guest.whatsappStatus !== "sent" ? (
+                              {!sentStatuses.has(guest.whatsappStatus) ? (
                                 <button
                                   onClick={() => updateWhatsAppStatus(guest._id, "sent")}
                                   disabled={loadingIds.has(guest._id)}

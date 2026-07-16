@@ -1,4 +1,5 @@
-﻿import axios from 'axios'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 
 const getBaseURL = () => {
   if (import.meta.env.VITE_API_URL) {
@@ -14,7 +15,7 @@ const api = axios.create({
   baseURL: getBaseURL(),
 })
 
-// ── Attach access token to every request ───────────────────────────────────
+// -- Attach access token to every request -----------------------------------
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token && !config.headers.Authorization) {
@@ -23,9 +24,47 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// ── Auto-refresh on 401, but do NOT interfere with auth-page errors ─────────
+// -- Auto-refresh on 401, but do NOT interfere with auth-page errors ---------
 let isRefreshing = false
 let failedQueue = []
+let sessionToastId = null
+
+const showSessionRefreshing = () => {
+  if (!sessionToastId) {
+    sessionToastId = toast.loading('Refreshing your session...', {
+      toastId: 'session-refreshing',
+    })
+  }
+}
+
+const clearSessionRefreshing = () => {
+  if (sessionToastId) {
+    toast.dismiss(sessionToastId)
+    sessionToastId = null
+  }
+}
+
+const showSessionExpired = (message) => {
+  if (sessionToastId) {
+    toast.update(sessionToastId, {
+      render: message,
+      type: 'error',
+      isLoading: false,
+      autoClose: 3500,
+      closeOnClick: true,
+    })
+    sessionToastId = null
+    return
+  }
+
+  toast.error(message, { toastId: 'session-expired' })
+}
+
+const redirectAfterSessionFailure = (path) => {
+  window.setTimeout(() => {
+    window.location.href = path
+  }, 900)
+}
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => (error ? prom.reject(error) : prom.resolve(token)))
@@ -63,11 +102,13 @@ api.interceptors.response.use(
         localStorage.removeItem('venueToken')
         localStorage.removeItem('venueRefreshToken')
         localStorage.removeItem('venue')
-        window.location.href = '/venue/login'
+        showSessionExpired('Your venue session has expired. Please sign in again.')
+        redirectAfterSessionFailure('/venue/login')
         return Promise.reject(error)
       }
 
       original._retry = true
+      showSessionRefreshing()
 
       try {
         const res = await axios.post(
@@ -77,13 +118,15 @@ api.interceptors.response.use(
 
         const newToken = res.data.token
         localStorage.setItem('venueToken', newToken)
+        clearSessionRefreshing()
         original.headers.Authorization = `Bearer ${newToken}`
         return api(original)
       } catch (refreshError) {
         localStorage.removeItem('venueToken')
         localStorage.removeItem('venueRefreshToken')
         localStorage.removeItem('venue')
-        window.location.href = '/venue/login'
+        showSessionExpired('Your venue session has expired. Please sign in again.')
+        redirectAfterSessionFailure('/venue/login')
         return Promise.reject(refreshError)
       }
     }
@@ -98,7 +141,8 @@ api.interceptors.response.use(
         localStorage.removeItem('refreshToken')
 
         localStorage.removeItem('user')
-        window.location.href = '/admin/login'
+        showSessionExpired('Your session has expired. Please sign in again.')
+        redirectAfterSessionFailure('/admin/login')
         return Promise.reject(error)
       }
 
@@ -116,6 +160,7 @@ api.interceptors.response.use(
 
       original._retry = true
       isRefreshing = true
+      showSessionRefreshing()
 
       try {
         const res = await axios.post(
@@ -129,6 +174,7 @@ api.interceptors.response.use(
         api.defaults.headers.common.Authorization = `Bearer ${newToken}`
 
         processQueue(null, newToken)
+        clearSessionRefreshing()
 
         original.headers.Authorization = `Bearer ${newToken}`
         return api(original)
@@ -139,7 +185,8 @@ api.interceptors.response.use(
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('user')
-        window.location.href = '/admin/login'
+        showSessionExpired('Your session has expired. Please sign in again.')
+        redirectAfterSessionFailure('/admin/login')
 
         return Promise.reject(refreshError)
       } finally {
@@ -152,3 +199,4 @@ api.interceptors.response.use(
 )
 
 export default api
+

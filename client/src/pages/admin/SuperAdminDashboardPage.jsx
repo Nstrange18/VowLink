@@ -273,7 +273,7 @@ const SuperAdminDashboardPage = () => {
     if (tier === "pro") return { label: "Pro", icon: "lucide:crown", className: "border-amber-400/30 bg-amber-400/15 text-amber-200" };
     if (tier === "plus") return { label: "Plus", icon: "lucide:sparkles", className: "border-[#7FA6D9]/30 bg-[#7FA6D9]/15 text-[#B9D4F4]" };
     if (tier === "free") return { label: "Classic", icon: "lucide:badge-check", className: "border-[#D8B76A]/30 bg-[#D8B76A]/15 text-[#F2D894]" };
-    return { label: "Unpaid", icon: "lucide:lock", className: "border-rose-400/25 bg-rose-500/15 text-rose-200" };
+    return { label: "Trial", icon: "lucide:timer", className: "border-[#7FA6D9]/25 bg-[#7FA6D9]/15 text-[#B9D4F4]" };
   };
 
   return (
@@ -391,7 +391,7 @@ const SuperAdminDashboardPage = () => {
           </div>
           <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalCouples}</p>
           <h3 className="text-[10px] sm:text-xs text-white/50 font-medium mt-1 leading-tight">Total Couple Workspaces</h3>
-          <p className="text-[10px] text-white/35 mt-2">Plus: {stats.plusCouples} | Pro: {stats.proCouples}</p>
+          <p className="text-[10px] text-white/35 mt-2">Trial: {stats.unpaidCouples} | Classic: {stats.classicCouples} | Plus: {stats.plusCouples} | Pro: {stats.proCouples}</p>
         </div>
 
         {/* Total Venues */}
@@ -522,7 +522,7 @@ const SuperAdminDashboardPage = () => {
                 <h3 className="font-serif text-lg text-[#D8B76A]">Couples Workspace Breakdown</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/60">Unpaid onboarding accounts</span>
+                    <span className="text-white/60">Trial onboarding accounts</span>
                     <span className="font-bold font-mono">{couples.filter((c) => (c.tier || "unpaid") === "unpaid").length}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
@@ -1041,7 +1041,7 @@ const SuperAdminDashboardPage = () => {
                               disabled={tierBusy}
                               className="bg-[#070A13] border border-white/10 px-2 py-1 rounded text-xs outline-none text-white focus:border-[#D8B76A]/60 font-semibold disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                              <option value="unpaid">Unpaid</option>
+                              <option value="unpaid">Trial</option>
                               <option value="free">Classic Plan</option>
                               <option value="plus">Plus Plan</option>
                               <option value="pro">Pro Plan</option>

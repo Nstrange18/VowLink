@@ -3,6 +3,30 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
+import PageMiniTour from "../../components/PageMiniTour";
+
+const VENUES_TOUR_STEPS = [
+  {
+    target: '[data-tour="venues-header"]',
+    title: "Suggested venues",
+    body: "Browse venue options that have been reviewed for couples planning their wedding.",
+  },
+  {
+    target: '[data-tour="venues-plan-note"]',
+    title: "Plan access",
+    body: "Trial and Classic users can preview venue cards. Plus and Pro users unlock more details and contact options.",
+  },
+  {
+    target: '[data-tour="venues-filters"]',
+    title: "Smart filters",
+    body: "Pro users can narrow venues by name, city, style, capacity, and shortlist status.",
+  },
+  {
+    target: '[data-tour="venues-grid"]',
+    title: "Venue cards",
+    body: "Open a venue profile, shortlist it, or send a direct inquiry when contact access is available.",
+  },
+];
 
 const AdminVenuesPage = () => {
   const navigate = useNavigate();
@@ -25,6 +49,11 @@ const AdminVenuesPage = () => {
   const tier = user.tier || "unpaid";
   const isFree = tier === "free" || tier === "unpaid";
   const isPro = tier === "pro";
+  const venuesTourSteps = VENUES_TOUR_STEPS.filter((step) => {
+    if (!isFree && step.target === '[data-tour="venues-plan-note"]') return false;
+    if (!isPro && step.target === '[data-tour="venues-filters"]') return false;
+    return true;
+  });
 
   const fetchVenues = async () => {
     try {
@@ -119,7 +148,7 @@ const AdminVenuesPage = () => {
 
   return (
     <div className="p-4 sm:p-8 max-w-6xl mx-auto">
-      <div className="mb-8 flex flex-wrap justify-between items-start gap-4">
+      <div data-tour="venues-header" className="mb-8 flex flex-wrap justify-between items-start gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Curated Directories</p>
           <h2 className="font-serif text-3xl sm:text-4xl text-white">Suggested Venues</h2>
@@ -129,10 +158,11 @@ const AdminVenuesPage = () => {
           <p className="text-amber-400/80 text-[11px] font-medium mt-1.5 max-w-xl italic">
             Venue details are provided for convenience. Users should contact venues directly to confirm availability, pricing, and services.
           </p>
+          <PageMiniTour title="Venues tour" storageKey="vowlink-tour-venues" steps={venuesTourSteps} className="mt-4" />
         </div>
 
         {isFree && (
-          <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 max-w-sm flex items-start gap-3">
+          <div data-tour="venues-plan-note" className="rounded-2xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 max-w-sm flex items-start gap-3">
             <Icon icon="lucide:lightbulb" className="h-5 w-5 shrink-0 text-[#D8B76A]" />
             <div>
               <p className="text-xs font-semibold text-[#D8B76A] uppercase tracking-wider">{tier === "unpaid" ? "Activate Your Plan" : "Classic Plan Preview"}</p>
@@ -149,7 +179,7 @@ const AdminVenuesPage = () => {
 
       {/* Advanced Pro-only filters */}
       {isPro && (
-        <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+        <div data-tour="venues-filters" className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-[#D8B76A]">Pro Smart Filters</p>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {/* Search */}
@@ -231,7 +261,7 @@ const AdminVenuesPage = () => {
           <p className="text-white/40 text-sm">No venues match your criteria.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div data-tour="venues-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredVenues.map((venue) => {
             const shortlisted = isShortlisted(venue._id);
             return (

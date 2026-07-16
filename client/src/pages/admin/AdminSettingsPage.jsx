@@ -12,6 +12,35 @@ import ImageEditorModal from "../../components/ImageEditorModal";
 import { Icon } from "@iconify/react";
 import api from "../../utils/api";
 import { PREMADE_TEMPLATES } from "../../components/settings/ThemeSelector";
+import PageMiniTour from "../../components/PageMiniTour";
+
+const SETTINGS_TOUR_STEPS = [
+  {
+    target: '[data-tour="settings-header"]',
+    title: "Settings workspace",
+    body: "Use this page to update wedding details, invitation design, media, registry, and account security.",
+  },
+  {
+    target: '[data-tour="settings-tabs"]',
+    title: "Settings sections",
+    body: "Switch between details, design, music, registry, and security without leaving the page.",
+  },
+  {
+    target: '[data-tour="settings-workspace"]',
+    title: "Edit your invitation",
+    body: "Make changes here. Some design tools are plan-limited, but you can preview templates before saving.",
+  },
+  {
+    target: '[data-tour="settings-preview"]',
+    title: "Live preview",
+    body: "This preview updates as you edit so you can check spacing, colors, and wording before saving.",
+  },
+  {
+    target: '[data-tour="settings-save"]',
+    title: "Save changes",
+    body: "Save applies your latest details and design choices to the live invitation pages.",
+  },
+];
 
 const TIMELINE_ICONS = [
   { icon: "mdi:church", label: "Church/Ceremony" },
@@ -324,17 +353,18 @@ const AdminSettingsPageContent = () => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[calc(100dvw-2rem)] overflow-x-hidden py-4 text-white sm:max-w-6xl sm:p-8 lg:h-full lg:flex lg:flex-col">
-      <div className="mb-6 min-w-0 lg:shrink-0">
+    <div className="mx-auto w-full max-w-6xl overflow-x-clip px-4 py-4 text-white sm:px-8 sm:py-8 lg:h-full lg:flex lg:flex-col">
+      <div data-tour="settings-header" className="mb-6 min-w-0 lg:shrink-0">
         <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Account</p>
         <h2 className="font-serif text-3xl sm:text-4xl">Settings & Customization</h2>
         <p className="text-white/40 text-sm mt-1">
           Customize your wedding invitation card appearance, photo gallery, dress code, and venue preferences.
         </p>
+        <PageMiniTour title="Settings tour" storageKey="vowlink-tour-settings" steps={SETTINGS_TOUR_STEPS} className="mt-4" />
       </div>
 
       {/* Glassmorphic Tabs Selector */}
-      <div className="mb-8 flex min-w-0 flex-wrap gap-1.5 border-b border-white/10 pb-4 sm:gap-2 lg:shrink-0">
+      <div data-tour="settings-tabs" className="mb-8 flex min-w-0 flex-wrap gap-1.5 border-b border-white/10 pb-4 sm:gap-2 lg:shrink-0">
         {[
           { id: "details", label: "Details", fullLabel: "Wedding Details", icon: "lucide:calendar-days" },
           { id: "design", label: "Design", fullLabel: "Design & Theme", icon: "lucide:palette" },
@@ -394,7 +424,7 @@ const AdminSettingsPageContent = () => {
         className="hidden"
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start lg:items-stretch min-w-0 lg:flex-1 lg:min-h-0">
+      <div data-tour="settings-workspace" className="grid min-w-0 grid-cols-1 items-start gap-6 overflow-x-clip lg:grid-cols-12 lg:items-stretch lg:gap-8 lg:flex-1 lg:min-h-0">
         {/* LEFT COLUMN: Tabs/Forms container */}
         <div className={`col-span-12 ${activeTab === "security" ? "lg:col-span-12" : "lg:col-span-6"} space-y-6 min-w-0 lg:h-full lg:overflow-y-auto lg:pr-2 lg:pb-8`}>
 
@@ -937,6 +967,7 @@ const AdminSettingsPageContent = () => {
                       : undefined
                   }
                   id="save-settings-btn"
+                  data-tour="settings-save"
                   className="w-full sm:w-auto rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-6 sm:px-10 py-3.5 text-xs font-semibold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] disabled:opacity-60 text-center"
                 >
                   {isSubmitting ? "Saving Config..." : hasLockedTemplatePreview ? `${lockedTemplatePlanLabel} to Save` : "Save Customizations"}

@@ -7,6 +7,30 @@ import { Icon } from "@iconify/react";
 import QRCode from "qrcode";
 import { showConfirmToast } from "../../utils/toastConfirm";
 import { buildPublicUrl } from "../../utils/siteUrl";
+import PageMiniTour from "../../components/PageMiniTour";
+
+const INVITATIONS_TOUR_STEPS = [
+  {
+    target: '[data-tour="invitations-header"]',
+    title: "Invitation tools",
+    body: "Create new invitations, import guests, print QR sheets on Pro, and open staff mode for event-day check-in.",
+  },
+  {
+    target: '[data-tour="invitations-checkin"]',
+    title: "Check-in status",
+    body: "Use this panel to see how many invited guests have been checked in at the entrance.",
+  },
+  {
+    target: '[data-tour="invitations-filters"]',
+    title: "Find guests faster",
+    body: "Search and filter by RSVP status, check-in state, category, or who sent the invite.",
+  },
+  {
+    target: '[data-tour="invitations-list"]',
+    title: "Guest list actions",
+    body: "Each row gives you quick actions for copying links, WhatsApp, editing, deleting, QR viewing, and check-in reset where available.",
+  },
+];
 
 const AdminInvitationsPage = () => {
   const [invitations, setInvitations] = useState([]);
@@ -491,7 +515,7 @@ const AdminInvitationsPage = () => {
         </div>
       )}
 
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div data-tour="invitations-header" className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">
             Manage
@@ -515,6 +539,11 @@ const AdminInvitationsPage = () => {
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
+          <PageMiniTour
+            title="Invitation tour"
+            storageKey="vowlink-tour-invitations"
+            steps={INVITATIONS_TOUR_STEPS}
+          />
           {canUseAdvancedCheckIn ? (
             <Link
               to="/check-in/staff"
@@ -641,6 +670,7 @@ const AdminInvitationsPage = () => {
       </div>
 
       <div
+        data-tour="invitations-checkin"
         className={`mb-6 rounded-3xl border p-5 ${
           canUseCheckIn
             ? "border-emerald-400/15 bg-emerald-400/10"
@@ -738,7 +768,7 @@ const AdminInvitationsPage = () => {
       </div>
 
       {/* Search and Filters Bar */}
-      <div className="mb-6 grid grid-cols-1 gap-4 rounded-2xl border border-white/10 bg-[#0D1220] p-4 shadow-lg backdrop-blur-md sm:grid-cols-2 xl:grid-cols-5">
+      <div data-tour="invitations-filters" className="mb-6 grid grid-cols-1 gap-4 rounded-2xl border border-white/10 bg-[#0D1220] p-4 shadow-lg backdrop-blur-md sm:grid-cols-2 xl:grid-cols-5">
         {/* Search Input */}
         <div className="relative">
           <Icon
@@ -828,7 +858,7 @@ const AdminInvitationsPage = () => {
       {loading ? (
         <>
           {/* Skeleton Desktop Table */}
-          <div className="hidden sm:block overflow-x-auto rounded-2xl border border-white/10 bg-[#0D1220]/40">
+          <div data-tour="invitations-list" className="hidden sm:block overflow-x-auto rounded-2xl border border-white/10 bg-[#0D1220]/40">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10 text-left text-xs uppercase tracking-widest text-white/40">
@@ -871,7 +901,7 @@ const AdminInvitationsPage = () => {
           </div>
 
           {/* Skeleton Mobile Cards */}
-          <div className="flex flex-col gap-3 sm:hidden">
+              <div data-tour="invitations-list" className="flex flex-col gap-3 sm:hidden">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}

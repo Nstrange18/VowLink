@@ -73,14 +73,39 @@ const invitationSchema = new mongoose.Schema(
     },
     whatsappStatus: {
       type: String,
-      enum: ["not_sent", "ready", "sent", "missing_number"],
+      enum: ["not_sent", "ready", "queued", "sent", "delivered", "read", "failed", "missing_number"],
       default: function () {
         return this.phoneNumber ? "not_sent" : "missing_number";
       },
       trim: true,
     },
+    whatsappProvider: {
+      type: String,
+      enum: ["manual", "cloud_api"],
+      default: "manual",
+      trim: true,
+    },
+    whatsappMessageId: {
+      type: String,
+      trim: true,
+      index: true,
+    },
     whatsappSentAt: {
       type: Date,
+    },
+    whatsappDeliveredAt: {
+      type: Date,
+    },
+    whatsappReadAt: {
+      type: Date,
+    },
+    whatsappFailedAt: {
+      type: Date,
+    },
+    whatsappFailureReason: {
+      type: String,
+      trim: true,
+      default: "",
     },
     whatsappSentBy: {
       type: String,

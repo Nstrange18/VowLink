@@ -789,6 +789,7 @@ const InvitePage = ({ setThemePreference }) => {
   const [rsvpSubmitting, setRsvpSubmitting] = useState(false);
   const rsvpSubmittingRef = useRef(false);
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+  const [rsvpFormActive, setRsvpFormActive] = useState(false);
   const [scale, setScale] = useState(1);
   const [cardHeight, setCardHeight] = useState(0);
 
@@ -2087,12 +2088,11 @@ const InvitePage = ({ setThemePreference }) => {
       )}
 
       {/* Scroll Down Floating Indicator (un-downloadable) */}
-      {isOpen && (
+      {isOpen && showScrollIndicator && !showForm && !rsvpFormActive && (
         <div
           className="fixed bottom-8 left-1/2 -translate-x-1/2 z-35 flex items-center gap-2 select-none animate-bounce download-exclude bg-[#0D1220]/75 backdrop-blur-md border border-[#D8B76A]/30 px-4 py-2.5 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.6)]"
           style={{
             color: "#D8B76A",
-            opacity: showScrollIndicator ? 1 : 0,
             pointerEvents: "none",
             transition: "opacity 0.6s ease",
           }}
@@ -2908,7 +2908,16 @@ const InvitePage = ({ setThemePreference }) => {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit(onRsvpSubmit)} className="space-y-4">
+              <form
+                onSubmit={handleSubmit(onRsvpSubmit)}
+                onFocusCapture={() => setRsvpFormActive(true)}
+                onBlurCapture={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) {
+                    setRsvpFormActive(false);
+                  }
+                }}
+                className="space-y-4"
+              >
                 {/* Name */}
                 <div>
                   <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Name *</label>

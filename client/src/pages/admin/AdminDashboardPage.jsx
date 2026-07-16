@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../../utils/api'
 import Skeleton from '../../components/common/Skeleton'
 import { Icon } from '@iconify/react'
+import GuidedTour from '../../components/GuidedTour'
 
 const CATEGORIES = ['VIP', 'Family', 'Friend', 'Colleague', 'Guest']
 
@@ -12,6 +13,230 @@ const categoryColors = {
   Friend: { ring: 'border-emerald-400/40', bg: 'bg-emerald-400/10', text: 'text-emerald-400', dot: 'bg-emerald-400' },
   Colleague: { ring: 'border-purple-400/40', bg: 'bg-purple-400/10', text: 'text-purple-400', dot: 'bg-purple-400' },
   Guest: { ring: 'border-white/20', bg: 'bg-white/5', text: 'text-white/60', dot: 'bg-white/40' },
+}
+
+const getPlanLabel = (tier) => {
+  if (tier === 'free') return 'Classic'
+  if (tier === 'plus') return 'Plus'
+  if (tier === 'pro') return 'Pro'
+  return 'Trial'
+}
+
+const getTierRank = (tier) => ({
+  unpaid: 0,
+  free: 1,
+  plus: 2,
+  pro: 3,
+}[tier] ?? 0)
+
+const openSidebarGroup = (groupId) => () => {
+  window.dispatchEvent(new CustomEvent('vowlink:open-sidebar-group', { detail: groupId }))
+}
+
+const getUpgradeTourSteps = (tier) => {
+  const plan = getPlanLabel(tier)
+  const shared = [
+    {
+      target: '[data-tour="dashboard-stats"]',
+      title: `${plan} is active`,
+      body: 'Your dashboard now reflects the limits and tools for your active plan. Use this area to track invitations, RSVPs, attendance, and response gaps.',
+    },
+    {
+      target: '[data-tour="customize-invite"]',
+      title: 'Customize the invitation',
+      body: 'Start with your card design, theme, colors, music, and sharing preview. This is where the guest experience begins.',
+    },
+  ]
+
+  if (tier === 'free') {
+    return [
+      ...shared,
+      {
+        target: '[data-tour="dashboard-checkin"]',
+        title: 'Classic plan limits',
+        body: 'Classic gives you one invitation link and up to 20 RSVPs. QR check-in and staff tools stay locked until Plus or Pro.',
+      },
+    ]
+  }
+
+  if (tier === 'plus') {
+    return [
+      ...shared,
+      {
+        target: '[data-tour="dashboard-checkin"]',
+        title: 'QR check-in is available',
+        body: 'Plus unlocks guest QR codes and event PIN check-in, so ushers can confirm guests at the entrance from each QR link.',
+      },
+      {
+        target: '[data-tour="dashboard-categories"]',
+        title: 'Use guest groups',
+        body: 'Organize guests by category and sender group so RSVP follow-up stays easy as the list grows.',
+      },
+    ]
+  }
+
+  return [
+    ...shared,
+    {
+      target: '[data-tour="dashboard-checkin"]',
+      title: 'Pro event operations',
+      body: 'Pro unlocks staff mode, printable QR sheets, check-in reset controls, exports, seating, bulk WhatsApp, AI, and custom design tools.',
+    },
+    {
+      target: '[data-tour="dashboard-categories"]',
+      title: 'Manage at scale',
+      body: 'Use guest categories, RSVP breakdowns, seating, and WhatsApp queues to manage a larger event without losing structure.',
+    },
+  ]
+}
+
+const DASHBOARD_TOUR_STEPS = [
+  {
+    target: '[data-tour="admin-sidebar-profile"]',
+    title: 'Your wedding profile',
+    body: 'The sidebar keeps your couple name, plan badge, email, and wedding date visible so you always know which workspace you are managing.',
+  },
+  {
+    target: '[data-tour="admin-nav-dashboard"]',
+    title: 'Dashboard',
+    body: 'This is the home base for your wedding workspace. It summarizes invitations, RSVP progress, guest groups, and event-day check-in activity.',
+  },
+  {
+    target: '[data-tour="admin-nav-invitations-group"]',
+    title: 'Invitations',
+    body: 'This dropdown holds the core invitation workflow: creating guest links, reviewing RSVPs, and sending WhatsApp invitations.',
+  },
+  {
+    target: '[data-tour="admin-nav-invitations"]',
+    prepare: openSidebarGroup('invitations'),
+    title: 'Create Invitations',
+    body: 'Add guests and create their invite links here. Paid plans unlock live invitation sharing, QR codes, and guest management tools based on the selected tier.',
+  },
+  {
+    target: '[data-tour="admin-nav-rsvps"]',
+    prepare: openSidebarGroup('invitations'),
+    title: 'RSVPs',
+    body: 'This page collects guest responses, attendance status, meal preferences, and notes. Trial users need to activate a plan before collecting live RSVP responses.',
+  },
+  {
+    target: '[data-tour="admin-nav-whatsapp"]',
+    prepare: openSidebarGroup('invitations'),
+    title: 'WhatsApp Sender',
+    body: 'Use this to queue and send invitation messages faster. Trial accounts see it locked so they know the feature exists before activating a plan.',
+  },
+  {
+    target: '[data-tour="admin-nav-seating"]',
+    title: 'Seating Chart',
+    body: 'Use this for table planning and guest placement. It is intended for larger events and stays locked until the plan supports seating tools.',
+  },
+  {
+    target: '[data-tour="admin-nav-venues-group"]',
+    title: 'Venues',
+    body: 'This dropdown keeps venue discovery and venue request follow-up together.',
+  },
+  {
+    target: '[data-tour="admin-nav-venues"]',
+    prepare: openSidebarGroup('venues'),
+    title: 'Suggested Venues',
+    body: 'Browse approved venue partners and contact details here. Trial accounts can see the entry point, but venue details unlock after plan activation.',
+  },
+  {
+    target: '[data-tour="admin-nav-venue-requests"]',
+    prepare: openSidebarGroup('venues'),
+    title: 'Venue Requests',
+    body: 'Track venues you have contacted and whether they have replied, are waiting, or are unavailable. This keeps venue follow-up from getting lost.',
+  },
+  {
+    target: '[data-tour="admin-nav-billing"]',
+    title: 'Billing and tiers',
+    body: 'Choose Classic, Plus, or Pro here. Trial users should start here when they are ready to unlock live tools.',
+  },
+  {
+    target: '[data-tour="admin-nav-settings"]',
+    title: 'Settings',
+    body: 'Customize the invitation theme, templates, colors, background photos, music, sharing text, and wedding details from this page.',
+  },
+  {
+    target: '[data-tour="admin-nav-support"]',
+    title: 'Contact support',
+    body: 'Use this when you need help with billing, invite setup, QR check-in, or anything blocking your wedding workspace.',
+  },
+  {
+    target: '[data-tour="dashboard-heading"]',
+    title: 'Welcome to your workspace',
+    body: 'This dashboard is your control center. It shows the state of your invitations, RSVPs, guest groups, and event-day check-in.',
+  },
+  {
+    target: '[data-tour="customize-invite"]',
+    title: 'Personalize the invitation',
+    body: 'Set the look and feel first: card design, couple photo, colors, music, text positioning, and the social preview guests will see.',
+  },
+  {
+    target: '[data-tour="dashboard-countdown"]',
+    title: 'Check the wedding timeline',
+    body: 'Your countdown and wedding date help you keep the planning timeline visible every time you log in.',
+  },
+  {
+    target: '[data-tour="dashboard-stats"]',
+    title: 'Track responses',
+    body: 'These cards show invitations, RSVPs, attending guests, guests not attending, and people who still need follow-up.',
+  },
+  {
+    target: '[data-tour="dashboard-checkin"]',
+    title: 'Prepare for entry check-in',
+    body: 'On Plus and Pro, QR codes and event PINs help ushers check guests in at the hall without using the couple account.',
+  },
+  {
+    target: '[data-tour="dashboard-categories"]',
+    title: 'Review guest groups',
+    body: 'Use categories to see how VIPs, family, friends, colleagues, and general guests are responding.',
+  },
+  {
+    target: '[data-tour="admin-sidebar-actions"]',
+    title: 'Account actions',
+    body: 'Use the lower sidebar for admin access when available and logout. The Super Admin panel only appears for the platform admin account.',
+  },
+]
+
+const MOBILE_DASHBOARD_TOUR_STEPS = [
+  {
+    target: '[data-tour="admin-mobile-menu"]',
+    title: 'Open the menu',
+    body: 'Tap this menu to reach invitations, RSVPs, WhatsApp sending, seating, venues, billing, settings, and support. Locked links send Trial accounts to billing.',
+  },
+  {
+    target: '[data-tour="dashboard-heading"]',
+    title: 'Dashboard',
+    body: 'This is your mobile control center. Use it to check the state of your wedding workspace quickly.',
+  },
+  {
+    target: '[data-tour="customize-invite"]',
+    title: 'Customize first',
+    body: 'Start with your invitation look: template, colors, photos, music, details, and sharing preview.',
+  },
+  {
+    target: '[data-tour="dashboard-stats"]',
+    title: 'Track progress',
+    body: 'These cards summarize invitations, RSVPs, attendance, no response, and the bride/groom invite split.',
+  },
+  {
+    target: '[data-tour="dashboard-checkin"]',
+    title: 'Check-in tools',
+    body: 'Plus and Pro plans unlock QR and staff check-in tools for the wedding entrance.',
+  },
+  {
+    target: '[data-tour="dashboard-categories"]',
+    title: 'Guest groups',
+    body: 'Use guest categories to review how VIPs, family, friends, colleagues, and guests are responding.',
+  },
+]
+
+const getDashboardTourConfig = () => {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024
+  return {
+    steps: isMobile ? MOBILE_DASHBOARD_TOUR_STEPS : DASHBOARD_TOUR_STEPS,
+    storageKey: isMobile ? 'vowlink-dashboard-mobile-tour-seen' : 'vowlink-dashboard-tour-seen',
+  }
 }
 
 const StatCard = ({ label, value, color, sub, loading, breakdown }) => (
@@ -306,8 +531,13 @@ const AdminDashboardPage = () => {
   const [invitations, setInvitations] = useState([])
   const [rsvps, setRsvps] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState(null)
   const [weddingDate, setWeddingDate] = useState(null)
+  const [tourOpen, setTourOpen] = useState(false)
+  const initialTourConfig = getDashboardTourConfig()
+  const [tourStorageKey, setTourStorageKey] = useState(initialTourConfig.storageKey)
+  const [tourTitle, setTourTitle] = useState('Getting started')
+  const [tourSteps, setTourSteps] = useState(initialTourConfig.steps)
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const tier = storedUser.tier || 'unpaid';
   const isUnpaid = tier === 'unpaid';
@@ -317,14 +547,51 @@ const AdminDashboardPage = () => {
     if (storedUser?.weddingDate) setWeddingDate(storedUser.weddingDate)
     const load = async () => {
       try {
-        const [invRes, rsvpRes] = await Promise.all([
+        const [invRes, rsvpRes, profileRes] = await Promise.all([
           api.get('/invitations'),
           api.get('/rsvps'),
+          api.get('/auth/me'),
         ])
         setInvitations(invRes.data)
         setRsvps(rsvpRes.data)
-      } catch {
-        setError(true)
+
+        const profile = profileRes.data || {}
+        const backendTier = profile.tier || 'unpaid'
+        const storedTier = storedUser.tier || 'unpaid'
+        if (backendTier !== storedTier) {
+          const nextUser = {
+            ...storedUser,
+            tier: backendTier,
+            partner1Name: profile.partner1Name || storedUser.partner1Name,
+            partner2Name: profile.partner2Name || storedUser.partner2Name,
+            email: profile.email || storedUser.email,
+            weddingDate: profile.weddingDate || storedUser.weddingDate,
+          }
+          localStorage.setItem('user', JSON.stringify(nextUser))
+          if (getTierRank(backendTier) > getTierRank(storedTier)) {
+            setTourTitle(`${getPlanLabel(backendTier)} unlocked`)
+            setTourSteps(getUpgradeTourSteps(backendTier))
+            setTourStorageKey(`vowlink-tier-tour-seen-${backendTier}`)
+            setTourOpen(true)
+          }
+        } else {
+          const dashboardTourConfig = getDashboardTourConfig()
+          if (localStorage.getItem(dashboardTourConfig.storageKey)) return
+          setTourTitle('Getting started')
+          setTourSteps(dashboardTourConfig.steps)
+          setTourStorageKey(dashboardTourConfig.storageKey)
+          window.setTimeout(() => setTourOpen(true), 500)
+        }
+      } catch (err) {
+        const status = err.response?.status
+        const message =
+          status === 401
+            ? 'Your session has expired. Please sign in again to continue.'
+            : status === 403
+              ? 'Your account does not have access to this dashboard.'
+              : err.response?.data?.message ||
+                'We could not load your dashboard right now. Please check your connection and try again.'
+        setError({ status, message })
       } finally {
         setLoading(false)
       }
@@ -332,7 +599,45 @@ const AdminDashboardPage = () => {
     load()
   }, [])
 
-  if (error) return <div className="p-8 text-red-400">Could not load data. Is the server running?</div>
+  if (error) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center p-4 sm:p-8">
+        <div className="w-full max-w-xl rounded-3xl border border-red-400/20 bg-[#0D1220] p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-red-400/25 bg-red-500/10 text-red-300">
+            <Icon icon={error.status === 401 ? 'lucide:shield-alert' : 'lucide:wifi-off'} className="h-5 w-5" />
+          </div>
+          <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.3em] text-red-300">
+            Dashboard unavailable
+          </p>
+          <h2 className="mt-2 font-serif text-2xl text-white">We could not load your workspace</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-white/55">
+            {error.message}
+          </p>
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#D8B76A] px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#070A13] transition hover:bg-[#F2D894]"
+            >
+              <Icon icon="lucide:refresh-cw" className="h-4 w-4" />
+              Retry
+            </button>
+            {error.status === 401 && (
+              <Link
+                to="/admin/login"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white/70 transition hover:bg-white/10 hover:text-white"
+              >
+                Sign in again
+              </Link>
+            )}
+          </div>
+          <p className="mt-5 text-[10px] leading-relaxed text-white/30">
+            If this keeps happening after retrying, contact VowLink support with the time of the error and the email on this account.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   const attending = rsvps.filter((r) => r.attending === 'Yes').length
   const notAttending = rsvps.filter((r) => r.attending === 'No').length
@@ -391,9 +696,35 @@ const AdminDashboardPage = () => {
 
   return (
     <div className="p-4 sm:p-8 space-y-10">
+      <GuidedTour
+        open={tourOpen}
+        title={tourTitle}
+        steps={tourSteps}
+        storageKey={tourStorageKey}
+        onClose={() => setTourOpen(false)}
+      />
+
       <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Overview</p>
-        <h2 className="font-serif text-3xl sm:text-4xl text-white mb-4">Dashboard</h2>
+        <div data-tour="dashboard-heading" className="mb-4 flex flex-col items-start gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Overview</p>
+            <h2 className="font-serif text-3xl sm:text-4xl text-white">Dashboard</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const dashboardTourConfig = getDashboardTourConfig()
+              setTourTitle('Getting started')
+              setTourSteps(dashboardTourConfig.steps)
+              setTourStorageKey(dashboardTourConfig.storageKey)
+              setTourOpen(true)
+            }}
+            className="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-[#D8B76A]/25 bg-[#D8B76A]/10 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#F2D894] transition hover:bg-[#D8B76A]/15"
+          >
+            <Icon icon="lucide:map" className="h-3.5 w-3.5" />
+            Take Tour
+          </button>
+        </div>
 
         {isUnpaid && (
           <div className="mb-6 rounded-3xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 p-5 shadow-[0_16px_40px_rgba(0,0,0,0.16)]">
@@ -403,10 +734,10 @@ const AdminDashboardPage = () => {
                   <Icon icon="lucide:lock-keyhole" className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Workspace Not Active</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Trial Workspace</p>
                   <h3 className="mt-1 font-serif text-2xl text-white">Choose a plan to publish invitations</h3>
                   <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/60">
-                    Your account is in onboarding mode. Billing is available, but live invitations, RSVP collection, downloads, WhatsApp sending, venue contacts, and check-in tools are locked until payment succeeds.
+                    Your account is in trial mode. Billing is available, but live invitations, RSVP collection, downloads, WhatsApp sending, venue contacts, and check-in tools are locked until payment succeeds.
                   </p>
                 </div>
               </div>
@@ -422,7 +753,7 @@ const AdminDashboardPage = () => {
         )}
 
         {/* Customization Tip Banner */}
-        <div className="mb-6 rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-5 py-4 flex items-start gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.15)] animate-fade-in">
+        <div data-tour="customize-invite" className="mb-6 rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-5 py-4 flex items-start gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.15)] animate-fade-in">
           <Icon icon="lucide:palette" className="text-xl text-[#D8B76A] mt-0.5 shrink-0" />
           <div className="flex-1 space-y-1">
             <h4 className="text-xs font-bold uppercase tracking-wider text-[#D8B76A]">Personalize Your Invitation</h4>
@@ -433,12 +764,12 @@ const AdminDashboardPage = () => {
         </div>
 
         {/* Wedding Countdown */}
-        <div className="mb-6">
+        <div data-tour="dashboard-countdown" className="mb-6">
           <CountdownWidget weddingDate={weddingDate} loading={loading} />
         </div>
 
         {/* Stats row */}
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        <div data-tour="dashboard-stats" className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
           <StatCard label="Total Invitations" value={invitations.length} color="text-white" loading={loading} breakdown={invitationBreakdown} />
           <StatCard label="RSVPs" value={rsvps.length} color="text-[#7FA6D9]" loading={loading} breakdown={rsvpBreakdown} />
           <StatCard label="Attending" value={attending} color="text-emerald-400" loading={loading} breakdown={attendingBreakdown} />
@@ -450,7 +781,7 @@ const AdminDashboardPage = () => {
           )}
         </div>
 
-        <div className="mt-6 rounded-3xl border border-emerald-400/15 bg-emerald-400/10 p-5 shadow-[0_16px_40px_rgba(0,0,0,0.16)]">
+        <div data-tour="dashboard-checkin" className="mt-6 rounded-3xl border border-emerald-400/15 bg-emerald-400/10 p-5 shadow-[0_16px_40px_rgba(0,0,0,0.16)]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">
@@ -483,7 +814,7 @@ const AdminDashboardPage = () => {
       </div>
 
       {/* Category breakdown */}
-      <div>
+      <div data-tour="dashboard-categories">
         <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Breakdown</p>
         <h3 className="font-serif text-2xl text-white mb-6">Guests by Category</h3>
 

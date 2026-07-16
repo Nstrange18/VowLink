@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { Icon } from "@iconify/react";
 import api from "../../utils/api";
 import Skeleton from "../../components/common/Skeleton";
+import PageMiniTour from "../../components/PageMiniTour";
 
 const formatDate = (date) => {
   if (!date) return "";
@@ -67,6 +68,24 @@ const filters = [
   { value: "unavailable", label: "Unavailable" },
 ];
 
+const VENUE_REQUESTS_TOUR_STEPS = [
+  {
+    target: '[data-tour="venue-requests-header"]',
+    title: "Venue request history",
+    body: "Track every venue you contacted from VowLink and see whether each request is waiting, replied, or unavailable.",
+  },
+  {
+    target: '[data-tour="venue-requests-filters"]',
+    title: "Request filters",
+    body: "Use these tabs to focus on requests that still need follow-up or those that have already received a response.",
+  },
+  {
+    target: '[data-tour="venue-requests-list"]',
+    title: "Request cards",
+    body: "Each card keeps the venue, your message, status, and direct follow-up actions in one place.",
+  },
+];
+
 const AdminVenueInquiriesPage = () => {
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -111,7 +130,7 @@ const AdminVenueInquiriesPage = () => {
   return (
     <div className="venue-requests-page min-h-full bg-[#070A13] px-4 py-8 text-white sm:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
-        <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <header data-tour="venue-requests-header" className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.35em] text-[#D8B76A]">Venue Requests</p>
             <h1 className="font-serif text-4xl leading-tight">Inquiry History</h1>
@@ -119,18 +138,21 @@ const AdminVenueInquiriesPage = () => {
               Track venues you contacted, see whether they have responded, and follow up when a request has been waiting.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={fetchInquiries}
-            disabled={loading}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-[#d4b978] transition hover:text-[#D8B76A] disabled:opacity-50"
-          >
-            <Icon icon="lucide:refresh-cw" className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <PageMiniTour title="Venue requests tour" storageKey="vowlink-tour-venue-requests" steps={VENUE_REQUESTS_TOUR_STEPS} />
+            <button
+              type="button"
+              onClick={fetchInquiries}
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-[#d4b978] transition hover:text-[#D8B76A] disabled:opacity-50"
+            >
+              <Icon icon="lucide:refresh-cw" className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
+          </div>
         </header>
 
-        <div className="flex flex-wrap gap-2 rounded-3xl border border-white/10 bg-[#0D1220] p-3">
+        <div data-tour="venue-requests-filters" className="flex flex-wrap gap-2 rounded-3xl border border-white/10 bg-[#0D1220] p-3">
           {filters.map((item) => (
             <button
               key={item.value}
@@ -153,13 +175,13 @@ const AdminVenueInquiriesPage = () => {
         </div>
 
         {loading ? (
-          <div className="grid gap-4">
+          <div data-tour="venue-requests-list" className="grid gap-4">
             {[0, 1, 2].map((item) => (
               <Skeleton key={item} className="h-40 w-full rounded-3xl" />
             ))}
           </div>
         ) : visibleInquiries.length ? (
-          <div className="grid gap-4">
+          <div data-tour="venue-requests-list" className="grid gap-4">
             {visibleInquiries.map((inquiry) => {
               const statusMeta = getStatusMeta(inquiry.status, inquiry.createdAt);
               const venue = inquiry.venue;
@@ -241,7 +263,7 @@ const AdminVenueInquiriesPage = () => {
             })}
           </div>
         ) : (
-          <div className="rounded-3xl border border-dashed border-white/15 bg-[#0D1220] p-10 text-center">
+          <div data-tour="venue-requests-list" className="rounded-3xl border border-dashed border-white/15 bg-[#0D1220] p-10 text-center">
             <Icon icon="lucide:mail-open" className="mx-auto h-10 w-10 text-white/30" />
             <h2 className="mt-5 font-serif text-2xl">No venue requests here yet</h2>
             <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-white/45">

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
+import GuidedTour from "../../components/GuidedTour";
+import PageMiniTour from "../../components/PageMiniTour";
 
 const PLANS = [
   {
@@ -117,11 +119,29 @@ const loadPaystackScript = () => {
 const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 
 const PLAN_LABELS = {
-  unpaid: "Unpaid",
+  unpaid: "Trial",
   free: "Classic",
   plus: "Plus",
   pro: "Pro",
 };
+
+const BILLING_TOUR_STEPS = [
+  {
+    target: '[data-tour="billing-header"]',
+    title: "Current plan",
+    body: "Use this area to confirm the plan currently attached to the wedding workspace.",
+  },
+  {
+    target: '[data-tour="plan-comparison"]',
+    title: "Plan summary",
+    body: "Compare Trial, Classic, Plus, and Pro quickly before choosing what fits the event.",
+  },
+  {
+    target: '[data-tour="plans-grid"]',
+    title: "Upgrade cards",
+    body: "Each card shows pricing, included features, and what will unlock after successful Paystack payment.",
+  },
+];
 
 const ACTIVATION_COPY = {
   free: {
@@ -138,6 +158,54 @@ const ACTIVATION_COPY = {
   },
 };
 
+const getActivationTourSteps = (tier, name) => {
+  if (tier === "free") {
+    return [
+      {
+        target: '[data-tour="activation-notice"]',
+        title: `${name} is active`,
+        body: "Classic gives you the core invitation workflow for a focused event.",
+        items: ["Create 1 invitation link", "Collect up to 20 RSVPs", "Use the Classic template collection"],
+      },
+      {
+        target: '[data-tour="plan-comparison"]',
+        title: "Know what stays locked",
+        body: "QR check-in, guest-specific links, staff mode, bulk WhatsApp, seating, exports, and advanced design tools become available on higher plans.",
+      },
+    ];
+  }
+
+  if (tier === "plus") {
+    return [
+      {
+        target: '[data-tour="activation-notice"]',
+        title: `${name} is active`,
+        body: "Plus unlocks the tools most couples need once the guest list becomes more structured.",
+        items: ["100 personalized guest links", "Individual guest QR codes", "Event PIN check-in", "Full venue details", "Gallery photos and music"],
+      },
+      {
+        target: '[data-tour="plan-comparison"]',
+        title: "What Pro adds later",
+        body: "Pro is still the plan for staff search mode, printable QR sheets, RSVP exports, seating, bulk WhatsApp, AI tools, and custom designs.",
+      },
+    ];
+  }
+
+  return [
+    {
+      target: '[data-tour="activation-notice"]',
+      title: `${name} is active`,
+      body: "Pro unlocks the full event operations layer for larger weddings and organized teams.",
+      items: ["Staff mode for ushers", "Printable QR sheets", "Seating chart", "Bulk WhatsApp sender", "RSVP exports", "AI and custom design tools"],
+    },
+    {
+      target: '[data-tour="plans-grid"]',
+      title: "You have the full toolkit",
+      body: "Your next step is to customize the invitation, import guests, set the check-in PIN, and prepare WhatsApp sending or QR sheets if needed.",
+    },
+  ];
+};
+
 const AdminBillingPage = () => {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("user") || "{}")
@@ -149,6 +217,7 @@ const AdminBillingPage = () => {
   const [devBypassLocked, setDevBypassLocked] = useState(false);
   const devBypassSubmittingRef = useRef(false);
   const [activationNotice, setActivationNotice] = useState(null);
+  const [activationTourOpen, setActivationTourOpen] = useState(false);
 
   const currentTier = user.tier || "unpaid";
 
@@ -159,6 +228,7 @@ const AdminBillingPage = () => {
     try {
       const parsed = JSON.parse(stored);
       setActivationNotice(parsed);
+      setActivationTourOpen(true);
     } catch {
       setActivationNotice(null);
     }
@@ -304,6 +374,14 @@ const AdminBillingPage = () => {
 
   return (
     <div className="p-4 sm:p-8 max-w-6xl mx-auto">
+      <GuidedTour
+        open={activationTourOpen && Boolean(activationNotice)}
+        title="Unlocked features"
+        steps={activationNotice ? getActivationTourSteps(activationNotice.tier, activationNotice.name) : []}
+        storageKey={activationNotice ? `vowlink-tier-tour-seen-${activationNotice.tier}` : undefined}
+        onClose={() => setActivationTourOpen(false)}
+      />
+
       {loadingPaystack && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs">
           <div className="bg-[#090D19] border border-white/10 p-6 rounded-2xl text-center space-y-4 shadow-2xl">
@@ -313,7 +391,7 @@ const AdminBillingPage = () => {
         </div>
       )}
 
-      <div className="mb-8 flex justify-between items-start gap-4 flex-wrap">
+      <div data-tour="billing-header" className="mb-8 flex justify-between items-start gap-4 flex-wrap">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Pricing Plans</p>
           <h2 className="font-serif text-3xl sm:text-4xl text-white">Billing & Subscription</h2>
@@ -325,6 +403,8 @@ const AdminBillingPage = () => {
             Current plan: <span className="text-white">{PLAN_LABELS[currentTier] || currentTier}</span>
           </div>
         </div>
+        <div className="flex flex-col gap-3">
+        <PageMiniTour title="Billing tour" storageKey="vowlink-tour-billing" steps={BILLING_TOUR_STEPS} />
         <div className="bg-[#090D19] border border-white/10 p-4 rounded-2xl flex flex-col gap-1.5 min-w-44">
           <label className="block text-[10px] uppercase tracking-wider text-white/50 font-bold">Select Currency</label>
           <select
@@ -339,10 +419,11 @@ const AdminBillingPage = () => {
             ))}
           </select>
         </div>
+        </div>
       </div>
 
       {activationNotice && (
-        <div className="mb-6 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-5">
+        <div data-tour="activation-notice" className="mb-6 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/25 bg-emerald-400/10 text-emerald-300">
@@ -354,13 +435,23 @@ const AdminBillingPage = () => {
                 <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/60">{activationNotice.body}</p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActivationNotice(null)}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-emerald-200 transition hover:bg-emerald-400/15"
-            >
-              Dismiss
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActivationTourOpen(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#06261B] transition hover:bg-emerald-200"
+              >
+                <Icon icon="lucide:map" className="h-3.5 w-3.5" />
+                Show Tour
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivationNotice(null)}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-emerald-200 transition hover:bg-emerald-400/15"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -372,19 +463,19 @@ const AdminBillingPage = () => {
               <Icon icon="lucide:lock-keyhole" className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Workspace Not Active</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Trial Workspace</p>
               <h3 className="mt-1 font-serif text-2xl text-white">Choose a plan to publish invitations</h3>
               <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/60">
-                Unpaid accounts can view the dashboard and compare plans, but live invitations, RSVPs, downloads, venue contacts, WhatsApp sending, and check-in tools stay locked until payment succeeds.
+                Trial accounts can view the dashboard and compare plans, but live invitations, RSVPs, downloads, venue contacts, WhatsApp sending, and check-in tools stay locked until payment succeeds.
               </p>
             </div>
           </div>
         </div>
       )}
 
-      <div className="mb-6 grid gap-3 md:grid-cols-4">
+      <div data-tour="plan-comparison" className="mb-6 grid gap-3 md:grid-cols-4">
         {[
-          ["Unpaid", "Account only. Compare plans and activate billing."],
+          ["Trial", "Account preview. Compare plans and activate billing."],
           ["Classic", "NGN 30,000. 1 invite, 20 RSVPs, 6 Classic templates, no check-in."],
           ["Plus", "NGN 68,000. 100 guests, personalized links, QR codes, event PIN check-in."],
           ["Pro", "NGN 120,000. Staff mode, QR sheets, seating, bulk WhatsApp, exports, AI and custom design."],
@@ -397,7 +488,7 @@ const AdminBillingPage = () => {
       </div>
 
       {/* Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+      <div data-tour="plans-grid" className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {PLANS.map((plan) => {
           const isActive = plan.id === currentTier;
           return (

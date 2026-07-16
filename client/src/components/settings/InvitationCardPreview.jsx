@@ -739,7 +739,7 @@ const InvitationCardPreview = () => {
     : "w-full max-w-full bg-[#070A13] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 p-4 sm:p-6 relative isolate flex items-start justify-center min-h-0 pt-6";
 
   return (
-    <div className="col-span-12 lg:col-span-6 min-w-0 lg:h-full">
+    <div data-tour="settings-preview" className="col-span-12 min-w-0 lg:col-span-6 lg:h-full">
       <div className="space-y-4 animate-fade-in min-w-0 overflow-hidden lg:h-full lg:max-h-full lg:overflow-x-hidden lg:overflow-y-auto lg:pr-1">
         <p className="text-xs uppercase tracking-[0.25em] text-[#D8B76A] font-bold">Live Invitation Card Preview</p>
 

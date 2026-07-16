@@ -696,16 +696,23 @@ router.patch("/:id/whatsapp-status", protect, requireProWorkspace, async (req, r
     const { whatsappStatus, whatsappSentBy } = req.body;
     
     if (whatsappStatus) {
-      if (!["not_sent", "ready", "sent", "missing_number"].includes(whatsappStatus)) {
+      if (!["not_sent", "ready", "queued", "sent", "delivered", "read", "failed", "missing_number"].includes(whatsappStatus)) {
         return res.status(400).json({ message: "Invalid WhatsApp status value." });
       }
       invitation.whatsappStatus = whatsappStatus;
       if (whatsappStatus === "sent") {
         invitation.whatsappSentAt = new Date();
         invitation.whatsappSentBy = whatsappSentBy || req.user.email || "user";
+        invitation.whatsappProvider = "manual";
+        invitation.whatsappFailureReason = "";
       } else {
         invitation.whatsappSentAt = undefined;
         invitation.whatsappSentBy = undefined;
+        invitation.whatsappMessageId = undefined;
+        invitation.whatsappDeliveredAt = undefined;
+        invitation.whatsappReadAt = undefined;
+        invitation.whatsappFailedAt = undefined;
+        invitation.whatsappFailureReason = "";
       }
     }
 

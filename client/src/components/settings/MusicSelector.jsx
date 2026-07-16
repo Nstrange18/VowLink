@@ -114,10 +114,10 @@ const MusicSelector = () => {
                   <button
                     type="button"
                     onClick={() => removePhoto(index)}
-                    className="absolute top-1.5 right-1.5 z-10 w-5 h-5 rounded-full bg-red-900 text-white hover:bg-red-700 flex items-center justify-center transition shadow-lg md:opacity-0 md:group-hover:opacity-100 cursor-pointer text-[10px] font-bold"
+                    className="absolute top-1.5 right-1.5 z-10 w-5 h-5 rounded-full bg-black/70 text-red-200 hover:bg-red-300 flex items-center justify-center transition shadow-lg md:opacity-0 md:group-hover:opacity-100 cursor-pointer text-[10px] font-bold"
                     title="Delete photo"
                   >
-                    <Icon icon="mdi:trash-outline" className="h-4 w-4" />
+                    <Icon icon="lucide:trash-2" className="h-3 w-3" />
                   </button>
                 </div>
               ))}

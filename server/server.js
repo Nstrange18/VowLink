@@ -17,6 +17,7 @@ const venueRoutes = require("./routes/venueRoutes");
 const superAdminRoutes = require("./routes/superAdminRoutes");
 const seatingRoutes = require("./routes/seatingRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const whatsappRoutes = require("./routes/whatsappRoutes");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -108,6 +109,7 @@ app.use("/api/venues", venueRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 app.use("/api/seating", seatingRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/whatsapp", whatsappRoutes);
 
 const PORT = process.env.PORT || 5000;
 

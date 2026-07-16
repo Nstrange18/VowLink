@@ -3,6 +3,25 @@ import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import Skeleton from '../../components/common/Skeleton'
 import { Icon } from '@iconify/react'
+import PageMiniTour from '../../components/PageMiniTour'
+
+const RSVPS_TOUR_STEPS = [
+  {
+    target: '[data-tour="rsvps-header"]',
+    title: 'RSVP limit',
+    body: 'This shows how many RSVP responses you have received compared with your current plan limit.',
+  },
+  {
+    target: '[data-tour="rsvps-filter"]',
+    title: 'Invited-by filter',
+    body: 'Filter responses by bride, groom, both, or general so follow-up stays organized.',
+  },
+  {
+    target: '[data-tour="rsvps-list"]',
+    title: 'Response list',
+    body: 'Review attendance, guest count, meal preference, message, and submission date from here.',
+  },
+]
 
 const AdminRsvpsPage = () => {
   const [rsvps, setRsvps] = useState([])
@@ -79,7 +98,7 @@ const AdminRsvpsPage = () => {
 
   return (
     <div className="p-4 sm:p-8">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div data-tour="rsvps-header" className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Responses</p>
           <h2 className="font-serif text-3xl sm:text-4xl text-white mb-2">RSVPs</h2>
@@ -112,6 +131,7 @@ const AdminRsvpsPage = () => {
             )}
           </div>
         </div>
+        <PageMiniTour title="RSVP tour" storageKey="vowlink-tour-rsvps" steps={RSVPS_TOUR_STEPS} />
         {rsvps.length > 0 && (
           <button
             onClick={exportCSV}
@@ -129,7 +149,7 @@ const AdminRsvpsPage = () => {
       </div>
 
       {rsvps.length > 0 && (
-        <div className="mb-6 rounded-2xl border border-white/10 bg-[#0D1220] p-4 shadow-lg backdrop-blur-md">
+        <div data-tour="rsvps-filter" className="mb-6 rounded-2xl border border-white/10 bg-[#0D1220] p-4 shadow-lg backdrop-blur-md">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#D8B76A]">Invited by</p>
@@ -228,7 +248,7 @@ const AdminRsvpsPage = () => {
           ) : (
             <>
               {/* Desktop table */}
-              <div className="hidden sm:block overflow-x-auto rounded-2xl border border-white/10">
+              <div data-tour="rsvps-list" className="hidden sm:block overflow-x-auto rounded-2xl border border-white/10">
                 <table className="w-full min-w-215 text-sm">
                   <thead>
                     <tr className="border-b border-white/10 text-left text-xs uppercase tracking-widest text-white/40">
@@ -280,7 +300,7 @@ const AdminRsvpsPage = () => {
               </div>
 
               {/* Mobile cards */}
-              <div className="flex flex-col gap-3 sm:hidden">
+              <div data-tour="rsvps-list" className="flex flex-col gap-3 sm:hidden">
                 {filteredRsvps.map((r) => {
                   const invitedBy = getSenderGroupMeta(r)
                   return (
