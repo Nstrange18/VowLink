@@ -231,20 +231,45 @@ router.get("/webhook", (req, res) => {
 router.post("/webhook", async (req, res) => {
   try {
     const entries = Array.isArray(req.body?.entry) ? req.body.entry : [];
+    let statusUpdates = 0;
+    let matchedUpdates = 0;
 
     for (const entry of entries) {
       const changes = Array.isArray(entry?.changes) ? entry.changes : [];
       for (const change of changes) {
         const statuses = Array.isArray(change?.value?.statuses) ? change.value.statuses : [];
         for (const update of statuses) {
-          const invitation = await Invitation.findOne({ whatsappMessageId: update.id });
-          if (!invitation) continue;
-
+          statusUpdates++;
           const failureReason = update?.errors?.[0]?.message || update?.errors?.[0]?.title || "";
+          const invitation = await Invitation.findOne({ whatsappMessageId: update.id });
+          if (!invitation) {
+            console.warn("[WHATSAPP WEBHOOK] Status update did not match an invitation.", {
+              messageId: update.id,
+              status: update.status,
+              failureReason,
+            });
+            continue;
+          }
+
+          matchedUpdates++;
           applyCloudStatus(invitation, update.status, failureReason);
           await invitation.save();
+
+          console.info("[WHATSAPP WEBHOOK] Status update applied.", {
+            messageId: update.id,
+            status: update.status,
+            invitationId: String(invitation._id),
+            failureReason,
+          });
         }
       }
+    }
+
+    if (statusUpdates > 0) {
+      console.info("[WHATSAPP WEBHOOK] Processed status updates.", {
+        statusUpdates,
+        matchedUpdates,
+      });
     }
 
     return res.sendStatus(200);
