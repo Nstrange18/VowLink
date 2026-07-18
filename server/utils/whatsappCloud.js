@@ -2,7 +2,9 @@ const GRAPH_API_VERSION = process.env.WHATSAPP_GRAPH_API_VERSION || "v20.0";
 const DEFAULT_TEMPLATE_NAME = "vowlink_invitation";
 const DEFAULT_LANGUAGE_CODE = "en";
 const DEFAULT_GUEST_NAME_PARAMETER = "guest_name";
-const DEFAULT_INVITE_LINK_PARAMETER = "invite_link";
+const DEFAULT_INVITE_MESSAGE_PARAMETER = "invite_message";
+const DEFAULT_URL_BUTTON_INDEX = "0";
+const DEFAULT_URL_BUTTON_VALUE_MODE = "full";
 
 const getWhatsAppConfigStatus = () => {
   const phoneNumberId = Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID);
@@ -19,7 +21,12 @@ const getWhatsAppConfigStatus = () => {
     templateName: process.env.WHATSAPP_INVITE_TEMPLATE_NAME || DEFAULT_TEMPLATE_NAME,
     languageCode: process.env.WHATSAPP_TEMPLATE_LANGUAGE || DEFAULT_LANGUAGE_CODE,
     guestNameParameter: process.env.WHATSAPP_GUEST_NAME_PARAMETER || DEFAULT_GUEST_NAME_PARAMETER,
-    inviteLinkParameter: process.env.WHATSAPP_INVITE_LINK_PARAMETER || DEFAULT_INVITE_LINK_PARAMETER,
+    inviteMessageParameter:
+      process.env.WHATSAPP_INVITE_MESSAGE_PARAMETER ||
+      process.env.WHATSAPP_INVITE_LINK_PARAMETER ||
+      DEFAULT_INVITE_MESSAGE_PARAMETER,
+    urlButtonIndex: process.env.WHATSAPP_URL_BUTTON_INDEX || DEFAULT_URL_BUTTON_INDEX,
+    urlButtonValueMode: process.env.WHATSAPP_URL_BUTTON_VALUE_MODE || DEFAULT_URL_BUTTON_VALUE_MODE,
   };
 };
 
@@ -50,14 +57,36 @@ const parseCloudApiError = async (response) => {
   return metaDetails || metaMessage || `WhatsApp Cloud API request failed with status ${response.status}`;
 };
 
+const buildInviteMessage = (coupleNames) =>
+  `you are specially invited to celebrate the wedding of ${coupleNames || "the couple"}.`;
+
+const buildUrlButtonValue = (inviteLink, mode = DEFAULT_URL_BUTTON_VALUE_MODE) => {
+  if (!inviteLink) return "";
+  if (mode === "full") return inviteLink;
+
+  try {
+    const url = new URL(inviteLink);
+    const cleanPath = url.pathname.replace(/^\/+/, "");
+    if (mode === "path") return cleanPath;
+    if (mode === "slug") return cleanPath.split("/").filter(Boolean).pop() || cleanPath;
+  } catch {
+    return inviteLink;
+  }
+
+  return inviteLink;
+};
+
 const buildInvitationTemplatePayload = ({
   to,
   guestName,
+  inviteMessage,
   inviteLink,
   templateName,
   languageCode,
   guestNameParameter,
-  inviteLinkParameter,
+  inviteMessageParameter,
+  urlButtonIndex,
+  urlButtonValueMode,
 }) => ({
   messaging_product: "whatsapp",
   to,
@@ -78,8 +107,19 @@ const buildInvitationTemplatePayload = ({
           },
           {
             type: "text",
-            parameter_name: inviteLinkParameter || DEFAULT_INVITE_LINK_PARAMETER,
-            text: inviteLink || "",
+            parameter_name: inviteMessageParameter || DEFAULT_INVITE_MESSAGE_PARAMETER,
+            text: inviteMessage || buildInviteMessage(),
+          },
+        ],
+      },
+      {
+        type: "button",
+        sub_type: "url",
+        index: String(urlButtonIndex || DEFAULT_URL_BUTTON_INDEX),
+        parameters: [
+          {
+            type: "text",
+            text: buildUrlButtonValue(inviteLink, urlButtonValueMode),
           },
         ],
       },
@@ -101,11 +141,14 @@ const sendInvitationTemplate = async ({ to, guestName, coupleNames, inviteLink }
   const payload = buildInvitationTemplatePayload({
     to: normalizedPhone,
     guestName,
+    inviteMessage: buildInviteMessage(coupleNames),
     inviteLink,
     templateName: status.templateName,
     languageCode: status.languageCode,
     guestNameParameter: status.guestNameParameter,
-    inviteLinkParameter: status.inviteLinkParameter,
+    inviteMessageParameter: status.inviteMessageParameter,
+    urlButtonIndex: status.urlButtonIndex,
+    urlButtonValueMode: status.urlButtonValueMode,
   });
 
   const response = await fetch(
