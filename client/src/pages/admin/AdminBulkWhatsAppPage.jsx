@@ -22,7 +22,7 @@ const WHATSAPP_TOUR_STEPS = [
   {
     target: '[data-tour="whatsapp-queues"]',
     title: "Guest queues",
-    body: "Switch between bride, groom, general, missing numbers, sent, and all guests.",
+    body: "Switch between bride, groom, general, missing numbers, submitted invites, and all guests.",
   },
   {
     target: '[data-tour="whatsapp-controls"]',
@@ -80,7 +80,7 @@ const AdminBulkWhatsAppPage = () => {
   const coupleNames = user.partner1Name && user.partner2Name ? `${user.partner1Name} and ${user.partner2Name}` : "us";
   const cloudConfigured = Boolean(cloudConfig?.configured);
 
-  const sentStatuses = new Set(["sent", "delivered", "read"]);
+  const sentStatuses = new Set(["queued", "sent", "delivered", "read"]);
   const isGuestSendable = (guest) => {
     const isMissing = !guest?.phoneNumber || guest?.whatsappStatus === "missing_number";
     return Boolean(guest && !isMissing && !sentStatuses.has(guest.whatsappStatus));
@@ -88,6 +88,7 @@ const AdminBulkWhatsAppPage = () => {
 
   const getStatusLabel = (guest) => {
     if (!guest.phoneNumber || guest.whatsappStatus === "missing_number") return "Missing Num";
+    if (guest.whatsappStatus === "queued") return "Accepted";
     return (guest.whatsappStatus || "not_sent").replace("_", " ");
   };
 
@@ -96,9 +97,15 @@ const AdminBulkWhatsAppPage = () => {
     if (status === "read") return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
     if (status === "delivered") return "bg-teal-500/15 text-teal-300 border-teal-500/25";
     if (status === "sent") return "bg-emerald-500/15 text-emerald-400 border-emerald-500/25";
-    if (status === "ready" || status === "queued") return "bg-blue-500/15 text-blue-400 border-blue-500/25";
+    if (status === "queued") return "bg-sky-500/15 text-sky-300 border-sky-500/25";
+    if (status === "ready") return "bg-blue-500/15 text-blue-400 border-blue-500/25";
     if (status === "failed") return "bg-red-500/15 text-red-300 border-red-500/25";
     return "bg-white/5 text-white/40 border-white/5";
+  };
+
+  const getShortMessageId = (messageId) => {
+    if (!messageId) return "";
+    return String(messageId).slice(-10);
   };
 
   const getSenderName = () => {
@@ -145,7 +152,7 @@ const AdminBulkWhatsAppPage = () => {
         </div>
         <h2 className="font-serif text-3xl text-white mb-3">Pro-Only Feature</h2>
         <p className="text-white/60 text-sm mb-8 leading-relaxed">
-          The Bulk WhatsApp Invite Sender is a Pro tool. Upgrade to VowLink Pro to assign guests to partner queues, compose customized WhatsApp message templates, and track who has been sent their invite links.
+          The Bulk WhatsApp Invite Sender is a Pro tool. Upgrade to VowLink Pro to assign guests to partner queues, compose customized WhatsApp message templates, and track who has received invite links through Meta.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
@@ -198,7 +205,7 @@ const AdminBulkWhatsAppPage = () => {
     if (activeTab === "sent") return sentStatuses.has(inv.whatsappStatus);
     if (activeTab === "missing") return isMissing;
 
-    // Partner/general queues show only active, valid, non-sent guests
+    // Partner/general queues show only active, valid guests that are not already submitted.
     if (sentStatuses.has(inv.whatsappStatus) || isMissing) return false;
 
     if (activeTab === "bride") return inv.senderGroup === "bride" || inv.senderGroup === "both";
@@ -361,7 +368,7 @@ const AdminBulkWhatsAppPage = () => {
       setInvitations((prev) =>
         prev.map((inv) => (inv._id === guest._id ? { ...inv, ...res.data.data } : inv))
       );
-      toast.success(`Sent WhatsApp invite to ${guest.guestName}.`);
+      toast.success(`Submitted WhatsApp invite for ${guest.guestName} to Meta.`);
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to send WhatsApp invite.");
     } finally {
@@ -627,7 +634,7 @@ const AdminBulkWhatsAppPage = () => {
                     </p>
                     <p className="mt-1 text-[10px] leading-relaxed text-white/55">
                       {cloudConfigured
-                        ? `${cloudConfig?.templateName || "vowlink_invitation"} sends through the approved Meta template.`
+                        ? `${cloudConfig?.templateName || "vowlink_invitation"} submits through the approved Meta template. Delivery updates arrive by webhook.`
                         : "Add the WhatsApp Cloud API env vars on Render, then use one button to send selected invite links officially."}
                     </p>
                   </div>
@@ -648,18 +655,18 @@ const AdminBulkWhatsAppPage = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Sending...
+                      Submitting...
                     </>
                   ) : (
                     <>
                       <Icon icon="lucide:send" className="h-4.5 w-4.5" />
-                      Send via Cloud API ({selectedSendableCount})
+                      Submit via Cloud API ({selectedSendableCount})
                     </>
                   )}
                 </button>
                 {selectedIds.length > 0 && selectedSendableCount !== selectedIds.length && (
                   <p className="mt-2 text-[10px] leading-relaxed text-white/45">
-                    {selectedIds.length - selectedSendableCount} selected guest{selectedIds.length - selectedSendableCount === 1 ? "" : "s"} will be skipped because they are missing a number or already sent.
+                    {selectedIds.length - selectedSendableCount} selected guest{selectedIds.length - selectedSendableCount === 1 ? "" : "s"} will be skipped because they are missing a number or already submitted.
                   </p>
                 )}
               </div>
@@ -678,7 +685,7 @@ const AdminBulkWhatsAppPage = () => {
               { id: "groom", label: "Groom's Queue", count: counts.groom },
               { id: "general", label: "General Queue", count: counts.general },
               { id: "missing", label: "Missing Numbers", count: counts.missing },
-              { id: "sent", label: "Sent", count: counts.sent },
+              { id: "sent", label: "Submitted", count: counts.sent },
               { id: "all", label: "All Guests", count: counts.all },
             ].map((tab) => (
               <button
@@ -904,7 +911,12 @@ const AdminBulkWhatsAppPage = () => {
                             </span>
                             {sentStatuses.has(guest.whatsappStatus) && guest.whatsappSentBy && (
                               <div className="text-[9px] text-white/40 mt-1 block">
-                                by {guest.whatsappSentBy}
+                                {guest.whatsappStatus === "queued" ? "accepted by" : "by"} {guest.whatsappSentBy}
+                              </div>
+                            )}
+                            {guest.whatsappMessageId && (
+                              <div className="mx-auto mt-1 block max-w-32 truncate text-[9px] text-white/35">
+                                ID ...{getShortMessageId(guest.whatsappMessageId)}
                               </div>
                             )}
                             {guest.whatsappStatus === "failed" && guest.whatsappFailureReason && (
@@ -932,7 +944,7 @@ const AdminBulkWhatsAppPage = () => {
                                 <button
                                   onClick={() => handleCloudSendGuest(guest)}
                                   disabled={loadingIds.has(guest._id)}
-                                  title="Send approved Cloud API template"
+                                  title="Submit approved Cloud API template to Meta"
                                   className="w-full sm:w-auto rounded-lg border border-emerald-300/30 bg-emerald-300 px-2.5 py-1.5 text-[10px] font-bold text-[#07130e] transition hover:bg-emerald-200 hover:shadow-[0_8px_20px_rgba(16,185,129,0.16)] focus:outline-none focus:ring-2 focus:ring-emerald-300/40 active:translate-y-px cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                                 >
                                   {loadingIds.has(guest._id) ? (
@@ -943,7 +955,7 @@ const AdminBulkWhatsAppPage = () => {
                                   ) : (
                                     <>
                                       <Icon icon="lucide:send" className="h-3 w-3" />
-                                      Cloud
+                                      Submit
                                     </>
                                   )}
                                 </button>

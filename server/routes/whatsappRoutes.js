@@ -10,6 +10,7 @@ const {
 } = require("../utils/whatsappCloud");
 
 const router = express.Router();
+const CLOUD_FINAL_OR_PENDING_STATUSES = ["queued", "sent", "delivered", "read"];
 
 const getPublicSiteUrl = () =>
   String(process.env.PUBLIC_SITE_URL || process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173")
@@ -121,8 +122,8 @@ router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
       return res.status(400).json({ message: "This guest does not have a valid WhatsApp phone number." });
     }
 
-    if (["sent", "delivered", "read"].includes(invitation.whatsappStatus)) {
-      return res.status(409).json({ message: "This guest has already been sent a WhatsApp invitation." });
+    if (CLOUD_FINAL_OR_PENDING_STATUSES.includes(invitation.whatsappStatus)) {
+      return res.status(409).json({ message: "This guest already has a pending or completed WhatsApp invitation." });
     }
 
     const result = await sendInvitationTemplate({
@@ -132,7 +133,7 @@ router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
       inviteLink: buildInviteLink(invitation),
     });
 
-    invitation.whatsappStatus = "sent";
+    invitation.whatsappStatus = "queued";
     invitation.whatsappProvider = "cloud_api";
     invitation.whatsappMessageId = result.messageId;
     invitation.whatsappSentAt = new Date();
@@ -142,7 +143,7 @@ router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
     await invitation.save();
     logCloudSendAccepted(result, invitation);
 
-    return res.json({ message: "WhatsApp invitation sent.", data: invitation });
+    return res.json({ message: "WhatsApp invitation submitted to Meta.", data: invitation });
   } catch (error) {
     if (invitation) {
       await markInvitationFailure(invitation, error.message);
@@ -168,12 +169,12 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
 
     const invitations = await Invitation.find({ _id: { $in: uniqueIds }, userId: req.user.id });
     const results = [];
-    let sent = 0;
+    let submitted = 0;
     let failed = 0;
     let skipped = 0;
 
     for (const invitation of invitations) {
-      if (["sent", "delivered", "read"].includes(invitation.whatsappStatus)) {
+      if (CLOUD_FINAL_OR_PENDING_STATUSES.includes(invitation.whatsappStatus)) {
         skipped++;
         results.push({ id: invitation._id, status: invitation.whatsappStatus, data: invitation });
         continue;
@@ -197,8 +198,8 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
           inviteLink: buildInviteLink(invitation),
         });
 
-        sent++;
-        invitation.whatsappStatus = "sent";
+        submitted++;
+        invitation.whatsappStatus = "queued";
         invitation.whatsappProvider = "cloud_api";
         invitation.whatsappMessageId = result.messageId;
         invitation.whatsappSentAt = new Date();
@@ -207,7 +208,7 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
         invitation.whatsappFailedAt = undefined;
         await invitation.save();
         logCloudSendAccepted(result, invitation);
-        results.push({ id: invitation._id, status: "sent", data: invitation });
+        results.push({ id: invitation._id, status: "queued", data: invitation });
       } catch (error) {
         failed++;
         await markInvitationFailure(invitation, error.message);
@@ -216,8 +217,9 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
     }
 
     return res.json({
-      message: `WhatsApp send complete: ${sent} sent, ${failed} failed, ${skipped} skipped.`,
-      sent,
+      message: `WhatsApp send complete: ${submitted} submitted, ${failed} failed, ${skipped} skipped.`,
+      sent: submitted,
+      submitted,
       failed,
       skipped,
       results,
