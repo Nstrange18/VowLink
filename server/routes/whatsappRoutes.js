@@ -47,6 +47,15 @@ const markInvitationFailure = async (invitation, reason) => {
   await invitation.save();
 };
 
+const logCloudSendAccepted = (result, invitation) => {
+  console.info("[WHATSAPP SEND] Meta accepted template send.", {
+    messageId: result.messageId,
+    invitationId: String(invitation._id),
+    status: result.response?.messages?.[0]?.message_status,
+    contactId: result.response?.contacts?.[0]?.wa_id,
+  });
+};
+
 const applyCloudStatus = (invitation, status, failureReason = "") => {
   const now = new Date();
   invitation.whatsappProvider = "cloud_api";
@@ -131,6 +140,7 @@ router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
     invitation.whatsappFailureReason = "";
     invitation.whatsappFailedAt = undefined;
     await invitation.save();
+    logCloudSendAccepted(result, invitation);
 
     return res.json({ message: "WhatsApp invitation sent.", data: invitation });
   } catch (error) {
@@ -196,6 +206,7 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
         invitation.whatsappFailureReason = "";
         invitation.whatsappFailedAt = undefined;
         await invitation.save();
+        logCloudSendAccepted(result, invitation);
         results.push({ id: invitation._id, status: "sent", data: invitation });
       } catch (error) {
         failed++;
@@ -233,10 +244,20 @@ router.post("/webhook", async (req, res) => {
     const entries = Array.isArray(req.body?.entry) ? req.body.entry : [];
     let statusUpdates = 0;
     let matchedUpdates = 0;
+    let incomingMessages = 0;
 
     for (const entry of entries) {
       const changes = Array.isArray(entry?.changes) ? entry.changes : [];
       for (const change of changes) {
+        const messages = Array.isArray(change?.value?.messages) ? change.value.messages : [];
+        if (messages.length > 0) {
+          incomingMessages += messages.length;
+          console.info("[WHATSAPP WEBHOOK] Incoming message update received.", {
+            messages: messages.length,
+            field: change.field,
+          });
+        }
+
         const statuses = Array.isArray(change?.value?.statuses) ? change.value.statuses : [];
         for (const update of statuses) {
           statusUpdates++;
@@ -269,6 +290,12 @@ router.post("/webhook", async (req, res) => {
       console.info("[WHATSAPP WEBHOOK] Processed status updates.", {
         statusUpdates,
         matchedUpdates,
+      });
+    }
+
+    if (incomingMessages > 0 && statusUpdates === 0) {
+      console.info("[WHATSAPP WEBHOOK] Processed incoming message updates.", {
+        incomingMessages,
       });
     }
 
