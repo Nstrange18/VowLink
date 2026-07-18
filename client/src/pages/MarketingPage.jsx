@@ -104,6 +104,16 @@ const MarketingPage = ({ page }) => {
           </Link>
         </section>
       </main>
+
+      <footer className="border-t border-white/10 px-6 py-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 text-sm text-white/45 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} VowLink. All rights reserved.</p>
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            <Link to="/privacy" className="transition hover:text-[#D8B76A]">Privacy Policy</Link>
+            <Link to="/terms" className="transition hover:text-[#D8B76A]">Terms of Service</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

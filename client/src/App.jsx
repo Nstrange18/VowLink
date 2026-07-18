@@ -16,6 +16,7 @@ const RsvpResponsePage = lazy(() => import('./pages/RsvpResponsePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const MarketingPage = lazy(() => import('./pages/MarketingPage'))
+const LegalPage = lazy(() => import('./pages/LegalPage'))
 const AdminResetPasswordPage = lazy(() => import('./pages/admin/AdminResetPasswordPage'))
 const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'))
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
@@ -59,6 +60,14 @@ const PUBLIC_ROUTE_META = {
   '/templates': {
     title: 'VowLink Templates | Elegant Digital Wedding Invitation Designs',
     description: 'Browse VowLink digital wedding invitation template options for formal weddings, photo-led invite cards, custom colors, music, galleries, and guest details.',
+  },
+  '/privacy': {
+    title: 'VowLink Privacy Policy',
+    description: 'Read the VowLink Privacy Policy for digital wedding invitations, RSVP tools, guest data, WhatsApp invitations, and account information.',
+  },
+  '/terms': {
+    title: 'VowLink Terms of Service',
+    description: 'Read the VowLink Terms of Service for digital wedding invitations, RSVP tools, guest management, and WhatsApp invitation workflows.',
   },
 }
 
@@ -191,6 +200,8 @@ function AppContent() {
           <Route path="/features" element={<MarketingPage page="features" />} />
           <Route path="/pricing" element={<MarketingPage page="pricing" />} />
           <Route path="/templates" element={<MarketingPage page="templates" />} />
+          <Route path="/privacy" element={<LegalPage page="privacy" />} />
+          <Route path="/terms" element={<LegalPage page="terms" />} />
 
         {/* Guest routes */}
         <Route path="/invite/:slug" element={<InvitePage setThemePreference={setThemePreference} />} />
