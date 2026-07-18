@@ -1,6 +1,8 @@
 const GRAPH_API_VERSION = process.env.WHATSAPP_GRAPH_API_VERSION || "v20.0";
 const DEFAULT_TEMPLATE_NAME = "vowlink_invitation";
 const DEFAULT_LANGUAGE_CODE = "en";
+const DEFAULT_GUEST_NAME_PARAMETER = "guest_name";
+const DEFAULT_INVITE_LINK_PARAMETER = "invite_link";
 
 const getWhatsAppConfigStatus = () => {
   const phoneNumberId = Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID);
@@ -16,6 +18,8 @@ const getWhatsAppConfigStatus = () => {
     webhookVerifyToken,
     templateName: process.env.WHATSAPP_INVITE_TEMPLATE_NAME || DEFAULT_TEMPLATE_NAME,
     languageCode: process.env.WHATSAPP_TEMPLATE_LANGUAGE || DEFAULT_LANGUAGE_CODE,
+    guestNameParameter: process.env.WHATSAPP_GUEST_NAME_PARAMETER || DEFAULT_GUEST_NAME_PARAMETER,
+    inviteLinkParameter: process.env.WHATSAPP_INVITE_LINK_PARAMETER || DEFAULT_INVITE_LINK_PARAMETER,
   };
 };
 
@@ -52,6 +56,8 @@ const buildInvitationTemplatePayload = ({
   inviteLink,
   templateName,
   languageCode,
+  guestNameParameter,
+  inviteLinkParameter,
 }) => ({
   messaging_product: "whatsapp",
   to,
@@ -65,8 +71,16 @@ const buildInvitationTemplatePayload = ({
       {
         type: "body",
         parameters: [
-          { type: "text", text: guestName || "Guest" },
-          { type: "text", text: inviteLink || "" },
+          {
+            type: "text",
+            parameter_name: guestNameParameter || DEFAULT_GUEST_NAME_PARAMETER,
+            text: guestName || "Guest",
+          },
+          {
+            type: "text",
+            parameter_name: inviteLinkParameter || DEFAULT_INVITE_LINK_PARAMETER,
+            text: inviteLink || "",
+          },
         ],
       },
     ],
@@ -90,6 +104,8 @@ const sendInvitationTemplate = async ({ to, guestName, coupleNames, inviteLink }
     inviteLink,
     templateName: status.templateName,
     languageCode: status.languageCode,
+    guestNameParameter: status.guestNameParameter,
+    inviteLinkParameter: status.inviteLinkParameter,
   });
 
   const response = await fetch(
