@@ -49,7 +49,6 @@ const parseCloudApiError = async (response) => {
 const buildInvitationTemplatePayload = ({
   to,
   guestName,
-  coupleNames,
   inviteLink,
   templateName,
   languageCode,
@@ -67,7 +66,6 @@ const buildInvitationTemplatePayload = ({
         type: "body",
         parameters: [
           { type: "text", text: guestName || "Guest" },
-          { type: "text", text: coupleNames || "the couple" },
           { type: "text", text: inviteLink || "" },
         ],
       },
@@ -89,7 +87,6 @@ const sendInvitationTemplate = async ({ to, guestName, coupleNames, inviteLink }
   const payload = buildInvitationTemplatePayload({
     to: normalizedPhone,
     guestName,
-    coupleNames,
     inviteLink,
     templateName: status.templateName,
     languageCode: status.languageCode,
