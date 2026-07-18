@@ -81,6 +81,11 @@ const AdminBulkWhatsAppPage = () => {
   const cloudConfigured = Boolean(cloudConfig?.configured);
 
   const sentStatuses = new Set(["sent", "delivered", "read"]);
+  const isGuestSendable = (guest) => {
+    const isMissing = !guest?.phoneNumber || guest?.whatsappStatus === "missing_number";
+    return Boolean(guest && !isMissing && !sentStatuses.has(guest.whatsappStatus));
+  };
+
   const getStatusLabel = (guest) => {
     if (!guest.phoneNumber || guest.whatsappStatus === "missing_number") return "Missing Num";
     return (guest.whatsappStatus || "not_sent").replace("_", " ");
@@ -202,6 +207,8 @@ const AdminBulkWhatsAppPage = () => {
 
     return true;
   });
+  const selectedGuests = invitations.filter((guest) => selectedIds.includes(guest._id));
+  const selectedSendableCount = selectedGuests.filter(isGuestSendable).length;
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -449,7 +456,7 @@ const AdminBulkWhatsAppPage = () => {
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Premium Dashboard</p>
           <h2 className="font-serif text-3xl sm:text-4xl">Bulk WhatsApp Invite Sender</h2>
           <p className="text-white/40 text-xs mt-1 max-w-2xl leading-relaxed">
-            VowLink prepares personalized messages and custom invitation links for each guest. Select your queue, verify the messages, and open each contact's WhatsApp chat to dispatch manually.
+            Send approved WhatsApp invitations through Cloud API, or open a manual chat when you need to review a guest message first.
           </p>
         </div>
         <PageMiniTour title="WhatsApp sender tour" storageKey="vowlink-tour-whatsapp" steps={WHATSAPP_TOUR_STEPS} />
@@ -567,20 +574,27 @@ const AdminBulkWhatsAppPage = () => {
             </div>
 
             {/* Actions Stepper Card */}
-            <div className="pt-4 border-t border-white/5 space-y-2.5">
-              <h4 className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Dispatch Actions</h4>
+            <div className="pt-4 border-t border-white/5 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <h4 className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Dispatch actions</h4>
+                {selectedIds.length > 0 && (
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-white/55">
+                    {selectedSendableCount} sendable
+                  </span>
+                )}
+              </div>
               
               <button
                 onClick={handleOpenNextUnsent}
-                className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-3 text-xs font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(216,183,106,0.25)] flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-semibold text-white/75 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#D8B76A]/40 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Icon icon="lucide:message-square" className="w-4 h-4 text-[#070A13]" /> Open Next Unsent
+                <Icon icon="lucide:message-square" className="w-4 h-4" /> Open next manual chat
               </button>
 
               <button
                 onClick={handlePrepareInvites}
                 disabled={selectedIds.length === 0 || preparingInvites}
-                className="w-full rounded-full border border-white/15 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest text-white hover:bg-white/10 hover:border-white/25 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center justify-center gap-2"
+                className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-xs font-semibold text-white hover:bg-white/10 hover:border-white/25 disabled:opacity-40 disabled:cursor-not-allowed transition focus:outline-none focus:ring-2 focus:ring-[#D8B76A]/40 cursor-pointer flex items-center justify-center gap-2"
               >
                 {preparingInvites ? (
                   <>
@@ -591,13 +605,13 @@ const AdminBulkWhatsAppPage = () => {
                     Preparing...
                   </>
                 ) : (
-                  `Prepare WhatsApp Invites (${selectedIds.length})`
+                  `Prepare selected messages (${selectedIds.length})`
                 )}
               </button>
 
-              <div className={`rounded-2xl border p-4 ${
+              <div className={`rounded-2xl border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ${
                 cloudConfigured
-                  ? "border-emerald-500/20 bg-emerald-500/10"
+                  ? "border-emerald-400/25 bg-emerald-500/10"
                   : "border-yellow-500/20 bg-yellow-500/10"
               }`}>
                 <div className="flex items-start gap-3">
@@ -609,11 +623,11 @@ const AdminBulkWhatsAppPage = () => {
                     <p className={`text-[10px] font-bold uppercase tracking-widest ${
                       cloudConfigured ? "text-emerald-200" : "text-yellow-200"
                     }`}>
-                      {cloudConfigured ? "Cloud API Broadcast Ready" : "Cloud API Not Configured"}
+                      {cloudConfigured ? "Cloud API ready" : "Cloud API not configured"}
                     </p>
                     <p className="mt-1 text-[10px] leading-relaxed text-white/55">
                       {cloudConfigured
-                        ? `Using approved template: ${cloudConfig?.templateName || "vowlink_invitation"}`
+                        ? `${cloudConfig?.templateName || "vowlink_invitation"} sends through the approved Meta template.`
                         : "Add the WhatsApp Cloud API env vars on Render, then use one button to send selected invite links officially."}
                     </p>
                   </div>
@@ -621,8 +635,12 @@ const AdminBulkWhatsAppPage = () => {
                 <button
                   type="button"
                   onClick={handleCloudSendSelected}
-                  disabled={!cloudConfigured || selectedIds.length === 0 || cloudSending}
-                  className="mt-3 w-full rounded-full border border-white/15 bg-white/10 py-2 px-3 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2"
+                  disabled={!cloudConfigured || selectedSendableCount === 0 || cloudSending}
+                  className={`mt-4 w-full rounded-xl px-4 py-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-emerald-300/40 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 flex items-center justify-center gap-2 ${
+                    cloudConfigured && selectedSendableCount > 0
+                      ? "border border-emerald-300/30 bg-emerald-300 text-[#07130e] hover:-translate-y-0.5 hover:bg-emerald-200 hover:shadow-[0_14px_30px_rgba(16,185,129,0.18)]"
+                      : "border border-white/12 bg-white/10 text-white/55"
+                  }`}
                 >
                   {cloudSending ? (
                     <>
@@ -635,10 +653,15 @@ const AdminBulkWhatsAppPage = () => {
                   ) : (
                     <>
                       <Icon icon="lucide:send" className="h-4.5 w-4.5" />
-                      Send Selected via Cloud API ({selectedIds.length})
+                      Send via Cloud API ({selectedSendableCount})
                     </>
                   )}
                 </button>
+                {selectedIds.length > 0 && selectedSendableCount !== selectedIds.length && (
+                  <p className="mt-2 text-[10px] leading-relaxed text-white/45">
+                    {selectedIds.length - selectedSendableCount} selected guest{selectedIds.length - selectedSendableCount === 1 ? "" : "s"} will be skipped because they are missing a number or already sent.
+                  </p>
+                )}
               </div>
             </div>
             </>
@@ -893,12 +916,14 @@ const AdminBulkWhatsAppPage = () => {
 
                           {/* Action Buttons */}
                           <td className="px-4 py-4 text-center">
-                            <div className="flex min-w-20 flex-col justify-center gap-1.5 sm:flex-row">
+                            <div className="flex min-w-28 flex-col justify-center gap-1.5 sm:flex-row sm:flex-wrap">
                               {!isMissing && (
                                 <button
                                   onClick={() => handleOpenWhatsApp(guest)}
-                                  className="w-full sm:w-auto px-2 py-1 rounded bg-[#3EC58E] hover:bg-[#32B07C] text-[#070A13] font-bold text-[9px] uppercase transition cursor-pointer"
+                                  title="Open manual WhatsApp chat"
+                                  className="w-full sm:w-auto rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[10px] font-semibold text-white/70 transition hover:border-white/20 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#D8B76A]/35 active:translate-y-px cursor-pointer flex items-center justify-center gap-1.5"
                                 >
+                                  <Icon icon="lucide:message-square" className="h-3.5 w-3.5" />
                                   Open
                                 </button>
                               )}
@@ -907,7 +932,8 @@ const AdminBulkWhatsAppPage = () => {
                                 <button
                                   onClick={() => handleCloudSendGuest(guest)}
                                   disabled={loadingIds.has(guest._id)}
-                                  className="w-full sm:w-auto px-2 py-1 rounded border border-emerald-500/25 bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-300 font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                                  title="Send approved Cloud API template"
+                                  className="w-full sm:w-auto rounded-lg border border-emerald-300/30 bg-emerald-300 px-2.5 py-1.5 text-[10px] font-bold text-[#07130e] transition hover:bg-emerald-200 hover:shadow-[0_8px_20px_rgba(16,185,129,0.16)] focus:outline-none focus:ring-2 focus:ring-emerald-300/40 active:translate-y-px cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                                 >
                                   {loadingIds.has(guest._id) ? (
                                     <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
@@ -927,34 +953,48 @@ const AdminBulkWhatsAppPage = () => {
                                 <button
                                   onClick={() => updateWhatsAppStatus(guest._id, "sent")}
                                   disabled={loadingIds.has(guest._id)}
-                                  className="w-full sm:w-auto px-2 py-1 rounded border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                                  title="Mark as sent manually"
+                                  className="w-full sm:w-auto rounded-lg border border-white/10 bg-transparent px-2.5 py-1.5 text-[10px] font-semibold text-white/50 transition hover:border-white/20 hover:bg-white/5 hover:text-white/80 focus:outline-none focus:ring-2 focus:ring-[#D8B76A]/35 active:translate-y-px cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                                 >
                                   {loadingIds.has(guest._id) ? (
                                     <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
                                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                     </svg>
-                                  ) : "Sent"}
+                                  ) : (
+                                    <>
+                                      <Icon icon="lucide:check" className="h-3.5 w-3.5" />
+                                      Mark sent
+                                    </>
+                                  )}
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => updateWhatsAppStatus(guest._id, "not_sent")}
                                   disabled={loadingIds.has(guest._id)}
-                                  className="w-full sm:w-auto px-2 py-1 rounded border border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/10 text-yellow-400 font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                                  title="Move guest back to unsent"
+                                  className="w-full sm:w-auto rounded-lg border border-yellow-400/20 bg-yellow-400/5 px-2.5 py-1.5 text-[10px] font-semibold text-yellow-300 transition hover:bg-yellow-400/10 focus:outline-none focus:ring-2 focus:ring-yellow-300/35 active:translate-y-px cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                                 >
                                   {loadingIds.has(guest._id) ? (
                                     <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
                                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                     </svg>
-                                  ) : "Undo"}
+                                  ) : (
+                                    <>
+                                      <Icon icon="lucide:rotate-ccw" className="h-3.5 w-3.5" />
+                                      Undo
+                                    </>
+                                  )}
                                 </button>
                               )}
                               <button
                                 onClick={() => handleDeleteGuest(guest)}
                                 disabled={loadingIds.has(guest._id)}
-                                className="w-full sm:w-auto px-2 py-1 rounded border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 font-bold text-[9px] uppercase transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                title="Delete guest"
+                                className="w-full sm:w-auto rounded-lg border border-red-400/20 bg-red-400/5 px-2.5 py-1.5 text-[10px] font-semibold text-red-300 transition hover:bg-red-400/10 focus:outline-none focus:ring-2 focus:ring-red-300/35 active:translate-y-px cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                               >
+                                <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" />
                                 Delete
                               </button>
                             </div>
