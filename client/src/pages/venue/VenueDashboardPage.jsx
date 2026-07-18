@@ -1067,8 +1067,11 @@ const VenueDashboardPage = () => {
             <span className="block h-0.5 w-5 rounded bg-current" />
             <span className="block h-0.5 w-6 rounded bg-current" />
           </button>
-          <Link to="/" className="font-serif text-xl tracking-wider font-bold text-[#D8B76A] hover:opacity-90">
-            VowLink <span className="hidden sm:inline font-sans text-xs uppercase tracking-widest text-white/40 font-normal">Venues</span>
+          <Link to="/" className="flex items-center gap-2 hover:opacity-90">
+            <img src="/vowlink-icon.svg" alt="" className="h-8 w-8 rounded-lg object-contain shadow-[0_0_18px_rgba(216,183,106,0.12)]" />
+            <span className="font-serif text-xl tracking-wider font-bold text-[#D8B76A]">
+              VowLink <span className="hidden sm:inline font-sans text-xs uppercase tracking-widest text-white/40 font-normal">Venues</span>
+            </span>
           </Link>
           {isFeatured && (
             <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-linear-to-r from-amber-400 to-yellow-500 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-[#070A13] shadow-md">
@@ -1110,6 +1113,7 @@ const VenueDashboardPage = () => {
         {/* Brand Header */}
         <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <div className="flex items-center gap-2">
+            <img src="/vowlink-icon.svg" alt="" className="h-8 w-8 rounded-lg object-contain shadow-[0_0_18px_rgba(216,183,106,0.12)]" />
             <span className="font-serif text-lg font-bold text-[#D8B76A]">VowLink</span>
             <span className="text-[10px] text-white/40 uppercase font-sans font-normal">Venues</span>
             {isFeatured && (

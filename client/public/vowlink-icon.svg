@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="VowLink">
+  <defs>
+    <linearGradient id="vowlinkGold" x1="18" y1="16" x2="108" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F8E0A0"/>
+      <stop offset="0.42" stop-color="#D8B76A"/>
+      <stop offset="1" stop-color="#F2C94C"/>
+    </linearGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.4" flood-color="#070A13" flood-opacity="0.45"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2.2" flood-color="#D8B76A" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)">
+    <path
+      d="M64 44.5C56.3 27.2 31.9 25.4 23.8 43.1C15.6 61 30.8 77.9 64 108.5C97.2 77.9 112.4 61 104.2 43.1C96.1 25.4 71.7 27.2 64 44.5Z"
+      stroke="#070A13"
+      stroke-width="13"
+      opacity="0.62"
+    />
+    <path
+      d="M64 44.5C56.3 27.2 31.9 25.4 23.8 43.1C15.6 61 30.8 77.9 64 108.5C97.2 77.9 112.4 61 104.2 43.1C96.1 25.4 71.7 27.2 64 44.5Z"
+      stroke="url(#vowlinkGold)"
+      stroke-width="8.5"
+    />
+
+    <path
+      d="M64.1 44.9C54.2 54.8 53.8 69.7 63.4 79.5L75.4 91.7C81.6 98 81.5 108 75.1 114.1C68.8 120 58.9 119.7 52.9 113.4L31.6 91.2"
+      stroke="#070A13"
+      stroke-width="13"
+      opacity="0.62"
+    />
+    <path
+      d="M64.1 44.9C54.2 54.8 53.8 69.7 63.4 79.5L75.4 91.7C81.6 98 81.5 108 75.1 114.1C68.8 120 58.9 119.7 52.9 113.4L31.6 91.2"
+      stroke="url(#vowlinkGold)"
+      stroke-width="8.5"
+    />
+  </g>
+</svg>

@@ -54,7 +54,7 @@ const MarketingPage = ({ page }) => {
       <header className="border-b border-white/5 px-6 py-5">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/vowlink-icon.webp" alt="" className="h-8 w-8 object-contain" />
+            <img src="/vowlink-icon.svg" alt="" className="h-8 w-8 object-contain" />
             <span className="font-serif text-2xl text-white">VowLink</span>
           </Link>
           <nav className="hidden items-center gap-6 text-xs uppercase tracking-[0.22em] text-white/50 sm:flex">

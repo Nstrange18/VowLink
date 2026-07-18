@@ -23,7 +23,7 @@
   <circle cx="105" cy="950" r="260" fill="#1A2E4A" opacity="0.08"/>
 
   <g transform="translate(82 78)">
-    <image href="../vowlink-icon.webp" x="0" y="0" width="52" height="52"/>
+    <image href="../vowlink-icon.svg" x="0" y="0" width="52" height="52"/>
     <text x="68" y="38" fill="#1A2E4A" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="700">VowLink</text>
     <text x="68" y="68" fill="#A97710" font-family="Arial, sans-serif" font-size="14" font-weight="800" letter-spacing="5">VENUE PARTNERS</text>
   </g>

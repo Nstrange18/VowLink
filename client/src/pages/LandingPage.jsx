@@ -64,7 +64,7 @@ const LandingPage = () => {
 
         <div className="relative z-10 max-w-2xl mx-auto">
           <div className="flex items-center justify-center gap-3 mb-10">
-            <img src="/vowlink-icon.webp" alt="Vowlink" className="h-10 w-10 object-contain" />
+            <img src="/vowlink-icon.svg" alt="Vowlink" className="h-10 w-10 object-contain" />
             <span className="font-serif text-3xl tracking-wide text-white">Vowlink</span>
           </div>
 
@@ -309,7 +309,7 @@ const LandingPage = () => {
             <div className="max-w-sm">
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/10">
-                  <img src="/vowlink-icon.webp" alt="" className="h-7 w-7 object-contain" />
+                  <img src="/vowlink-icon.svg" alt="" className="h-7 w-7 object-contain" />
                 </span>
                 <span className="font-serif text-2xl text-white">Vowlink</span>
               </div>

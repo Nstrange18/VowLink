@@ -25,6 +25,7 @@ const RSVPS_TOUR_STEPS = [
 
 const AdminRsvpsPage = () => {
   const [rsvps, setRsvps] = useState([])
+  const [invitations, setInvitations] = useState([])
   const [loading, setLoading] = useState(true)
   const [senderGroupFilter, setSenderGroupFilter] = useState('all')
   const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'))
@@ -34,9 +35,15 @@ const AdminRsvpsPage = () => {
   const percent = rsvpLimit > 0 ? Math.min((rsvps.length / rsvpLimit) * 100, 100) : 0;
 
   useEffect(() => {
-    api.get('/rsvps')
-      .then((res) => setRsvps(res.data))
-      .catch(() => setRsvps([]))
+    Promise.all([api.get('/rsvps'), api.get('/invitations')])
+      .then(([rsvpRes, invitationRes]) => {
+        setRsvps(rsvpRes.data || [])
+        setInvitations(invitationRes.data || [])
+      })
+      .catch(() => {
+        setRsvps([])
+        setInvitations([])
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -59,28 +66,46 @@ const AdminRsvpsPage = () => {
     },
   }
 
-  const getSenderGroup = (rsvp) => rsvp.invitationId?.senderGroup || 'general'
-  const getSenderGroupMeta = (rsvp) => senderGroupMeta[getSenderGroup(rsvp)] || senderGroupMeta.general
+  const getSenderGroup = (record) => record.invitationId?.senderGroup || record.senderGroup || 'general'
+  const getSenderGroupMeta = (record) => senderGroupMeta[getSenderGroup(record)] || senderGroupMeta.general
   const filteredRsvps = rsvps.filter((rsvp) => (
     senderGroupFilter === 'all' || getSenderGroup(rsvp) === senderGroupFilter
   ))
+
+  const rsvpByInvitationId = rsvps.reduce((map, rsvp) => {
+    const invitationId = rsvp.invitationId?._id || rsvp.invitationId
+    if (invitationId) map.set(String(invitationId), rsvp)
+    return map
+  }, new Map())
+
+  const exportRows = invitations
+    .filter((invitation) => senderGroupFilter === 'all' || getSenderGroup(invitation) === senderGroupFilter)
+    .map((invitation) => {
+      const rsvp = rsvpByInvitationId.get(String(invitation._id))
+      return {
+        invitation,
+        rsvp,
+        response: rsvp?.attending || 'Pending',
+      }
+    })
 
   const exportCSV = () => {
     if (tier !== 'pro') {
       toast.warning('Exporting RSVP list is a Pro feature! Upgrade to unlock.', { toastId: 'export-lock' });
       return;
     }
-    const headers = ['Guest Name', 'Category', 'Invited By', 'Phone', 'Response (Yes/No)', 'No. of Guests', 'Meal Preference', 'Message', 'Date Submitted']
-    const rows = filteredRsvps.map((r) => [
-      r.guestName,
-      r.invitationId?.category || 'Guest',
-      getSenderGroupMeta(r).label,
-      r.phone,
-      r.attending === 'Yes' ? 'Yes' : 'No',
-      r.numberOfGuests,
-      r.mealPreference || 'No Preference',
-      r.message || '',
-      new Date(r.createdAt).toLocaleDateString('en-GB'),
+    const headers = ['Guest Name', 'Category', 'Invited By', 'Phone', 'Response', 'Guests Allowed', 'Guests Attending', 'Meal Preference', 'Message', 'Date Submitted']
+    const rows = exportRows.map(({ invitation, rsvp, response }) => [
+      rsvp?.guestName || invitation.guestName,
+      invitation.category || rsvp?.invitationId?.category || 'Guest',
+      getSenderGroupMeta(invitation).label,
+      rsvp?.phone || invitation.phoneNumber || '',
+      response,
+      invitation.allowedGuests || 1,
+      rsvp?.numberOfGuests ?? '',
+      rsvp?.mealPreference || (response === 'Pending' ? '' : 'No Preference'),
+      rsvp?.message || '',
+      rsvp?.createdAt ? new Date(rsvp.createdAt).toLocaleDateString('en-GB') : '',
     ])
 
     const csvContent = [headers, ...rows]
@@ -132,7 +157,7 @@ const AdminRsvpsPage = () => {
           </div>
         </div>
         <PageMiniTour title="RSVP tour" storageKey="vowlink-tour-rsvps" steps={RSVPS_TOUR_STEPS} />
-        {rsvps.length > 0 && (
+        {invitations.length > 0 && (
           <button
             onClick={exportCSV}
             className={`flex items-center gap-2 rounded-full border px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition whitespace-nowrap cursor-pointer ${

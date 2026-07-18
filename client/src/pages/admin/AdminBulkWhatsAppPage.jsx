@@ -613,7 +613,7 @@ const AdminBulkWhatsAppPage = () => {
                     </p>
                     <p className="mt-1 text-[10px] leading-relaxed text-white/55">
                       {cloudConfigured
-                        ? `Using approved template: ${cloudConfig?.templateName || "vowlink_wedding_invite"}`
+                        ? `Using approved template: ${cloudConfig?.templateName || "vowlink_invitation"}`
                         : "Add the WhatsApp Cloud API env vars on Render, then use one button to send selected invite links officially."}
                     </p>
                   </div>

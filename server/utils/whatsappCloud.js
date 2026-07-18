@@ -1,5 +1,5 @@
 const GRAPH_API_VERSION = process.env.WHATSAPP_GRAPH_API_VERSION || "v20.0";
-const DEFAULT_TEMPLATE_NAME = "vowlink_wedding_invite";
+const DEFAULT_TEMPLATE_NAME = "vowlink_invitation";
 const DEFAULT_LANGUAGE_CODE = "en";
 
 const getWhatsAppConfigStatus = () => {

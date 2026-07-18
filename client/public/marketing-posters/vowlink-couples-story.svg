@@ -19,7 +19,7 @@
   <circle cx="110" cy="1660" r="360" fill="#7FA6D9" opacity="0.1"/>
 
   <g transform="translate(82 86)">
-    <image href="../vowlink-icon.webp" x="0" y="0" width="56" height="56"/>
+    <image href="../vowlink-icon.svg" x="0" y="0" width="56" height="56"/>
     <text x="74" y="40" fill="#F8F0DA" font-family="Georgia, 'Times New Roman', serif" font-size="36" font-weight="700">VowLink</text>
   </g>
 

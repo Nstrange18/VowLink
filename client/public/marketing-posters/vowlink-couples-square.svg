@@ -24,7 +24,7 @@
   <circle cx="90" cy="890" r="260" fill="#D8B76A" opacity="0.08"/>
 
   <g transform="translate(82 76)">
-    <image href="../vowlink-icon.webp" x="0" y="0" width="52" height="52"/>
+    <image href="../vowlink-icon.svg" x="0" y="0" width="52" height="52"/>
     <text x="68" y="38" fill="#F8F0DA" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="700">VowLink</text>
     <text x="68" y="68" fill="#D8B76A" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="5">WEDDING LINKS MADE SIMPLE</text>
   </g>

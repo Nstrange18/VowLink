@@ -142,7 +142,7 @@ const AdminLayout = () => {
       {/* Vowlink Brand */}
       <div data-tour="admin-sidebar-profile" className="border-b border-[#D8B76A]/20 px-5 py-4 shrink-0">
         <div className="mb-4 flex items-center gap-2">
-          <img src="/vowlink-icon.webp" alt="" className="h-6 w-6 object-contain opacity-90" />
+          <img src="/vowlink-icon.svg" alt="" className="h-6 w-6 object-contain opacity-90" />
           <span className="font-serif text-lg tracking-wide text-white">Vowlink</span>
         </div>
         <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-2">Your Wedding</p>
@@ -175,6 +175,7 @@ const AdminLayout = () => {
                 <button
                   type="button"
                   data-tour={item.tourId}
+                  aria-expanded={isOpen}
                   onClick={() => setOpenGroups((current) => ({ ...current, [item.id]: !current[item.id] }))}
                   className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ${
                     hasActiveChild
@@ -188,12 +189,17 @@ const AdminLayout = () => {
                   <span className="min-w-0 flex-1 text-left">{item.label}</span>
                   <Icon
                     icon="lucide:chevron-down"
-                    className={`h-3.5 w-3.5 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    className={`h-3.5 w-3.5 shrink-0 transition-transform duration-300 ease-out ${isOpen ? 'rotate-180' : ''}`}
                   />
                 </button>
 
-                {isOpen && (
-                  <div className="ml-5 space-y-1 border-l border-white/10 pl-3">
+                <div
+                  className="admin-sidebar-subnav"
+                  data-open={isOpen}
+                  aria-hidden={!isOpen}
+                  style={{ '--subnav-height': `${item.children.length * 47 + 18}px` }}
+                >
+                  <div className="admin-sidebar-subnav__inner ml-5 space-y-1 border-l border-white/10 pl-3 pt-1 pb-1">
                     {item.children.map(({ to, label, icon, tourId, lockedForUnpaid, lockReason }) => {
                       const locked = isUnpaid && lockedForUnpaid
                       return (
@@ -201,6 +207,8 @@ const AdminLayout = () => {
                           key={to}
                           to={to}
                           data-tour={tourId}
+                          tabIndex={isOpen ? undefined : -1}
+                          aria-hidden={!isOpen}
                           onClick={(event) => {
                             if (locked) {
                               handleLockedNav(event, to, lockReason)
@@ -226,7 +234,7 @@ const AdminLayout = () => {
                       )
                     })}
                   </div>
-                )}
+                </div>
               </div>
             )
           }
@@ -338,7 +346,7 @@ const AdminLayout = () => {
               <span className="block h-0.5 w-6 rounded bg-current" />
             </button>
             <div className="flex min-w-0 flex-1 items-center justify-center gap-1 sm:gap-2">
-              <img src="/vowlink-icon.webp" alt="" className="h-5 w-5 object-contain opacity-80" />
+              <img src="/vowlink-icon.svg" alt="" className="h-5 w-5 object-contain opacity-80" />
               <span className="min-w-0 truncate font-serif text-sm text-white sm:text-base">Vowlink</span>
               <span className={`text-[7px] sm:text-[8px] uppercase font-bold tracking-widest px-1.5 sm:px-2 py-0.5 rounded-full ${getTierBadgeClass(tier)}`}>
                 {getTierLabel(tier)}

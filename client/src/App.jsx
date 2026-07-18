@@ -7,6 +7,7 @@ import ScrollToTop from './components/ScrollToTop'
 import ProtectedRoute from './components/ProtectedRoute'
 import ThemeToggle from './components/ThemeToggle'
 import SEO from './components/SEO'
+import VowLinkLoader from './components/VowLinkLoader'
 
 const InvitePage = lazy(() => import('./pages/InvitePage'))
 const CheckInPage = lazy(() => import('./pages/CheckInPage'))
@@ -122,11 +123,7 @@ const readStoredTheme = (key) => {
   return savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : null
 }
 
-const RouteFallback = () => (
-  <div className="min-h-screen bg-[#070A13] text-white flex items-center justify-center text-xs uppercase tracking-widest">
-    Loading...
-  </div>
-)
+const RouteFallback = () => <VowLinkLoader />
 
 function AppContent() {
   const location = useLocation()
