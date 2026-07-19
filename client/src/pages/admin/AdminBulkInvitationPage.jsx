@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
+import {
+  PHONE_COUNTRIES,
+  getPhoneCountryByIso,
+  normalizeInternationalPhone,
+} from "../../utils/phoneNumbers";
 
 // Robust CSV parser supporting quotes and escaped quotes
 const parseCSVLine = (line) => {
@@ -40,6 +45,7 @@ const AdminBulkInvitationPage = () => {
   );
   const [parsedGuests, setParsedGuests] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [defaultPhoneCountryIso, setDefaultPhoneCountryIso] = useState("NG");
   const [user] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
 
   useEffect(() => {
@@ -88,7 +94,8 @@ const AdminBulkInvitationPage = () => {
           const allowedGuests = parseInt((parts[2] || "").trim()) || 1;
           const customGreeting = (parts[3] || "").replace(/^"|"$/g, '').trim();
           const customMessage = (parts[4] || "").replace(/^"|"$/g, '').trim();
-          const phoneNumber = (parts[5] || "").replace(/^"|"$/g, '').trim();
+          const rawPhoneNumber = (parts[5] || "").replace(/^"|"$/g, '').trim();
+          const phoneNumber = normalizeInternationalPhone(rawPhoneNumber, getPhoneCountryByIso(defaultPhoneCountryIso));
           const rawGroup = (parts[6] || "").replace(/^"|"$/g, '').trim().toLowerCase();
           const senderGroup = ["bride", "groom", "both", "general"].includes(rawGroup) ? rawGroup : "general";
           
@@ -112,7 +119,7 @@ const AdminBulkInvitationPage = () => {
       .filter(Boolean);
 
     setParsedGuests(guestsList);
-  }, [inputText, defaultGreeting, defaultMessage]);
+  }, [inputText, defaultGreeting, defaultMessage, defaultPhoneCountryIso]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -232,7 +239,7 @@ const AdminBulkInvitationPage = () => {
           </div>
           <div>
             <strong className="text-white block text-[11px]">6. Phone No <span className="text-white/40 font-normal">(Opt)</span></strong>
-            <span className="text-white/40 text-[9px] block mt-0.5">WhatsApp number. (e.g. "09012345678")</span>
+            <span className="text-white/40 text-[9px] block mt-0.5">Local or international WhatsApp number. (e.g. "08012345678")</span>
           </div>
           <div>
             <strong className="text-white block text-[11px]">7. Send Invite By <span className="text-white/40 font-normal">(Opt)</span></strong>
@@ -241,7 +248,7 @@ const AdminBulkInvitationPage = () => {
         </div>
         <p className="text-[10px] text-white/40 font-normal flex items-start gap-1.5">
           <Icon icon="lucide:lightbulb" className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-          <span>Tip: Click the <strong>Download Template</strong> button below to get a pre-formatted Excel-compatible CSV file. Save your file as <strong>CSV (Comma delimited, .csv)</strong> when editing in Excel. If names or messages contain commas, Excel will automatically wrap them in double quotes.</span>
+          <span>Tip: Click the <strong>Download Template</strong> button below to get a pre-formatted Excel-compatible CSV file. Local phone numbers use the default country below; numbers with + or 00 are treated as already international.</span>
         </p>
       </div>
 
@@ -295,6 +302,22 @@ Example:
           />
 
           <div className="space-y-4 pt-2 border-t border-white/5">
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-white/50 mb-1.5">Default phone country for local numbers</label>
+              <select
+                value={defaultPhoneCountryIso}
+                onChange={(e) => setDefaultPhoneCountryIso(e.target.value)}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs text-white outline-none focus:border-[#D8B76A]/60"
+              >
+                {PHONE_COUNTRIES.map((country) => (
+                  <option key={country.iso} value={country.iso} className="bg-[#070A13]">
+                    {country.name} (+{country.dialCode})
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[10px] text-white/30">Example: with Nigeria selected, 08031234567 imports as 2348031234567.</p>
+            </div>
+
             <div>
               <label className="block text-xs uppercase tracking-widest text-white/50 mb-1.5">Default Greeting template</label>
               <input

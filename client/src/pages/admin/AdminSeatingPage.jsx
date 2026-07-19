@@ -397,18 +397,18 @@ const AdminSeatingPage = () => {
                                 key={seatIdx}
                                 className={`absolute h-7 w-7 rounded-full border flex items-center justify-center text-[8px] cursor-pointer font-bold transition-all shadow-md ${
                                   guestName
-                                    ? "bg-[#D8B76A] border-transparent text-[#070A13] hover:bg-red-400 hover:text-white"
+                                    ? "bg-[#D8B76A] border-transparent text-[#070A13] hover:bg-[#F2D894]"
                                     : "bg-[#070A13] border-white/20 text-white/40 hover:border-[#D8B76A] hover:text-[#D8B76A]"
                                 }`}
                                 style={{ transform: `translate(${x}px, ${y}px)` }}
                                 onClick={() => {
                                   if (guestName) {
-                                    unassignGuest(table._id, guestName);
+                                    toast.info(`${guestName} is seated at ${table.name}. Use the remove button below to unseat them.`);
                                   } else {
                                     toast.info("Select a guest from the left list to seat them.");
                                   }
                                 }}
-                                title={guestName ? `Seat ${seatIdx + 1}: ${guestName} (Click to unseat)` : `Seat ${seatIdx + 1}: Empty`}
+                                title={guestName ? `Seat ${seatIdx + 1}: ${guestName}` : `Seat ${seatIdx + 1}: Empty`}
                               >
                                 {guestName ? guestName.substring(0, 2).toUpperCase() : seatIdx + 1}
                               </div>
@@ -438,18 +438,18 @@ const AdminSeatingPage = () => {
                                 key={seatIdx}
                                 className={`absolute h-7 w-7 rounded-full border flex items-center justify-center text-[8px] cursor-pointer font-bold transition-all shadow-md ${
                                   guestName
-                                    ? "bg-[#D8B76A] border-transparent text-[#070A13] hover:bg-red-400 hover:text-white"
+                                    ? "bg-[#D8B76A] border-transparent text-[#070A13] hover:bg-[#F2D894]"
                                     : "bg-[#070A13] border-white/20 text-white/40 hover:border-[#D8B76A] hover:text-[#D8B76A]"
                                 }`}
                                 style={{ transform: `translate(${leftOffset}px, ${topOffset}px)` }}
                                 onClick={() => {
                                   if (guestName) {
-                                    unassignGuest(table._id, guestName);
+                                    toast.info(`${guestName} is seated at ${table.name}. Use the remove button below to unseat them.`);
                                   } else {
                                     toast.info("Select a guest from the left list to seat them.");
                                   }
                                 }}
-                                title={guestName ? `${guestName} (Click to unseat)` : `Seat ${seatIdx + 1}: Empty`}
+                                title={guestName ? `Seat ${seatIdx + 1}: ${guestName}` : `Seat ${seatIdx + 1}: Empty`}
                               >
                                 {guestName ? guestName.substring(0, 2).toUpperCase() : seatIdx + 1}
                               </div>
@@ -469,11 +469,19 @@ const AdminSeatingPage = () => {
                           {table.assignedGuests.map((name) => (
                             <span
                               key={name}
-                              onClick={() => unassignGuest(table._id, name)}
-                              className="inline-flex items-center gap-1.5 rounded-full bg-white/5 hover:bg-red-500/10 hover:text-red-400 border border-white/10 hover:border-red-500/20 px-2.5 py-1 text-xs text-white/80 cursor-pointer transition"
-                              title="Click to unseat"
+                              className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-2.5 py-1 text-xs text-white/80 transition"
+                              title={`${name} is seated at ${table.name}`}
                             >
-                              {name} <Icon icon="lucide:x" className="h-3 w-3 opacity-40" />
+                              <span>{name}</span>
+                              <button
+                                type="button"
+                                onClick={() => unassignGuest(table._id, name)}
+                                className="rounded-full p-0.5 text-white/45 transition hover:bg-red-500/15 hover:text-red-400"
+                                title={`Remove ${name} from ${table.name}`}
+                                aria-label={`Remove ${name} from ${table.name}`}
+                              >
+                                <Icon icon="lucide:x" className="h-3 w-3" />
+                              </button>
                             </span>
                           ))}
                         </div>

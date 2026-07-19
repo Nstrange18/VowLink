@@ -4,6 +4,7 @@ const userSchema = new mongoose.Schema(
   {
     partner1Name: { type: String, required: true, trim: true },
     partner2Name: { type: String, required: true, trim: true },
+    couplePhone: { type: String, trim: true, default: "" },
     email: {
       type: String,
       required: true,

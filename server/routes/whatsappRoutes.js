@@ -217,7 +217,7 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
     }
 
     return res.json({
-      message: `WhatsApp send complete: ${submitted} submitted, ${failed} failed, ${skipped} skipped.`,
+      message: `WhatsApp submit complete: ${submitted} submitted, ${failed} failed, ${skipped} skipped.`,
       sent: submitted,
       submitted,
       failed,

@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
 import api from '../../utils/api'
 import CustomSelect from '../../components/CustomSelect'
+import InternationalPhoneInput from '../../components/InternationalPhoneInput'
 import { invitationSchema } from '../../utils/schemas'
 import AiMessageAssist from '../../components/AiMessageAssist'
 import { Icon } from '@iconify/react'
@@ -152,15 +153,21 @@ const AdminEditInvitationPage = () => {
         </div>
 
         <div>
-          <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Guest Phone Number (WhatsApp format, e.g. 2348012345678)</label>
-          <input
-            id="phone-number"
-            placeholder="e.g. 2348031234567"
-            {...register('phoneNumber')}
-            className={cls(errors.phoneNumber)}
+          <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">Guest WhatsApp Number</label>
+          <Controller
+            name="phoneNumber"
+            control={control}
+            render={({ field }) => (
+              <InternationalPhoneInput
+                id="phone-number"
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.phoneNumber}
+              />
+            )}
           />
           {errors.phoneNumber && <p className="mt-1 text-xs text-red-400">{errors.phoneNumber.message}</p>}
-          <p className="mt-1 text-[10px] text-white/30">Optional. Include country code without "+" or space. Used for launching direct WhatsApp messages.</p>
+          <p className="mt-1 text-[10px] text-white/30">Optional. Select the country code, then enter the remaining WhatsApp digits. The saved format is international.</p>
         </div>
 
         <div>

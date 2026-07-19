@@ -7,6 +7,7 @@ import api from "../../utils/api";
 import { signupSchema } from "../../utils/schemas";
 import ColorPicker, { WEDDING_COLORS } from "../../components/ColorPicker";
 import CustomSelect from "../../components/CustomSelect";
+import InternationalPhoneInput from "../../components/InternationalPhoneInput";
 import { Icon } from "@iconify/react";
 
 const isDarkColor = (hex) => {
@@ -70,6 +71,7 @@ const SignupPage = () => {
     defaultValues: {
       partner1Name: "",
       partner2Name: "",
+      couplePhone: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -99,6 +101,7 @@ const SignupPage = () => {
       const res = await api.post("/auth/signup", {
         partner1Name: data.partner1Name,
         partner2Name: data.partner2Name,
+        couplePhone: data.couplePhone || "",
         email: data.email,
         password: data.password,
         weddingDate: data.weddingDate || null,
@@ -187,6 +190,28 @@ const SignupPage = () => {
               />
               <FieldError name="partner2Name" />
             </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">
+              Couple Phone Number
+            </label>
+            <Controller
+              name="couplePhone"
+              control={control}
+              render={({ field }) => (
+                <InternationalPhoneInput
+                  id="couple-phone"
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.couplePhone}
+                />
+              )}
+            />
+            <FieldError name="couplePhone" />
+            <p className="mt-1 text-[10px] text-white/30">
+              Optional. Used as the couple contact number for event follow-up and admin tools.
+            </p>
           </div>
 
           {/* Email */}

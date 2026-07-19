@@ -119,7 +119,11 @@ const ensureInvitationCheckInToken = async (invitation) => {
 
 const cleanWhatsAppNumber = (phone) => {
   if (!phone) return "";
-  let cleaned = String(phone).replace(/[\s+\-()]/g, "");
+  const raw = String(phone).trim();
+  let cleaned = raw.replace(/[\s+\-()]/g, "");
+  if (raw.startsWith("00")) {
+    cleaned = cleaned.replace(/^00/, "");
+  }
   if (/^0\d{10}$/.test(cleaned)) {
     cleaned = "234" + cleaned.substring(1);
   }

@@ -69,6 +69,19 @@ const normalizePublicImageUrl = (url) => {
   return url.replace(/\.(png|jpe?g)$/i, ".webp");
 };
 
+const normalizeProfilePhone = (phone) => {
+  if (!phone) return "";
+  const raw = String(phone).trim();
+  let cleaned = raw.replace(/[\s+\-()]/g, "");
+  if (raw.startsWith("00")) {
+    cleaned = cleaned.replace(/^00/, "");
+  }
+  if (/^0\d{10}$/.test(cleaned)) {
+    cleaned = `234${cleaned.slice(1)}`;
+  }
+  return cleaned.length >= 7 && /^\d+$/.test(cleaned) ? cleaned : "";
+};
+
 const normalizeCustomTextColors = (colors = {}) => {
   const allowed = ["title", "subtitle", "coupleNames", "greeting", "message", "details", "reception", "colors"];
   return allowed.reduce((acc, key) => {
@@ -83,6 +96,7 @@ const userPayload = (user) => ({
   id: user._id,
   partner1Name: user.partner1Name,
   partner2Name: user.partner2Name,
+  couplePhone: user.couplePhone || "",
   email: user.email,
   weddingDate: user.weddingDate,
   weddingTime: user.weddingTime,
@@ -142,6 +156,7 @@ const userPublic = (user) => ({
   id: user._id,
   partner1Name: user.partner1Name,
   partner2Name: user.partner2Name,
+  couplePhone: user.couplePhone || "",
   email: user.email,
   weddingDate: user.weddingDate,
   weddingTime: user.weddingTime,
@@ -234,6 +249,7 @@ router.post("/signup", signupLimiter, async (req, res) => {
     const {
       partner1Name,
       partner2Name,
+      couplePhone,
       email,
       password,
       weddingDate,
@@ -263,6 +279,7 @@ router.post("/signup", signupLimiter, async (req, res) => {
     const user = await User.create({
       partner1Name,
       partner2Name,
+      couplePhone: normalizeProfilePhone(couplePhone),
       email,
       password: hashed,
       weddingDate: weddingDate || null,
@@ -421,6 +438,7 @@ router.put("/me", protect, async (req, res) => {
     const {
       partner1Name,
       partner2Name,
+      couplePhone,
       weddingDate,
       weddingTime,
       rsvpDeadline,
@@ -491,6 +509,7 @@ router.put("/me", protect, async (req, res) => {
     // Update basic settings safely (only if defined in request payload)
     if (partner1Name !== undefined) user.partner1Name = partner1Name;
     if (partner2Name !== undefined) user.partner2Name = partner2Name;
+    if (couplePhone !== undefined) user.couplePhone = normalizeProfilePhone(couplePhone);
     
     if (weddingDate !== undefined) {
       const oldDateStr = user.weddingDate ? new Date(user.weddingDate).toDateString() : "";

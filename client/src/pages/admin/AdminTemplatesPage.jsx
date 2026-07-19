@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { SettingsProvider, useSettings } from "../../context/SettingsContext";
 import { PREMADE_TEMPLATES, getTemplateLayout } from "../../utils/templateLayouts";
@@ -7,7 +7,6 @@ import AiBackgroundGenerator from "../../components/settings/AiBackgroundGenerat
 import { Icon } from "@iconify/react";
 
 const AdminTemplatesPageContent = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const {
     storedUser,
@@ -43,10 +42,6 @@ const AdminTemplatesPageContent = () => {
     }
   }, [location.hash]);
 
-  // Modal state for locked upgrade prompt
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [targetTier, setTargetTier] = useState("");
-
   const hasUnsavedChanges = customCardBg !== savedCardBg || cardTheme !== savedCardTheme;
 
   const handleSelectTemplate = (template) => {
@@ -54,12 +49,6 @@ const AdminTemplatesPageContent = () => {
       (isUnpaid && template.tier === "free") ||
       (isFree && template.tier !== "free") ||
       (isPlus && template.tier === "pro");
-
-    if (isLocked) {
-      setTargetTier(isUnpaid && template.tier === "free" ? "Classic" : template.tier === "pro" ? "Pro" : "Plus / Pro");
-      setUpgradeModalOpen(true);
-      return;
-    }
 
     // Update settings context states
     setCustomCardBg(template.url);
@@ -76,9 +65,11 @@ const AdminTemplatesPageContent = () => {
       setUserHasCustomAlignment(false); // Reset custom alignment override to use layout config defaults
     }
 
-    toast.info(`Selected "${template.name}". Click Save below to apply to invitation!`, {
-      toastId: "template-selected",
-    });
+    const message = isLocked
+      ? `Previewing "${template.name}". Upgrade before saving it to your live invitation.`
+      : `Selected "${template.name}". Click Save below to apply to invitation!`;
+
+    toast.info(message, { toastId: "template-selected" });
   };
 
   const handleResetToPlain = () => {
@@ -161,7 +152,7 @@ const AdminTemplatesPageContent = () => {
         }`}
       >
         {/* Template Image */}
-        <div className="template-gallery-image relative aspect-[608/580] w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner">
+        <div className="template-gallery-image relative aspect-608/580 w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner">
           <img
             src={t.preview}
             alt={t.name}
@@ -232,7 +223,7 @@ const AdminTemplatesPageContent = () => {
             >
               {isLocked ? (
                 <span className="inline-flex items-center justify-center gap-1.5">
-                  Unlock Design <Icon icon="lucide:lock" className="h-3.5 w-3.5" />
+                  Preview Design <Icon icon="lucide:eye" className="h-3.5 w-3.5" />
                 </span>
               ) : "Use Template"}
             </button>
@@ -392,7 +383,7 @@ const AdminTemplatesPageContent = () => {
               type="button"
               onClick={handleSaveChanges}
               disabled={isSubmitting}
-              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-bold bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13] transition cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap min-w-[120px]"
+              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-bold bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13] transition cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap min-w-30"
             >
               {isSubmitting ? (
                 <>
@@ -407,70 +398,6 @@ const AdminTemplatesPageContent = () => {
         </div>
       )}
 
-      {/* Upgrade Modal Prompt */}
-      {upgradeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0D1220] p-6 shadow-2xl relative animate-fade-in">
-            <button
-              type="button"
-              onClick={() => setUpgradeModalOpen(false)}
-              className="absolute top-4 right-4 text-white/40 hover:text-white text-lg cursor-pointer"
-            >
-              <Icon icon="lucide:x" className="h-4 w-4" />
-            </button>
-
-            <div className="text-center">
-              <div className="flex justify-center">
-                <Icon icon="lucide:crown" className="text-4xl text-[#D8B76A] mb-2 animate-pulse" />
-              </div>
-              <h3 className="font-serif text-2xl text-[#D8B76A] mt-3 uppercase tracking-wide">
-                Unlock Premium Template
-              </h3>
-              <p className="text-xs text-white/60 mt-2">
-                This gorgeous design is exclusive to users on the <strong className="text-white">{targetTier}</strong> tier plan. Upgrade today to unlock this template and all corresponding premium features:
-              </p>
-            </div>
-
-            {/* Premium details list */}
-            <div className="mt-5 space-y-2.5 bg-white/5 border border-white/5 p-4 rounded-xl text-left">
-              {[
-                { label: "Full-Length Soundtrack Music Integration", icon: "lucide:music" },
-                { label: "Portrait Backdrop Image Overlay & Opacity Slider", icon: "lucide:image" },
-                { label: "Interactive, Beautiful Event Day Timeline Stepper", icon: "lucide:clock" },
-                { label: "Gift Registry Transfer Details Integration", icon: "lucide:gift" },
-                { label: "Complete Design Font & Text Fine-Tuning Controls", icon: "lucide:sliders" },
-              ].map((feat) => (
-                <div key={feat.label} className="flex items-center gap-2 text-left">
-                  <Icon icon={feat.icon} className="w-3.5 h-3.5 text-[#D8B76A] shrink-0" />
-                  <span className="text-[10px] leading-relaxed text-white/80">{feat.label}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setUpgradeModalOpen(false);
-                  navigate("/admin/billing");
-                }}
-                className="w-full py-3 rounded-xl bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-xs font-bold uppercase tracking-widest text-[#070A13] shadow-lg transition cursor-pointer"
-              >
-                <span className="inline-flex items-center justify-center gap-1.5">
-                  Upgrade Plan Now <Icon icon="lucide:arrow-right" className="h-3.5 w-3.5" />
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setUpgradeModalOpen(false)}
-                className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-white/50 hover:text-white transition cursor-pointer"
-              >
-                Close & Keep Browsing
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

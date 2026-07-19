@@ -10,6 +10,7 @@ export const signupSchema = z
   .object({
     partner1Name: z.string().min(1, "Partner 1 name is required"),
     partner2Name: z.string().min(1, "Partner 2 name is required"),
+    couplePhone: z.string().optional().default(""),
     email: z.string().email("Enter a valid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
@@ -73,6 +74,7 @@ export const settingsSchema = z
   .object({
     partner1Name: z.string().min(1, "Partner 1 name is required"),
     partner2Name: z.string().min(1, "Partner 2 name is required"),
+    couplePhone: z.string().optional().default(""),
     weddingDate: z.string().optional(),
     weddingTime: z.string().optional(), 
     rsvpDeadline: z.string().optional(),

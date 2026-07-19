@@ -4,6 +4,7 @@ import { Controller } from "react-hook-form";
 import { toast } from "react-toastify";
 import ColorPicker from "../../components/ColorPicker";
 import CustomSelect from "../../components/CustomSelect";
+import InternationalPhoneInput from "../../components/InternationalPhoneInput";
 import { SettingsProvider, useSettings } from "../../context/SettingsContext";
 import InvitationCardPreview from "../../components/settings/InvitationCardPreview";
 import ThemeSelector from "../../components/settings/ThemeSelector";
@@ -11,7 +12,7 @@ import MusicSelector from "../../components/settings/MusicSelector";
 import ImageEditorModal from "../../components/ImageEditorModal";
 import { Icon } from "@iconify/react";
 import api from "../../utils/api";
-import { PREMADE_TEMPLATES } from "../../components/settings/ThemeSelector";
+import { PREMADE_TEMPLATES } from "../../utils/templateLayouts";
 import PageMiniTour from "../../components/PageMiniTour";
 
 const SETTINGS_TOUR_STEPS = [
@@ -450,6 +451,24 @@ const AdminSettingsPageContent = () => {
                         <input id="settings-p2" {...register("partner2Name")} className={cls(errors.partner2Name)} />
                         {errors.partner2Name && <p className="mt-1 text-xs text-red-400">{errors.partner2Name.message}</p>}
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Couple Phone Number</label>
+                      <Controller
+                        name="couplePhone"
+                        control={control}
+                        render={({ field }) => (
+                          <InternationalPhoneInput
+                            id="settings-couple-phone"
+                            value={field.value}
+                            onChange={field.onChange}
+                            error={errors.couplePhone}
+                          />
+                        )}
+                      />
+                      {errors.couplePhone && <p className="mt-1 text-xs text-red-400">{errors.couplePhone.message}</p>}
+                      <p className="mt-1 text-[9px] text-white/30">Optional. Used as the couple contact number for follow-up and admin tools.</p>
                     </div>
 
                     {/* Date / Time */}

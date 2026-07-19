@@ -26,7 +26,7 @@ const PageMiniTour = ({ title = 'Quick tour', storageKey, steps = [], className 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`inline-flex w-fit items-center justify-center gap-2 rounded-full border border-[#D8B76A]/25 bg-[#D8B76A]/10 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#F2D894] transition hover:bg-[#D8B76A]/15 ${className}`}
+        className={`inline-flex w-fit items-center justify-center gap-2 rounded-full border border-[#D8B76A]/25 bg-red-100 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-900 transition hover:bg-red-200 ${className}`}
       >
         <Icon icon="lucide:map" className="h-3.5 w-3.5" />
         Take Tour

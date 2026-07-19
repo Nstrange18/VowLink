@@ -225,6 +225,7 @@ export const SettingsProvider = ({ children }) => {
     defaultValues: {
       partner1Name: storedUser.partner1Name || "",
       partner2Name: storedUser.partner2Name || "",
+      couplePhone: storedUser.couplePhone || "",
       weddingDate: toInputDate(storedUser.weddingDate),
       weddingTime: storedUser.weddingTime || "",
       rsvpDeadline: toInputDate(storedUser.rsvpDeadline),
@@ -303,6 +304,7 @@ export const SettingsProvider = ({ children }) => {
         reset({
           partner1Name: freshUser.partner1Name || "",
           partner2Name: freshUser.partner2Name || "",
+          couplePhone: freshUser.couplePhone || "",
           weddingDate: toInputDate(freshUser.weddingDate),
           weddingTime: freshUser.weddingTime || "",
           rsvpDeadline: toInputDate(freshUser.rsvpDeadline),

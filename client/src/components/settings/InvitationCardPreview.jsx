@@ -702,6 +702,9 @@ const InvitationCardPreview = () => {
   const cardRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [cardHeight, setCardHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(() =>
+    typeof window !== "undefined" ? window.innerHeight : 0
+  );
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -729,10 +732,30 @@ const InvitationCardPreview = () => {
     return () => observer.disconnect();
   }, [cardTheme, customCardBg]);
 
+  useEffect(() => {
+    const handleResize = () => setViewportHeight(window.innerHeight);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const shouldHideBg = containerWidth > 0 && containerWidth < 380;
 
   const nativeWidth = 608;
-  const cardScale = containerWidth ? Math.min(1.0, (containerWidth - (shouldHideBg ? 16 : 48)) / nativeWidth) : 0.6;
+  const previewChromeHeight = shouldHideBg ? 96 : 170;
+  const measuredCardHeight = cardHeight || 620;
+  const minimumReadablePreviewHeight = shouldHideBg ? 520 : 640;
+  const availablePreviewHeight = viewportHeight
+    ? Math.max(minimumReadablePreviewHeight, viewportHeight - previewChromeHeight)
+    : measuredCardHeight;
+  const widthScale = containerWidth ? (containerWidth - (shouldHideBg ? 16 : 48)) / nativeWidth : 0.6;
+  const heightScale = availablePreviewHeight / measuredCardHeight;
+  const minimumReadableScale = shouldHideBg ? 0.58 : 0.68;
+  const heightAwareScale = Math.max(heightScale, Math.min(minimumReadableScale, widthScale));
+  const cardScale = Math.min(1.0, widthScale, heightAwareScale);
+  const containerPaddingHeight = shouldHideBg ? 16 : 48;
+  const scaledCardHeight = measuredCardHeight * cardScale;
+  const scaledCardWidth = nativeWidth * cardScale;
 
   const previewContainerClass = shouldHideBg
     ? "w-full max-w-full bg-transparent rounded-none overflow-hidden shadow-none border-none p-0 relative isolate flex items-start justify-center min-h-0 pt-2"
@@ -740,7 +763,7 @@ const InvitationCardPreview = () => {
 
   return (
     <div data-tour="settings-preview" className="col-span-12 min-w-0 lg:col-span-6 lg:h-full">
-      <div className="space-y-4 animate-fade-in min-w-0 overflow-hidden lg:h-full lg:max-h-full lg:overflow-x-hidden lg:overflow-y-auto lg:pr-1">
+      <div className="space-y-4 animate-fade-in min-w-0 overflow-hidden lg:sticky lg:top-6 lg:overflow-visible">
         <p className="text-xs uppercase tracking-[0.25em] text-[#D8B76A] font-bold">Live Invitation Card Preview</p>
 
         <div
@@ -748,7 +771,8 @@ const InvitationCardPreview = () => {
           id="live-card-preview"
           className={previewContainerClass}
           style={{
-            height: cardHeight > 0 ? `${cardHeight * cardScale + (shouldHideBg ? 16 : 48)}px` : "auto",
+            height: `${scaledCardHeight + containerPaddingHeight}px`,
+            minHeight: `${scaledCardHeight + containerPaddingHeight}px`,
             transition: "height 0.3s ease-out"
           }}
         >
@@ -775,13 +799,20 @@ const InvitationCardPreview = () => {
 
         {/* The Invitation Card — key forces full remount on template/theme change */}
         <div
+          className="relative z-10 flex-none"
+          style={{
+            width: `${scaledCardWidth}px`,
+            height: `${scaledCardHeight}px`,
+          }}
+        >
+        <div
           ref={cardRef}
           key={customCardBg || cardTheme}
-          className={`relative z-10 w-[608px] max-w-none flex-none rounded-2xl overflow-hidden transition-all duration-300 ${isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
+          className={`absolute left-1/2 top-0 w-[608px] max-w-none rounded-2xl overflow-hidden transition-all duration-300 ${isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
             } ${isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-2xl"
             }`}
           style={{
-            transform: `scale(${cardScale})`,
+            transform: `translateX(-50%) scale(${cardScale})`,
             transformOrigin: "top center",
           }}
         >
@@ -997,6 +1028,7 @@ const InvitationCardPreview = () => {
               )}
             </div>
           </div>
+        </div>
         </div>
         </div>
 

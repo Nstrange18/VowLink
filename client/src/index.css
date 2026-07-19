@@ -287,15 +287,31 @@ body.vowlink-light {
 html.vowlink-light ::-webkit-scrollbar-track { background: #f7f3ec; }
 
 html.vowlink-light .bg-\[\#070A13\],
+html.vowlink-light .bg-\[\#02040A\],
+html.vowlink-light .bg-\[\#050814\],
+html.vowlink-light .bg-\[\#080C16\],
 html.vowlink-light .bg-\[\#090D19\],
 html.vowlink-light .bg-\[\#0D1220\],
 html.vowlink-light .bg-\[\#0d1220\],
 html.vowlink-light .bg-\[\#0A0D16\],
 html.vowlink-light .bg-\[\#0B0F19\],
+html.vowlink-light .bg-\[\#111827\],
+html.vowlink-light .bg-\[\#1C253D\],
+html.vowlink-light .bg-\[\#1e0f12\],
+html.vowlink-light .bg-\[\#070A13\]\/50,
 html.vowlink-light .bg-\[\#0d1220\]\/70,
+html.vowlink-light .bg-\[\#070A13\]\/55,
 html.vowlink-light .bg-\[\#070A13\]\/60,
+html.vowlink-light .bg-\[\#070A13\]\/65,
+html.vowlink-light .bg-\[\#070A13\]\/70,
+html.vowlink-light .bg-\[\#070A13\]\/80,
 html.vowlink-light .bg-\[\#0D1220\]\/60,
-html.vowlink-light .bg-\[\#0D1220\]\/40 {
+html.vowlink-light .bg-\[\#0D1220\]\/40,
+html.vowlink-light .bg-\[\#0D1220\]\/50,
+html.vowlink-light .bg-\[\#0D1220\]\/65,
+html.vowlink-light .bg-\[\#0D1220\]\/70,
+html.vowlink-light .bg-\[\#111827\]\/60,
+html.vowlink-light .bg-\[\#111827\]\/70 {
   background-color: #fffaf0 !important;
 }
 
@@ -308,7 +324,13 @@ html.vowlink-light .bg-amber-950\/30,
 html.vowlink-light .bg-white\/2,
 html.vowlink-light .bg-white\/3,
 html.vowlink-light .bg-white\/5,
-html.vowlink-light .bg-white\/10 {
+html.vowlink-light .bg-white\/8,
+html.vowlink-light .bg-white\/10,
+html.vowlink-light .bg-white\/15,
+html.vowlink-light .bg-white\/20,
+html.vowlink-light .bg-white\/30,
+html.vowlink-light .bg-white\/40,
+html.vowlink-light .bg-white\/55 {
   background-color: rgba(31, 41, 51, 0.06) !important;
 }
 
@@ -349,13 +371,27 @@ html.vowlink-light .from-transparent {
 }
 
 html.vowlink-light .text-white,
+html.vowlink-light .text-white\/20,
+html.vowlink-light .text-white\/25,
 html.vowlink-light .text-white\/30,
+html.vowlink-light .text-white\/35,
 html.vowlink-light .text-white\/40,
+html.vowlink-light .text-white\/45,
 html.vowlink-light .text-white\/50,
 html.vowlink-light .text-white\/55,
 html.vowlink-light .text-white\/60,
+html.vowlink-light .text-white\/62,
+html.vowlink-light .text-white\/65,
 html.vowlink-light .text-white\/70,
-html.vowlink-light .text-white\/80 {
+html.vowlink-light .text-white\/75,
+html.vowlink-light .text-white\/80,
+html.vowlink-light .text-white\/85,
+html.vowlink-light .text-white\/90,
+html.vowlink-light .text-\[\#F2D894\],
+html.vowlink-light .text-\[\#F5EBD6\],
+html.vowlink-light .text-\[\#fffaf0\],
+html.vowlink-light .text-\[\#FFF\],
+html.vowlink-light .text-\[\#FFFFFF\] {
   color: #1f2933 !important;
 }
 
@@ -382,19 +418,33 @@ html.vowlink-light .hover\:text-\[\#D8B76A\]\/80:hover {
 }
 
 html.vowlink-light .hover\:text-white:hover,
-html.vowlink-light .group:hover .group-hover\:text-white\/70 {
+html.vowlink-light .hover\:text-white\/80:hover,
+html.vowlink-light .hover\:text-white\/90:hover,
+html.vowlink-light .group:hover .group-hover\:text-white\/70,
+html.vowlink-light .group:hover .group-hover\:text-white\/80,
+html.vowlink-light .group:hover .group-hover\:text-white\/90 {
   color: #8a6a22 !important;
 }
 
 html.vowlink-light .placeholder-white\/20::placeholder,
-html.vowlink-light .placeholder-white\/30::placeholder {
+html.vowlink-light .placeholder-white\/25::placeholder,
+html.vowlink-light .placeholder-white\/30::placeholder,
+html.vowlink-light .placeholder-white\/40::placeholder,
+html.vowlink-light .placeholder-white\/50::placeholder {
   color: rgba(31, 41, 51, 0.45) !important;
 }
 
 html.vowlink-light .border-white\/5,
+html.vowlink-light .border-white\/8,
 html.vowlink-light .border-white\/10,
+html.vowlink-light .border-white\/12,
 html.vowlink-light .border-white\/15,
-html.vowlink-light .border-white\/20 {
+html.vowlink-light .border-white\/20,
+html.vowlink-light .border-white\/25,
+html.vowlink-light .border-white\/30,
+html.vowlink-light .border-white\/35,
+html.vowlink-light .border-white\/40,
+html.vowlink-light .border-white\/60 {
   border-color: rgba(31, 41, 51, 0.12) !important;
 }
 
@@ -402,6 +452,56 @@ html.vowlink-light input,
 html.vowlink-light textarea,
 html.vowlink-light select {
   color: #1f2933;
+}
+
+html.vowlink-light .international-phone-shell {
+  background-color: rgba(31, 41, 51, 0.05) !important;
+  border-color: rgba(31, 41, 51, 0.16) !important;
+  color: #1f2933 !important;
+}
+
+html.vowlink-light .international-phone-country {
+  border-color: rgba(31, 41, 51, 0.14) !important;
+  color: #1f2933 !important;
+}
+
+html.vowlink-light .international-phone-country:hover {
+  background-color: rgba(31, 41, 51, 0.07) !important;
+}
+
+html.vowlink-light .international-phone-iso,
+html.vowlink-light .international-phone-icon,
+html.vowlink-light .international-phone-search-icon,
+html.vowlink-light .international-phone-option-code,
+html.vowlink-light .international-phone-empty {
+  color: rgba(31, 41, 51, 0.62) !important;
+}
+
+html.vowlink-light .international-phone-code,
+html.vowlink-light .international-phone-number,
+html.vowlink-light .international-phone-search-input,
+html.vowlink-light .international-phone-option {
+  color: #1f2933 !important;
+}
+
+html.vowlink-light .international-phone-menu {
+  background-color: #fffaf0 !important;
+  border-color: rgba(31, 41, 51, 0.14) !important;
+  box-shadow: 0 18px 50px rgba(31, 41, 51, 0.18) !important;
+}
+
+html.vowlink-light .international-phone-search {
+  background-color: rgba(31, 41, 51, 0.05) !important;
+  border-color: rgba(31, 41, 51, 0.12) !important;
+}
+
+html.vowlink-light .international-phone-option:hover {
+  background-color: rgba(31, 41, 51, 0.07) !important;
+}
+
+html.vowlink-light .international-phone-option-active {
+  background-color: rgba(216, 183, 106, 0.18) !important;
+  color: #8a6518 !important;
 }
 
 html.vowlink-light .shadow-2xl,
