@@ -9,6 +9,7 @@ import {
   PREMADE_TEMPLATES,
 } from "../../utils/templateLayouts";
 import { Icon } from "@iconify/react";
+import { showConfirmToast } from "../../utils/toastConfirm";
 
 export const THEMES = [
   { value: "floral", label: "Classic Floral (Classic / All plans)" },
@@ -85,6 +86,7 @@ const ThemeSelector = () => {
     handleCustomCardBgUpload,
     getSmartTextColor,
     checkSmartAlignment,
+    restoreSavedTemplate,
   } = useSettings();
   const isUnpaid =
     (JSON.parse(localStorage.getItem("user") || "{}").tier || "unpaid") ===
@@ -96,7 +98,7 @@ const ThemeSelector = () => {
   const [showFineTuning, setShowFineTuning] = useState(true);
   const [expandedTemplateTier, setExpandedTemplateTier] = useState(null);
 
-  const handleResetTheme = () => {
+  const applyThemeReset = () => {
     setCardTheme("floral");
     setCustomCardBg("");
     setCustomTextColor("#1A2E4A");
@@ -123,6 +125,15 @@ const ThemeSelector = () => {
     toast.success(
       "Theme settings reset to defaults! Click 'Save Customizations' below to save changes.",
     );
+  };
+
+  const handleResetTheme = () => {
+    showConfirmToast({
+      toastId: "reset-theme-defaults",
+      confirmLabel: "Reset theme",
+      message: "Reset theme defaults? This will clear the selected template, custom text colors, font, alignment, size, and positioning. It will not go live until you save changes.",
+      onConfirm: applyThemeReset,
+    });
   };
 
   const detailedSections = [
@@ -191,25 +202,6 @@ const ThemeSelector = () => {
   const hasUnsavedTemplatePreview =
     customCardBg !== savedCardBg || cardTheme !== savedCardTheme;
 
-  const restoreSavedTemplate = () => {
-    setCustomCardBg(savedCardBg || "");
-    setCardTheme(savedCardTheme || "floral");
-    setCustomTextColor(
-      getSmartTextColor(savedCardTheme || "floral", savedCardBg || ""),
-    );
-
-    const layout = getTemplateLayout(
-      savedCardTheme || "floral",
-      savedCardBg || "",
-    );
-    if (layout && layout.align) {
-      setCustomTextAlign(layout.align);
-    }
-
-    setUserHasCustomTextColor(false);
-    toast.info("Restored the last saved template preview.");
-  };
-
   const selectTemplate = (template) => {
     const tier = templateTiers[template.tier];
     const isLocked = tier?.getLocked?.();
@@ -235,6 +227,7 @@ const ThemeSelector = () => {
     const tier = templateTiers[tierKey];
     const isLocked = tier.getLocked();
     const isSelected = cardTheme === "custom" && customCardBg === template.url;
+    const isSaved = savedCardTheme === "custom" && savedCardBg === template.url;
 
     return (
       <button
@@ -273,8 +266,26 @@ const ThemeSelector = () => {
             {isLocked ? "Preview" : "Active"}
           </span>
         )}
+        {!isSelected && isSaved && (
+          <span className="absolute top-2 right-2 bg-emerald-400 text-[#07130e] text-[8px] font-bold px-1.5 py-0.5 rounded shadow-md">
+            Saved
+          </span>
+        )}
       </button>
     );
+  };
+
+  const getModalTemplates = (tierKey) => {
+    const templates = templatesByTier[tierKey] || [];
+    return [...templates].sort((a, b) => {
+      const aScore =
+        (cardTheme === "custom" && customCardBg === a.url ? 0 : 2) +
+        (savedCardTheme === "custom" && savedCardBg === a.url ? 0 : 1);
+      const bScore =
+        (cardTheme === "custom" && customCardBg === b.url ? 0 : 2) +
+        (savedCardTheme === "custom" && savedCardBg === b.url ? 0 : 1);
+      return aScore - bScore;
+    });
   };
 
   const renderTemplateTier = (tierKey) => {
@@ -727,26 +738,12 @@ const ThemeSelector = () => {
                       </button>
                     </div>
                     <div className="grid grid-cols-1 gap-3 overflow-y-auto p-3.5 min-[420px]:grid-cols-2 sm:p-5">
-                      {templatesByTier[expandedTemplateTier].map((template) =>
+                      {getModalTemplates(expandedTemplateTier).map((template) =>
                         renderTemplateCard(template, expandedTemplateTier),
                       )}
                     </div>
                   </div>
                 </div>,
-                document.body,
-              )}
-
-            {hasUnsavedTemplatePreview &&
-              typeof document !== "undefined" &&
-              createPortal(
-                <button
-                  type="button"
-                  onClick={restoreSavedTemplate}
-                  className="fixed bottom-5 right-5 z-9000 inline-flex max-w-[calc(100vw-2.5rem)] items-center justify-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#0D1220]/95 px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#D8B76A] shadow-[0_14px_34px_rgba(0,0,0,0.45)] backdrop-blur transition hover:bg-[#D8B76A] hover:text-[#070A13]"
-                >
-                  <Icon icon="lucide:rotate-ccw" className="h-3.5 w-3.5" />
-                  Restore Saved Template
-                </button>,
                 document.body,
               )}
 

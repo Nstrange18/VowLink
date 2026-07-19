@@ -4,6 +4,7 @@ import api from "../../utils/api";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
 import PageMiniTour from "../../components/PageMiniTour";
+import { showConfirmToast } from "../../utils/toastConfirm";
 
 const SEATING_TOUR_STEPS = [
   {
@@ -160,6 +161,15 @@ const AdminSeatingPage = () => {
       // Rollback
       fetchData();
     }
+  };
+
+  const requestUnassignGuest = (tableId, guestName, tableName) => {
+    showConfirmToast({
+      toastId: `unseat-${tableId}-${guestName}`,
+      confirmLabel: "Unseat guest",
+      message: `Remove ${guestName} from ${tableName}? They will return to the waiting list.`,
+      onConfirm: () => unassignGuest(tableId, guestName),
+    });
   };
 
   // Calculate seated status
@@ -475,7 +485,7 @@ const AdminSeatingPage = () => {
                               <span>{name}</span>
                               <button
                                 type="button"
-                                onClick={() => unassignGuest(table._id, name)}
+                                onClick={() => requestUnassignGuest(table._id, name, table.name)}
                                 className="rounded-full p-0.5 text-white/45 transition hover:bg-red-500/15 hover:text-red-400"
                                 title={`Remove ${name} from ${table.name}`}
                                 aria-label={`Remove ${name} from ${table.name}`}

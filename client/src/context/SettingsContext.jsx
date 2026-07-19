@@ -68,6 +68,7 @@ const getSpotifyEmbedUrl = (url) => {
 export const SettingsProvider = ({ children }) => {
   const navigate = useNavigate();
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const [savedProfile, setSavedProfile] = useState(storedUser);
   const tier = storedUser.tier || "unpaid";
   const isUnpaid = tier === "unpaid";
   const isFree = tier === "free" || isUnpaid;
@@ -218,7 +219,7 @@ export const SettingsProvider = ({ children }) => {
     watch,
     control,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm({
     resolver: zodResolver(settingsSchema),
     shouldUnregister: false,
@@ -241,6 +242,7 @@ export const SettingsProvider = ({ children }) => {
 
   const p1 = watch("partner1Name");
   const p2 = watch("partner2Name");
+  const couplePhone = watch("couplePhone");
   const weddingDate = watch("weddingDate");
   const rsvpDeadline = watch("rsvpDeadline");
   const venue = watch("venue");
@@ -250,12 +252,90 @@ export const SettingsProvider = ({ children }) => {
   const dressCode = watch("dressCode");
   const weddingTime = watch("weddingTime");
 
+  const formValues = watch();
+
+  const normalizeInputDate = (value) => value ? toInputDate(value) : "";
+  const normalizeString = (value) => value || "";
+  const sameJson = (a, b) => JSON.stringify(a || []) === JSON.stringify(b || []);
+  const hasTemplatePreviewChanges = customCardBg !== savedCardBg || cardTheme !== savedCardTheme;
+
+  const getChangedSettingsSections = () => {
+    const sections = [];
+    const baseline = savedProfile || {};
+    const formChanged =
+      normalizeString(formValues.partner1Name) !== normalizeString(baseline.partner1Name) ||
+      normalizeString(formValues.partner2Name) !== normalizeString(baseline.partner2Name) ||
+      normalizeString(formValues.couplePhone) !== normalizeString(baseline.couplePhone) ||
+      normalizeInputDate(formValues.weddingDate) !== normalizeInputDate(baseline.weddingDate) ||
+      normalizeString(formValues.weddingTime) !== normalizeString(baseline.weddingTime) ||
+      normalizeInputDate(formValues.rsvpDeadline) !== normalizeInputDate(baseline.rsvpDeadline) ||
+      normalizeString(formValues.venue) !== normalizeString(baseline.venue) ||
+      normalizeString(formValues.venueName) !== normalizeString(baseline.venueName) ||
+      normalizeString(formValues.receptionLocation) !== normalizeString(baseline.receptionLocation) ||
+      normalizeString(formValues.receptionName) !== normalizeString(baseline.receptionName) ||
+      normalizeString(formValues.dressCode) !== normalizeString(baseline.dressCode) ||
+      normalizeString(formValues.plusOnePolicy) !== normalizeString(baseline.plusOnePolicy || "invitation_only") ||
+      Boolean(formValues.kidsAllowed) !== (typeof baseline.kidsAllowed === "boolean" ? baseline.kidsAllowed : true);
+
+    if (formChanged || isDirty) sections.push("wedding details");
+    if (
+      hasTemplatePreviewChanges ||
+      defaultGuestTheme !== (["dark", "light", "system"].includes(baseline.defaultGuestTheme) ? baseline.defaultGuestTheme : "dark") ||
+      !sameJson(weddingColors, baseline.weddingColors) ||
+      customTextColor !== (baseline.customTextColor || "#1A2E4A") ||
+      JSON.stringify(customTextColors || {}) !== JSON.stringify(normalizeTextColors(baseline.customTextColors)) ||
+      customFontFamily !== (baseline.customFontFamily || "classic") ||
+      Number(customVerticalOffset) !== Number(baseline.customVerticalOffset || 0) ||
+      Number(customHorizontalOffset) !== Number(baseline.customHorizontalOffset || 0) ||
+      Boolean(smartLayoutEnabled) !== (typeof baseline.smartLayoutEnabled === "boolean" ? baseline.smartLayoutEnabled : true) ||
+      Number(customTextSize) !== Number(baseline.customTextSize || 1.0) ||
+      Number(customTextSizeTitle) !== Number(baseline.customTextSizeTitle || 1.0) ||
+      Number(customTextSizeSubtitle) !== Number(baseline.customTextSizeSubtitle || 1.0) ||
+      Number(customTextSizeCoupleNames) !== Number(baseline.customTextSizeCoupleNames || 1.0) ||
+      Number(customTextSizeGreeting) !== Number(baseline.customTextSizeGreeting || 1.0) ||
+      Number(customTextSizeMessage) !== Number(baseline.customTextSizeMessage || 1.0) ||
+      Number(customTextSizeDetails) !== Number(baseline.customTextSizeDetails || 1.0) ||
+      Number(customTextSizeReception) !== Number(baseline.customTextSizeReception || 1.0) ||
+      Number(customTextSizeColors) !== Number(baseline.customTextSizeColors || 1.0) ||
+      customTextBoldness !== (baseline.customTextBoldness || "normal") ||
+      customTextAlign !== (baseline.customTextAlign || "center")
+    ) {
+      sections.push("design");
+    }
+    if (
+      normalizeString(couplePhotoUrl) !== normalizeString(baseline.couplePhotoUrl) ||
+      normalizeString(customShareMessage) !== normalizeString(baseline.customShareMessage) ||
+      Number(coupleOverlayOpacity) !== Number(baseline.coupleOverlayOpacity ?? 0.45) ||
+      normalizeString(musicUrl) !== normalizeString(baseline.musicUrl) ||
+      !sameJson(galleryPhotos, baseline.galleryPhotos)
+    ) {
+      sections.push("media");
+    }
+    if (
+      Boolean(registryEnabled) !== Boolean(baseline.registryEnabled) ||
+      normalizeString(registryBankName) !== normalizeString(baseline.registryBankName) ||
+      normalizeString(registryAccountName) !== normalizeString(baseline.registryAccountName) ||
+      normalizeString(registryAccountNumber) !== normalizeString(baseline.registryAccountNumber) ||
+      normalizeString(registryNotes) !== normalizeString(baseline.registryNotes) ||
+      Number(honeymoonFundTarget) !== Number(baseline.honeymoonFundTarget || 0) ||
+      Number(honeymoonFundCurrent) !== Number(baseline.honeymoonFundCurrent || 0) ||
+      JSON.stringify(timeline || []) !== JSON.stringify(baseline.timeline || [])
+    ) {
+      sections.push("registry");
+    }
+    return sections;
+  };
+
+  const changedSettingsSections = getChangedSettingsSections();
+  const hasUnsavedSettingsChanges = changedSettingsSections.length > 0;
+
   // Fetch full profile on mount to hydrate media fields not included in login response
   useEffect(() => {
     const fetchFullProfile = async () => {
       try {
         const res = await api.get("/auth/me");
         const freshUser = res.data;
+        setSavedProfile(freshUser);
         if (freshUser.galleryPhotos?.length) setGalleryPhotos(freshUser.galleryPhotos);
         setCustomCardBg(normalizePublicImageUrl(freshUser.customCardBg));
         setSavedCardBg(normalizePublicImageUrl(freshUser.customCardBg));
@@ -505,8 +585,11 @@ export const SettingsProvider = ({ children }) => {
 
       localStorage.setItem("token", res.data.accessToken);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      toast.success("Settings saved successfully!  Updates applied to invitation cards.");
-      window.location.reload();
+      const savedSections = changedSettingsSections.length
+        ? changedSettingsSections.join(", ")
+        : "settings";
+      toast.success(`Saved ${savedSections}. Updates applied to invitation cards.`);
+      window.setTimeout(() => window.location.reload(), 650);
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed. Please try again.");
     }
@@ -949,6 +1032,18 @@ export const SettingsProvider = ({ children }) => {
     }
   };
 
+  const restoreSavedTemplate = () => {
+    const themeToRestore = savedCardTheme || "floral";
+    const bgToRestore = savedCardBg || "";
+
+    setCustomCardBg(bgToRestore);
+    setCardTheme(themeToRestore);
+    setCustomTextColor(getSmartTextColor(themeToRestore, bgToRestore));
+    checkSmartAlignment(bgToRestore, smartLayoutEnabled);
+    setUserHasCustomTextColor(false);
+    toast.info("Restored the last saved template preview.");
+  };
+
   // Removed smart layout auto-alignment trigger to let template layouts apply statically at render time.
 
   const formattedTime = weddingTime
@@ -1209,12 +1304,17 @@ export const SettingsProvider = ({ children }) => {
         clearLocalAudio,
         handleResetAll,
         handleResetConfirm,
+        restoreSavedTemplate,
         getSmartTextColor,
         checkSmartAlignment,
         uploadToCloudinary,
         getSpotifyEmbedUrl,
 
         p1, p2, weddingDate, rsvpDeadline, venue, venueName, receptionLocation, receptionName, dressCode, weddingTime,
+        couplePhone,
+        hasUnsavedSettingsChanges,
+        hasTemplatePreviewChanges,
+        changedSettingsSections,
         formattedTime,
         activeFont,
         priHex, secHex, terHex, selectedBgHex,

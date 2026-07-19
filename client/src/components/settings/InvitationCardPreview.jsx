@@ -635,6 +635,7 @@ const InvitationCardPreview = () => {
     customBgInputRef,
     setCardTheme,
     cardTheme,
+    hasTemplatePreviewChanges,
     customTextColor,
     customTextColors,
     userHasCustomTextColor,
@@ -762,9 +763,21 @@ const InvitationCardPreview = () => {
     : "w-full max-w-full bg-[#070A13] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 p-4 sm:p-6 relative isolate flex items-start justify-center min-h-0 pt-6";
 
   return (
-    <div data-tour="settings-preview" className="col-span-12 min-w-0 lg:col-span-6 lg:h-full">
+    <div data-tour="settings-preview" className="col-span-12 min-w-0 pb-15 sm:pb-20 lg:col-span-6 lg:h-full">
       <div className="space-y-4 animate-fade-in min-w-0 overflow-hidden lg:sticky lg:top-6 lg:overflow-visible">
-        <p className="text-xs uppercase tracking-[0.25em] text-[#D8B76A] font-bold">Live Invitation Card Preview</p>
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs uppercase tracking-[0.25em] text-[#D8B76A] font-bold">Live Invitation Card Preview</p>
+          <span
+            className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1 text-[9px] font-bold uppercase tracking-wider ${
+              hasTemplatePreviewChanges
+                ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                : "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
+            }`}
+          >
+            <Icon icon={hasTemplatePreviewChanges ? "lucide:eye" : "lucide:badge-check"} className="h-3 w-3" />
+            {hasTemplatePreviewChanges ? "Previewing unsaved template" : "Saved template"}
+          </span>
+        </div>
 
         <div
           ref={containerRef}

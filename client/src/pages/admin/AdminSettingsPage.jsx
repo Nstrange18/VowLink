@@ -66,7 +66,9 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
       return;
     }
     const newItem = { time, title, description, icon };
-    const newTimeline = [...timeline, newItem].sort((a, b) => a.time.localeCompare(b.time));
+    const newTimeline = [...timeline, newItem].sort((a, b) =>
+      a.time.localeCompare(b.time),
+    );
     setTimeline(newTimeline);
     setTime("");
     setTitle("");
@@ -86,14 +88,24 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
       {timeline.length > 0 && (
         <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
           {timeline.map((item, index) => (
-            <div key={index} className="flex justify-between items-center bg-white/5 border border-white/10 rounded-xl p-3">
+            <div
+              key={index}
+              className="flex justify-between items-center bg-white/5 border border-white/10 rounded-xl p-3"
+            >
               <div className="flex items-center gap-3">
-                <Icon icon={item.icon?.includes(":") ? item.icon : "mdi:ring"} className="h-5 w-5 shrink-0 text-[#D8B76A]" />
+                <Icon
+                  icon={item.icon?.includes(":") ? item.icon : "mdi:ring"}
+                  className="h-5 w-5 shrink-0 text-[#D8B76A]"
+                />
                 <div>
                   <p className="text-xs font-semibold text-white">
                     {item.time} - {item.title}
                   </p>
-                  {item.description && <p className="text-[10px] text-white/40 mt-0.5">{item.description}</p>}
+                  {item.description && (
+                    <p className="text-[10px] text-white/40 mt-0.5">
+                      {item.description}
+                    </p>
+                  )}
                 </div>
               </div>
               <button
@@ -109,11 +121,15 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
       )}
 
       <div className="bg-white/3 border border-white/5 p-4 rounded-xl space-y-4">
-        <p className="text-[10px] uppercase tracking-wider text-[#D8B76A] font-bold">+ Add Timeline Event</p>
+        <p className="text-[10px] uppercase tracking-wider text-[#D8B76A] font-bold">
+          + Add Timeline Event
+        </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-1">Time</label>
+            <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-1">
+              Time
+            </label>
             <input
               type="time"
               value={time}
@@ -122,7 +138,9 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
             />
           </div>
           <div>
-            <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-1">Title</label>
+            <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-1">
+              Title
+            </label>
             <input
               type="text"
               placeholder="e.g. Toast & Reception"
@@ -134,7 +152,9 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
         </div>
 
         <div>
-          <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-1">Description / Location (Optional)</label>
+          <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-1">
+            Description / Location (Optional)
+          </label>
           <input
             type="text"
             placeholder="e.g. Garden Reception / Ballroom"
@@ -145,17 +165,20 @@ const TimelineBuilder = ({ timeline, setTimeline }) => {
         </div>
 
         <div>
-          <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-2">Select Icon</label>
+          <label className="block text-[9px] uppercase tracking-wider text-white/50 mb-2">
+            Select Icon
+          </label>
           <div className="flex flex-wrap gap-2">
             {TIMELINE_ICONS.map((i) => (
               <button
                 key={i.icon}
                 type="button"
                 onClick={() => setIcon(i.icon)}
-                className={`h-8 w-8 rounded-lg text-lg flex items-center justify-center border transition-all ${icon === i.icon
-                  ? "bg-[#D8B76A]/20 border-[#D8B76A] text-white"
-                  : "bg-[#070A13] border-white/10 text-white/60 hover:border-white/30"
-                  }`}
+                className={`h-8 w-8 rounded-lg text-lg flex items-center justify-center border transition-all ${
+                  icon === i.icon
+                    ? "bg-[#D8B76A]/20 border-[#D8B76A] text-white"
+                    : "bg-[#070A13] border-white/10 text-white/60 hover:border-white/30"
+                }`}
                 title={i.label}
               >
                 <Icon icon={i.icon} className="h-4 w-4" />
@@ -195,44 +218,65 @@ const AdminSettingsPageContent = () => {
     customBgInputRef,
     couplePhotoInputRef,
 
-    weddingColors, setWeddingColors,
+    weddingColors,
+    setWeddingColors,
     cardTheme,
     customCardBg,
     savedCardBg,
     savedCardTheme,
-    couplePhotoUrl, setCouplePhotoUrl,
-    customShareMessage, setCustomShareMessage,
+    couplePhotoUrl,
+    setCouplePhotoUrl,
+    customShareMessage,
+    setCustomShareMessage,
     setCropperQueue,
-    cropperOpen, setCropperOpen,
+    cropperOpen,
+    setCropperOpen,
     cropperImageSrc,
     cropperTitle,
     cropperDefaultAspect,
     cropperCallback,
-    coupleOverlayOpacity, setCoupleOverlayOpacity,
-    registryEnabled, setRegistryEnabled,
-    registryBankName, setRegistryBankName,
-    registryAccountName, setRegistryAccountName,
-    registryAccountNumber, setRegistryAccountNumber,
-    registryNotes, setRegistryNotes,
-    timeline, setTimeline,
+    coupleOverlayOpacity,
+    setCoupleOverlayOpacity,
+    registryEnabled,
+    setRegistryEnabled,
+    registryBankName,
+    setRegistryBankName,
+    registryAccountName,
+    setRegistryAccountName,
+    registryAccountNumber,
+    setRegistryAccountNumber,
+    registryNotes,
+    setRegistryNotes,
+    timeline,
+    setTimeline,
     gifts,
 
-    currentPassword, setCurrentPassword,
-    newPassword, setNewPassword,
-    confirmNewPassword, setConfirmNewPassword,
+    currentPassword,
+    setCurrentPassword,
+    newPassword,
+    setNewPassword,
+    confirmNewPassword,
+    setConfirmNewPassword,
     submittingPassword,
     handleChangePassword,
 
-    showDeleteConfirm, setShowDeleteConfirm,
-    deletePassword, setDeletePassword,
+    showDeleteConfirm,
+    setShowDeleteConfirm,
+    deletePassword,
+    setDeletePassword,
     submittingDelete,
     handleDeleteAccount,
 
-    activeTab, setActiveTab,
-    showResetConfirm, setShowResetConfirm,
-    showCurrentPassword, setShowCurrentPassword,
-    showNewPassword, setShowNewPassword,
-    showConfirmNewPassword, setShowConfirmNewPassword,
+    activeTab,
+    setActiveTab,
+    showResetConfirm,
+    setShowResetConfirm,
+    showCurrentPassword,
+    setShowCurrentPassword,
+    showNewPassword,
+    setShowNewPassword,
+    showConfirmNewPassword,
+    setShowConfirmNewPassword,
 
     register,
     handleSubmit,
@@ -241,37 +285,48 @@ const AdminSettingsPageContent = () => {
     isSubmitting,
     onSubmit,
     onInvalid,
+    hasUnsavedSettingsChanges,
+    hasTemplatePreviewChanges,
+    changedSettingsSections,
+    restoreSavedTemplate,
 
     handleCustomCardBgUpload,
     handleCouplePhotoUpload,
     handleResetAll,
     handleResetConfirm,
 
-    weddingDate, weddingTime,
+    weddingDate,
+    weddingTime,
   } = useSettings();
-  const previewTemplateTier = PREMADE_TEMPLATES.find((template) => template.url === customCardBg)?.tier;
+  const previewTemplateTier = PREMADE_TEMPLATES.find(
+    (template) => template.url === customCardBg,
+  )?.tier;
   const hasPendingTemplatePreview =
     cardTheme === "custom" &&
     Boolean(customCardBg) &&
     (savedCardTheme !== "custom" || savedCardBg !== customCardBg);
   const hasLockedTemplatePreview =
     hasPendingTemplatePreview &&
-    (
-      (isUnpaid && previewTemplateTier === "free") ||
+    ((isUnpaid && previewTemplateTier === "free") ||
       (isFree && previewTemplateTier !== "free") ||
-      (isPlus && previewTemplateTier === "pro")
-    );
+      (isPlus && previewTemplateTier === "pro"));
   const lockedTemplatePlanLabel =
     !previewTemplateTier || previewTemplateTier === "pro"
       ? "Upgrade to Pro"
       : previewTemplateTier === "plus"
         ? "Upgrade to Plus"
         : "Activate Classic";
+  const changedSettingsLabel = changedSettingsSections.length
+    ? changedSettingsSections.join(", ")
+    : "settings";
 
   const [showCouplePortrait, setShowCouplePortrait] = React.useState(true);
   const [showSocialShare, setShowSocialShare] = React.useState(false);
   const [checkInPin, setCheckInPin] = React.useState("");
-  const [checkInPinStatus, setCheckInPinStatus] = React.useState({ enabled: false, updatedAt: null });
+  const [checkInPinStatus, setCheckInPinStatus] = React.useState({
+    enabled: false,
+    updatedAt: null,
+  });
   const [loadingCheckInPin, setLoadingCheckInPin] = React.useState(false);
   const [savingCheckInPin, setSavingCheckInPin] = React.useState(false);
   const [disablingCheckInPin, setDisablingCheckInPin] = React.useState(false);
@@ -327,7 +382,9 @@ const AdminSettingsPageContent = () => {
       });
       toast.success(res.data?.message || "Check-in PIN updated.");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update check-in PIN.");
+      toast.error(
+        err.response?.data?.message || "Failed to update check-in PIN.",
+      );
     } finally {
       setSavingCheckInPin(false);
     }
@@ -347,32 +404,72 @@ const AdminSettingsPageContent = () => {
       setCheckInPinStatus({ enabled: false, updatedAt: null });
       toast.success(res.data?.message || "Check-in PIN disabled.");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to disable check-in PIN.");
+      toast.error(
+        err.response?.data?.message || "Failed to disable check-in PIN.",
+      );
     } finally {
       setDisablingCheckInPin(false);
     }
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl overflow-x-clip px-4 py-4 text-white sm:px-8 sm:py-8 lg:h-full lg:flex lg:flex-col">
+    <div className="mx-auto w-full max-w-6xl overflow-x-clip px-4 py-4 pb-36 text-white sm:px-8 sm:py-8 sm:pb-36 lg:h-full lg:flex lg:flex-col">
       <div data-tour="settings-header" className="mb-6 min-w-0 lg:shrink-0">
-        <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Account</p>
-        <h2 className="font-serif text-3xl sm:text-4xl">Settings & Customization</h2>
-        <p className="text-white/40 text-sm mt-1">
-          Customize your wedding invitation card appearance, photo gallery, dress code, and venue preferences.
+        <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">
+          Account
         </p>
-        <PageMiniTour title="Settings tour" storageKey="vowlink-tour-settings" steps={SETTINGS_TOUR_STEPS} className="mt-4" />
+        <h2 className="font-serif text-3xl sm:text-4xl">
+          Settings & Customization
+        </h2>
+        <p className="text-white/40 text-sm mt-1">
+          Customize your wedding invitation card appearance, photo gallery,
+          dress code, and venue preferences.
+        </p>
+        <PageMiniTour
+          title="Settings tour"
+          storageKey="vowlink-tour-settings"
+          steps={SETTINGS_TOUR_STEPS}
+          className="mt-4"
+        />
       </div>
 
       {/* Glassmorphic Tabs Selector */}
-      <div data-tour="settings-tabs" className="mb-8 flex min-w-0 flex-wrap gap-1.5 border-b border-white/10 pb-4 sm:gap-2 lg:shrink-0">
+      <div
+        data-tour="settings-tabs"
+        className="mb-8 flex min-w-0 flex-wrap gap-1.5 border-b border-white/10 pb-4 sm:gap-2 lg:shrink-0"
+      >
         {[
-          { id: "details", label: "Details", fullLabel: "Wedding Details", icon: "lucide:calendar-days" },
-          { id: "design", label: "Design", fullLabel: "Design & Theme", icon: "lucide:palette" },
-          { id: "media", label: "Music", fullLabel: "Media & Music", icon: "lucide:music" },
-          { id: "registry", label: "Registry", fullLabel: "Gift Registry", icon: "lucide:gift" },
-          { id: "security", label: "Security", fullLabel: "Security & Danger Zone", icon: "lucide:lock" }
-        ].map(tab => (
+          {
+            id: "details",
+            label: "Details",
+            fullLabel: "Wedding Details",
+            icon: "lucide:calendar-days",
+          },
+          {
+            id: "design",
+            label: "Design",
+            fullLabel: "Design & Theme",
+            icon: "lucide:palette",
+          },
+          {
+            id: "media",
+            label: "Music",
+            fullLabel: "Media & Music",
+            icon: "lucide:music",
+          },
+          {
+            id: "registry",
+            label: "Registry",
+            fullLabel: "Gift Registry",
+            icon: "lucide:gift",
+          },
+          {
+            id: "security",
+            label: "Security",
+            fullLabel: "Security & Danger Zone",
+            icon: "lucide:lock",
+          },
+        ].map((tab) => (
           <button
             key={tab.id}
             type="button"
@@ -382,10 +479,11 @@ const AdminSettingsPageContent = () => {
                 setShowDeleteConfirm(false);
               }
             }}
-            className={`min-w-0 px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${activeTab === tab.id
-              ? "bg-[#D8B76A] text-[#070A13] shadow-[0_8px_20px_rgba(216,183,106,0.25)]"
-              : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
-              }`}
+            className={`min-w-0 px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${
+              activeTab === tab.id
+                ? "bg-[#D8B76A] text-[#070A13] shadow-[0_8px_20px_rgba(216,183,106,0.25)]"
+                : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
           >
             <span className="flex items-center gap-1.5 justify-center">
               <Icon icon={tab.icon} className="w-3.5 h-3.5 shrink-0" />
@@ -400,13 +498,20 @@ const AdminSettingsPageContent = () => {
       {activeTab !== "security" && (
         <div className="mb-6 flex min-w-0 items-start justify-between gap-3 rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-3 py-3 text-xs text-white/80 animate-pulse lg:hidden">
           <div className="flex min-w-0 items-start gap-2">
-            <Icon icon="lucide:eye" className="text-[#D8B76A] w-4 h-4 shrink-0" />
-            <span className="min-w-0 leading-relaxed">Live changes are updating on the card below</span>
+            <Icon
+              icon="lucide:eye"
+              className="text-[#D8B76A] w-4 h-4 shrink-0"
+            />
+            <span className="min-w-0 leading-relaxed">
+              Live changes are updating on the card below
+            </span>
           </div>
           <button
             type="button"
             onClick={() => {
-              document.getElementById("live-card-preview")?.scrollIntoView({ behavior: "smooth" });
+              document
+                .getElementById("live-card-preview")
+                ?.scrollIntoView({ behavior: "smooth" });
             }}
             className="flex shrink-0 items-center gap-1 text-right text-[10px] font-bold uppercase leading-tight text-[#D8B76A] hover:underline"
           >
@@ -425,36 +530,70 @@ const AdminSettingsPageContent = () => {
         className="hidden"
       />
 
-      <div data-tour="settings-workspace" className="grid min-w-0 grid-cols-1 items-start gap-6 overflow-x-clip lg:grid-cols-12 lg:items-stretch lg:gap-8 lg:flex-1 lg:min-h-0">
+      <div
+        data-tour="settings-workspace"
+        className="grid min-w-0 grid-cols-1 items-start gap-6 overflow-x-clip lg:grid-cols-12 lg:items-stretch lg:gap-8 lg:flex-1 lg:min-h-0"
+      >
         {/* LEFT COLUMN: Tabs/Forms container */}
-        <div className={`col-span-12 ${activeTab === "security" ? "lg:col-span-12" : "lg:col-span-6"} space-y-6 min-w-0 lg:h-full lg:overflow-y-auto lg:pr-2 lg:pb-8`}>
-
+        <div
+          className={`col-span-12 ${activeTab === "security" ? "lg:col-span-12" : "lg:col-span-6"} space-y-6 min-w-0 lg:h-full lg:overflow-y-auto lg:pr-2 lg:pb-40`}
+        >
           {/* Main Form for Details, Design, Media, and Registry settings */}
-          {(activeTab === "details" || activeTab === "design" || activeTab === "media" || activeTab === "registry") && (
-            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="min-w-0 space-y-8 animate-fade-in">
-
+          {(activeTab === "details" ||
+            activeTab === "design" ||
+            activeTab === "media" ||
+            activeTab === "registry") && (
+            <form
+              id="settings-customization-form"
+              onSubmit={handleSubmit(onSubmit, onInvalid)}
+              className="min-w-0 space-y-8 animate-fade-in"
+            >
               {/* TAB 1: Wedding Details */}
               {activeTab === "details" && (
                 <div className="w-full">
                   <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-6">
-                    <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">1. Wedding Metadata</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">
+                      1. Wedding Metadata
+                    </h3>
 
                     {/* Partner names */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Partner 1 *</label>
-                        <input id="settings-p1" {...register("partner1Name")} className={cls(errors.partner1Name)} />
-                        {errors.partner1Name && <p className="mt-1 text-xs text-red-400">{errors.partner1Name.message}</p>}
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                          Partner 1 *
+                        </label>
+                        <input
+                          id="settings-p1"
+                          {...register("partner1Name")}
+                          className={cls(errors.partner1Name)}
+                        />
+                        {errors.partner1Name && (
+                          <p className="mt-1 text-xs text-red-400">
+                            {errors.partner1Name.message}
+                          </p>
+                        )}
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Partner 2 *</label>
-                        <input id="settings-p2" {...register("partner2Name")} className={cls(errors.partner2Name)} />
-                        {errors.partner2Name && <p className="mt-1 text-xs text-red-400">{errors.partner2Name.message}</p>}
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                          Partner 2 *
+                        </label>
+                        <input
+                          id="settings-p2"
+                          {...register("partner2Name")}
+                          className={cls(errors.partner2Name)}
+                        />
+                        {errors.partner2Name && (
+                          <p className="mt-1 text-xs text-red-400">
+                            {errors.partner2Name.message}
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     <div>
-                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Couple Phone Number</label>
+                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                        Couple Phone Number
+                      </label>
                       <Controller
                         name="couplePhone"
                         control={control}
@@ -467,14 +606,23 @@ const AdminSettingsPageContent = () => {
                           />
                         )}
                       />
-                      {errors.couplePhone && <p className="mt-1 text-xs text-red-400">{errors.couplePhone.message}</p>}
-                      <p className="mt-1 text-[9px] text-white/30">Optional. Used as the couple contact number for follow-up and admin tools.</p>
+                      {errors.couplePhone && (
+                        <p className="mt-1 text-xs text-red-400">
+                          {errors.couplePhone.message}
+                        </p>
+                      )}
+                      <p className="mt-1 text-[9px] text-white/30">
+                        Optional. Used as the couple contact number for
+                        follow-up and admin tools.
+                      </p>
                     </div>
 
                     {/* Date / Time */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Wedding Date</label>
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                          Wedding Date
+                        </label>
                         <input
                           id="settings-wedding-date"
                           type="date"
@@ -483,7 +631,9 @@ const AdminSettingsPageContent = () => {
                         />
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Wedding Time</label>
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                          Wedding Time
+                        </label>
                         <input
                           id="settings-wedding-time"
                           type="time"
@@ -492,20 +642,28 @@ const AdminSettingsPageContent = () => {
                         />
                         {weddingTime && (
                           <p className="mt-1.5 text-xs text-[#D8B76A] font-semibold">
-                            Formatted Display: {new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString("en-US", {
+                            Formatted Display:{" "}
+                            {new Date(
+                              `1970-01-01T${weddingTime}:00`,
+                            ).toLocaleTimeString("en-US", {
                               hour: "numeric",
                               minute: "2-digit",
                               hour12: true,
                             })}
                           </p>
                         )}
-                        <p className="mt-1 text-[9px] text-white/30">Invitations display time in 12-hr format (e.g. 2:00 PM)</p>
+                        <p className="mt-1 text-[9px] text-white/30">
+                          Invitations display time in 12-hr format (e.g. 2:00
+                          PM)
+                        </p>
                       </div>
                     </div>
 
                     {/* RSVP Deadline */}
                     <div>
-                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">RSVP Deadline</label>
+                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                        RSVP Deadline
+                      </label>
                       <input
                         id="settings-rsvp-deadline"
                         type="date"
@@ -518,7 +676,9 @@ const AdminSettingsPageContent = () => {
                     {/* Ceremony Venue */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Ceremony Name</label>
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                          Ceremony Name
+                        </label>
                         <input
                           id="settings-venue-name"
                           placeholder="e.g. The Grand Ballroom"
@@ -527,7 +687,9 @@ const AdminSettingsPageContent = () => {
                         />
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Ceremony Address (Linked to Maps)</label>
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                          Ceremony Address (Linked to Maps)
+                        </label>
                         <input
                           id="settings-venue"
                           placeholder="e.g. 123 Lekki Ave, Lagos"
@@ -540,7 +702,9 @@ const AdminSettingsPageContent = () => {
                     {/* Reception Venue */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Reception Name</label>
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                          Reception Name
+                        </label>
                         <input
                           id="settings-reception-name"
                           placeholder="e.g. Reception Gardens"
@@ -549,7 +713,9 @@ const AdminSettingsPageContent = () => {
                         />
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Reception Address (Linked to Maps)</label>
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                          Reception Address (Linked to Maps)
+                        </label>
                         <input
                           id="settings-reception-location"
                           placeholder="e.g. Victoria Island, Lagos"
@@ -560,31 +726,55 @@ const AdminSettingsPageContent = () => {
                     </div>
 
                     <div className="sm:col-span-2 bg-[#D8B76A]/5 border border-[#D8B76A]/20 p-3 rounded-xl flex items-start gap-2">
-                      <Icon icon="lucide:alert-triangle" className="text-xs mt-0.5 text-[#D8B76A]" />
+                      <Icon
+                        icon="lucide:alert-triangle"
+                        className="text-xs mt-0.5 text-[#D8B76A]"
+                      />
                       <p className="text-[10px] text-white/70 leading-relaxed">
-                        <strong className="text-[#D8B76A]">Location Precision:</strong> When adding locations, please be as precise as possible (include specific hall name, street address, or major landmarks). Guests will use these descriptions to look up routes and direct maps.
+                        <strong className="text-[#D8B76A]">
+                          Location Precision:
+                        </strong>{" "}
+                        When adding locations, please be as precise as possible
+                        (include specific hall name, street address, or major
+                        landmarks). Guests will use these descriptions to look
+                        up routes and direct maps.
                       </p>
                     </div>
 
                     {/* Wedding Colours Selector */}
                     <div>
-                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50 font-semibold">Wedding Colours</label>
-                      <ColorPicker value={weddingColors} onChange={setWeddingColors} />
+                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50 font-semibold">
+                        Wedding Colours
+                      </label>
+                      <ColorPicker
+                        value={weddingColors}
+                        onChange={setWeddingColors}
+                      />
                       <p className="mt-1 text-[9px] text-white/30">
-                        Pick up to 5 colours for your dress code & invitation. You can update later.
+                        Pick up to 5 colours for your dress code & invitation.
+                        You can update later.
                       </p>
                     </div>
 
                     {/* Dress Code */}
                     <div>
-                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Dress Code</label>
-                      <input id="settings-dress-code" placeholder="e.g. Black Tie / Emerald Gold" {...register("dressCode")} className={cls(false)} />
+                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                        Dress Code
+                      </label>
+                      <input
+                        id="settings-dress-code"
+                        placeholder="e.g. Black Tie / Emerald Gold"
+                        {...register("dressCode")}
+                        className={cls(false)}
+                      />
                     </div>
 
                     {/* Guest Policies */}
                     <div className="space-y-4 border-t border-white/5 pt-4">
                       <div>
-                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-[#D8B76A]">Plus One Limit</label>
+                        <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-[#D8B76A]">
+                          Plus One Limit
+                        </label>
                         <Controller
                           name="plusOnePolicy"
                           control={control}
@@ -594,8 +784,14 @@ const AdminSettingsPageContent = () => {
                               value={field.value}
                               onChange={(e) => field.onChange(e.target.value)}
                               options={[
-                                { value: "invitation_only", label: "Strictly by invitation" },
-                                { value: "plus_one_allowed", label: "Plus one allowed" },
+                                {
+                                  value: "invitation_only",
+                                  label: "Strictly by invitation",
+                                },
+                                {
+                                  value: "plus_one_allowed",
+                                  label: "Plus one allowed",
+                                },
                               ]}
                             />
                           )}
@@ -603,7 +799,9 @@ const AdminSettingsPageContent = () => {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <label className="text-[10px] uppercase tracking-widest text-white/50">Kids Allowed</label>
+                        <label className="text-[10px] uppercase tracking-widest text-white/50">
+                          Kids Allowed
+                        </label>
                         <input
                           type="checkbox"
                           {...register("kidsAllowed")}
@@ -615,12 +813,19 @@ const AdminSettingsPageContent = () => {
                     {/* Wedding Timeline Builder */}
                     <div className="space-y-4 pt-6 border-t border-white/5">
                       <div>
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-[#D8B76A]">⏳ Wedding Day Timeline</h4>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-[#D8B76A]">
+                          ⏳ Wedding Day Timeline
+                        </h4>
                         <p className="text-[10px] text-white/40 mt-1">
-                          Build a schedule of events for your wedding day. This will render as a beautiful, animated timeline stepper on your invitation.
+                          Build a schedule of events for your wedding day. This
+                          will render as a beautiful, animated timeline stepper
+                          on your invitation.
                         </p>
                       </div>
-                      <TimelineBuilder timeline={timeline} setTimeline={setTimeline} />
+                      <TimelineBuilder
+                        timeline={timeline}
+                        setTimeline={setTimeline}
+                      />
                     </div>
                   </div>
                 </div>
@@ -637,39 +842,67 @@ const AdminSettingsPageContent = () => {
                     <div className="absolute inset-0 bg-linear-to-br from-[#D8B76A]/5 via-transparent to-transparent pointer-events-none" />
                     <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <h3 className="flex min-w-0 items-start gap-1.5 text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">
-                        <Icon icon="lucide:sparkles" className="w-4 h-4 text-[#D8B76A]" />
-                        <span className="min-w-0 leading-snug">3. AI Invitation Background Generator</span>
+                        <Icon
+                          icon="lucide:sparkles"
+                          className="w-4 h-4 text-[#D8B76A]"
+                        />
+                        <span className="min-w-0 leading-snug">
+                          3. AI Invitation Background Generator
+                        </span>
                       </h3>
                       {!isPro && !isPlus && (
                         <span className="inline-flex w-fit max-w-full items-center gap-1 rounded border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400">
-                          <Icon icon="lucide:lock" className="w-2.5 h-2.5" /> Plus / Pro Feature
+                          <Icon icon="lucide:lock" className="w-2.5 h-2.5" />{" "}
+                          Plus / Pro Feature
                         </span>
                       )}
                     </div>
                     <p className="text-[10px] text-white/65 leading-relaxed">
-                      Generate stunning, one-of-a-kind AI wedding invitation backgrounds tailored to your exact colors, style, and cultural influence. The AI creates beautiful frame graphics — VowLink overlays your text automatically.
+                      Generate stunning, one-of-a-kind AI wedding invitation
+                      backgrounds tailored to your exact colors, style, and
+                      cultural influence. The AI creates beautiful frame
+                      graphics — VowLink overlays your text automatically.
                     </p>
                     <div className="flex min-w-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                       <div className="flex min-w-0 flex-wrap gap-2">
-                        {["Luxury Gold", "Soft Floral", "Burgundy Velvet", "Traditional Nigerian", "Navy & Gold", "Emerald Green"].map((style) => (
-                          <span key={style} className="px-2.5 py-1 text-[9px] rounded-full border border-white/15 text-white/70 bg-[#070A13]/70">
+                        {[
+                          "Luxury Gold",
+                          "Soft Floral",
+                          "Burgundy Velvet",
+                          "Traditional Nigerian",
+                          "Navy & Gold",
+                          "Emerald Green",
+                        ].map((style) => (
+                          <span
+                            key={style}
+                            className="px-2.5 py-1 text-[9px] rounded-full border border-white/15 text-white/70 bg-[#070A13]/70"
+                          >
                             {style}
                           </span>
                         ))}
-                        <span className="px-2.5 py-1 text-[9px] rounded-full border border-white/15 text-white/70 bg-[#070A13]/70">+ more</span>
+                        <span className="px-2.5 py-1 text-[9px] rounded-full border border-white/15 text-white/70 bg-[#070A13]/70">
+                          + more
+                        </span>
                       </div>
                       <button
                         type="button"
-                        onClick={() => navigate("/admin/templates#ai-backgrounds")}
-                        className={`w-full min-w-0 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer sm:w-auto sm:shrink-0 ${!isPro && !isPlus
-                          ? "bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white"
-                          : "bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13] shadow-[0_4px_16px_rgba(216,183,106,0.25)]"
-                          }`}
+                        onClick={() =>
+                          navigate("/admin/templates#ai-backgrounds")
+                        }
+                        className={`w-full min-w-0 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer sm:w-auto sm:shrink-0 ${
+                          !isPro && !isPlus
+                            ? "bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white"
+                            : "bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13] shadow-[0_4px_16px_rgba(216,183,106,0.25)]"
+                        }`}
                       >
                         <Icon icon="lucide:sparkles" className="w-3.5 h-3.5" />
                         <span className="inline-flex min-w-0 items-center justify-center gap-1.5 text-center leading-tight">
-                          {!isPro && !isPlus ? "Upgrade to Generate" : "Generate AI Background"}
-                          {!isPro && !isPlus && <Icon icon="lucide:lock" className="h-3.5 w-3.5" />}
+                          {!isPro && !isPlus
+                            ? "Upgrade to Generate"
+                            : "Generate AI Background"}
+                          {!isPro && !isPlus && (
+                            <Icon icon="lucide:lock" className="h-3.5 w-3.5" />
+                          )}
                         </span>
                       </button>
                     </div>
@@ -683,7 +916,11 @@ const AdminSettingsPageContent = () => {
                       className="flex w-full min-w-0 items-start justify-between gap-3 py-1 text-sm font-semibold uppercase tracking-widest text-[#D8B76A] transition hover:text-white cursor-pointer outline-none"
                     >
                       <span className="flex min-w-0 items-start gap-2 text-left leading-snug">
-                        <Icon icon="lucide:camera" className="w-4 h-4 text-[#D8B76A]" /> 4. Couple Portrait Page Background
+                        <Icon
+                          icon="lucide:camera"
+                          className="w-4 h-4 text-[#D8B76A]"
+                        />{" "}
+                        4. Couple Portrait Page Background
                         {isFree && (
                           <span className="text-[9px] uppercase font-bold tracking-wider text-white/30 bg-white/5 px-2 py-0.5 rounded shrink-0">
                             Locked
@@ -691,7 +928,14 @@ const AdminSettingsPageContent = () => {
                         )}
                       </span>
                       <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] text-[#D8B76A]">
-                        <Icon icon={showCouplePortrait ? "lucide:chevron-up" : "lucide:chevron-down"} className="h-3 w-3" />
+                        <Icon
+                          icon={
+                            showCouplePortrait
+                              ? "lucide:chevron-up"
+                              : "lucide:chevron-down"
+                          }
+                          className="h-3 w-3"
+                        />
                         {showCouplePortrait ? "Hide" : "Show"}
                       </span>
                     </button>
@@ -699,7 +943,11 @@ const AdminSettingsPageContent = () => {
                     {showCouplePortrait && (
                       <div className="space-y-4 mt-4 animate-fade-in">
                         <p className="text-[10px] text-white/65 leading-relaxed">
-                          Upload a romantic photo of the couple. It will serve as the fullscreen background backdrop behind your elegant invitation card, and will also be shown as the preview image when sharing your invitation links on WhatsApp, Slack, and other platforms.
+                          Upload a romantic photo of the couple. It will serve
+                          as the fullscreen background backdrop behind your
+                          elegant invitation card, and will also be shown as the
+                          preview image when sharing your invitation links on
+                          WhatsApp, Slack, and other platforms.
                         </p>
                         <div>
                           <input
@@ -715,7 +963,11 @@ const AdminSettingsPageContent = () => {
                         {couplePhotoUrl && (
                           <div className="space-y-3">
                             <div className="flex flex-wrap items-center gap-3">
-                              <img src={couplePhotoUrl} alt="Couple portrait" className="h-16 w-16 rounded-xl object-cover border border-white/10" />
+                              <img
+                                src={couplePhotoUrl}
+                                alt="Couple portrait"
+                                className="h-16 w-16 rounded-xl object-cover border border-white/10"
+                              />
                               <button
                                 type="button"
                                 onClick={() => {
@@ -723,7 +975,8 @@ const AdminSettingsPageContent = () => {
                                   const ToastConfirm = ({ closeToast }) => (
                                     <div className="flex flex-col gap-2 p-1 text-white">
                                       <p className="font-semibold text-xs leading-relaxed">
-                                        Are you sure you want to remove the couple portrait photo?
+                                        Are you sure you want to remove the
+                                        couple portrait photo?
                                       </p>
                                       <div className="flex gap-2 justify-end mt-1">
                                         <button
@@ -738,7 +991,9 @@ const AdminSettingsPageContent = () => {
                                           onClick={() => {
                                             setCouplePhotoUrl("");
                                             closeToast();
-                                            toast.success("Couple portrait photo removed.");
+                                            toast.success(
+                                              "Couple portrait photo removed.",
+                                            );
                                           }}
                                           className="px-2 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
                                         >
@@ -764,7 +1019,9 @@ const AdminSettingsPageContent = () => {
                             <div>
                               <div className="flex justify-between text-[9px] text-white/50 uppercase mb-1">
                                 <span>Overlay darkening opacity</span>
-                                <span className="font-mono text-[#D8B76A]">{Math.round(coupleOverlayOpacity * 100)}%</span>
+                                <span className="font-mono text-[#D8B76A]">
+                                  {Math.round(coupleOverlayOpacity * 100)}%
+                                </span>
                               </div>
                               <input
                                 type="range"
@@ -774,9 +1031,16 @@ const AdminSettingsPageContent = () => {
                                 disabled={isFree}
                                 className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#D8B76A] disabled:opacity-40"
                                 value={coupleOverlayOpacity}
-                                onChange={(e) => setCoupleOverlayOpacity(Number(e.target.value))}
+                                onChange={(e) =>
+                                  setCoupleOverlayOpacity(
+                                    Number(e.target.value),
+                                  )
+                                }
                               />
-                              <p className="text-[8px] text-white/30 mt-1">Darker overlay enhances the contrast and readability of your card overlay text.</p>
+                              <p className="text-[8px] text-white/30 mt-1">
+                                Darker overlay enhances the contrast and
+                                readability of your card overlay text.
+                              </p>
                             </div>
                           </div>
                         )}
@@ -792,10 +1056,21 @@ const AdminSettingsPageContent = () => {
                       className="flex w-full min-w-0 items-start justify-between gap-3 py-1 text-sm font-semibold uppercase tracking-widest text-[#D8B76A] transition hover:text-white cursor-pointer outline-none"
                     >
                       <span className="flex min-w-0 items-start gap-2 text-left leading-snug">
-                        <Icon icon="lucide:link" className="w-4 h-4 text-[#D8B76A]" /> 5. Social Share Preview Message
+                        <Icon
+                          icon="lucide:link"
+                          className="w-4 h-4 text-[#D8B76A]"
+                        />{" "}
+                        5. Social Share Preview Message
                       </span>
                       <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] text-[#D8B76A]">
-                        <Icon icon={showSocialShare ? "lucide:chevron-up" : "lucide:chevron-down"} className="h-3 w-3" />
+                        <Icon
+                          icon={
+                            showSocialShare
+                              ? "lucide:chevron-up"
+                              : "lucide:chevron-down"
+                          }
+                          className="h-3 w-3"
+                        />
                         {showSocialShare ? "Hide" : "Show"}
                       </span>
                     </button>
@@ -803,20 +1078,34 @@ const AdminSettingsPageContent = () => {
                     {showSocialShare && (
                       <div className="space-y-4 mt-4 animate-fade-in">
                         <p className="text-[10px] text-white/65 leading-relaxed">
-                          Customize the description text that guests see when you share their invitation links on WhatsApp, Slack, Facebook, etc. "Powered by VowLink" will automatically be appended.
+                          Customize the description text that guests see when
+                          you share their invitation links on WhatsApp, Slack,
+                          Facebook, etc. "Powered by VowLink" will automatically
+                          be appended.
                         </p>
 
                         <div className="space-y-2">
-                          <label className="block text-[10px] uppercase tracking-widest text-white/50">Custom Share Description</label>
+                          <label className="block text-[10px] uppercase tracking-widest text-white/50">
+                            Custom Share Description
+                          </label>
                           <textarea
                             rows="3"
                             placeholder="e.g. We are so excited to celebrate our special day with you! Tap to view your personal invitation and RSVP."
                             value={customShareMessage}
-                            onChange={(e) => setCustomShareMessage(e.target.value)}
+                            onChange={(e) =>
+                              setCustomShareMessage(e.target.value)
+                            }
                             className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white placeholder-white/30 outline-none focus:border-[#D8B76A]/60 transition"
                           />
                           <p className="text-[8px] text-white/30 font-semibold">
-                            Leave blank to use the default: <em>"You are specially invited to celebrate the wedding of {storedUser?.partner1Name || "Partner 1"} and {storedUser?.partner2Name || "Partner 2"}. Tap the link to view your invitation and RSVP."</em>
+                            Leave blank to use the default:{" "}
+                            <em>
+                              "You are specially invited to celebrate the
+                              wedding of{" "}
+                              {storedUser?.partner1Name || "Partner 1"} and{" "}
+                              {storedUser?.partner2Name || "Partner 2"}. Tap the
+                              link to view your invitation and RSVP."
+                            </em>
                           </p>
                         </div>
                       </div>
@@ -826,9 +1115,7 @@ const AdminSettingsPageContent = () => {
               )}
 
               {/* TAB 3: Music & Photos */}
-              {activeTab === "media" && (
-                <MusicSelector />
-              )}
+              {activeTab === "media" && <MusicSelector />}
 
               {/* TAB 4: Gift Registry & Cash Fund */}
               {activeTab === "registry" && (
@@ -837,23 +1124,34 @@ const AdminSettingsPageContent = () => {
                     <div className="flex items-center justify-between border-b border-white/5 pb-4">
                       <div>
                         <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A] flex items-center gap-1.5">
-                          <Icon icon="lucide:gift" className="w-4 h-4 text-[#D8B76A]" /> Gift Registry
+                          <Icon
+                            icon="lucide:gift"
+                            className="w-4 h-4 text-[#D8B76A]"
+                          />{" "}
+                          Gift Registry
                         </h3>
                         <p className="text-white/40 text-xs mt-1">
-                          Share bank details directly on your invitation and RSVP confirmation pages.
+                          Share bank details directly on your invitation and
+                          RSVP confirmation pages.
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <label className="text-[10px] uppercase tracking-widest text-white/50">Status</label>
+                        <label className="text-[10px] uppercase tracking-widest text-white/50">
+                          Status
+                        </label>
                         <button
                           type="button"
                           onClick={() => setRegistryEnabled(!registryEnabled)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${registryEnabled ? "bg-[#D8B76A]" : "bg-white/10"
-                            }`}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            registryEnabled ? "bg-[#D8B76A]" : "bg-white/10"
+                          }`}
                         >
                           <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-slate-900 shadow-md ring-0 transition duration-200 ease-in-out ${registryEnabled ? "translate-x-5 bg-white" : "translate-x-0"
-                              }`}
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-slate-900 shadow-md ring-0 transition duration-200 ease-in-out ${
+                              registryEnabled
+                                ? "translate-x-5 bg-white"
+                                : "translate-x-0"
+                            }`}
                           />
                         </button>
                       </div>
@@ -864,47 +1162,64 @@ const AdminSettingsPageContent = () => {
                         {/* Bank Details Card */}
                         <div className="space-y-4">
                           <h4 className="text-xs font-semibold uppercase tracking-wider text-white/60 flex items-center gap-1.5">
-                            <Icon icon="lucide:landmark" className="w-3.5 h-3.5 text-white/60" /> Bank Transfer Details
+                            <Icon
+                              icon="lucide:landmark"
+                              className="w-3.5 h-3.5 text-white/60"
+                            />{" "}
+                            Bank Transfer Details
                           </h4>
 
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
-                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Bank Name</label>
+                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                                Bank Name
+                              </label>
                               <input
                                 type="text"
                                 placeholder="e.g. GTBank / Chase"
                                 value={registryBankName || ""}
-                                onChange={(e) => setRegistryBankName(e.target.value)}
+                                onChange={(e) =>
+                                  setRegistryBankName(e.target.value)
+                                }
                                 className={cls(false)}
                               />
                             </div>
                             <div>
-                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Account Name</label>
+                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                                Account Name
+                              </label>
                               <input
                                 type="text"
                                 placeholder="e.g. John & Jane Wedding"
                                 value={registryAccountName || ""}
-                                onChange={(e) => setRegistryAccountName(e.target.value)}
+                                onChange={(e) =>
+                                  setRegistryAccountName(e.target.value)
+                                }
                                 className={cls(false)}
                               />
                             </div>
                             <div>
-                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">Account Number</label>
+                              <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
+                                Account Number
+                              </label>
                               <input
                                 type="text"
                                 placeholder="e.g. 0123456789"
                                 value={registryAccountNumber || ""}
-                                onChange={(e) => setRegistryAccountNumber(e.target.value)}
+                                onChange={(e) =>
+                                  setRegistryAccountNumber(e.target.value)
+                                }
                                 className={cls(false)}
                               />
                             </div>
                           </div>
                         </div>
 
-
                         {/* Registry Notes */}
                         <div className="space-y-2 pt-4 border-t border-white/5">
-                          <label className="block text-[10px] uppercase tracking-widest text-white/50">Custom Gifting Message / Notes</label>
+                          <label className="block text-[10px] uppercase tracking-widest text-white/50">
+                            Custom Gifting Message / Notes
+                          </label>
                           <textarea
                             rows={3}
                             placeholder="e.g. Your presence is gift enough, but if you wish to support our new beginning, here are our details. Thank you!"
@@ -920,10 +1235,15 @@ const AdminSettingsPageContent = () => {
                     {registryEnabled && (
                       <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220]/60 space-y-4 mt-6">
                         <h4 className="text-xs font-semibold uppercase tracking-wider text-[#D8B76A] flex items-center gap-1.5">
-                          <Icon icon="lucide:gift" className="w-3.5 h-3.5 text-[#D8B76A]" /> Recent Cash Gifts
+                          <Icon
+                            icon="lucide:gift"
+                            className="w-3.5 h-3.5 text-[#D8B76A]"
+                          />{" "}
+                          Recent Cash Gifts
                         </h4>
                         <p className="text-[10px] text-white/40 leading-relaxed">
-                          Historical cash gifts recorded from the old online gifting flow will appear here.
+                          Historical cash gifts recorded from the old online
+                          gifting flow will appear here.
                         </p>
 
                         {gifts.length === 0 ? (
@@ -943,12 +1263,24 @@ const AdminSettingsPageContent = () => {
                               </thead>
                               <tbody>
                                 {gifts.map((g) => (
-                                  <tr key={g._id} className="border-b border-white/5 last:border-0">
-                                    <td className="px-4 py-2.5 font-semibold text-white">{g.guestName}</td>
-                                    <td className="px-4 py-2.5 text-[#34D399] font-bold">₦{Number(g.amount).toLocaleString()}</td>
-                                    <td className="px-4 py-2.5 text-white/60 italic max-w-xs truncate">{g.message || "—"}</td>
+                                  <tr
+                                    key={g._id}
+                                    className="border-b border-white/5 last:border-0"
+                                  >
+                                    <td className="px-4 py-2.5 font-semibold text-white">
+                                      {g.guestName}
+                                    </td>
+                                    <td className="px-4 py-2.5 text-[#34D399] font-bold">
+                                      ₦{Number(g.amount).toLocaleString()}
+                                    </td>
+                                    <td className="px-4 py-2.5 text-white/60 italic max-w-xs truncate">
+                                      {g.message || "—"}
+                                    </td>
                                     <td className="px-4 py-2.5 text-white/30">
-                                      {new Date(g.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                                      {new Date(g.createdAt).toLocaleDateString(
+                                        "en-GB",
+                                        { day: "numeric", month: "short" },
+                                      )}
                                     </td>
                                   </tr>
                                 ))}
@@ -980,7 +1312,10 @@ const AdminSettingsPageContent = () => {
                   onClick={
                     hasLockedTemplatePreview
                       ? () => {
-                          toast.info(`${lockedTemplatePlanLabel} to save this template to your live invitation.`, { toastId: "activate-classic-to-save" });
+                          toast.info(
+                            `${lockedTemplatePlanLabel} to save this template to your live invitation.`,
+                            { toastId: "activate-classic-to-save" },
+                          );
                           navigate("/admin/billing");
                         }
                       : undefined
@@ -989,7 +1324,11 @@ const AdminSettingsPageContent = () => {
                   data-tour="settings-save"
                   className="w-full sm:w-auto rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-6 sm:px-10 py-3.5 text-xs font-semibold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] disabled:opacity-60 text-center"
                 >
-                  {isSubmitting ? "Saving Config..." : hasLockedTemplatePreview ? `${lockedTemplatePlanLabel} to Save` : "Save Customizations"}
+                  {isSubmitting
+                    ? "Saving Config..."
+                    : hasLockedTemplatePreview
+                      ? `${lockedTemplatePlanLabel} to Save`
+                      : "Save Customizations"}
                 </button>
               </div>
             </form>
@@ -1000,12 +1339,18 @@ const AdminSettingsPageContent = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start animate-fade-in">
               {/* Change Password Card */}
               <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4">
-                <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">7. Change Password</h3>
-                <p className="text-[10px] text-white/40">Securely update your VowLink account password.</p>
+                <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">
+                  7. Change Password
+                </h3>
+                <p className="text-[10px] text-white/40">
+                  Securely update your VowLink account password.
+                </p>
 
                 <div className="space-y-3">
                   <div>
-                    <label className="mb-1 block text-[9px] uppercase tracking-widest text-white/50 font-semibold">Current Password</label>
+                    <label className="mb-1 block text-[9px] uppercase tracking-widest text-white/50 font-semibold">
+                      Current Password
+                    </label>
                     <div className="relative">
                       <input
                         type={showCurrentPassword ? "text" : "password"}
@@ -1016,15 +1361,26 @@ const AdminSettingsPageContent = () => {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        onClick={() =>
+                          setShowCurrentPassword(!showCurrentPassword)
+                        }
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition text-xs select-none"
                       >
-                        <Icon icon={showCurrentPassword ? "lucide:eye-off" : "lucide:eye"} className="h-4 w-4" />
+                        <Icon
+                          icon={
+                            showCurrentPassword
+                              ? "lucide:eye-off"
+                              : "lucide:eye"
+                          }
+                          className="h-4 w-4"
+                        />
                       </button>
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 block text-[9px] uppercase tracking-widest text-white/50 font-semibold">New Password</label>
+                    <label className="mb-1 block text-[9px] uppercase tracking-widest text-white/50 font-semibold">
+                      New Password
+                    </label>
                     <div className="relative">
                       <input
                         type={showNewPassword ? "text" : "password"}
@@ -1038,12 +1394,19 @@ const AdminSettingsPageContent = () => {
                         onClick={() => setShowNewPassword(!showNewPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition text-xs select-none"
                       >
-                        <Icon icon={showNewPassword ? "lucide:eye-off" : "lucide:eye"} className="h-4 w-4" />
+                        <Icon
+                          icon={
+                            showNewPassword ? "lucide:eye-off" : "lucide:eye"
+                          }
+                          className="h-4 w-4"
+                        />
                       </button>
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 block text-[9px] uppercase tracking-widest text-white/50 font-semibold">Confirm New Password</label>
+                    <label className="mb-1 block text-[9px] uppercase tracking-widest text-white/50 font-semibold">
+                      Confirm New Password
+                    </label>
                     <div className="relative">
                       <input
                         type={showConfirmNewPassword ? "text" : "password"}
@@ -1054,10 +1417,19 @@ const AdminSettingsPageContent = () => {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                        onClick={() =>
+                          setShowConfirmNewPassword(!showConfirmNewPassword)
+                        }
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition text-xs select-none"
                       >
-                        <Icon icon={showConfirmNewPassword ? "lucide:eye-off" : "lucide:eye"} className="h-4 w-4" />
+                        <Icon
+                          icon={
+                            showConfirmNewPassword
+                              ? "lucide:eye-off"
+                              : "lucide:eye"
+                          }
+                          className="h-4 w-4"
+                        />
                       </button>
                     </div>
                   </div>
@@ -1068,7 +1440,9 @@ const AdminSettingsPageContent = () => {
                     disabled={submittingPassword}
                     className="w-full rounded-xl bg-[#D8B76A] py-2.5 text-xs font-semibold text-[#070A13] transition hover:opacity-90 disabled:opacity-50 mt-2"
                   >
-                    {submittingPassword ? "Updating Password..." : "Update Password"}
+                    {submittingPassword
+                      ? "Updating Password..."
+                      : "Update Password"}
                   </button>
                 </div>
               </div>
@@ -1077,18 +1451,36 @@ const AdminSettingsPageContent = () => {
               <div className="p-3 sm:p-5 rounded-2xl border border-[#D8B76A]/20 bg-[#0D1220] space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">8. Event Check-in PIN</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">
+                      8. Event Check-in PIN
+                    </h3>
                     <p className="mt-1 text-[10px] leading-relaxed text-white/40">
-                      Give this PIN to ushers so they can scan QR codes and check guests in without your account login.
+                      Give this PIN to ushers so they can scan QR codes and
+                      check guests in without your account login.
                     </p>
                   </div>
-                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[9px] font-bold uppercase tracking-wider ${
-                    checkInPinStatus.enabled
-                      ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200"
-                      : "border-white/10 bg-white/5 text-white/45"
-                  }`}>
-                    <Icon icon={checkInPinStatus.enabled ? "lucide:shield-check" : "lucide:shield"} className="h-3.5 w-3.5" />
-                    {isFree ? "Plus" : loadingCheckInPin ? "Checking" : checkInPinStatus.enabled ? "Active" : "Off"}
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[9px] font-bold uppercase tracking-wider ${
+                      checkInPinStatus.enabled
+                        ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200"
+                        : "border-white/10 bg-white/5 text-white/45"
+                    }`}
+                  >
+                    <Icon
+                      icon={
+                        checkInPinStatus.enabled
+                          ? "lucide:shield-check"
+                          : "lucide:shield"
+                      }
+                      className="h-3.5 w-3.5"
+                    />
+                    {isFree
+                      ? "Plus"
+                      : loadingCheckInPin
+                        ? "Checking"
+                        : checkInPinStatus.enabled
+                          ? "Active"
+                          : "Off"}
                   </span>
                 </div>
 
@@ -1100,7 +1492,11 @@ const AdminSettingsPageContent = () => {
 
                 {checkInPinStatus.enabled && checkInPinStatus.updatedAt && (
                   <p className="text-[10px] text-white/40">
-                    Last updated {new Date(checkInPinStatus.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    Last updated{" "}
+                    {new Date(checkInPinStatus.updatedAt).toLocaleDateString(
+                      "en-GB",
+                      { day: "numeric", month: "short", year: "numeric" },
+                    )}
                   </p>
                 )}
 
@@ -1114,7 +1510,11 @@ const AdminSettingsPageContent = () => {
                     pattern="[0-9]*"
                     className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center font-mono text-lg tracking-[0.35em] text-white placeholder:text-center placeholder:text-xs placeholder:tracking-wider placeholder:text-white/25 outline-none focus:border-[#D8B76A]/60"
                     value={checkInPin}
-                    onChange={(e) => setCheckInPin(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                    onChange={(e) =>
+                      setCheckInPin(
+                        e.target.value.replace(/\D/g, "").slice(0, 8),
+                      )
+                    }
                     placeholder="4 to 8 digits"
                     disabled={isFree || savingCheckInPin || disablingCheckInPin}
                   />
@@ -1127,7 +1527,13 @@ const AdminSettingsPageContent = () => {
                     disabled={savingCheckInPin || disablingCheckInPin}
                     className="flex-1 rounded-xl bg-[#D8B76A] py-2.5 text-xs font-semibold uppercase tracking-wider text-[#070A13] transition hover:opacity-90 disabled:opacity-50"
                   >
-                    {isFree ? "Upgrade to Enable" : savingCheckInPin ? "Saving..." : checkInPinStatus.enabled ? "Reset PIN" : "Enable PIN"}
+                    {isFree
+                      ? "Upgrade to Enable"
+                      : savingCheckInPin
+                        ? "Saving..."
+                        : checkInPinStatus.enabled
+                          ? "Reset PIN"
+                          : "Enable PIN"}
                   </button>
                   {checkInPinStatus.enabled && (
                     <button
@@ -1146,9 +1552,12 @@ const AdminSettingsPageContent = () => {
               <div className="p-3 sm:p-5 rounded-2xl border border-red-500/20 bg-[#1A0A0F] space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h3 className="text-sm font-semibold uppercase tracking-widest text-red-400">9. Danger Zone</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-widest text-red-400">
+                      9. Danger Zone
+                    </h3>
                     <p className="text-[10px] text-red-200/50 mt-1 max-w-xs leading-relaxed">
-                      Permanently purge your VowLink account, invitations, and guest RSVPs. This action is irreversible.
+                      Permanently purge your VowLink account, invitations, and
+                      guest RSVPs. This action is irreversible.
                     </p>
                   </div>
 
@@ -1202,28 +1611,102 @@ const AdminSettingsPageContent = () => {
         </div>
 
         {/* RIGHT COLUMN: Live Card Preview & Quick Upload Design (Pro Only) */}
-        {activeTab !== "security" && (
-          <InvitationCardPreview />
-        )}
+        {activeTab !== "security" && <InvitationCardPreview />}
       </div>
 
       {/* Reset Confirmation Modal */}
+      {activeTab !== "security" && hasUnsavedSettingsChanges && (
+        <div className="sticky-action-bar fixed inset-x-0 bottom-0 z-60 border-t border-[#D8B76A]/25 bg-[#070A13]/95 px-4 py-3 text-white shadow-[0_-18px_45px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+          <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-2.5">
+              <Icon
+                icon="lucide:circle-alert"
+                className="mt-0.5 h-4 w-4 shrink-0 text-[#D8B76A]"
+              />
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#D8B76A]">
+                  Unsaved changes
+                </p>
+                <p className="mt-0.5 text-xs leading-relaxed text-white/60">
+                  Pending: {changedSettingsLabel}. Save to update the live
+                  invitation.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 sm:items-center">
+              {hasTemplatePreviewChanges && (
+                <button
+                  type="button"
+                  onClick={restoreSavedTemplate}
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/75 transition hover:border-[#D8B76A]/40 hover:text-[#D8B76A] sm:px-4"
+                >
+                  Restore template
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/55 transition hover:bg-white/10 hover:text-white sm:px-4"
+              >
+                Discard
+              </button>
+              <button
+                type={hasLockedTemplatePreview ? "button" : "submit"}
+                form="settings-customization-form"
+                disabled={isSubmitting}
+                onClick={
+                  hasLockedTemplatePreview
+                    ? () => {
+                        toast.info(
+                          `${lockedTemplatePlanLabel} to save this template to your live invitation.`,
+                          { toastId: "activate-classic-to-save-sticky" },
+                        );
+                        navigate("/admin/billing");
+                      }
+                    : undefined
+                }
+                className="col-span-2 rounded-xl bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.25)] disabled:opacity-60 sm:col-span-1"
+              >
+                {isSubmitting
+                  ? "Saving..."
+                  : hasLockedTemplatePreview
+                    ? `${lockedTemplatePlanLabel} to save`
+                    : "Save changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showResetConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
           <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0D1220] p-6 shadow-2xl space-y-6">
             <div className="flex items-center gap-3">
-              <Icon icon="lucide:alert-triangle" className="text-2xl text-amber-500 shrink-0" />
+              <Icon
+                icon="lucide:alert-triangle"
+                className="text-2xl text-amber-500 shrink-0"
+              />
               <div>
-                <h3 className="text-lg font-semibold text-white">Reset Customizations?</h3>
+                <h3 className="text-lg font-semibold text-white">
+                  Reset Customizations?
+                </h3>
                 <p className="text-white/60 text-xs">
-                  Are you sure you want to reset all design customizations to default? This will clear your custom background, couple photo, colors, fonts, and music selections.
+                  Are you sure you want to reset all design customizations to
+                  default? This will clear your custom background, couple photo,
+                  colors, fonts, and music selections.
                 </p>
               </div>
             </div>
 
             <p className="text-[10px] text-[#D8B76A]/80 bg-[#D8B76A]/5 p-3 rounded-lg border border-[#D8B76A]/10 flex items-center gap-1.5">
-              <Icon icon="lucide:lightbulb" className="w-3.5 h-3.5 text-[#D8B76A]" />
-              <span>Note: Make sure to click "Save Customizations" after resetting to apply these changes to your live cards.</span>
+              <Icon
+                icon="lucide:lightbulb"
+                className="w-3.5 h-3.5 text-[#D8B76A]"
+              />
+              <span>
+                Note: Make sure to click "Save Customizations" after resetting
+                to apply these changes to your live cards.
+              </span>
             </p>
 
             <div className="flex justify-end gap-3">

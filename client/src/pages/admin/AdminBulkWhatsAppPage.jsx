@@ -263,6 +263,18 @@ const AdminBulkWhatsAppPage = () => {
     selectedIds.includes(guest._id),
   );
   const selectedSendableCount = selectedGuests.filter(isGuestSendable).length;
+  const firstSendableGuest = invitations.find(isGuestSendable);
+  const couplePhoneNumber = cleanPhone(user.couplePhone);
+  const previewInviteLink = firstSendableGuest
+    ? buildPublicUrl(`/invite/${firstSendableGuest.slug}`)
+    : buildPublicUrl("/invite/preview");
+  const messagePreviewText = formatMessage(
+    messageTemplate,
+    firstSendableGuest?.guestName || "Guest Name",
+    coupleNames,
+    previewInviteLink,
+    getSenderName(),
+  );
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -418,6 +430,18 @@ const AdminBulkWhatsAppPage = () => {
     }
   };
 
+  const handleSendTestToCouple = () => {
+    if (!couplePhoneNumber) {
+      toast.warning("Add the couple phone number in Settings before sending a test.");
+      return;
+    }
+
+    window.open(
+      `https://wa.me/${couplePhoneNumber}?text=${encodeURIComponent(messagePreviewText)}`,
+      "_blank",
+    );
+  };
+
   const handleOpenNextUnsent = () => {
     const nextGuest = filteredGuests.find((g) => {
       const isMissing =
@@ -565,7 +589,7 @@ const AdminBulkWhatsAppPage = () => {
   // Removed early exit for loading to support inline skeletons
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto text-white">
+    <div className="p-4 pb-36 sm:p-8 sm:pb-36 max-w-7xl mx-auto text-white">
       {/* Header */}
       <div
         data-tour="whatsapp-header"
@@ -722,6 +746,32 @@ const AdminBulkWhatsAppPage = () => {
                         — "{getSenderName()}"
                       </p>
                     )}
+                  </div>
+                  <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#D8B76A]">
+                          Send preview
+                        </p>
+                        <p className="mt-1 line-clamp-3 text-[10px] leading-relaxed text-white/55">
+                          "{messagePreviewText}"
+                        </p>
+                        <p className={`mt-2 text-[10px] font-semibold ${couplePhoneNumber ? "text-emerald-300" : "text-amber-300"}`}>
+                          {couplePhoneNumber
+                            ? `Test will open WhatsApp to +${couplePhoneNumber}`
+                            : "No couple phone number saved yet."}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSendTestToCouple}
+                        disabled={!couplePhoneNumber}
+                        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#D8B76A] transition hover:bg-[#D8B76A] hover:text-[#070A13] disabled:cursor-not-allowed disabled:opacity-45"
+                      >
+                        <Icon icon="lucide:send" className="h-3.5 w-3.5" />
+                        Send test
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -1148,6 +1198,11 @@ const AdminBulkWhatsAppPage = () => {
                             >
                               {guest.phoneNumber || "No number input"}
                             </div>
+                            {!isMissing && (
+                              <div className="mt-0.5 font-sans text-[10px] text-white/40">
+                                Sends to +{cleaned}
+                              </div>
+                            )}
                           </td>
 
                           {/* Message Preview (desktop only) */}
@@ -1348,6 +1403,48 @@ const AdminBulkWhatsAppPage = () => {
           </div>
         </div>
       </div>
+      {selectedIds.length > 0 && (
+        <div className="sticky-action-bar fixed inset-x-0 bottom-0 z-60 border-t border-[#D8B76A]/25 bg-[#070A13]/95 px-4 py-3 text-white shadow-[0_-18px_45px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+          <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Icon icon="lucide:users" className="h-4 w-4 shrink-0 text-[#D8B76A]" />
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#D8B76A]">
+                  {selectedIds.length} selected
+                </p>
+                <p className="mt-0.5 text-xs text-white/60">
+                  {selectedSendableCount} can receive WhatsApp messages now.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+              <button
+                type="button"
+                onClick={() => setSelectedIds([])}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/55 transition hover:bg-white/10 hover:text-white"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={handlePrepareInvites}
+                disabled={preparingInvites || selectedSendableCount === 0}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/75 transition hover:border-white/20 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                Prepare
+              </button>
+              <button
+                type="button"
+                onClick={handleCloudSendSelected}
+                disabled={!cloudConfigured || cloudSending || selectedSendableCount === 0}
+                className="col-span-2 rounded-xl bg-emerald-300 px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#07130e] transition hover:-translate-y-0.5 hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-45 sm:col-span-1"
+              >
+                {cloudSending ? "Sending..." : "Send selected"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

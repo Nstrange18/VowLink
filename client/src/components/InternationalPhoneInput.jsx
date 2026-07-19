@@ -18,15 +18,25 @@ const InternationalPhoneInput = ({
   placeholder = "8031234567",
 }) => {
   const wrapperRef = useRef(null);
+  const inputRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [country, setCountry] = useState(() => getPhoneCountryFromNumber(value, defaultCountryIso));
+  const [localValue, setLocalValue] = useState(() =>
+    getLocalPhonePart(value, getPhoneCountryFromNumber(value, defaultCountryIso))
+  );
 
   useEffect(() => {
     setCountry((currentCountry) =>
       getPhoneCountryFromNumber(value, currentCountry.iso || defaultCountryIso)
     );
   }, [value, defaultCountryIso]);
+
+  useEffect(() => {
+    if (document.activeElement === inputRef.current) return;
+    const nextCountry = getPhoneCountryFromNumber(value, country.iso || defaultCountryIso);
+    setLocalValue(getLocalPhonePart(value, nextCountry));
+  }, [value, country.iso, defaultCountryIso]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -51,8 +61,6 @@ const InternationalPhoneInput = ({
     );
   }, [query]);
 
-  const localValue = getLocalPhonePart(value, country);
-
   const selectCountry = (nextIso) => {
     const nextCountry = getPhoneCountryByIso(nextIso);
     setCountry(nextCountry);
@@ -62,7 +70,9 @@ const InternationalPhoneInput = ({
   };
 
   const handleLocalChange = (event) => {
-    onChange(normalizeInternationalPhone(event.target.value, country));
+    const nextLocalValue = event.target.value.replace(/[^\d\s()+-]/g, "");
+    setLocalValue(nextLocalValue);
+    onChange(normalizeInternationalPhone(nextLocalValue, country));
   };
 
   const borderClass = error
@@ -86,6 +96,7 @@ const InternationalPhoneInput = ({
         </button>
 
         <input
+          ref={inputRef}
           id={id}
           inputMode="tel"
           autoComplete="tel-national"
