@@ -3,7 +3,33 @@ import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
 import GuidedTour from "../../components/GuidedTour";
-import PageMiniTour from "../../components/PageMiniTour";
+
+const INCLUDED_WHATSAPP_SENDS = 100;
+
+const WHATSAPP_SEND_PACKS = [
+  {
+    id: "whatsapp_100",
+    sends: 100,
+    priceInNgn: 5000,
+    label: "Top up 100 sends",
+    description: "Best for a small extra guest list or family additions.",
+  },
+  {
+    id: "whatsapp_250",
+    sends: 250,
+    priceInNgn: 12000,
+    label: "Top up 250 sends",
+    description: "Best value for medium weddings with extra invite rounds.",
+    badge: "Popular",
+  },
+  {
+    id: "whatsapp_500",
+    sends: 500,
+    priceInNgn: 22000,
+    label: "Top up 500 sends",
+    description: "Best for large guest lists and organized follow-up sending.",
+  },
+];
 
 const PLANS = [
   {
@@ -74,7 +100,8 @@ const PLANS = [
       { text: "Check-in history and reset controls", enabled: true },
       { text: "RSVP CSV export", enabled: true },
       { text: "Seating chart and table management", enabled: true },
-      { text: "Bulk WhatsApp sender with partner queues", enabled: true },
+      { text: `${INCLUDED_WHATSAPP_SENDS} one-click WhatsApp invite sends`, enabled: true },
+      { text: "Manual WhatsApp opening remains unlimited", enabled: true },
       { text: "WhatsApp sent-status tracking", enabled: true },
       { text: "All Pro templates and animated themes", enabled: true },
       { text: "Custom invitation design upload", enabled: true },
@@ -124,24 +151,6 @@ const PLAN_LABELS = {
   plus: "Plus",
   pro: "Pro",
 };
-
-const BILLING_TOUR_STEPS = [
-  {
-    target: '[data-tour="billing-header"]',
-    title: "Current plan",
-    body: "Use this area to confirm the plan currently attached to the wedding workspace.",
-  },
-  {
-    target: '[data-tour="plan-comparison"]',
-    title: "Plan summary",
-    body: "Compare Trial, Classic, Plus, and Pro quickly before choosing what fits the event.",
-  },
-  {
-    target: '[data-tour="plans-grid"]',
-    title: "Upgrade cards",
-    body: "Each card shows pricing, included features, and what will unlock after successful Paystack payment.",
-  },
-];
 
 const ACTIVATION_COPY = {
   free: {
@@ -218,6 +227,7 @@ const AdminBillingPage = () => {
   const devBypassSubmittingRef = useRef(false);
   const [activationNotice, setActivationNotice] = useState(null);
   const [activationTourOpen, setActivationTourOpen] = useState(false);
+  const [whatsappPackUsage, setWhatsappPackUsage] = useState(null);
 
   const currentTier = user.tier || "unpaid";
 
@@ -233,6 +243,22 @@ const AdminBillingPage = () => {
       setActivationNotice(null);
     }
   }, []);
+
+  useEffect(() => {
+    if ((user.tier || "unpaid") !== "pro") return;
+    let mounted = true;
+    api
+      .get("/whatsapp/send-packs")
+      .then((res) => {
+        if (mounted) setWhatsappPackUsage(res.data.usage || null);
+      })
+      .catch(() => {
+        if (mounted) setWhatsappPackUsage(null);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [user.tier]);
 
   const getFormattedPrice = (plan) => {
     if (plan.priceInNgn === 0 || plan.priceInUsd === 0) {
@@ -346,6 +372,86 @@ const AdminBillingPage = () => {
     }
   };
 
+  const handleOpenWhatsAppPackCheckout = async (pack) => {
+    if (checkoutSubmittingRef.current) return;
+
+    if (currentTier !== "pro") {
+      toast.info("WhatsApp send packs are available after upgrading to Pro.");
+      return;
+    }
+
+    checkoutSubmittingRef.current = true;
+    setCheckoutLocked(true);
+    setLoadingPaystack(true);
+    const loaded = await loadPaystackScript();
+    setLoadingPaystack(false);
+
+    if (!loaded) {
+      checkoutSubmittingRef.current = false;
+      setCheckoutLocked(false);
+      toast.error("Failed to load Paystack payment gateway. Please check your connection.");
+      return;
+    }
+
+    const releaseCheckout = () => {
+      checkoutSubmittingRef.current = false;
+      setCheckoutLocked(false);
+    };
+
+    const paystackOptions = {
+      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
+      email: user.email,
+      amount: pack.priceInNgn * 100,
+      currency: "NGN",
+      metadata: {
+        paymentType: "whatsapp_send_pack",
+        packId: pack.id,
+        userId: user.id || user._id,
+      },
+      onSuccess: async (transaction) => {
+        toast.info("Payment successful. Adding WhatsApp sends...");
+        try {
+          const res = await api.post("/whatsapp/send-packs/verify", {
+            reference: transaction.reference,
+            packId: pack.id,
+          });
+          setWhatsappPackUsage(res.data.usage || null);
+          toast.success(res.data.message || `${pack.sends} WhatsApp sends added.`);
+          releaseCheckout();
+        } catch (err) {
+          toast.error(err.response?.data?.message || "Send pack verification failed. Please contact support.");
+          releaseCheckout();
+        }
+      },
+      onCancel: () => {
+        releaseCheckout();
+        toast.info("Payment cancelled.");
+      },
+    };
+
+    if (typeof window.PaystackPop === "function") {
+      try {
+        const paystack = new window.PaystackPop();
+        paystack.newTransaction(paystackOptions);
+        return;
+      } catch (e) {
+        console.warn("Paystack Pop V2 instantiation failed, falling back to V1 setup", e);
+      }
+    }
+
+    if (window.PaystackPop && typeof window.PaystackPop.setup === "function") {
+      const handler = window.PaystackPop.setup({
+        ...paystackOptions,
+        callback: paystackOptions.onSuccess,
+        onClose: paystackOptions.onCancel,
+      });
+      handler.openIframe();
+    } else {
+      releaseCheckout();
+      toast.error("Paystack payment SDK is not initialized. Please refresh the page.");
+    }
+  };
+
   const handleDevBypass = async (plan) => {
     if (devBypassSubmittingRef.current) return;
 
@@ -402,9 +508,8 @@ const AdminBillingPage = () => {
             <Icon icon="lucide:badge-check" className="h-3.5 w-3.5 text-[#D8B76A]" />
             Current plan: <span className="text-white">{PLAN_LABELS[currentTier] || currentTier}</span>
           </div>
-        </div>
-        <div className="flex flex-col gap-3">
-        <PageMiniTour title="Billing tour" storageKey="vowlink-tour-billing" steps={BILLING_TOUR_STEPS} />
+      </div>
+      <div className="flex flex-col gap-3">
         <div className="bg-[#090D19] border border-white/10 p-4 rounded-2xl flex flex-col gap-1.5 min-w-44">
           <label className="block text-[10px] uppercase tracking-wider text-white/50 font-bold">Select Currency</label>
           <select
@@ -473,12 +578,114 @@ const AdminBillingPage = () => {
         </div>
       )}
 
+      <section className="mb-6 overflow-hidden rounded-3xl border border-[#D8B76A]/20 bg-[#0D1220] shadow-[0_20px_80px_rgba(0,0,0,0.18)]">
+        <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="border-b border-white/10 p-5 sm:p-6 lg:border-b-0 lg:border-r">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 text-[#D8B76A]">
+                <Icon icon="lucide:sparkles" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Choose with confidence</p>
+                <h3 className="mt-2 font-serif text-2xl text-white sm:text-3xl">
+                  Pick the package that matches your guest list, not just your budget.
+                </h3>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60">
+                  VowLink keeps the wedding experience polished from first invite to gate check-in. Start simple for intimate events, or move to Pro when you need guest-specific links, RSVP control, seating, exports, and WhatsApp delivery from one dashboard.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {[
+                ["Classic", "Best for one beautiful invite and a small RSVP list."],
+                ["Plus", "Best when every guest needs their own link and QR code."],
+                ["Pro", "Best for larger weddings with staff, seating, exports, and WhatsApp sending."],
+              ].map(([label, copy]) => (
+                <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/35">{label}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-white/60">{copy}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-[#D8B76A]/8 p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-300/25 bg-emerald-300/10 text-emerald-300">
+                <Icon icon="lucide:send" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-300">WhatsApp sending</p>
+                <h3 className="mt-2 font-serif text-2xl text-white">Pro includes your first {INCLUDED_WHATSAPP_SENDS} one-click sends.</h3>
+                <p className="mt-3 text-sm leading-relaxed text-white/60">
+                  Bigger guest lists can add more WhatsApp send packs only when needed. Manual WhatsApp opening stays available, while one-click sending is reserved for guests you want VowLink to submit through the official WhatsApp channel.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-white/10 bg-[#070A13]/60 p-4">
+              <p className="text-xs font-semibold text-white">Fair-use protection</p>
+              <p className="mt-2 text-xs leading-relaxed text-white/55">
+                Sends are counted when they are submitted, so deleting guests or retrying the same number does not reset the allowance. This keeps pricing fair for couples while protecting VowLink from repeated marketing-message costs.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {currentTier === "pro" && (
+        <section className="mb-6 rounded-3xl border border-emerald-300/20 bg-emerald-400/8 p-5 sm:p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-300">WhatsApp send packs</p>
+              <h3 className="mt-2 font-serif text-2xl text-white sm:text-3xl">Add more one-click sends when your guest list grows.</h3>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
+                Your Pro plan already includes {INCLUDED_WHATSAPP_SENDS} sends. Buy only the extra official WhatsApp submissions you need for larger guest lists.
+              </p>
+            </div>
+            {whatsappPackUsage && (
+              <div className="rounded-2xl border border-white/10 bg-[#070A13]/70 px-4 py-3 text-sm text-white/70">
+                <span className="font-semibold text-white">{whatsappPackUsage.remaining}</span> left from{" "}
+                <span className="font-semibold text-white">{whatsappPackUsage.limit}</span> total sends
+              </div>
+            )}
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {WHATSAPP_SEND_PACKS.map((pack) => (
+              <div key={pack.id} className="relative rounded-2xl border border-white/10 bg-[#0D1220] p-4">
+                {pack.badge && (
+                  <span className="absolute right-4 top-4 rounded-full bg-emerald-300 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-[#07130e]">
+                    {pack.badge}
+                  </span>
+                )}
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-300">{pack.sends} sends</p>
+                <h4 className="mt-2 pr-20 text-lg font-semibold text-white">{pack.label}</h4>
+                <p className="mt-2 min-h-10 text-xs leading-relaxed text-white/55">{pack.description}</p>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <p className="text-xl font-bold text-white">₦{pack.priceInNgn.toLocaleString()}</p>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenWhatsAppPackCheckout(pack)}
+                    disabled={checkoutLocked}
+                    className="rounded-full bg-emerald-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#07130e] transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    Buy pack
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div data-tour="plan-comparison" className="mb-6 grid gap-3 md:grid-cols-4">
         {[
           ["Trial", "Account preview. Compare plans and activate billing."],
           ["Classic", "NGN 30,000. 1 invite, 20 RSVPs, 6 Classic templates, no check-in."],
           ["Plus", "NGN 68,000. 100 guests, personalized links, QR codes, event PIN check-in."],
-          ["Pro", "NGN 120,000. Staff mode, QR sheets, seating, bulk WhatsApp, exports, AI and custom design."],
+          ["Pro", `NGN 120,000. Staff mode, seating, exports, custom design, and ${INCLUDED_WHATSAPP_SENDS} one-click WhatsApp sends.`],
         ].map(([label, copy]) => (
           <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#D8B76A]">{label}</p>

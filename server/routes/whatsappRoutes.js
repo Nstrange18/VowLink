@@ -1,4 +1,5 @@
 const express = require("express");
+const axios = require("axios");
 const Invitation = require("../models/Invitation");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
@@ -8,6 +9,15 @@ const {
   normalizeWhatsAppPhone,
   sendInvitationTemplate,
 } = require("../utils/whatsappCloud");
+const {
+  applyWhatsAppSendPackPurchase,
+  getWhatsAppSendPack,
+  getWhatsAppSendPacks,
+  getWhatsAppUsage,
+  recordWhatsAppSend,
+  refundWhatsAppSendCredit,
+  reserveWhatsAppSendCredit,
+} = require("../utils/whatsappCredits");
 
 const router = express.Router();
 const CLOUD_FINAL_OR_PENDING_STATUSES = ["queued", "sent", "delivered", "read"];
@@ -18,7 +28,9 @@ const getPublicSiteUrl = () =>
 
 const requireProWorkspace = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id).select("partner1Name partner2Name email tier");
+    const user = await User.findById(req.user.id).select(
+      "partner1Name partner2Name email tier whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed",
+    );
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
@@ -57,6 +69,23 @@ const logCloudSendAccepted = (result, invitation) => {
   });
 };
 
+const recordAcceptedSend = async ({ userId, invitation, phone, result }) => {
+  try {
+    await recordWhatsAppSend({
+      userId,
+      invitation,
+      normalizedPhone: phone,
+      messageId: result.messageId,
+    });
+  } catch (error) {
+    console.warn("[WHATSAPP SEND] Accepted send was not written to ledger.", {
+      invitationId: String(invitation._id),
+      messageId: result.messageId,
+      error: error.message,
+    });
+  }
+};
+
 const applyCloudStatus = (invitation, status, failureReason = "") => {
   const now = new Date();
   invitation.whatsappProvider = "cloud_api";
@@ -91,6 +120,7 @@ router.get("/config-status", protect, requireProWorkspace, (req, res) => {
     configured: status.configured,
     templateName: status.templateName,
     languageCode: status.languageCode,
+    usage: getWhatsAppUsage(req.currentUser),
     missing: {
       phoneNumberId: !status.phoneNumberId,
       businessAccountId: !status.businessAccountId,
@@ -100,8 +130,91 @@ router.get("/config-status", protect, requireProWorkspace, (req, res) => {
   });
 });
 
+router.get("/send-packs", protect, requireProWorkspace, (req, res) => {
+  res.json({
+    packs: getWhatsAppSendPacks(),
+    usage: getWhatsAppUsage(req.currentUser),
+  });
+});
+
+router.post("/send-packs/verify", protect, requireProWorkspace, async (req, res) => {
+  try {
+    const { reference, packId } = req.body;
+    if (!reference || !packId) {
+      return res.status(400).json({ message: "Reference and send pack are required." });
+    }
+
+    const pack = getWhatsAppSendPack(packId);
+    if (!pack) {
+      return res.status(400).json({ message: "Invalid WhatsApp send pack." });
+    }
+
+    if (String(reference).startsWith("MOCK-")) {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(403).json({ message: "Test payments are disabled in production." });
+      }
+      const { alreadyApplied, user } = await applyWhatsAppSendPackPurchase({
+        userId: req.user.id,
+        reference,
+        pack,
+      });
+      return res.json({
+        message: alreadyApplied ? `${pack.label} was already added.` : `${pack.label} added successfully.`,
+        pack,
+        usage: getWhatsAppUsage(user),
+      });
+    }
+
+    const secretKey = process.env.PAYSTACK_SECRET_KEY;
+    if (!secretKey) {
+      return res.status(503).json({ message: "Paystack secret key is not configured." });
+    }
+
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: { Authorization: `Bearer ${secretKey}` },
+    });
+
+    if (response.data.status !== true || response.data.data.status !== "success") {
+      return res.status(400).json({ message: "Payment verification failed on Paystack." });
+    }
+
+    const paystackData = response.data.data;
+    const metadata = paystackData.metadata || {};
+    if (metadata.paymentType !== "whatsapp_send_pack" || metadata.packId !== pack.id) {
+      return res.status(400).json({ message: "Payment metadata does not match this WhatsApp send pack." });
+    }
+
+    if (paystackData.currency !== "NGN") {
+      return res.status(400).json({ message: "WhatsApp send packs must be paid in NGN." });
+    }
+
+    const expectedAmount = pack.priceInNgn * 100;
+    const minAllowed = expectedAmount * 0.95;
+    const maxAllowed = expectedAmount * 1.05;
+    if (paystackData.amount < minAllowed || paystackData.amount > maxAllowed) {
+      return res.status(400).json({ message: "Payment amount mismatch for this WhatsApp send pack." });
+    }
+
+    const { alreadyApplied, user } = await applyWhatsAppSendPackPurchase({
+      userId: req.user.id,
+      reference,
+      pack,
+    });
+    return res.json({
+      message: alreadyApplied ? `${pack.label} was already added.` : `${pack.label} added successfully.`,
+      pack,
+      usage: getWhatsAppUsage(user),
+    });
+  } catch (error) {
+    console.error("WhatsApp send pack verification error:", error.response?.data || error.message);
+    return res.status(500).json({ message: error.message || "Failed to verify WhatsApp send pack." });
+  }
+});
+
 router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
   let invitation;
+  let creditReserved = false;
+  let metaAccepted = false;
   try {
     if (!isWhatsAppCloudConfigured()) {
       return res.status(503).json({
@@ -126,12 +239,22 @@ router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
       return res.status(409).json({ message: "This guest already has a pending or completed WhatsApp invitation." });
     }
 
+    const reservation = await reserveWhatsAppSendCredit(req.user.id);
+    if (!reservation.reserved) {
+      return res.status(402).json({
+        message: "Your included WhatsApp sends are finished. Add a WhatsApp send pack to continue one-click sending.",
+        usage: reservation.usage,
+      });
+    }
+    creditReserved = true;
+
     const result = await sendInvitationTemplate({
       to: phone,
       guestName: invitation.guestName,
       coupleNames: buildCoupleNames(req.currentUser),
       inviteLink: buildInviteLink(invitation),
     });
+    metaAccepted = true;
 
     invitation.whatsappStatus = "queued";
     invitation.whatsappProvider = "cloud_api";
@@ -141,12 +264,20 @@ router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
     invitation.whatsappFailureReason = "";
     invitation.whatsappFailedAt = undefined;
     await invitation.save();
+    await recordAcceptedSend({ userId: req.user.id, invitation, phone, result });
     logCloudSendAccepted(result, invitation);
 
-    return res.json({ message: "WhatsApp invitation submitted to Meta.", data: invitation });
+    return res.json({
+      message: "WhatsApp invitation submitted to Meta.",
+      data: invitation,
+      usage: reservation.usage,
+    });
   } catch (error) {
     if (invitation) {
       await markInvitationFailure(invitation, error.message);
+    }
+    if (creditReserved && !metaAccepted) {
+      await refundWhatsAppSendCredit(req.user.id);
     }
     return res.status(500).json({ message: error.message || "Failed to send WhatsApp invitation." });
   }
@@ -172,6 +303,8 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
     let submitted = 0;
     let failed = 0;
     let skipped = 0;
+    let creditSkipped = 0;
+    let latestUsage = getWhatsAppUsage(req.currentUser);
 
     for (const invitation of invitations) {
       if (CLOUD_FINAL_OR_PENDING_STATUSES.includes(invitation.whatsappStatus)) {
@@ -190,13 +323,32 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
         continue;
       }
 
+      let creditReserved = false;
+      let metaAccepted = false;
       try {
+        const reservation = await reserveWhatsAppSendCredit(req.user.id);
+        if (!reservation.reserved) {
+          skipped++;
+          creditSkipped++;
+          latestUsage = reservation.usage;
+          results.push({
+            id: invitation._id,
+            status: "skipped",
+            message: "WhatsApp send allowance exhausted.",
+            data: invitation,
+          });
+          continue;
+        }
+        creditReserved = true;
+        latestUsage = reservation.usage;
+
         const result = await sendInvitationTemplate({
           to: phone,
           guestName: invitation.guestName,
           coupleNames: buildCoupleNames(req.currentUser),
           inviteLink: buildInviteLink(invitation),
         });
+        metaAccepted = true;
 
         submitted++;
         invitation.whatsappStatus = "queued";
@@ -207,10 +359,14 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
         invitation.whatsappFailureReason = "";
         invitation.whatsappFailedAt = undefined;
         await invitation.save();
+        await recordAcceptedSend({ userId: req.user.id, invitation, phone, result });
         logCloudSendAccepted(result, invitation);
         results.push({ id: invitation._id, status: "queued", data: invitation });
       } catch (error) {
         failed++;
+        if (creditReserved && !metaAccepted) {
+          latestUsage = await refundWhatsAppSendCredit(req.user.id);
+        }
         await markInvitationFailure(invitation, error.message);
         results.push({ id: invitation._id, status: "failed", message: error.message, data: invitation });
       }
@@ -222,6 +378,8 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
       submitted,
       failed,
       skipped,
+      creditSkipped,
+      usage: latestUsage,
       results,
     });
   } catch (error) {

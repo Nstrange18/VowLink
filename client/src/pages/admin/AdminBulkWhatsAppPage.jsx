@@ -81,6 +81,15 @@ const AdminBulkWhatsAppPage = () => {
       ? `${user.partner1Name} and ${user.partner2Name}`
       : "us";
   const cloudConfigured = Boolean(cloudConfig?.configured);
+  const whatsappUsage = cloudConfig?.usage || {};
+  const whatsappRemaining =
+    typeof whatsappUsage.remaining === "number" ? whatsappUsage.remaining : null;
+  const whatsappLimit =
+    typeof whatsappUsage.limit === "number" ? whatsappUsage.limit : null;
+  const whatsappUsed =
+    typeof whatsappUsage.used === "number" ? whatsappUsage.used : null;
+  const cloudAllowanceExhausted =
+    cloudConfigured && whatsappRemaining !== null && whatsappRemaining <= 0;
 
   const sentStatuses = new Set(["queued", "sent", "delivered", "read"]);
   const isGuestSendable = (guest) => {
@@ -465,10 +474,17 @@ const AdminBulkWhatsAppPage = () => {
       toast.warning("WhatsApp Cloud API is not configured yet.");
       return;
     }
+    if (cloudAllowanceExhausted) {
+      toast.warning("Your included WhatsApp sends are finished. Add a send pack to continue one-click sending.");
+      return;
+    }
 
     setLoadingIds((prev) => new Set(prev).add(guest._id));
     try {
       const res = await api.post(`/whatsapp/send/${guest._id}`);
+      if (res.data.usage) {
+        setCloudConfig((prev) => ({ ...(prev || {}), usage: res.data.usage }));
+      }
       setInvitations((prev) =>
         prev.map((inv) =>
           inv._id === guest._id ? { ...inv, ...res.data.data } : inv,
@@ -496,6 +512,10 @@ const AdminBulkWhatsAppPage = () => {
       toast.warning("WhatsApp Cloud API is not configured yet.");
       return;
     }
+    if (cloudAllowanceExhausted) {
+      toast.warning("Your included WhatsApp sends are finished. Add a send pack to continue one-click sending.");
+      return;
+    }
     const sendableIds = selectedIds.filter((id) => {
       const guest = invitations.find((inv) => inv._id === id);
       const isMissing =
@@ -514,6 +534,9 @@ const AdminBulkWhatsAppPage = () => {
       const res = await api.post("/whatsapp/send-bulk", {
         invitationIds: sendableIds,
       });
+      if (res.data.usage) {
+        setCloudConfig((prev) => ({ ...(prev || {}), usage: res.data.usage }));
+      }
       const updates = new Map(
         (res.data.results || []).map((item) => [String(item.id), item.data]),
       );
@@ -589,7 +612,7 @@ const AdminBulkWhatsAppPage = () => {
   // Removed early exit for loading to support inline skeletons
 
   return (
-    <div className="p-4 pb-36 sm:p-8 sm:pb-36 max-w-7xl mx-auto text-white">
+    <div className="p-4 pb-17 sm:p-8 sm:pb-17 max-w-7xl mx-auto text-white">
       {/* Header */}
       <div
         data-tour="whatsapp-header"
@@ -616,7 +639,7 @@ const AdminBulkWhatsAppPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Template & Presets Column */}
-        <div className="lg:col-span-4 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto space-y-6 no-scrollbar">
+        <div className="lg:col-span-4 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto space-y-6">
           <div
             data-tour="whatsapp-compose"
             className="rounded-2xl border border-white/10 bg-[#0D1220] p-5 sm:p-6 space-y-4"
@@ -831,7 +854,9 @@ const AdminBulkWhatsAppPage = () => {
 
                   <div
                     className={`rounded-2xl border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ${
-                      cloudConfigured
+                      cloudAllowanceExhausted
+                        ? "border-amber-400/25 bg-amber-500/10"
+                        : cloudConfigured
                         ? "border-emerald-400/25 bg-emerald-500/10"
                         : "border-yellow-500/20 bg-yellow-500/10"
                     }`}
@@ -839,29 +864,58 @@ const AdminBulkWhatsAppPage = () => {
                     <div className="flex items-start gap-3">
                       <Icon
                         icon={
-                          cloudConfigured
+                          cloudAllowanceExhausted
+                            ? "lucide:circle-alert"
+                            : cloudConfigured
                             ? "lucide:badge-check"
                             : "lucide:settings"
                         }
-                        className={`mt-0.5 h-4 w-4 shrink-0 ${cloudConfigured ? "text-emerald-400" : "text-yellow-300"}`}
+                        className={`mt-0.5 h-4 w-4 shrink-0 ${
+                          cloudAllowanceExhausted
+                            ? "text-amber-300"
+                            : cloudConfigured
+                            ? "text-emerald-400"
+                            : "text-yellow-300"
+                        }`}
                       />
                       <div className="min-w-0">
                         <p
                           className={`text-[10px] font-bold uppercase tracking-widest ${
-                            cloudConfigured
+                            cloudAllowanceExhausted
+                              ? "text-amber-300"
+                              : cloudConfigured
                               ? "text-emerald-400"
                               : "text-yellow-200"
                           }`}
                         >
-                          {cloudConfigured
+                          {cloudAllowanceExhausted
+                            ? "Send pack needed"
+                            : cloudConfigured
                             ? "Ready to send"
                             : "Sending not set up"}
                         </p>
                         <p className="mt-1 text-[10px] leading-relaxed text-white/55">
-                          {cloudConfigured
+                          {cloudAllowanceExhausted
+                            ? "Your included one-click WhatsApp sends are finished."
+                            : cloudConfigured
                             ? "Select guests, then send their invitation links directly to WhatsApp."
                             : "WhatsApp sending needs to be connected before selected invites can be sent."}
                         </p>
+                        {cloudConfigured && whatsappRemaining !== null && whatsappLimit !== null && (
+                          <p className="mt-2 text-[10px] font-semibold text-white/45">
+                            {whatsappRemaining} of {whatsappLimit} one-click sends left
+                            {whatsappUsed !== null ? ` (${whatsappUsed} used)` : ""}
+                          </p>
+                        )}
+                        {cloudAllowanceExhausted && (
+                          <button
+                            type="button"
+                            onClick={() => navigate("/admin/billing")}
+                            className="mt-3 inline-flex items-center justify-center rounded-full border border-amber-300/30 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-200 transition hover:bg-amber-300/10"
+                          >
+                            Add sends
+                          </button>
+                        )}
                       </div>
                     </div>
                     <button
@@ -869,11 +923,12 @@ const AdminBulkWhatsAppPage = () => {
                       onClick={handleCloudSendSelected}
                       disabled={
                         !cloudConfigured ||
+                        cloudAllowanceExhausted ||
                         selectedSendableCount === 0 ||
                         cloudSending
                       }
                       className={`mt-4 w-full rounded-xl px-4 py-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-emerald-300/40 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 flex items-center justify-center gap-2 ${
-                        cloudConfigured && selectedSendableCount > 0
+                        cloudConfigured && !cloudAllowanceExhausted && selectedSendableCount > 0
                           ? "border border-emerald-300/30 bg-emerald-300 text-[#07130e] hover:-translate-y-0.5 hover:bg-emerald-200 hover:shadow-[0_14px_30px_rgba(16,185,129,0.18)]"
                           : "border border-white/12 bg-white/10 text-white/55"
                       }`}
@@ -1264,8 +1319,12 @@ const AdminBulkWhatsAppPage = () => {
                                 !sentStatuses.has(guest.whatsappStatus) && (
                                   <button
                                     onClick={() => handleCloudSendGuest(guest)}
-                                    disabled={loadingIds.has(guest._id)}
-                                    title="Submit approved Cloud API template to Meta"
+                                    disabled={loadingIds.has(guest._id) || cloudAllowanceExhausted}
+                                    title={
+                                      cloudAllowanceExhausted
+                                        ? "Add a WhatsApp send pack to continue one-click sending"
+                                        : "Submit approved WhatsApp invite"
+                                    }
                                     className="w-full sm:w-auto rounded-lg border border-emerald-300/30 bg-emerald-300 px-2.5 py-1.5 text-[10px] font-bold text-[#07130e] transition hover:bg-emerald-200 hover:shadow-[0_8px_20px_rgba(16,185,129,0.16)] focus:outline-none focus:ring-2 focus:ring-emerald-300/40 active:translate-y-px cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                                   >
                                     {loadingIds.has(guest._id) ? (
@@ -1414,6 +1473,11 @@ const AdminBulkWhatsAppPage = () => {
                 </p>
                 <p className="mt-0.5 text-xs text-white/60">
                   {selectedSendableCount} can receive WhatsApp messages now.
+                  {cloudConfigured && whatsappRemaining !== null && (
+                    <span className="block text-white/40">
+                      {whatsappRemaining} one-click send{whatsappRemaining === 1 ? "" : "s"} left.
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
@@ -1436,7 +1500,7 @@ const AdminBulkWhatsAppPage = () => {
               <button
                 type="button"
                 onClick={handleCloudSendSelected}
-                disabled={!cloudConfigured || cloudSending || selectedSendableCount === 0}
+                disabled={!cloudConfigured || cloudAllowanceExhausted || cloudSending || selectedSendableCount === 0}
                 className="col-span-2 rounded-xl bg-emerald-300 px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#07130e] transition hover:-translate-y-0.5 hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-45 sm:col-span-1"
               >
                 {cloudSending ? "Sending..." : "Send selected"}

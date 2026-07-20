@@ -248,6 +248,22 @@ const userSchema = new mongoose.Schema(
         usedAsBackground: { type: Boolean, default: false },
       },
     ],
+    // WhatsApp Cloud API send tracking (lifetime usage per wedding workspace).
+    whatsappCloudIncludedSends: {
+      type: Number,
+      default: 100,
+      min: 0,
+    },
+    whatsappCloudExtraSends: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    whatsappCloudSendsUsed: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
 

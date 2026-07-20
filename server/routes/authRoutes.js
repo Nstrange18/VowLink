@@ -9,6 +9,10 @@ const sgMail = require("@sendgrid/mail");
 const { sendHoneymoonGoalReachedNotification } = require("../utils/email");
 const axios = require("axios");
 const cloudinary = require("cloudinary").v2;
+const {
+  applyWhatsAppSendPackPurchase,
+  getWhatsAppSendPack,
+} = require("../utils/whatsappCredits");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -142,6 +146,9 @@ const userPayload = (user) => ({
   registryNotes: user.registryNotes || "",
   honeymoonFundTarget: typeof user.honeymoonFundTarget === "number" ? user.honeymoonFundTarget : 0,
   honeymoonFundCurrent: typeof user.honeymoonFundCurrent === "number" ? user.honeymoonFundCurrent : 0,
+  whatsappCloudIncludedSends: typeof user.whatsappCloudIncludedSends === "number" ? user.whatsappCloudIncludedSends : 100,
+  whatsappCloudExtraSends: typeof user.whatsappCloudExtraSends === "number" ? user.whatsappCloudExtraSends : 0,
+  whatsappCloudSendsUsed: typeof user.whatsappCloudSendsUsed === "number" ? user.whatsappCloudSendsUsed : 0,
 });
 
 const generateAccessToken = (user) =>
@@ -207,6 +214,9 @@ const userPublic = (user) => ({
   registryNotes: user.registryNotes || "",
   honeymoonFundTarget: typeof user.honeymoonFundTarget === "number" ? user.honeymoonFundTarget : 0,
   honeymoonFundCurrent: typeof user.honeymoonFundCurrent === "number" ? user.honeymoonFundCurrent : 0,
+  whatsappCloudIncludedSends: typeof user.whatsappCloudIncludedSends === "number" ? user.whatsappCloudIncludedSends : 100,
+  whatsappCloudExtraSends: typeof user.whatsappCloudExtraSends === "number" ? user.whatsappCloudExtraSends : 0,
+  whatsappCloudSendsUsed: typeof user.whatsappCloudSendsUsed === "number" ? user.whatsappCloudSendsUsed : 0,
 });
 
 // ── Email helper ──────────────────────────────────────────────────────────────
@@ -1135,6 +1145,28 @@ router.post("/paystack/webhook", async (req, res) => {
           user.tier = targetTier;
           await user.save();
           console.log(`[PAYSTACK WEBHOOK] Upgraded couple ${email} to ${targetTier}`);
+        }
+      } else if (paymentType === "whatsapp_send_pack") {
+        const pack = getWhatsAppSendPack(metadata?.packId);
+        const userId = metadata?.userId;
+        const user = userId
+          ? await User.findById(userId)
+          : await User.findOne({ email: email.toLowerCase() });
+
+        if (pack && user && (user.tier || "unpaid") === "pro") {
+          const expectedAmount = pack.priceInNgn * 100;
+          if (event.data.currency === "NGN" && event.data.amount >= expectedAmount * 0.95 && event.data.amount <= expectedAmount * 1.05) {
+            const { alreadyApplied } = await applyWhatsAppSendPackPurchase({
+              userId: user._id,
+              reference,
+              pack,
+            });
+            if (alreadyApplied) {
+              console.log(`[PAYSTACK WEBHOOK] WhatsApp send pack ${reference} was already applied`);
+            } else {
+              console.log(`[PAYSTACK WEBHOOK] Added ${pack.sends} WhatsApp sends to ${user.email}`);
+            }
+          }
         }
       } else if (paymentType === "venue_subscription" && targetTier) {
         const Venue = require("../models/Venue");

@@ -16,6 +16,15 @@ const GuidedTour = ({ open, title = 'Guided tour', steps = [], storageKey, onClo
   }, [open, storageKey])
 
   useEffect(() => {
+    if (!open) return undefined
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [open])
+
+  useEffect(() => {
     if (!open || !activeStep?.target) {
       setTargetRect(null)
       return
@@ -128,7 +137,7 @@ const GuidedTour = ({ open, title = 'Guided tour', steps = [], storageKey, onClo
   const goBack = () => setIndex((current) => Math.max(current - 1, 0))
 
   return (
-    <div className="fixed inset-0 z-[80] pointer-events-none">
+    <div className="fixed inset-0 z-[80] pointer-events-auto">
       {highlight ? (
         <>
           <div className="absolute left-0 top-0 w-full bg-[#02040A]/72 backdrop-blur-[2px]" style={{ height: highlight.top }} />
