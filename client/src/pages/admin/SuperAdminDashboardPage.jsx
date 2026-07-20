@@ -199,7 +199,7 @@ const SuperAdminDashboardPage = () => {
     if (!venueToDelete || deletingVenue) return;
     setDeletingVenue(true);
     try {
-      const res = await api.delete(`/super-admin/venues/${venueToDelete}`);
+      await api.delete(`/super-admin/venues/${venueToDelete}`);
       toast.success("Venue deleted.");
       setVenues((prev) => prev.filter((v) => v._id !== venueToDelete));
       const inquiriesRes = await api.get("/super-admin/inquiries");
@@ -238,7 +238,7 @@ const SuperAdminDashboardPage = () => {
     if (!coupleToDelete || deletingCouple) return;
     setDeletingCouple(true);
     try {
-      const res = await api.delete(`/super-admin/couples/${coupleToDelete}`);
+      await api.delete(`/super-admin/couples/${coupleToDelete}`);
       toast.success("Couple account deleted.");
       setCouples((prev) => prev.filter((c) => c._id !== coupleToDelete));
       const inquiriesRes = await api.get("/super-admin/inquiries");
