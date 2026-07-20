@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
-import GuidedTour from "../../components/GuidedTour";
 
 const INCLUDED_WHATSAPP_SENDS = 100;
 
@@ -167,54 +166,6 @@ const ACTIVATION_COPY = {
   },
 };
 
-const getActivationTourSteps = (tier, name) => {
-  if (tier === "free") {
-    return [
-      {
-        target: '[data-tour="activation-notice"]',
-        title: `${name} is active`,
-        body: "Classic gives you the core invitation workflow for a focused event.",
-        items: ["Create 1 invitation link", "Collect up to 20 RSVPs", "Use the Classic template collection"],
-      },
-      {
-        target: '[data-tour="plan-comparison"]',
-        title: "Know what stays locked",
-        body: "QR check-in, guest-specific links, staff mode, bulk WhatsApp, seating, exports, and advanced design tools become available on higher plans.",
-      },
-    ];
-  }
-
-  if (tier === "plus") {
-    return [
-      {
-        target: '[data-tour="activation-notice"]',
-        title: `${name} is active`,
-        body: "Plus unlocks the tools most couples need once the guest list becomes more structured.",
-        items: ["100 personalized guest links", "Individual guest QR codes", "Event PIN check-in", "Full venue details", "Gallery photos and music"],
-      },
-      {
-        target: '[data-tour="plan-comparison"]',
-        title: "What Pro adds later",
-        body: "Pro is still the plan for staff search mode, printable QR sheets, RSVP exports, seating, bulk WhatsApp, AI tools, and custom designs.",
-      },
-    ];
-  }
-
-  return [
-    {
-      target: '[data-tour="activation-notice"]',
-      title: `${name} is active`,
-      body: "Pro unlocks the full event operations layer for larger weddings and organized teams.",
-      items: ["Staff mode for ushers", "Printable QR sheets", "Seating chart", "Bulk WhatsApp sender", "RSVP exports", "AI and custom design tools"],
-    },
-    {
-      target: '[data-tour="plans-grid"]',
-      title: "You have the full toolkit",
-      body: "Your next step is to customize the invitation, import guests, set the check-in PIN, and prepare WhatsApp sending or QR sheets if needed.",
-    },
-  ];
-};
-
 const AdminBillingPage = () => {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("user") || "{}")
@@ -226,7 +177,6 @@ const AdminBillingPage = () => {
   const [devBypassLocked, setDevBypassLocked] = useState(false);
   const devBypassSubmittingRef = useRef(false);
   const [activationNotice, setActivationNotice] = useState(null);
-  const [activationTourOpen, setActivationTourOpen] = useState(false);
   const [whatsappPackUsage, setWhatsappPackUsage] = useState(null);
 
   const currentTier = user.tier || "unpaid";
@@ -238,7 +188,6 @@ const AdminBillingPage = () => {
     try {
       const parsed = JSON.parse(stored);
       setActivationNotice(parsed);
-      setActivationTourOpen(true);
     } catch {
       setActivationNotice(null);
     }
@@ -293,7 +242,7 @@ const AdminBillingPage = () => {
     if (!loaded) {
       checkoutSubmittingRef.current = false;
       setCheckoutLocked(false);
-      toast.error("Failed to load Paystack payment gateway. Please check your connection.");
+      toast.error("Could not open checkout. Check your connection.");
       return;
     }
 
@@ -318,7 +267,7 @@ const AdminBillingPage = () => {
         userId: user.id || user._id,
       },
       onSuccess: async (transaction) => {
-        toast.info("Payment successful! Verifying with server...");
+        toast.info("Payment received. Activating your plan...");
         try {
           const res = await api.post("/auth/upgrade/verify", {
             reference: transaction.reference,
@@ -335,10 +284,10 @@ const AdminBillingPage = () => {
             }),
           );
           setUser(res.data.user);
-          toast.success(`Successfully upgraded to ${plan.name}!`);
+          toast.success(`${plan.name} activated.`);
           window.location.reload();
         } catch (err) {
-          toast.error(err.response?.data?.message || "Verification failed. Please contact support.");
+          toast.error(err.response?.data?.message || "Payment was received, but the plan was not activated yet. Please contact support.");
           releaseCheckout();
         }
       },
@@ -368,7 +317,7 @@ const AdminBillingPage = () => {
       handler.openIframe();
     } else {
       releaseCheckout();
-      toast.error("Paystack payment SDK is not initialized. Please refresh the page.");
+      toast.error("Checkout is not ready. Please refresh and try again.");
     }
   };
 
@@ -389,7 +338,7 @@ const AdminBillingPage = () => {
     if (!loaded) {
       checkoutSubmittingRef.current = false;
       setCheckoutLocked(false);
-      toast.error("Failed to load Paystack payment gateway. Please check your connection.");
+      toast.error("Could not open checkout. Check your connection.");
       return;
     }
 
@@ -409,7 +358,7 @@ const AdminBillingPage = () => {
         userId: user.id || user._id,
       },
       onSuccess: async (transaction) => {
-        toast.info("Payment successful. Adding WhatsApp sends...");
+        toast.info("Payment received. Adding sends...");
         try {
           const res = await api.post("/whatsapp/send-packs/verify", {
             reference: transaction.reference,
@@ -419,7 +368,7 @@ const AdminBillingPage = () => {
           toast.success(res.data.message || `${pack.sends} WhatsApp sends added.`);
           releaseCheckout();
         } catch (err) {
-          toast.error(err.response?.data?.message || "Send pack verification failed. Please contact support.");
+          toast.error(err.response?.data?.message || "Payment was received, but sends were not added yet. Please contact support.");
           releaseCheckout();
         }
       },
@@ -448,7 +397,7 @@ const AdminBillingPage = () => {
       handler.openIframe();
     } else {
       releaseCheckout();
-      toast.error("Paystack payment SDK is not initialized. Please refresh the page.");
+      toast.error("Checkout is not ready. Please refresh and try again.");
     }
   };
 
@@ -469,7 +418,7 @@ const AdminBillingPage = () => {
           ...(ACTIVATION_COPY[plan.id] || {}),
         }),
       );
-      toast.success(`[DEV BYPASS] Instantly activated ${plan.name}!`);
+      toast.success(`[DEV] ${plan.name} activated.`);
       window.location.reload();
     } catch (err) {
       toast.error(err.response?.data?.message || "Dev bypass failed.");
@@ -480,24 +429,16 @@ const AdminBillingPage = () => {
 
   return (
     <div className="p-4 sm:p-8 max-w-6xl mx-auto">
-      <GuidedTour
-        open={activationTourOpen && Boolean(activationNotice)}
-        title="Unlocked features"
-        steps={activationNotice ? getActivationTourSteps(activationNotice.tier, activationNotice.name) : []}
-        storageKey={activationNotice ? `vowlink-tier-tour-seen-${activationNotice.tier}` : undefined}
-        onClose={() => setActivationTourOpen(false)}
-      />
-
       {loadingPaystack && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs">
           <div className="bg-[#090D19] border border-white/10 p-6 rounded-2xl text-center space-y-4 shadow-2xl">
             <div className="h-10 w-10 rounded-full border-4 border-white/10 border-t-[#D8B76A] animate-spin mx-auto" />
-            <p className="text-white text-xs font-semibold">Connecting to Paystack Secure Portal...</p>
+            <p className="text-white text-xs font-semibold">Opening secure checkout...</p>
           </div>
         </div>
       )}
 
-      <div data-tour="billing-header" className="mb-8 flex justify-between items-start gap-4 flex-wrap">
+      <div className="mb-8 flex justify-between items-start gap-4 flex-wrap">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">Pricing Plans</p>
           <h2 className="font-serif text-3xl sm:text-4xl text-white">Billing & Subscription</h2>
@@ -528,7 +469,7 @@ const AdminBillingPage = () => {
       </div>
 
       {activationNotice && (
-        <div data-tour="activation-notice" className="mb-6 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-5">
+        <div className="mb-6 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-400/25 bg-emerald-400/10 text-emerald-300">
@@ -541,14 +482,6 @@ const AdminBillingPage = () => {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setActivationTourOpen(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#06261B] transition hover:bg-emerald-200"
-              >
-                <Icon icon="lucide:map" className="h-3.5 w-3.5" />
-                Show Tour
-              </button>
               <button
                 type="button"
                 onClick={() => setActivationNotice(null)}
@@ -602,7 +535,7 @@ const AdminBillingPage = () => {
                 ["Plus", "Best when every guest needs their own link and QR code."],
                 ["Pro", "Best for larger weddings with staff, seating, exports, and WhatsApp sending."],
               ].map(([label, copy]) => (
-                <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                <div key={label} className="rounded-2xl border border-white/10 bg-white/4 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/35">{label}</p>
                   <p className="mt-2 text-xs leading-relaxed text-white/60">{copy}</p>
                 </div>
@@ -680,7 +613,7 @@ const AdminBillingPage = () => {
         </section>
       )}
 
-      <div data-tour="plan-comparison" className="mb-6 grid gap-3 md:grid-cols-4">
+      <div className="mb-6 grid gap-3 md:grid-cols-4">
         {[
           ["Trial", "Account preview. Compare plans and activate billing."],
           ["Classic", "NGN 30,000. 1 invite, 20 RSVPs, 6 Classic templates, no check-in."],
@@ -695,7 +628,7 @@ const AdminBillingPage = () => {
       </div>
 
       {/* Plans Grid */}
-      <div data-tour="plans-grid" className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {PLANS.map((plan) => {
           const isActive = plan.id === currentTier;
           return (

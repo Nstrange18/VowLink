@@ -40,7 +40,8 @@ const requireProWorkspace = async (req, res, next) => {
     req.currentUser = user;
     return next();
   } catch (error) {
-    return res.status(500).json({ message: "Failed to verify WhatsApp access.", error: error.message });
+    console.error("[WHATSAPP SEND] Access check failed:", error.message);
+    return res.status(500).json({ message: "WhatsApp sending is not ready yet." });
   }
 };
 
@@ -52,11 +53,28 @@ const buildCoupleNames = (user) => {
   return `${partner1} and ${partner2}`;
 };
 
+const getPublicWhatsAppError = (error) => {
+  const message = String(error?.message || error || "");
+  if (/allowance|send pack|finished/i.test(message)) {
+    return "You need more WhatsApp sends to continue.";
+  }
+  if (/phone|number/i.test(message)) {
+    return "Check this guest's WhatsApp number and try again.";
+  }
+  if (/configured|environment|access token|phone number id/i.test(message)) {
+    return "WhatsApp sending is not ready yet.";
+  }
+  if (/template|parameter|localizable_params/i.test(message)) {
+    return "The WhatsApp template needs attention before this invite can be sent.";
+  }
+  return "We could not send this invite. Please try again.";
+};
+
 const markInvitationFailure = async (invitation, reason) => {
   invitation.whatsappStatus = "failed";
   invitation.whatsappProvider = "cloud_api";
   invitation.whatsappFailedAt = new Date();
-  invitation.whatsappFailureReason = reason || "WhatsApp send failed.";
+  invitation.whatsappFailureReason = getPublicWhatsAppError(reason);
   await invitation.save();
 };
 
@@ -110,7 +128,9 @@ const applyCloudStatus = (invitation, status, failureReason = "") => {
   if (status === "failed") {
     invitation.whatsappStatus = "failed";
     invitation.whatsappFailedAt = now;
-    invitation.whatsappFailureReason = failureReason || "WhatsApp delivery failed.";
+    invitation.whatsappFailureReason = getPublicWhatsAppError(
+      failureReason || "WhatsApp delivery failed.",
+    );
   }
 };
 
@@ -159,7 +179,7 @@ router.post("/send-packs/verify", protect, requireProWorkspace, async (req, res)
         pack,
       });
       return res.json({
-        message: alreadyApplied ? `${pack.label} was already added.` : `${pack.label} added successfully.`,
+        message: alreadyApplied ? "This send pack was already added." : `${pack.sends} sends added.`,
         pack,
         usage: getWhatsAppUsage(user),
       });
@@ -201,13 +221,13 @@ router.post("/send-packs/verify", protect, requireProWorkspace, async (req, res)
       pack,
     });
     return res.json({
-      message: alreadyApplied ? `${pack.label} was already added.` : `${pack.label} added successfully.`,
+      message: alreadyApplied ? "This send pack was already added." : `${pack.sends} sends added.`,
       pack,
       usage: getWhatsAppUsage(user),
     });
   } catch (error) {
     console.error("WhatsApp send pack verification error:", error.response?.data || error.message);
-    return res.status(500).json({ message: error.message || "Failed to verify WhatsApp send pack." });
+    return res.status(500).json({ message: "We could not add the send pack. Please try again." });
   }
 });
 
@@ -218,7 +238,7 @@ router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
   try {
     if (!isWhatsAppCloudConfigured()) {
       return res.status(503).json({
-        message: "WhatsApp Cloud API is not configured yet. Add the required Render environment variables first.",
+        message: "WhatsApp sending is not ready yet.",
       });
     }
 
@@ -268,7 +288,7 @@ router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
     logCloudSendAccepted(result, invitation);
 
     return res.json({
-      message: "WhatsApp invitation submitted to Meta.",
+      message: "Invite submitted.",
       data: invitation,
       usage: reservation.usage,
     });
@@ -279,7 +299,8 @@ router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
     if (creditReserved && !metaAccepted) {
       await refundWhatsAppSendCredit(req.user.id);
     }
-    return res.status(500).json({ message: error.message || "Failed to send WhatsApp invitation." });
+    console.error("[WHATSAPP SEND] Single invite failed:", error.response?.data || error.message);
+    return res.status(500).json({ message: getPublicWhatsAppError(error) });
   }
 });
 
@@ -287,7 +308,7 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
   try {
     if (!isWhatsAppCloudConfigured()) {
       return res.status(503).json({
-        message: "WhatsApp Cloud API is not configured yet. Add the required Render environment variables first.",
+        message: "WhatsApp sending is not ready yet.",
       });
     }
 
@@ -367,13 +388,14 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
         if (creditReserved && !metaAccepted) {
           latestUsage = await refundWhatsAppSendCredit(req.user.id);
         }
-        await markInvitationFailure(invitation, error.message);
-        results.push({ id: invitation._id, status: "failed", message: error.message, data: invitation });
+        const publicMessage = getPublicWhatsAppError(error);
+        await markInvitationFailure(invitation, publicMessage);
+        results.push({ id: invitation._id, status: "failed", message: publicMessage, data: invitation });
       }
     }
 
     return res.json({
-      message: `WhatsApp submit complete: ${submitted} submitted, ${failed} failed, ${skipped} skipped.`,
+      message: `${submitted} invite${submitted === 1 ? "" : "s"} submitted.`,
       sent: submitted,
       submitted,
       failed,
@@ -383,7 +405,8 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
       results,
     });
   } catch (error) {
-    return res.status(500).json({ message: error.message || "Failed to send WhatsApp invitations." });
+    console.error("[WHATSAPP SEND] Bulk send failed:", error.response?.data || error.message);
+    return res.status(500).json({ message: getPublicWhatsAppError(error) });
   }
 });
 

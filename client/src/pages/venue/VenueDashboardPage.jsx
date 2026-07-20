@@ -204,7 +204,7 @@ const getVisibilityStatus = (venue, photos = [], proofUrls = []) => {
   }
   return {
     label: "Visible to couples",
-    tone: "text-emerald-300 border-emerald-400/25 bg-emerald-400/10",
+    tone: "text-emerald-700 border-emerald-400/10 bg-emerald-400/20",
     detail: "Approved couples can view your public venue details.",
   };
 };
@@ -397,9 +397,7 @@ const VenueDashboardPage = () => {
       const updatedUrls = [...proofUrls, ...newUrls].slice(0, 5);
       setProofUrls(updatedUrls);
       setValue("verificationProofUrls", updatedUrls, { shouldDirty: true });
-      toast.success(
-        `${newUrls.length} proof document(s) uploaded! Click 'Save Changes' to update your listing.`
-      );
+      toast.success(`${newUrls.length} proof document(s) uploaded. Save changes to publish them.`);
     } catch (err) {
       console.error("Proof upload error:", err);
     } finally {
@@ -429,7 +427,7 @@ const VenueDashboardPage = () => {
               setProofUrls(updated);
               setValue("verificationProofUrls", updated, { shouldDirty: true });
               closeToast();
-              toast.info("Proof document removed. Click 'Save Changes' to update.");
+              toast.info("Proof document removed. Save changes to update it.");
             }}
             className="px-2 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
           >
@@ -528,12 +526,12 @@ const VenueDashboardPage = () => {
         { currentPassword, newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success("Password changed successfully!");
+      toast.success("Password changed.");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmNewPassword("");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to change password.");
+      toast.error(err.response?.data?.message || "Could not change password. Please try again.");
     } finally {
       submittingPasswordRef.current = false;
       setSubmittingPassword(false);
@@ -559,7 +557,7 @@ const VenueDashboardPage = () => {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      toast.success("Your venue account has been deleted. Goodbye!");
+      toast.success("Venue account deleted.");
 
       localStorage.removeItem("venueToken");
       localStorage.removeItem("venueRefreshToken");
@@ -568,7 +566,7 @@ const VenueDashboardPage = () => {
       navigate("/");
       window.location.reload();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Deletion failed. Check password.");
+      toast.error(err.response?.data?.message || "Could not delete account. Check the password and try again.");
     } finally {
       submittingDeleteRef.current = false;
       setSubmittingDelete(false);
@@ -648,7 +646,7 @@ const VenueDashboardPage = () => {
       setVenueInquiries(Array.isArray(res.data?.inquiries) ? res.data.inquiries : []);
       setInquiryCounts((current) => ({ ...current, ...(res.data?.counts || {}) }));
     } catch {
-      toast.error("Failed to load venue inquiries.");
+      toast.error("Could not load inquiries. Please refresh.");
     } finally {
       setLoadingInquiries(false);
     }
@@ -752,9 +750,9 @@ const VenueDashboardPage = () => {
         }
       );
       setVenue(res.data.venue);
-      toast.success(res.data.message || "Listing details updated!");
+      toast.success(res.data.message || "Listing saved.");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save details.");
+      toast.error(err.response?.data?.message || "Could not save listing. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -853,7 +851,7 @@ const VenueDashboardPage = () => {
             onClick={() => {
               setPhotos((prev) => prev.filter((_, i) => i !== index));
               closeToast();
-              toast.info("Photo removed. Click Save Changes to publish.");
+              toast.info("Photo removed. Save changes to publish it.");
             }}
             className="px-2 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
           >
@@ -891,7 +889,7 @@ const VenueDashboardPage = () => {
 
     if (!loaded) {
       checkoutSubmittingRef.current = false;
-      toast.error("Failed to load Paystack payment gateway. Please check your connection.");
+      toast.error("Could not open checkout. Check your connection.");
       setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false });
       return;
     }
@@ -913,7 +911,7 @@ const VenueDashboardPage = () => {
       },
       onSuccess: async (transaction) => {
         setCheckoutModal({ isOpen: true, tier, price: tier === "listed" ? 20000 : 50000, reference: transaction.reference, submitting: true });
-        toast.info("Payment successful! Verifying upgrade...");
+        toast.info("Payment received. Activating your plan...");
         try {
           const res = await api.post(
             "/venues/subscribe/verify",
@@ -927,21 +925,21 @@ const VenueDashboardPage = () => {
           setVenue(res.data.venue);
           checkoutSubmittingRef.current = false;
           setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false });
-          toast.success(`Welcome to ${tier.toUpperCase()} tier! subscription activated!`);
+          toast.success(`${tier === "listed" ? "Priority listing" : "Top placement"} activated.`);
           
           const currentLocal = JSON.parse(localStorage.getItem("venue") || "{}");
           localStorage.setItem("venue", JSON.stringify({ ...currentLocal, subscriptionTier: tier }));
           
           setActiveTab("listing");
         } catch (err) {
-          toast.error("Payment verification failed. Please contact admin.");
+          toast.error("Payment was received, but the plan was not activated yet. Please contact support.");
           checkoutSubmittingRef.current = false;
           setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false });
         }
       },
       onCancel: () => {
         checkoutSubmittingRef.current = false;
-        toast.info("Subscription payment cancelled.");
+      toast.info("Payment cancelled.");
         setCheckoutModal({ isOpen: false, tier: "", price: 0, reference: "", submitting: false });
       },
     };
@@ -966,7 +964,7 @@ const VenueDashboardPage = () => {
       handler.openIframe();
     } else {
       releaseCheckout();
-      toast.error("Paystack payment SDK is not initialized. Please refresh the page.");
+      toast.error("Checkout is not ready. Please refresh and try again.");
     }
   };
 
@@ -974,9 +972,9 @@ const VenueDashboardPage = () => {
     try {
       const res = await api.post(`/venues/approve/${venue._id}`);
       setVenue(res.data.venue);
-      toast.success("Venue listing approved successfully! It is now visible to couples.");
+      toast.success("Venue listing approved. Couples can now see it.");
     } catch (err) {
-      toast.error("Failed to approve venue listing.");
+      toast.error("Could not approve venue listing.");
     }
   };
 
@@ -1191,7 +1189,7 @@ const VenueDashboardPage = () => {
                     {visibilityStatus.label}
                   </span>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">Listing Control Center</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">Venue workspace</p>
                     <h2 className="mt-2 font-serif text-2xl text-white">{venue?.name || "Your venue listing"}</h2>
                     <p className="mt-2 max-w-xl text-xs leading-relaxed text-white/50">{visibilityStatus.detail}</p>
                   </div>
@@ -1265,8 +1263,8 @@ const VenueDashboardPage = () => {
             <div className="rounded-3xl border border-white/10 bg-[#0D1220] p-5 sm:p-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">Performance tips</p>
-                  <p className="mt-2 text-xs text-white/45">Small changes that help couples trust the listing.</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">Booking tips</p>
+                  <p className="mt-2 text-xs text-white/45">Small updates that help couples trust your venue.</p>
                 </div>
                 <Icon icon="lucide:trending-up" className="h-5 w-5 text-[#D8B76A]" />
               </div>
@@ -1284,24 +1282,24 @@ const VenueDashboardPage = () => {
           </section>
 
           <div ref={tabContentRef} className="scroll-mt-28">
-            {/* Pending Approval Banner */}
+            {/* Review status banner */}
             {!venue?.isApproved && (
-              <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-6 space-y-4 mb-6 animate-fade-in">
+              <div className="rounded-3xl border border-amber-400/20 bg-amber-400/8 p-6 space-y-4 mb-6 animate-fade-in">
               <div className="flex items-start gap-3">
                 <Icon icon="lucide:alert-triangle" className="text-2xl text-amber-500 shrink-0" />
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-red-400 font-sans">Pending Admin Approval</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-amber-300 font-sans">Waiting for VowLink review</h3>
                   <p className="text-white/60 text-xs mt-1">
-                    Your venue is currently undergoing verification by VowLink Admins. It will not appear in the "Suggested Venues" couple directory until it is approved.
+                    Your listing is saved. Complete the checklist while we review it. It will appear to couples after approval.
                   </p>
                 </div>
               </div>
               <div className="pt-3 border-t border-white/5 flex items-center justify-between flex-wrap gap-4">
                 {isProduction ? (
-                  <span className="text-[10px] text-white/40 italic">VowLink admins must approve this listing before couples can view it.</span>
+                  <span className="text-[10px] text-white/40 italic">We will make the listing public after it passes review.</span>
                 ) : (
                   <>
-                    <span className="text-[10px] text-white/40 italic">Demo Mode: You can bypass validation and approve the listing instantly for testing.</span>
+                    <span className="text-[10px] text-white/40 italic">Demo mode: approve this listing instantly for testing.</span>
                     <button
                       type="button"
                       onClick={handleDemoApprove}
@@ -1697,10 +1695,10 @@ const VenueDashboardPage = () => {
                 </div>
               </div>
 
-              {/* Danger Zone Block */}
+              {/* Account deletion block */}
               <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-6 sm:p-8 space-y-6">
                 <div>
-                  <h3 className="font-serif text-xl text-red-400">Danger Zone</h3>
+                  <h3 className="font-serif text-xl text-red-400">Account deletion</h3>
                   <p className="text-xs text-white/40 mt-1">Permanently delete your VowLink Venue partner account and listings.</p>
                 </div>
 

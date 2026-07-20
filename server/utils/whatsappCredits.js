@@ -61,38 +61,36 @@ const getWhatsAppUsage = (user = {}) => {
 };
 
 const reserveWhatsAppSendCredit = async (userId) => {
-  const user = await User.findOneAndUpdate(
-    {
-      _id: userId,
-      tier: "pro",
-      $expr: {
-        $lt: [
-          { $ifNull: ["$whatsappCloudSendsUsed", 0] },
-          {
-            $add: [
-              { $ifNull: ["$whatsappCloudIncludedSends", DEFAULT_INCLUDED_WHATSAPP_SENDS] },
-              { $ifNull: ["$whatsappCloudExtraSends", 0] },
-            ],
-          },
-        ],
-      },
-    },
-    {
-      $inc: { whatsappCloudSendsUsed: 1 },
-      $setOnInsert: { whatsappCloudIncludedSends: DEFAULT_INCLUDED_WHATSAPP_SENDS },
-    },
-    { new: true },
+  const current = await User.findById(userId).select(
+    "tier whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed",
   );
 
-  if (!user) {
-    const current = await User.findById(userId).select(
-      "whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed",
-    );
+  if (!current || current.tier !== "pro") {
     return {
       reserved: false,
       usage: getWhatsAppUsage(current || {}),
     };
   }
+
+  const usage = getWhatsAppUsage(current);
+  if (usage.remaining <= 0) {
+    return {
+      reserved: false,
+      usage,
+    };
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        whatsappCloudIncludedSends: usage.included,
+        whatsappCloudExtraSends: usage.extra,
+        whatsappCloudSendsUsed: usage.used + 1,
+      },
+    },
+    { new: true },
+  ).select("whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed");
 
   return {
     reserved: true,
@@ -102,14 +100,23 @@ const reserveWhatsAppSendCredit = async (userId) => {
 };
 
 const refundWhatsAppSendCredit = async (userId) => {
-  const user = await User.findOneAndUpdate(
-    {
-      _id: userId,
-      whatsappCloudSendsUsed: { $gt: 0 },
-    },
-    { $inc: { whatsappCloudSendsUsed: -1 } },
-    { new: true },
+  const current = await User.findById(userId).select(
+    "whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed",
   );
+  const usage = getWhatsAppUsage(current || {});
+  if (!current || usage.used <= 0) return usage;
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        whatsappCloudIncludedSends: usage.included,
+        whatsappCloudExtraSends: usage.extra,
+        whatsappCloudSendsUsed: usage.used - 1,
+      },
+    },
+    { new: true },
+  ).select("whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed");
 
   return getWhatsAppUsage(user || {});
 };
@@ -143,11 +150,19 @@ const addWhatsAppExtraSends = async (userId, sends) => {
     throw new Error("Invalid WhatsApp send pack quantity.");
   }
 
+  const current = await User.findById(userId).select(
+    "whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed",
+  );
+  const usage = getWhatsAppUsage(current || {});
+
   const user = await User.findByIdAndUpdate(
     userId,
     {
-      $inc: { whatsappCloudExtraSends: quantity },
-      $setOnInsert: { whatsappCloudIncludedSends: DEFAULT_INCLUDED_WHATSAPP_SENDS },
+      $set: {
+        whatsappCloudIncludedSends: usage.included,
+        whatsappCloudExtraSends: usage.extra + quantity,
+        whatsappCloudSendsUsed: usage.used,
+      },
     },
     { new: true },
   );

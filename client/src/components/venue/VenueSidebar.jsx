@@ -27,7 +27,7 @@ const VenueSidebar = ({
           }`}
         >
           <Icon icon="lucide:building-2" className="w-4 h-4 shrink-0" />
-          <span>Listing Details</span>
+          <span>Listing setup</span>
         </button>
         <button
           onClick={() => {
@@ -41,7 +41,7 @@ const VenueSidebar = ({
           }`}
         >
           <Icon icon="lucide:eye" className="w-4 h-4 shrink-0" />
-          <span>Public Preview</span>
+          <span>Public preview</span>
         </button>
         <button
           onClick={() => {
@@ -56,7 +56,7 @@ const VenueSidebar = ({
         >
           <span className="flex items-center gap-2">
             <Icon icon="lucide:camera" className="w-4 h-4 shrink-0" />
-            <span>Gallery Photos</span>
+            <span>Photos</span>
           </span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white font-mono">
             {photosLength}
@@ -93,7 +93,7 @@ const VenueSidebar = ({
           }`}
         >
           <Icon icon="lucide:credit-card" className="w-4 h-4 shrink-0" />
-          <span>Subscriptions</span>
+          <span>Visibility plan</span>
         </button>
         <button
           onClick={() => {
@@ -107,14 +107,14 @@ const VenueSidebar = ({
           }`}
         >
           <Icon icon="lucide:lock" className="w-4 h-4 shrink-0" />
-          <span>Security & Danger Zone</span>
+          <span>Account security</span>
         </button>
       </div>
 
       {/* Quick Stats Card — live-polled every 30s */}
       <div className="rounded-2xl border border-white/10 bg-[#0D1220] p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A]">Performance Stats</h3>
+          <h3 className="text-[10px] uppercase font-bold tracking-widest text-[#D8B76A]">Listing activity</h3>
           <span className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider text-emerald-400 font-semibold">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -125,7 +125,7 @@ const VenueSidebar = ({
         </div>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-1 lg:grid-cols-2 lg:gap-4">
           <div className="p-3 bg-white/3 rounded-xl transition-all flex flex-col md:flex-row md:items-center md:justify-between lg:flex-col lg:items-start">
-            <span className="text-[9px] uppercase tracking-wider text-[#A1B0CB]">Total Views</span>
+            <span className="text-[9px] uppercase tracking-wider text-[#A1B0CB]">Views</span>
             <span className="text-xl font-bold font-mono">
               {stats.views !== null ? stats.views : (venue?.views ?? 0)}
             </span>
@@ -137,7 +137,7 @@ const VenueSidebar = ({
             </span>
           </div>
         </div>
-        <p className="text-[9px] text-white/30 italic">Auto-refreshes every 30 seconds.</p>
+        <p className="text-[9px] text-white/30 italic">Updates every 30 seconds.</p>
       </div>
     </div>
   );

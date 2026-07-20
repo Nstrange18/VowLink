@@ -137,7 +137,14 @@ const GuidedTour = ({ open, title = 'Guided tour', steps = [], storageKey, onClo
   const goBack = () => setIndex((current) => Math.max(current - 1, 0))
 
   return (
-    <div className="fixed inset-0 z-[80] pointer-events-auto">
+    <div className="fixed inset-0 z-80 pointer-events-auto">
+      <div
+        className="absolute inset-0 bg-transparent"
+        aria-hidden="true"
+        onClick={(event) => event.preventDefault()}
+        onPointerDown={(event) => event.preventDefault()}
+        onTouchStart={(event) => event.preventDefault()}
+      />
       {highlight ? (
         <>
           <div className="absolute left-0 top-0 w-full bg-[#02040A]/72 backdrop-blur-[2px]" style={{ height: highlight.top }} />
@@ -165,7 +172,7 @@ const GuidedTour = ({ open, title = 'Guided tour', steps = [], storageKey, onClo
 
       {highlight && (
         <div
-          className="absolute rounded-3xl border-2 border-[#D8B76A] shadow-[0_0_34px_rgba(216,183,106,0.35)] transition-all duration-300"
+          className="pointer-events-none absolute rounded-3xl border-2 border-[#D8B76A] shadow-[0_0_34px_rgba(216,183,106,0.35)] transition-all duration-300"
           style={{
             top: highlight.top,
             left: highlight.left,
@@ -176,7 +183,7 @@ const GuidedTour = ({ open, title = 'Guided tour', steps = [], storageKey, onClo
       )}
 
       <section
-        className="pointer-events-auto fixed max-h-[calc(100svh-28px)] w-[calc(100vw-24px)] max-w-[380px] overflow-y-auto rounded-3xl border border-[#D8B76A]/25 bg-[#0D1220] p-4 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:w-[calc(100vw-32px)] sm:p-5"
+        className="pointer-events-auto fixed z-10 max-h-[calc(100svh-28px)] w-[calc(100vw-24px)] max-w-95 overflow-y-auto rounded-3xl border border-[#D8B76A]/25 bg-[#0D1220] p-4 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:w-[calc(100vw-32px)] sm:p-5"
         style={cardPosition}
         role="dialog"
         aria-modal="true"

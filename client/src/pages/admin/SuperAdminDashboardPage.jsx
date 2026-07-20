@@ -23,13 +23,13 @@ const isVenueTrustVerified = (venue) => {
 
 const getVerificationStatusLabel = (status) => {
   const labels = {
-    not_submitted: "Not Submitted",
-    pending_review: "Pending Verification",
+    not_submitted: "Not submitted",
+    pending_review: "Needs review",
     verified: "Verified",
-    changes_requested: "Changes Requested",
+    changes_requested: "Changes requested",
     rejected: "Rejected",
   };
-  return labels[status] || "Not Submitted";
+  return labels[status] || "Not submitted";
 };
 
 const SuperAdminDashboardPage = () => {
@@ -104,7 +104,7 @@ const SuperAdminDashboardPage = () => {
     setActionBusy(actionKey, true);
     try {
       const res = await api.put(`/super-admin/venues/verify/${venueId}`, verificationForm);
-      toast.success(res.data.message);
+      toast.success("Verification saved.");
       setVenues((prev) =>
         prev.map((v) =>
           v._id === venueId
@@ -126,7 +126,7 @@ const SuperAdminDashboardPage = () => {
       );
       setVerifyingVenueId(null);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save verification settings.");
+      toast.error(err.response?.data?.message || "Could not save verification. Please try again.");
     } finally {
       setActionBusy(actionKey, false);
     }
@@ -145,7 +145,7 @@ const SuperAdminDashboardPage = () => {
       setCouples(couplesRes.data);
       setInquiries(inquiriesRes.data);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to load dashboard data.");
+      toast.error(err.response?.data?.message || "Could not load admin data. Please refresh.");
     } finally {
       setLoading(false);
     }
@@ -162,13 +162,13 @@ const SuperAdminDashboardPage = () => {
     setActionBusy(actionKey, true);
     try {
       const res = await api.post(`/super-admin/venues/status/${venueId}`, { status });
-      toast.success(res.data.message);
+      toast.success(status === "approved" ? "Venue approved." : status === "active" ? "Venue activated." : "Venue suspended.");
       // Update local state
       setVenues((prev) =>
         prev.map((v) => (v._id === venueId ? { ...v, isApproved: res.data.venue.isApproved, isActive: res.data.venue.isActive } : v))
       );
     } catch (err) {
-      toast.error(err.response?.data?.message || "Action failed.");
+      toast.error(err.response?.data?.message || "Could not update venue status.");
     } finally {
       setActionBusy(actionKey, false);
     }
@@ -180,12 +180,12 @@ const SuperAdminDashboardPage = () => {
     setActionBusy(actionKey, true);
     try {
       const res = await api.post(`/super-admin/venues/featured/${venueId}`);
-      toast.success(res.data.message);
+      toast.success(res.data.venue.isFeatured ? "Venue featured." : "Featured placement removed.");
       setVenues((prev) =>
         prev.map((v) => (v._id === venueId ? { ...v, isFeatured: res.data.venue.isFeatured } : v))
       );
     } catch (err) {
-      toast.error(err.response?.data?.message || "Action failed.");
+      toast.error(err.response?.data?.message || "Could not update featured placement.");
     } finally {
       setActionBusy(actionKey, false);
     }
@@ -200,12 +200,12 @@ const SuperAdminDashboardPage = () => {
     setDeletingVenue(true);
     try {
       const res = await api.delete(`/super-admin/venues/${venueToDelete}`);
-      toast.success(res.data.message);
+      toast.success("Venue deleted.");
       setVenues((prev) => prev.filter((v) => v._id !== venueToDelete));
       const inquiriesRes = await api.get("/super-admin/inquiries");
       setInquiries(inquiriesRes.data);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Delete failed.");
+      toast.error(err.response?.data?.message || "Could not delete venue.");
     } finally {
       setDeletingVenue(false);
       setVenueToDelete(null);
@@ -219,12 +219,12 @@ const SuperAdminDashboardPage = () => {
     setActionBusy(actionKey, true);
     try {
       const res = await api.put(`/super-admin/couples/tier/${userId}`, { tier });
-      toast.success(res.data.message);
+      toast.success("Couple plan updated.");
       setCouples((prev) =>
         prev.map((c) => (c._id === userId ? { ...c, tier: res.data.user.tier } : c))
       );
     } catch (err) {
-      toast.error(err.response?.data?.message || "Action failed.");
+      toast.error(err.response?.data?.message || "Could not update couple plan.");
     } finally {
       setActionBusy(actionKey, false);
     }
@@ -239,12 +239,12 @@ const SuperAdminDashboardPage = () => {
     setDeletingCouple(true);
     try {
       const res = await api.delete(`/super-admin/couples/${coupleToDelete}`);
-      toast.success(res.data.message);
+      toast.success("Couple account deleted.");
       setCouples((prev) => prev.filter((c) => c._id !== coupleToDelete));
       const inquiriesRes = await api.get("/super-admin/inquiries");
       setInquiries(inquiriesRes.data);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Delete failed.");
+      toast.error(err.response?.data?.message || "Could not delete couple account.");
     } finally {
       setDeletingCouple(false);
       setCoupleToDelete(null);
@@ -349,7 +349,7 @@ const SuperAdminDashboardPage = () => {
                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-400 transition cursor-pointer shadow-lg shadow-red-500/25 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <Icon icon={deletingCouple ? "lucide:loader-2" : "lucide:trash-2"} className={`h-4 w-4 ${deletingCouple ? "animate-spin" : ""}`} />
-                {deletingCouple ? "Deleting..." : "Yes, Delete Account"}
+                {deletingCouple ? "Deleting..." : "Delete account"}
               </button>
             </div>
           </div>
@@ -359,16 +359,16 @@ const SuperAdminDashboardPage = () => {
       {/* Header */}
       <div className="flex justify-between items-center border-b border-white/10 pb-6 flex-wrap gap-4">
         <div>
-          <span className="text-xs uppercase tracking-[0.3em] text-[#D8B76A]">Super Control Center</span>
-          <h1 className="font-serif text-3xl sm:text-4xl mt-1">Platform Administrator</h1>
-          <p className="text-white/40 text-xs mt-1">Manage venue approvals, couple subscription workspace access, and platform analytics.</p>
+          <span className="text-xs uppercase tracking-[0.3em] text-[#D8B76A]">Operations</span>
+          <h1 className="font-serif text-3xl sm:text-4xl mt-1">Super admin</h1>
+          <p className="text-white/40 text-xs mt-1">Review venues, manage couple plans, and monitor marketplace activity.</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={() => navigate("/admin/dashboard")}
             className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] text-xs font-semibold tracking-wider hover:bg-[#D8B76A]/20 transition cursor-pointer"
           >
-            <Icon icon="ph:rings-bold" className="w-4 h-4" /> My Couple Workspace
+            <Icon icon="ph:rings-bold" className="w-4 h-4" /> Couple workspace
           </button>
           <button
             onClick={fetchData}
@@ -376,7 +376,7 @@ const SuperAdminDashboardPage = () => {
             className="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold tracking-wider hover:bg-white/10 transition cursor-pointer flex items-center gap-1.5"
           >
             <Icon icon="lucide:refresh-cw" className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh Data</span>
+            <span>Refresh</span>
           </button>
         </div>
       </div>
@@ -390,7 +390,7 @@ const SuperAdminDashboardPage = () => {
             <span className="text-[9px] sm:text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">Active</span>
           </div>
           <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalCouples}</p>
-          <h3 className="text-[10px] sm:text-xs text-white/50 font-medium mt-1 leading-tight">Total Couple Workspaces</h3>
+          <h3 className="text-[10px] sm:text-xs text-white/50 font-medium mt-1 leading-tight">Couple workspaces</h3>
           <p className="text-[10px] text-white/35 mt-2">Trial: {stats.unpaidCouples} | Classic: {stats.classicCouples} | Plus: {stats.plusCouples} | Pro: {stats.proCouples}</p>
         </div>
 
@@ -401,7 +401,7 @@ const SuperAdminDashboardPage = () => {
             <span className="text-[9px] sm:text-[10px] bg-[#D8B76A]/10 border border-[#D8B76A]/20 text-[#D8B76A] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">Marketplace</span>
           </div>
           <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.totalVenues}</p>
-          <h3 className="text-[10px] sm:text-xs text-white/50 font-medium mt-1 leading-tight">Total Venues Registered</h3>
+          <h3 className="text-[10px] sm:text-xs text-white/50 font-medium mt-1 leading-tight">Venue listings</h3>
           <p className="text-[10px] text-white/35 mt-2">Approved: {stats.approvedVenues} | Pending: {stats.pendingVenues}</p>
         </div>
 
@@ -412,7 +412,7 @@ const SuperAdminDashboardPage = () => {
             <span className="text-[9px] sm:text-[10px] bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">Featured</span>
           </div>
           <p className="text-2xl sm:text-3xl font-bold font-mono tracking-tight mt-4">{stats.featuredVenues}</p>
-          <h3 className="text-[10px] sm:text-xs text-white/50 font-medium mt-1 leading-tight">Sponsored / Featured</h3>
+          <h3 className="text-[10px] sm:text-xs text-white/50 font-medium mt-1 leading-tight">Featured listings</h3>
           <p className="text-[10px] text-white/35 mt-2">Active top-placements in couple search</p>
         </div>
 
@@ -437,7 +437,7 @@ const SuperAdminDashboardPage = () => {
           }`}
         >
           <span className="flex items-center gap-1.5">
-            <Icon icon="lucide:line-chart" className="w-3.5 h-3.5" /> Stats Overview
+            <Icon icon="lucide:line-chart" className="w-3.5 h-3.5" /> Overview
           </span>
         </button>
         <button
@@ -447,7 +447,7 @@ const SuperAdminDashboardPage = () => {
           }`}
         >
           <span className="flex items-center gap-1.5">
-            <Icon icon="lucide:building-2" className="w-3.5 h-3.5" /> Venues ({stats.pendingVenues} Pending)
+            <Icon icon="lucide:building-2" className="w-3.5 h-3.5" /> Venues ({stats.pendingVenues} review)
           </span>
         </button>
         <button
@@ -467,7 +467,7 @@ const SuperAdminDashboardPage = () => {
           }`}
         >
           <span className="flex items-center gap-1.5">
-            <Icon icon="lucide:mail" className="w-3.5 h-3.5" /> Direct inquiries ({stats.totalInquiries})
+            <Icon icon="lucide:mail" className="w-3.5 h-3.5" /> Inquiries ({stats.totalInquiries})
           </span>
         </button>
       </div>
@@ -589,7 +589,7 @@ const SuperAdminDashboardPage = () => {
                   { key: "all",      label: "All",      count: venues.length },
                   { key: "approved", label: "Approved", count: venues.filter(v => v.isApproved).length },
                   { key: "verified", label: "Verified", icon: "mdi:shield-check-outline", count: venues.filter(isVenueTrustVerified).length },
-                  { key: "pendingVerification", label: "Pending Verification", icon: "mdi:shield-clock-outline", count: venues.filter(v => v.verificationStatus === "pending_review").length },
+                  { key: "pendingVerification", label: "Needs Review", icon: "mdi:shield-clock-outline", count: venues.filter(v => v.verificationStatus === "pending_review").length },
                   { key: "sponsored", label: "Sponsored", icon: "mdi:star-four-points", count: venues.filter(v => v.subscriptionTier === "featured").length },
                   { key: "manualFeatured", label: "Manual Featured", icon: "mdi:star", count: venues.filter(v => v.isFeatured && v.subscriptionTier !== "featured").length },
                   { key: "pending",  label: "Pending",  count: venues.filter(v => !v.isApproved).length },
@@ -665,7 +665,7 @@ const SuperAdminDashboardPage = () => {
                           <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                             venue.isApproved ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20 animate-pulse"
                           }`}>
-                            Listing: {venue.isApproved ? "Approved" : "Pending Approval"}
+                            Listing: {venue.isApproved ? "Approved" : "Needs approval"}
                           </span>
                           <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                             venue.verificationStatus === "pending_review"
@@ -674,7 +674,7 @@ const SuperAdminDashboardPage = () => {
                                 ? "bg-sky-500/10 text-sky-300 border-sky-400/20"
                                 : "bg-white/5 text-white/45 border-white/10"
                           }`}>
-                            Verification: {venue.verificationStatus === "pending_review" ? "Pending Review" : isVerified ? `${verifiedClaims} Claims` : getVerificationStatusLabel(venue.verificationStatus)}
+                            Verification: {venue.verificationStatus === "pending_review" ? "Needs review" : isVerified ? `${verifiedClaims} checks` : getVerificationStatusLabel(venue.verificationStatus)}
                           </span>
                           <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                             venue.isActive ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"
@@ -725,7 +725,7 @@ const SuperAdminDashboardPage = () => {
                                 venue.safetyStructural && "Structural",
                                 venue.safetyInsurance && "Insurance",
                                 venue.safetyCctv && "CCTV"
-                              ].filter(Boolean).join(", ") || "None Verified"
+                              ].filter(Boolean).join(", ") || "No checks verified"
                             }</span>
                             </p>
                             <p className="flex items-center gap-1.5">
@@ -751,7 +751,7 @@ const SuperAdminDashboardPage = () => {
                       {/* Inline glassmorphic verification editor */}
                       {verifyingVenueId === venue._id && (
                         <div className="mt-4 p-4 rounded-2xl bg-white/5 border border-[#D8B76A]/20 space-y-3 animate-fade-in">
-                          <h4 className="text-xs uppercase tracking-wider text-[#D8B76A] font-bold">Edit Trust & Safety Verification</h4>
+                          <h4 className="text-xs uppercase tracking-wider text-[#D8B76A] font-bold">Review trust and safety</h4>
                           
                           {/* Submitted Proof Links (supports both old single URL and new array) */}
                           {(() => {
@@ -763,7 +763,7 @@ const SuperAdminDashboardPage = () => {
                               <div className="space-y-1.5">
                                 <span className="text-[9px] uppercase tracking-wider font-bold text-[#D8B76A] flex items-center gap-1.5">
                                   <Icon icon="mdi:folder-open-outline" className="w-3.5 h-3.5 shrink-0" />
-                                  Submitted Proof Documents ({allProofs.length})
+                                  Submitted proof documents ({allProofs.length})
                                 </span>
                                 {allProofs.map((url, idx) => (
                                   <a
@@ -774,14 +774,14 @@ const SuperAdminDashboardPage = () => {
                                     className="mt-0.5 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#D8B76A]/10 text-[#D8B76A] hover:bg-[#D8B76A]/20 border border-[#D8B76A]/20 text-[10px] font-bold uppercase tracking-wider transition w-full justify-center"
                                   >
                                     <Icon icon="mdi:file-document-outline" className="w-3.5 h-3.5 shrink-0" />
-                                    <span>Document {idx + 1} - Open / View</span>
+                                    <span>Document {idx + 1} - Open</span>
                                     <Icon icon="lucide:arrow-right" className="w-3 h-3 shrink-0" />
                                   </a>
                                 ))}
                               </div>
                             ) : (
                               <div className="mt-1 text-[10px] text-white/40 italic text-center p-2.5 border border-dashed border-white/10 rounded-xl">
-                                No verification proof documents uploaded by owner.
+                                No proof documents uploaded yet.
                               </div>
                             );
                           })()}
@@ -917,7 +917,7 @@ const SuperAdminDashboardPage = () => {
                               className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded bg-[#D8B76A] text-[#070A13] hover:opacity-90 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-70"
                             >
                               <Icon icon={verificationBusy ? "lucide:loader-2" : "mdi:shield-check-outline"} className={`w-3.5 h-3.5 shrink-0 ${verificationBusy ? "animate-spin" : ""}`} />
-                              {verificationBusy ? "Saving..." : "Save Verification"}
+                              {verificationBusy ? "Saving..." : "Save review"}
                             </button>
                           </div>
                         </div>
@@ -933,7 +933,7 @@ const SuperAdminDashboardPage = () => {
                               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-xs font-bold text-[#070A13] hover:bg-emerald-400 transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
                             >
                               <Icon icon={statusBusy ? "lucide:loader-2" : "mdi:check-circle-outline"} className={`w-3.5 h-3.5 shrink-0 ${statusBusy ? "animate-spin" : ""}`} />
-                              {statusBusy ? "Approving..." : "Approve Listing"}
+                              {statusBusy ? "Approving..." : "Approve"}
                             </button>
                           ) : (
                             <>
@@ -958,11 +958,11 @@ const SuperAdminDashboardPage = () => {
                                   <Icon icon={featuredBusy ? "lucide:loader-2" : "mdi:star"} className={`w-3.5 h-3.5 shrink-0 ${featuredBusy ? "animate-spin" : ""}`} />
                                   {featuredBusy
                                     ? venue.isFeatured
-                                      ? "Revoking..."
-                                      : "Granting..."
+                                      ? "Removing..."
+                                      : "Featuring..."
                                     : venue.isFeatured
-                                      ? "Revoke Featured"
-                                      : "Grant Featured"}
+                                      ? "Unfeature"
+                                      : "Feature"}
                                 </span>
                               </button>
                             </>
@@ -974,7 +974,7 @@ const SuperAdminDashboardPage = () => {
                           >
                             <span className="inline-flex items-center gap-1.5">
                               <Icon icon="mdi:shield-edit-outline" className="w-3.5 h-3.5 shrink-0" />
-                              Edit Verification
+                              Review checks
                             </span>
                           </button>
                         </div>
@@ -1061,7 +1061,7 @@ const SuperAdminDashboardPage = () => {
                             >
                               <span className="inline-flex items-center gap-1.5">
                                 <Icon icon="mdi:trash-can-outline" className="w-3.5 h-3.5 shrink-0" />
-                                Delete Account
+                                Delete
                               </span>
                             </button>
                           </td>

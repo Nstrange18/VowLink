@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
@@ -39,6 +39,92 @@ const WHATSAPP_TOUR_STEPS = [
 
 const cleanPhone = (phone) => normalizeInternationalPhone(phone);
 
+const FALLBACK_WHATSAPP_SEND_PACKS = [
+  {
+    id: "whatsapp_100",
+    sends: 100,
+    priceInNgn: 5000,
+    label: "100 extra sends",
+    description: "Enough for a small extra guest list.",
+  },
+  {
+    id: "whatsapp_250",
+    sends: 250,
+    priceInNgn: 12000,
+    label: "250 extra sends",
+    description: "Best for medium weddings and follow-up rounds.",
+    badge: "Popular",
+  },
+  {
+    id: "whatsapp_500",
+    sends: 500,
+    priceInNgn: 22000,
+    label: "500 extra sends",
+    description: "Best for large guest lists.",
+  },
+];
+
+const loadPaystackScript = () =>
+  new Promise((resolve) => {
+    if (window.PaystackPop) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://js.paystack.co/v2/inline.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+
+const formatNgn = (amount) => `NGN ${Number(amount || 0).toLocaleString()}`;
+
+const getFriendlyErrorMessage = (error, fallback = "Something went wrong. Please try again.") => {
+  const raw = String(error?.response?.data?.message || error?.message || "");
+  if (/Plan executor|findAndModify|\$add|Cast to|Mongo|Internal Server Error/i.test(raw)) {
+    return "We could not complete that action. Please try again.";
+  }
+  if (/allowance|send pack|finished/i.test(raw)) {
+    return "You need more WhatsApp sends to continue.";
+  }
+  if (/configured|Cloud API|environment/i.test(raw)) {
+    return "WhatsApp sending is not ready yet.";
+  }
+  if (/phone|number/i.test(raw)) {
+    return "Check the guest's WhatsApp number and try again.";
+  }
+  if (/template|parameter|localizable_params/i.test(raw)) {
+    return "The WhatsApp template needs attention before sending.";
+  }
+  return raw || fallback;
+};
+
+const getFriendlyFailureReason = (reason) => {
+  const raw = String(reason || "");
+  if (!raw) return "";
+  if (/Plan executor|findAndModify|\$add|Cast to|Mongo|Internal Server Error/i.test(raw)) {
+    return "Please try again.";
+  }
+  if (/template|parameter|localizable_params/i.test(raw)) {
+    return "Template needs attention.";
+  }
+  if (/phone|number/i.test(raw)) {
+    return "Check phone number.";
+  }
+  return raw.length > 56 ? `${raw.slice(0, 53)}...` : raw;
+};
+
+const getStatusHelpText = (status, failureReason) => {
+  if (status === "queued") return "Waiting for delivery update";
+  if (status === "sent") return "Sent by WhatsApp";
+  if (status === "delivered") return "Delivered to guest";
+  if (status === "read") return "Opened by guest";
+  if (status === "failed") return getFriendlyFailureReason(failureReason);
+  return "";
+};
+
 const formatMessage = (
   template,
   guestName,
@@ -68,6 +154,11 @@ const AdminBulkWhatsAppPage = () => {
   const [preparingInvites, setPreparingInvites] = useState(false);
   const [cloudConfig, setCloudConfig] = useState(null);
   const [cloudSending, setCloudSending] = useState(false);
+  const [sendPacks, setSendPacks] = useState(FALLBACK_WHATSAPP_SEND_PACKS);
+  const [sendPackModalOpen, setSendPackModalOpen] = useState(false);
+  const [loadingPaystack, setLoadingPaystack] = useState(false);
+  const [checkoutLocked, setCheckoutLocked] = useState(false);
+  const checkoutSubmittingRef = useRef(false);
 
   // Template settings
   const [messageTemplate, setMessageTemplate] = useState(
@@ -83,13 +174,19 @@ const AdminBulkWhatsAppPage = () => {
   const cloudConfigured = Boolean(cloudConfig?.configured);
   const whatsappUsage = cloudConfig?.usage || {};
   const whatsappRemaining =
-    typeof whatsappUsage.remaining === "number" ? whatsappUsage.remaining : null;
+    typeof whatsappUsage.remaining === "number"
+      ? whatsappUsage.remaining
+      : null;
   const whatsappLimit =
     typeof whatsappUsage.limit === "number" ? whatsappUsage.limit : null;
   const whatsappUsed =
     typeof whatsappUsage.used === "number" ? whatsappUsage.used : null;
   const cloudAllowanceExhausted =
     cloudConfigured && whatsappRemaining !== null && whatsappRemaining <= 0;
+  const whatsappUsagePercent =
+    whatsappLimit && whatsappUsed !== null
+      ? Math.min(100, Math.max(0, (whatsappUsed / whatsappLimit) * 100))
+      : 0;
 
   const sentStatuses = new Set(["queued", "sent", "delivered", "read"]);
   const isGuestSendable = (guest) => {
@@ -107,8 +204,13 @@ const AdminBulkWhatsAppPage = () => {
       guest.whatsappStatus === "missing_number"
     )
       return "Missing Num";
-    if (guest.whatsappStatus === "queued") return "Accepted";
-    return (guest.whatsappStatus || "not_sent").replace("_", " ");
+    if (guest.whatsappStatus === "queued") return "Submitted";
+    if (guest.whatsappStatus === "sent") return "Sent to WhatsApp";
+    if (guest.whatsappStatus === "delivered") return "Delivered";
+    if (guest.whatsappStatus === "read") return "Read";
+    if (guest.whatsappStatus === "ready") return "Ready";
+    if (guest.whatsappStatus === "failed") return "Could not send";
+    return "Not sent";
   };
 
   const getStatusClass = (status, isMissing) => {
@@ -147,7 +249,7 @@ const AdminBulkWhatsAppPage = () => {
       setInvitations(res.data);
     } catch (err) {
       if (!silent) {
-        toast.error("Failed to load invitations.");
+        toast.error("Could not load guests. Please refresh.");
       }
     } finally {
       setLoading(false);
@@ -169,10 +271,25 @@ const AdminBulkWhatsAppPage = () => {
     }
   };
 
+  const fetchSendPacks = async () => {
+    try {
+      const res = await api.get("/whatsapp/send-packs");
+      if (Array.isArray(res.data.packs) && res.data.packs.length > 0) {
+        setSendPacks(res.data.packs);
+      }
+      if (res.data.usage) {
+        setCloudConfig((prev) => ({ ...(prev || {}), usage: res.data.usage }));
+      }
+    } catch {
+      setSendPacks(FALLBACK_WHATSAPP_SEND_PACKS);
+    }
+  };
+
   useEffect(() => {
     if (user.tier === "pro") {
       fetchInvitations();
       fetchCloudConfig();
+      fetchSendPacks();
     } else {
       setLoading(false);
     }
@@ -190,8 +307,7 @@ const AdminBulkWhatsAppPage = () => {
         <p className="text-white/60 text-sm mb-8 leading-relaxed">
           The Bulk WhatsApp Invite Sender is a Pro tool. Upgrade to VowLink Pro
           to assign guests to partner queues, compose customized WhatsApp
-          message templates, and track who has received invite links through
-          Meta.
+          message templates, and track invite sending.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
@@ -311,9 +427,9 @@ const AdminBulkWhatsAppPage = () => {
           inv._id === id ? { ...inv, ...res.data.data } : inv,
         ),
       );
-      toast.success(`Guest updated to ${status.replace("_", " ")}!`);
+      toast.success(status === "not_sent" ? "Guest moved back to Not sent." : "Guest status updated.");
     } catch {
-      toast.error("Failed to update status.");
+      toast.error("Could not update this guest. Please try again.");
     } finally {
       setLoadingIds((prev) => {
         const next = new Set(prev);
@@ -333,9 +449,9 @@ const AdminBulkWhatsAppPage = () => {
           await api.delete(`/invitations/${guest._id}`);
           setInvitations((prev) => prev.filter((inv) => inv._id !== guest._id));
           setSelectedIds((prev) => prev.filter((id) => id !== guest._id));
-          toast.success("Guest deleted from queue.");
+          toast.success("Guest removed from this list.");
         } catch {
-          toast.error("Failed to delete guest.");
+          toast.error("Could not remove this guest. Please try again.");
         }
       },
     });
@@ -346,7 +462,7 @@ const AdminBulkWhatsAppPage = () => {
       selectedIds.includes(guest._id),
     );
     if (selectedGuests.length === 0) {
-      toast.warning("Please select guests to delete.");
+      toast.warning("Select at least one guest first.");
       return;
     }
 
@@ -367,10 +483,10 @@ const AdminBulkWhatsAppPage = () => {
           );
           setSelectedIds([]);
           toast.success(
-            `Deleted ${selectedGuests.length} guest${selectedGuests.length === 1 ? "" : "s"} from queue.`,
+            `${selectedGuests.length} guest${selectedGuests.length === 1 ? "" : "s"} removed.`,
           );
         } catch {
-          toast.error("Failed to delete selected guests.");
+          toast.error("Could not remove selected guests. Please try again.");
         }
       },
     });
@@ -378,7 +494,7 @@ const AdminBulkWhatsAppPage = () => {
 
   const handlePrepareInvites = async () => {
     if (selectedIds.length === 0) {
-      toast.warning("Please select at least one guest first.");
+      toast.warning("Select at least one guest first.");
       return;
     }
 
@@ -406,7 +522,7 @@ const AdminBulkWhatsAppPage = () => {
       }
     }
     toast.success(
-      `Prepared ${successCount} WhatsApp invitations successfully!`,
+      `${successCount} invite${successCount === 1 ? "" : "s"} prepared.`,
     );
     setSelectedIds([]);
     setPreparingInvites(false);
@@ -416,7 +532,7 @@ const AdminBulkWhatsAppPage = () => {
     const rawPhone = cleanPhone(guest.phoneNumber);
     if (!rawPhone) {
       toast.warning(
-        `Guest "${guest.guestName}" does not have a valid phone number.`,
+        `${guest.guestName} needs a valid WhatsApp number first.`,
       );
       return;
     }
@@ -441,7 +557,9 @@ const AdminBulkWhatsAppPage = () => {
 
   const handleSendTestToCouple = () => {
     if (!couplePhoneNumber) {
-      toast.warning("Add the couple phone number in Settings before sending a test.");
+      toast.warning(
+        "Add the couple phone number in Settings before sending a test.",
+      );
       return;
     }
 
@@ -449,6 +567,98 @@ const AdminBulkWhatsAppPage = () => {
       `https://wa.me/${couplePhoneNumber}?text=${encodeURIComponent(messagePreviewText)}`,
       "_blank",
     );
+  };
+
+  const handleOpenSendPackCheckout = async (pack) => {
+    if (checkoutSubmittingRef.current) return;
+
+    checkoutSubmittingRef.current = true;
+    setCheckoutLocked(true);
+    setLoadingPaystack(true);
+    const loaded = await loadPaystackScript();
+    setLoadingPaystack(false);
+
+    if (!loaded) {
+      checkoutSubmittingRef.current = false;
+      setCheckoutLocked(false);
+      toast.error("Could not open checkout. Check your connection.");
+      return;
+    }
+
+    const releaseCheckout = () => {
+      checkoutSubmittingRef.current = false;
+      setCheckoutLocked(false);
+    };
+
+    const paystackOptions = {
+      key:
+        import.meta.env.VITE_PAYSTACK_PUBLIC_KEY ||
+        "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
+      email: user.email,
+      amount: pack.priceInNgn * 100,
+      currency: "NGN",
+      metadata: {
+        paymentType: "whatsapp_send_pack",
+        packId: pack.id,
+        userId: user.id || user._id,
+      },
+      onSuccess: async (transaction) => {
+        toast.info("Payment received. Adding sends...");
+        try {
+          const res = await api.post("/whatsapp/send-packs/verify", {
+            reference: transaction.reference,
+            packId: pack.id,
+          });
+          if (res.data.usage) {
+            setCloudConfig((prev) => ({
+              ...(prev || {}),
+              usage: res.data.usage,
+            }));
+          }
+          setSendPackModalOpen(false);
+          toast.success(
+            `${pack.sends} WhatsApp sends added.`,
+          );
+          releaseCheckout();
+        } catch (err) {
+          toast.error(
+            getFriendlyErrorMessage(err, "Payment was received, but sends were not added yet. Please contact support."),
+          );
+          releaseCheckout();
+        }
+      },
+      onCancel: () => {
+        releaseCheckout();
+        toast.info("Payment cancelled.");
+      },
+    };
+
+    if (typeof window.PaystackPop === "function") {
+      try {
+        const paystack = new window.PaystackPop();
+        paystack.newTransaction(paystackOptions);
+        return;
+      } catch (e) {
+        console.warn(
+          "Paystack Pop V2 instantiation failed, falling back to V1 setup",
+          e,
+        );
+      }
+    }
+
+    if (window.PaystackPop && typeof window.PaystackPop.setup === "function") {
+      const handler = window.PaystackPop.setup({
+        ...paystackOptions,
+        callback: paystackOptions.onSuccess,
+        onClose: paystackOptions.onCancel,
+      });
+      handler.openIframe();
+    } else {
+      releaseCheckout();
+      toast.error(
+        "Checkout is not ready. Please refresh and try again.",
+      );
+    }
   };
 
   const handleOpenNextUnsent = () => {
@@ -460,22 +670,24 @@ const AdminBulkWhatsAppPage = () => {
 
     if (!nextGuest) {
       toast.info(
-        "No more unsent guests with phone numbers in the active queue!",
+        "No unsent guests with phone numbers in this view.",
       );
       return;
     }
 
     handleOpenWhatsApp(nextGuest);
-    toast.info(`Opened WhatsApp chat for ${nextGuest.guestName}.`);
+    toast.info(`Opened WhatsApp for ${nextGuest.guestName}.`);
   };
 
   const handleCloudSendGuest = async (guest) => {
     if (!cloudConfigured) {
-      toast.warning("WhatsApp Cloud API is not configured yet.");
+      toast.warning("WhatsApp sending is not ready yet.");
       return;
     }
     if (cloudAllowanceExhausted) {
-      toast.warning("Your included WhatsApp sends are finished. Add a send pack to continue one-click sending.");
+      toast.warning(
+        "You need more WhatsApp sends to continue.",
+      );
       return;
     }
 
@@ -492,11 +704,11 @@ const AdminBulkWhatsAppPage = () => {
       );
       scheduleStatusRefresh();
       toast.success(
-        `Submitted WhatsApp invite for ${guest.guestName} to Meta.`,
+        `Invite submitted for ${guest.guestName}.`,
       );
     } catch (error) {
       toast.error(
-        error?.response?.data?.message || "Failed to send WhatsApp invite.",
+        getFriendlyErrorMessage(error, "Could not send this invite. Please try again."),
       );
     } finally {
       setLoadingIds((prev) => {
@@ -509,11 +721,13 @@ const AdminBulkWhatsAppPage = () => {
 
   const handleCloudSendSelected = async () => {
     if (!cloudConfigured) {
-      toast.warning("WhatsApp Cloud API is not configured yet.");
+      toast.warning("WhatsApp sending is not ready yet.");
       return;
     }
     if (cloudAllowanceExhausted) {
-      toast.warning("Your included WhatsApp sends are finished. Add a send pack to continue one-click sending.");
+      toast.warning(
+        "You need more WhatsApp sends to continue.",
+      );
       return;
     }
     const sendableIds = selectedIds.filter((id) => {
@@ -525,7 +739,14 @@ const AdminBulkWhatsAppPage = () => {
     });
 
     if (sendableIds.length === 0) {
-      toast.warning("Select guests before sending a broadcast.");
+      toast.warning("Select guests before sending.");
+      return;
+    }
+    if (whatsappRemaining !== null && sendableIds.length > whatsappRemaining) {
+      toast.warning(
+        `Only ${whatsappRemaining} WhatsApp send${whatsappRemaining === 1 ? "" : "s"} left.`,
+      );
+      setSendPackModalOpen(true);
       return;
     }
 
@@ -553,11 +774,11 @@ const AdminBulkWhatsAppPage = () => {
       const failed = res.data.failed ?? 0;
       const skipped = res.data.skipped ?? 0;
       toast.success(
-        `WhatsApp submit complete: ${submitted} submitted, ${failed} failed, ${skipped} skipped.`,
+        `${submitted} invite${submitted === 1 ? "" : "s"} submitted${failed ? `, ${failed} failed` : ""}${skipped ? `, ${skipped} skipped` : ""}.`,
       );
     } catch (error) {
       toast.error(
-        error?.response?.data?.message || "Failed to send WhatsApp broadcast.",
+        getFriendlyErrorMessage(error, "Could not send selected invites. Please try again."),
       );
     } finally {
       setCloudSending(false);
@@ -566,11 +787,11 @@ const AdminBulkWhatsAppPage = () => {
 
   const handleBulkQueueAssign = async () => {
     if (selectedIds.length === 0) {
-      toast.warning("Please select guests to assign.");
+      toast.warning("Select guests first.");
       return;
     }
     if (!bulkQueueVal) {
-      toast.warning("Please select a target queue.");
+      toast.warning("Choose a queue first.");
       return;
     }
 
@@ -587,12 +808,12 @@ const AdminBulkWhatsAppPage = () => {
         ),
       );
       toast.success(
-        `Successfully assigned ${selectedIds.length} guests to ${bulkQueueVal} queue.`,
+        `${selectedIds.length} guest${selectedIds.length === 1 ? "" : "s"} moved to ${bulkQueueVal}.`,
       );
       setSelectedIds([]);
       setBulkQueueVal("");
     } catch {
-      toast.error("Failed to update queue assignments.");
+      toast.error("Could not update the queue. Please try again.");
     }
   };
 
@@ -613,6 +834,113 @@ const AdminBulkWhatsAppPage = () => {
 
   return (
     <div className="p-4 pb-17 sm:p-8 sm:pb-17 max-w-7xl mx-auto text-white">
+      {loadingPaystack && (
+        <div className="fixed inset-0 z-80 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="rounded-2xl border border-white/10 bg-[#090D19] p-6 text-center shadow-2xl">
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-[#D8B76A]" />
+            <p className="mt-4 text-xs font-semibold text-white">
+              Opening secure checkout...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {sendPackModalOpen && (
+        <div className="fixed inset-0 z-70 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/70 px-3 py-4 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="max-h-[calc(100svh-2rem)] w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/10 bg-[#0D1220] pb-[env(safe-area-inset-bottom)] shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-white/10 p-5 sm:p-6">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-300">
+                  WhatsApp sends
+                </p>
+                <h3 className="mt-2 font-serif text-2xl text-white">
+                  Add one-click invite sends
+                </h3>
+                <p className="mt-2 max-w-xl text-xs leading-relaxed text-white/55">
+                  Use these only when you want VowLink to submit invitations
+                  directly through WhatsApp. Manual chat opening stays
+                  available.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSendPackModalOpen(false)}
+                className="rounded-full border border-white/10 bg-white/5 p-2 text-white/60 transition hover:bg-white/10 hover:text-white"
+                aria-label="Close send pack modal"
+              >
+                <Icon icon="lucide:x" className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="p-5 pb-7 sm:p-6">
+              {whatsappLimit !== null && whatsappRemaining !== null && (
+                <div className="mb-5 rounded-2xl border border-white/10 bg-[#070A13]/70 p-4">
+                  <div className="mb-2 flex items-center justify-between gap-3 text-xs font-semibold text-white/65">
+                    <span>{whatsappRemaining} sends left</span>
+                    <span>
+                      {whatsappUsed || 0} of {whatsappLimit} used
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className={`h-full rounded-full ${
+                        cloudAllowanceExhausted
+                          ? "bg-amber-300"
+                          : "bg-emerald-300"
+                      }`}
+                      style={{ width: `${whatsappUsagePercent}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="grid gap-3 md:grid-cols-3">
+                {sendPacks.map((pack) => (
+                  <div
+                    key={pack.id}
+                    className="relative rounded-2xl border border-white/10 bg-white/4 p-4"
+                  >
+                    {pack.badge && (
+                      <span className="absolute right-4 top-4 rounded-full bg-emerald-300 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-[#07130e]">
+                        {pack.badge}
+                      </span>
+                    )}
+                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-300">
+                      {pack.sends} sends
+                    </p>
+                    <h4 className="mt-2 pr-16 text-base font-semibold text-white">
+                      {pack.label}
+                    </h4>
+                    <p className="mt-2 min-h-10 text-xs leading-relaxed text-white/55">
+                      {pack.description}
+                    </p>
+                    <div className="mt-4 flex items-center justify-between gap-3">
+                      <p className="text-lg font-bold text-white">
+                        {formatNgn(pack.priceInNgn)}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenSendPackCheckout(pack)}
+                        disabled={checkoutLocked}
+                        className="rounded-full bg-emerald-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#07130e] transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-45"
+                      >
+                        Buy
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-4 text-[10px] leading-relaxed text-white/40">
+                Sends are counted once WhatsApp accepts the submission. Failed
+                submissions that WhatsApp rejects immediately are returned
+                automatically.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div
         data-tour="whatsapp-header"
@@ -626,7 +954,7 @@ const AdminBulkWhatsAppPage = () => {
             Bulk WhatsApp Invite Sender
           </h2>
           <p className="text-white/40 text-xs mt-1 max-w-2xl leading-relaxed">
-            Send approved WhatsApp invitations through Cloud API, or open a
+            Send approved WhatsApp invitations with one click, or open a
             manual chat when you need to review a guest message first.
           </p>
         </div>
@@ -779,7 +1107,9 @@ const AdminBulkWhatsAppPage = () => {
                         <p className="mt-1 line-clamp-3 text-[10px] leading-relaxed text-white/55">
                           "{messagePreviewText}"
                         </p>
-                        <p className={`mt-2 text-[10px] font-semibold ${couplePhoneNumber ? "text-emerald-300" : "text-amber-300"}`}>
+                        <p
+                          className={`mt-2 text-[10px] font-semibold ${couplePhoneNumber ? "text-emerald-500" : "text-amber-500"}`}
+                        >
                           {couplePhoneNumber
                             ? `Test will open WhatsApp to +${couplePhoneNumber}`
                             : "No couple phone number saved yet."}
@@ -857,8 +1187,8 @@ const AdminBulkWhatsAppPage = () => {
                       cloudAllowanceExhausted
                         ? "border-amber-400/25 bg-amber-500/10"
                         : cloudConfigured
-                        ? "border-emerald-400/25 bg-emerald-500/10"
-                        : "border-yellow-500/20 bg-yellow-500/10"
+                          ? "border-emerald-400/25 bg-emerald-500/10"
+                          : "border-yellow-500/20 bg-yellow-500/10"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -867,15 +1197,15 @@ const AdminBulkWhatsAppPage = () => {
                           cloudAllowanceExhausted
                             ? "lucide:circle-alert"
                             : cloudConfigured
-                            ? "lucide:badge-check"
-                            : "lucide:settings"
+                              ? "lucide:badge-check"
+                              : "lucide:settings"
                         }
                         className={`mt-0.5 h-4 w-4 shrink-0 ${
                           cloudAllowanceExhausted
                             ? "text-amber-300"
                             : cloudConfigured
-                            ? "text-emerald-400"
-                            : "text-yellow-300"
+                              ? "text-emerald-400"
+                              : "text-yellow-300"
                         }`}
                       />
                       <div className="min-w-0">
@@ -884,34 +1214,54 @@ const AdminBulkWhatsAppPage = () => {
                             cloudAllowanceExhausted
                               ? "text-amber-300"
                               : cloudConfigured
-                              ? "text-emerald-400"
-                              : "text-yellow-200"
+                                ? "text-emerald-400"
+                                : "text-yellow-200"
                           }`}
                         >
                           {cloudAllowanceExhausted
                             ? "Send pack needed"
                             : cloudConfigured
-                            ? "Ready to send"
-                            : "Sending not set up"}
+                              ? "Ready to send"
+                              : "Sending not set up"}
                         </p>
                         <p className="mt-1 text-[10px] leading-relaxed text-white/55">
                           {cloudAllowanceExhausted
                             ? "Your included one-click WhatsApp sends are finished."
                             : cloudConfigured
-                            ? "Select guests, then send their invitation links directly to WhatsApp."
-                            : "WhatsApp sending needs to be connected before selected invites can be sent."}
+                              ? "Select guests, then send their invitation links directly to WhatsApp."
+                              : "WhatsApp sending needs to be connected before selected invites can be sent."}
                         </p>
-                        {cloudConfigured && whatsappRemaining !== null && whatsappLimit !== null && (
-                          <p className="mt-2 text-[10px] font-semibold text-white/45">
-                            {whatsappRemaining} of {whatsappLimit} one-click sends left
-                            {whatsappUsed !== null ? ` (${whatsappUsed} used)` : ""}
-                          </p>
-                        )}
-                        {cloudAllowanceExhausted && (
+                        {cloudConfigured &&
+                          whatsappRemaining !== null &&
+                          whatsappLimit !== null && (
+                            <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                              <div className="mb-2 flex items-center justify-between gap-3 text-[10px] font-semibold text-white/60">
+                                <span>{whatsappRemaining} left</span>
+                                <span>
+                                  {whatsappUsed || 0} of {whatsappLimit} used
+                                </span>
+                              </div>
+                              <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                                <div
+                                  className={`h-full rounded-full ${
+                                    cloudAllowanceExhausted
+                                      ? "bg-amber-300"
+                                      : "bg-emerald-300"
+                                  }`}
+                                  style={{ width: `${whatsappUsagePercent}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        {(cloudConfigured || cloudAllowanceExhausted) && (
                           <button
                             type="button"
-                            onClick={() => navigate("/admin/billing")}
-                            className="mt-3 inline-flex items-center justify-center rounded-full border border-amber-300/30 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-200 transition hover:bg-amber-300/10"
+                            onClick={() => setSendPackModalOpen(true)}
+                            className={`mt-3 inline-flex items-center justify-center rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${
+                              cloudAllowanceExhausted
+                                ? "border-amber-300 text-amber-500 hover:bg-amber-300/10"
+                                : "border-emerald-300 text-emerald-500 hover:bg-emerald-300/10"
+                            }`}
                           >
                             Add sends
                           </button>
@@ -928,7 +1278,9 @@ const AdminBulkWhatsAppPage = () => {
                         cloudSending
                       }
                       className={`mt-4 w-full rounded-xl px-4 py-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-emerald-300/40 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 flex items-center justify-center gap-2 ${
-                        cloudConfigured && !cloudAllowanceExhausted && selectedSendableCount > 0
+                        cloudConfigured &&
+                        !cloudAllowanceExhausted &&
+                        selectedSendableCount > 0
                           ? "border border-emerald-300/30 bg-emerald-300 text-[#07130e] hover:-translate-y-0.5 hover:bg-emerald-200 hover:shadow-[0_14px_30px_rgba(16,185,129,0.18)]"
                           : "border border-white/12 bg-white/10 text-white/55"
                       }`}
@@ -1274,27 +1626,29 @@ const AdminBulkWhatsAppPage = () => {
                             >
                               {getStatusLabel(guest)}
                             </span>
-                            {sentStatuses.has(guest.whatsappStatus) &&
-                              guest.whatsappSentBy && (
-                                <div className="text-[9px] text-white/40 mt-1 block">
-                                  {guest.whatsappStatus === "queued"
-                                    ? "accepted by"
-                                    : "by"}{" "}
-                                  {guest.whatsappSentBy}
-                                </div>
-                              )}
+                            {getStatusHelpText(
+                              guest.whatsappStatus,
+                              guest.whatsappFailureReason,
+                            ) && (
+                              <div
+                                className={`mx-auto mt-1 block max-w-32 text-[9px] leading-relaxed ${
+                                  guest.whatsappStatus === "failed"
+                                    ? "text-red-300/75"
+                                    : "text-white/40"
+                                }`}
+                              >
+                                {getStatusHelpText(
+                                  guest.whatsappStatus,
+                                  guest.whatsappFailureReason,
+                                )}
+                              </div>
+                            )}
                             {guest.whatsappMessageId && (
                               <div className="mx-auto mt-1 block max-w-32 truncate text-[9px] text-white/35">
                                 ID ...
                                 {getShortMessageId(guest.whatsappMessageId)}
                               </div>
                             )}
-                            {guest.whatsappStatus === "failed" &&
-                              guest.whatsappFailureReason && (
-                                <div className="mx-auto mt-1 block max-w-32 line-clamp-2 text-[9px] text-red-300/70">
-                                  {guest.whatsappFailureReason}
-                                </div>
-                              )}
                           </td>
 
                           {/* Action Buttons */}
@@ -1318,14 +1672,22 @@ const AdminBulkWhatsAppPage = () => {
                                 cloudConfigured &&
                                 !sentStatuses.has(guest.whatsappStatus) && (
                                   <button
-                                    onClick={() => handleCloudSendGuest(guest)}
-                                    disabled={loadingIds.has(guest._id) || cloudAllowanceExhausted}
+                                    onClick={
+                                      cloudAllowanceExhausted
+                                        ? () => setSendPackModalOpen(true)
+                                        : () => handleCloudSendGuest(guest)
+                                    }
+                                    disabled={loadingIds.has(guest._id)}
                                     title={
                                       cloudAllowanceExhausted
                                         ? "Add a WhatsApp send pack to continue one-click sending"
                                         : "Submit approved WhatsApp invite"
                                     }
-                                    className="w-full sm:w-auto rounded-lg border border-emerald-300/30 bg-emerald-300 px-2.5 py-1.5 text-[10px] font-bold text-[#07130e] transition hover:bg-emerald-200 hover:shadow-[0_8px_20px_rgba(16,185,129,0.16)] focus:outline-none focus:ring-2 focus:ring-emerald-300/40 active:translate-y-px cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                                    className={`w-full sm:w-auto rounded-lg border px-2.5 py-1.5 text-[10px] font-bold transition focus:outline-none active:translate-y-px cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 ${
+                                      cloudAllowanceExhausted
+                                        ? "border-amber-300/30 bg-amber-300/10 text-amber-100 hover:bg-amber-300/15 focus:ring-2 focus:ring-amber-300/35"
+                                        : "border-emerald-300/30 bg-emerald-300 text-[#07130e] hover:bg-emerald-200 hover:shadow-[0_8px_20px_rgba(16,185,129,0.16)] focus:ring-2 focus:ring-emerald-300/40"
+                                    }`}
                                   >
                                     {loadingIds.has(guest._id) ? (
                                       <svg
@@ -1353,7 +1715,9 @@ const AdminBulkWhatsAppPage = () => {
                                           icon="lucide:send"
                                           className="h-3 w-3"
                                         />
-                                        Submit
+                                        {cloudAllowanceExhausted
+                                          ? "Add sends"
+                                          : "Submit"}
                                       </>
                                     )}
                                   </button>
@@ -1466,7 +1830,10 @@ const AdminBulkWhatsAppPage = () => {
         <div className="sticky-action-bar fixed inset-x-0 bottom-0 z-60 border-t border-[#D8B76A]/25 bg-[#070A13]/95 px-4 py-3 text-white shadow-[0_-18px_45px_rgba(0,0,0,0.35)] backdrop-blur-xl">
           <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-2.5">
-              <Icon icon="lucide:users" className="h-4 w-4 shrink-0 text-[#D8B76A]" />
+              <Icon
+                icon="lucide:users"
+                className="h-4 w-4 shrink-0 text-[#D8B76A]"
+              />
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[#D8B76A]">
                   {selectedIds.length} selected
@@ -1475,7 +1842,8 @@ const AdminBulkWhatsAppPage = () => {
                   {selectedSendableCount} can receive WhatsApp messages now.
                   {cloudConfigured && whatsappRemaining !== null && (
                     <span className="block text-white/40">
-                      {whatsappRemaining} one-click send{whatsappRemaining === 1 ? "" : "s"} left.
+                      {whatsappRemaining} one-click send
+                      {whatsappRemaining === 1 ? "" : "s"} left.
                     </span>
                   )}
                 </p>
@@ -1499,11 +1867,27 @@ const AdminBulkWhatsAppPage = () => {
               </button>
               <button
                 type="button"
-                onClick={handleCloudSendSelected}
-                disabled={!cloudConfigured || cloudAllowanceExhausted || cloudSending || selectedSendableCount === 0}
-                className="col-span-2 rounded-xl bg-emerald-300 px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#07130e] transition hover:-translate-y-0.5 hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-45 sm:col-span-1"
+                onClick={
+                  cloudAllowanceExhausted
+                    ? () => setSendPackModalOpen(true)
+                    : handleCloudSendSelected
+                }
+                disabled={
+                  !cloudConfigured ||
+                  cloudSending ||
+                  selectedSendableCount === 0
+                }
+                className={`col-span-2 rounded-xl px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 sm:col-span-1 ${
+                  cloudAllowanceExhausted
+                    ? "border border-amber-300/30 bg-amber-300/10 text-amber-100 hover:bg-amber-300/15"
+                    : "bg-emerald-300 text-[#07130e] hover:bg-emerald-200"
+                }`}
               >
-                {cloudSending ? "Sending..." : "Send selected"}
+                {cloudSending
+                  ? "Sending..."
+                  : cloudAllowanceExhausted
+                    ? "Add sends"
+                    : "Send selected"}
               </button>
             </div>
           </div>
