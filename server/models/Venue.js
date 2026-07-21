@@ -82,6 +82,28 @@ const venueSchema = new mongoose.Schema(
     verificationSubmittedAt: { type: Date },
     verificationReviewedAt: { type: Date },
     verificationNotes: { type: String, default: "" },
+    reviewReason: { type: String, default: "" },
+    approvedAt: { type: Date },
+    activityLog: {
+      type: [
+        {
+          type: {
+            type: String,
+            enum: ["listing", "verification", "visibility", "placement", "inquiry"],
+            default: "listing",
+          },
+          title: { type: String, required: true, trim: true },
+          message: { type: String, default: "", trim: true },
+          actorRole: {
+            type: String,
+            enum: ["venue", "admin", "system"],
+            default: "system",
+          },
+          createdAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );

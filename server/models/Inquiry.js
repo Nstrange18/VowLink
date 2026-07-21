@@ -19,9 +19,28 @@ const inquirySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["new", "replied", "unavailable", "archived"],
+      enum: ["new", "contacted", "inspection_booked", "replied", "unavailable", "booked_elsewhere", "archived"],
       default: "new",
       index: true,
+    },
+    statusHistory: {
+      type: [
+        {
+          status: {
+            type: String,
+            enum: ["new", "contacted", "inspection_booked", "replied", "unavailable", "booked_elsewhere", "archived"],
+            default: "new",
+          },
+          label: { type: String, default: "", trim: true },
+          actorRole: {
+            type: String,
+            enum: ["venue", "admin", "system"],
+            default: "system",
+          },
+          createdAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
     },
     repliedAt: {
       type: Date,

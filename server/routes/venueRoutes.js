@@ -72,6 +72,30 @@ const normalizeProofUrls = (venue) => {
   return [...new Set(urls)];
 };
 
+const appendVenueActivity = (venue, entry) => {
+  const currentLog = Array.isArray(venue.activityLog) ? venue.activityLog : [];
+  venue.activityLog = [
+    {
+      type: entry.type || "listing",
+      title: entry.title,
+      message: entry.message || "",
+      actorRole: entry.actorRole || "system",
+      createdAt: new Date(),
+    },
+    ...currentLog,
+  ].slice(0, 25);
+};
+
+const inquiryStatusLabels = {
+  new: "New inquiry",
+  contacted: "Couple contacted",
+  inspection_booked: "Inspection booked",
+  replied: "Replied",
+  unavailable: "Date unavailable",
+  booked_elsewhere: "Booked elsewhere",
+  archived: "Archived",
+};
+
 const sanitizeVenueForCouple = (venue, { redactContact = false } = {}) => {
   const source = typeof venue?.toObject === "function" ? venue.toObject() : venue;
   const safeVenue = {
@@ -408,8 +432,23 @@ router.post("/inquire", protect, async (req, res) => {
         user: new mongoose.Types.ObjectId(req.user.id),
         venue: new mongoose.Types.ObjectId(venueId),
         message,
+        statusHistory: [
+          {
+            status: "new",
+            label: "Inquiry sent to venue",
+            actorRole: "system",
+            createdAt: new Date(),
+          },
+        ],
       });
       await inquiry.save();
+      appendVenueActivity(venue, {
+        type: "inquiry",
+        title: "New couple inquiry",
+        message: `${user.partner1Name || "A couple"} asked about ${venue.name}.`,
+        actorRole: "system",
+      });
+      await venue.save();
     } catch (e) {
       console.error("Failed to save inquiry to database:", e);
     }
@@ -702,7 +741,7 @@ router.get("/auth/stats", protectVenue, async (req, res) => {
 router.get("/auth/inquiries", protectVenue, async (req, res) => {
   try {
     const status = String(req.query.status || "active").toLowerCase();
-    const validStatuses = ["new", "replied", "unavailable", "archived"];
+    const validStatuses = ["new", "contacted", "inspection_booked", "replied", "unavailable", "booked_elsewhere", "archived"];
     const filter = { venue: req.venue._id };
 
     if (status === "new") {
@@ -755,10 +794,18 @@ router.get("/auth/inquiries", protectVenue, async (req, res) => {
       {
         counts: {
           all: counts.reduce((total, item) => total + item.count, 0),
-          active: (countMap.new || 0) + (countMap.replied || 0) + (countMap.unavailable || 0),
+          active:
+            (countMap.new || 0) +
+            (countMap.contacted || 0) +
+            (countMap.inspection_booked || 0) +
+            (countMap.replied || 0) +
+            (countMap.unavailable || 0),
           new: countMap.new || 0,
+          contacted: countMap.contacted || 0,
+          inspection_booked: countMap.inspection_booked || 0,
           replied: countMap.replied || 0,
           unavailable: countMap.unavailable || 0,
+          booked_elsewhere: countMap.booked_elsewhere || 0,
           archived: countMap.archived || 0,
           overdue: inquiries.filter((inquiry) => {
             const createdAt = inquiry.createdAt ? new Date(inquiry.createdAt) : null;
@@ -778,6 +825,7 @@ router.get("/auth/inquiries", protectVenue, async (req, res) => {
           repliedAt: inquiry.repliedAt || null,
           archivedAt: inquiry.archivedAt || null,
           lastReminderAt: inquiry.lastReminderAt || null,
+          statusHistory: inquiry.statusHistory || [],
           needsReply: (inquiry.status || "new") === "new" && inquiry.createdAt && new Date(inquiry.createdAt) <= reminderCutoff,
           coupleName: partnerNames || "VowLink couple",
           coupleEmail: inquiry.user?.email || "",
@@ -795,21 +843,39 @@ router.get("/auth/inquiries", protectVenue, async (req, res) => {
 router.patch("/auth/inquiries/:id/status", protectVenue, async (req, res) => {
   try {
     const { status } = req.body;
-    const validStatuses = ["new", "replied", "unavailable", "archived"];
+    const validStatuses = ["new", "contacted", "inspection_booked", "replied", "unavailable", "booked_elsewhere", "archived"];
 
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid inquiry status." });
     }
 
-    const updates = { status };
-    if (status === "replied" || status === "unavailable") {
-      updates.repliedAt = new Date();
-      updates.archivedAt = null;
+    const updates = {
+      $set: {
+        status,
+      },
+      $push: {
+        statusHistory: {
+          $each: [
+            {
+              status,
+              label: inquiryStatusLabels[status] || "Inquiry updated",
+              actorRole: "venue",
+              createdAt: new Date(),
+            },
+          ],
+          $position: 0,
+          $slice: 12,
+        },
+      },
+    };
+    if (["contacted", "inspection_booked", "replied", "unavailable", "booked_elsewhere"].includes(status)) {
+      updates.$set.repliedAt = new Date();
+      updates.$set.archivedAt = null;
     } else if (status === "archived") {
-      updates.archivedAt = new Date();
+      updates.$set.archivedAt = new Date();
     } else {
-      updates.repliedAt = null;
-      updates.archivedAt = null;
+      updates.$set.repliedAt = null;
+      updates.$set.archivedAt = null;
     }
 
     const inquiry = await Inquiry.findOneAndUpdate(
@@ -826,7 +892,7 @@ router.patch("/auth/inquiries/:id/status", protectVenue, async (req, res) => {
     }
 
     res.status(200).json({
-      message: status === "archived" ? "Inquiry archived." : `Inquiry marked as ${status}.`,
+      message: inquiryStatusLabels[status] || "Inquiry updated.",
       inquiry,
     });
   } catch (error) {
@@ -921,6 +987,12 @@ router.put("/auth/me", protectVenue, async (req, res) => {
       venue.verificationStatus = "pending_review";
       venue.verificationSubmittedAt = new Date();
       venue.verificationReviewedAt = undefined;
+      appendVenueActivity(venue, {
+        type: "verification",
+        title: "Proof sent for review",
+        message: "VowLink will review the safety proof and update the result here.",
+        actorRole: "venue",
+      });
     } else if (!hasVerificationSubmission) {
       venue.verificationStatus = "not_submitted";
       venue.verificationSubmittedAt = undefined;
@@ -935,6 +1007,13 @@ router.put("/auth/me", protectVenue, async (req, res) => {
       
       venue.photos = photos.slice(0, maxPhotos);
     }
+
+    appendVenueActivity(venue, {
+      type: "listing",
+      title: "Listing updated",
+      message: "Your latest venue changes were saved.",
+      actorRole: "venue",
+    });
 
     await venue.save();
     res.status(200).json({

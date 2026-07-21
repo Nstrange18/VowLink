@@ -254,7 +254,7 @@ const VenueVisualGuide = ({ open, onClose, autoSaveOnClose = true }) => {
         role="dialog"
         aria-modal="true"
         aria-label="Venue setup guide"
-        className="venue-guide-card relative z-10 grid max-h-[calc(100svh-2rem)] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-[#D8B76A]/25 bg-[#0D1220] shadow-[0_28px_90px_rgba(0,0,0,0.65)] lg:grid-cols-[1.25fr_0.75fr]"
+        className="venue-guide-card relative z-10 grid max-h-[calc(100svh-2rem)] w-full max-w-6xl overflow-hidden rounded-4xl border border-[#D8B76A]/25 bg-[#0D1220] shadow-[0_28px_90px_rgba(0,0,0,0.65)] lg:grid-cols-[1.25fr_0.75fr]"
       >
         <div className="venue-guide-visual-panel min-h-0 p-3 sm:p-4 lg:overflow-y-auto lg:p-5">
           {renderScene(step.key)}

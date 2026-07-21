@@ -38,6 +38,19 @@ const WHATSAPP_TOUR_STEPS = [
 ];
 
 const cleanPhone = (phone) => normalizeInternationalPhone(phone);
+const BILLING_CURRENCY_STORAGE_KEY = "vowlink-billing-currency";
+
+const CURRENCIES = {
+  USD: { symbol: "$", rate: 1.0, label: "USD ($) - United States Dollar" },
+  EUR: { symbol: "EUR ", rate: 0.92, label: "EUR - Euro" },
+  GBP: { symbol: "GBP ", rate: 0.79, label: "GBP - British Pound" },
+  NGN: { symbol: "NGN ", rate: 1500, label: "NGN - Nigerian Naira" },
+  GHS: { symbol: "GHS ", rate: 14.5, label: "GHS - Ghanaian Cedi" },
+  KES: { symbol: "KSh", rate: 130, label: "KES (KSh) - Kenyan Shilling" },
+  ZAR: { symbol: "R", rate: 18.5, label: "ZAR (R) - South African Rand" },
+  CAD: { symbol: "C$", rate: 1.36, label: "CAD (C$) - Canadian Dollar" },
+  AUD: { symbol: "A$", rate: 1.5, label: "AUD (A$) - Australian Dollar" },
+};
 
 const FALLBACK_WHATSAPP_SEND_PACKS = [
   {
@@ -79,7 +92,16 @@ const loadPaystackScript = () =>
     document.body.appendChild(script);
   });
 
-const formatNgn = (amount) => `NGN ${Number(amount || 0).toLocaleString()}`;
+const formatNgnPrice = (amount, currency = "USD") => {
+  const baseNgn = Number(amount || 0);
+  const conf = CURRENCIES[currency] || CURRENCIES.USD;
+  if (!baseNgn) return `${conf.symbol}0`;
+  if (currency === "NGN") return `NGN ${baseNgn.toLocaleString()}`;
+
+  const priceInUsd = baseNgn / CURRENCIES.NGN.rate;
+  const converted = priceInUsd * conf.rate;
+  return `${conf.symbol}${converted.toFixed(2)}`;
+};
 
 const getFriendlyErrorMessage = (error, fallback = "Something went wrong. Please try again.") => {
   const raw = String(error?.response?.data?.message || error?.message || "");
@@ -184,6 +206,9 @@ const AdminBulkWhatsAppPage = () => {
   const [cloudSending, setCloudSending] = useState(false);
   const [sendPacks, setSendPacks] = useState(FALLBACK_WHATSAPP_SEND_PACKS);
   const [sendPackModalOpen, setSendPackModalOpen] = useState(false);
+  const [billingCurrency, setBillingCurrency] = useState(
+    () => localStorage.getItem(BILLING_CURRENCY_STORAGE_KEY) || "USD",
+  );
   const [loadingPaystack, setLoadingPaystack] = useState(false);
   const [checkoutLocked, setCheckoutLocked] = useState(false);
   const [sendHistory, setSendHistory] = useState([]);
@@ -335,6 +360,10 @@ const AdminBulkWhatsAppPage = () => {
       }
     }
   };
+
+  useEffect(() => {
+    localStorage.setItem(BILLING_CURRENCY_STORAGE_KEY, billingCurrency);
+  }, [billingCurrency]);
 
   useEffect(() => {
     if (user.tier === "pro") {
@@ -916,14 +945,31 @@ const AdminBulkWhatsAppPage = () => {
                   available.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setSendPackModalOpen(false)}
-                className="rounded-full border border-white/10 bg-white/5 p-2 text-white/60 transition hover:bg-white/10 hover:text-white"
-                aria-label="Close send pack modal"
-              >
-                <Icon icon="lucide:x" className="h-4 w-4" />
-              </button>
+              <div className="flex shrink-0 items-start gap-2">
+                <label className="sr-only" htmlFor="whatsapp-pack-currency">
+                  Display currency
+                </label>
+                <select
+                  id="whatsapp-pack-currency"
+                  value={billingCurrency}
+                  onChange={(event) => setBillingCurrency(event.target.value)}
+                  className="rounded-full border border-white/10 bg-[#070A13] px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/70 outline-none transition focus:border-emerald-300/60"
+                >
+                  {Object.keys(CURRENCIES).map((key) => (
+                    <option key={key} value={key}>
+                      {key}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setSendPackModalOpen(false)}
+                  className="rounded-full border border-white/10 bg-white/5 p-2 text-white/60 transition hover:bg-white/10 hover:text-white"
+                  aria-label="Close send pack modal"
+                >
+                  <Icon icon="lucide:x" className="h-4 w-4" />
+                </button>
+              </div>
             </div>
 
             <div className="p-5 pb-7 sm:p-6">
@@ -970,7 +1016,7 @@ const AdminBulkWhatsAppPage = () => {
                     </p>
                     <div className="mt-4 flex items-center justify-between gap-3">
                       <p className="text-lg font-bold text-white">
-                        {formatNgn(pack.priceInNgn)}
+                        {formatNgnPrice(pack.priceInNgn, billingCurrency)}
                       </p>
                       <button
                         type="button"

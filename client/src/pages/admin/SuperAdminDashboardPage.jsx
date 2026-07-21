@@ -32,6 +32,47 @@ const getVerificationStatusLabel = (status) => {
   return labels[status] || "Not submitted";
 };
 
+const isVenuePublicReady = (venue) => {
+  const photos = Array.isArray(venue?.photos) ? venue.photos.filter(Boolean) : [];
+  const proofUrls = Array.isArray(venue?.verificationProofUrls) ? venue.verificationProofUrls.filter(Boolean) : [];
+
+  return Boolean(
+    venue?.isApproved &&
+      venue?.isActive !== false &&
+      (venue?.description || "").trim().length >= 80 &&
+      (venue?.city || "").trim() &&
+      (venue?.generalLocation || "").trim() &&
+      (venue?.fullAddress || "").trim() &&
+      (venue?.whatsapp || "").trim() &&
+      (venue?.mapLink || "").trim() &&
+      (venue?.priceRange || "").trim() &&
+      photos.length >= 3 &&
+      (proofUrls.length > 0 || (venue?.verificationProofUrl || "").trim())
+  );
+};
+
+const getVenueStage = (venue) => {
+  if (!venue?.isApproved) return { label: "Needs approval", tone: "text-red-300 bg-red-500/10 border-red-500/25" };
+  if (venue?.isActive === false) return { label: "Suspended", tone: "text-amber-300 bg-amber-500/10 border-amber-400/25" };
+  if (venue?.verificationStatus === "changes_requested") return { label: "Changes requested", tone: "text-amber-200 bg-amber-400/10 border-amber-400/25" };
+  if (venue?.verificationStatus === "pending_review") return { label: "Review proof", tone: "text-sky-200 bg-sky-400/10 border-sky-400/25" };
+  if (isVenuePublicReady(venue)) return { label: "Live", tone: "text-emerald-300 bg-emerald-500/10 border-emerald-500/25" };
+  return { label: "Approved, hidden", tone: "text-white/55 bg-white/5 border-white/10" };
+};
+
+const getInquiryStatusLabel = (status = "new") => {
+  const labels = {
+    new: "New",
+    contacted: "Contacted",
+    inspection_booked: "Inspection booked",
+    replied: "Replied",
+    unavailable: "Unavailable",
+    booked_elsewhere: "Booked elsewhere",
+    archived: "Archived",
+  };
+  return labels[status] || "New";
+};
+
 const SuperAdminDashboardPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("analytics");
@@ -107,21 +148,7 @@ const SuperAdminDashboardPage = () => {
       toast.success("Verification saved.");
       setVenues((prev) =>
         prev.map((v) =>
-          v._id === venueId
-            ? {
-                ...v,
-                safetyFireExits: res.data.venue.safetyFireExits,
-                safetyCctv: res.data.venue.safetyCctv,
-                safetySecurity: res.data.venue.safetySecurity,
-                safetyStructural: res.data.venue.safetyStructural,
-                safetyInsurance: res.data.venue.safetyInsurance,
-                trustScore: res.data.venue.trustScore,
-                verificationStatus: res.data.venue.verificationStatus,
-                verificationSubmittedAt: res.data.venue.verificationSubmittedAt,
-                verificationReviewedAt: res.data.venue.verificationReviewedAt,
-                verificationNotes: res.data.venue.verificationNotes,
-              }
-            : v
+          v._id === venueId ? { ...v, ...res.data.venue } : v
         )
       );
       setVerifyingVenueId(null);
@@ -165,7 +192,7 @@ const SuperAdminDashboardPage = () => {
       toast.success(status === "approved" ? "Venue approved." : status === "active" ? "Venue activated." : "Venue suspended.");
       // Update local state
       setVenues((prev) =>
-        prev.map((v) => (v._id === venueId ? { ...v, isApproved: res.data.venue.isApproved, isActive: res.data.venue.isActive } : v))
+        prev.map((v) => (v._id === venueId ? { ...v, ...res.data.venue } : v))
       );
     } catch (err) {
       toast.error(err.response?.data?.message || "Could not update venue status.");
@@ -182,7 +209,7 @@ const SuperAdminDashboardPage = () => {
       const res = await api.post(`/super-admin/venues/featured/${venueId}`);
       toast.success(res.data.venue.isFeatured ? "Venue featured." : "Featured placement removed.");
       setVenues((prev) =>
-        prev.map((v) => (v._id === venueId ? { ...v, isFeatured: res.data.venue.isFeatured } : v))
+        prev.map((v) => (v._id === venueId ? { ...v, ...res.data.venue } : v))
       );
     } catch (err) {
       toast.error(err.response?.data?.message || "Could not update featured placement.");
@@ -587,12 +614,14 @@ const SuperAdminDashboardPage = () => {
               <div className="flex gap-2 flex-wrap">
                 {[
                   { key: "all",      label: "All",      count: venues.length },
-                  { key: "approved", label: "Approved", count: venues.filter(v => v.isApproved).length },
+                  { key: "pending",  label: "Needs Approval", icon: "lucide:stamp",  count: venues.filter(v => !v.isApproved).length },
+                  { key: "live", label: "Live", icon: "lucide:eye", count: venues.filter(isVenuePublicReady).length },
                   { key: "verified", label: "Verified", icon: "mdi:shield-check-outline", count: venues.filter(isVenueTrustVerified).length },
                   { key: "pendingVerification", label: "Needs Review", icon: "mdi:shield-clock-outline", count: venues.filter(v => v.verificationStatus === "pending_review").length },
+                  { key: "changesRequested", label: "Needs Changes", icon: "lucide:file-warning", count: venues.filter(v => v.verificationStatus === "changes_requested").length },
+                  { key: "paused", label: "Suspended", icon: "lucide:pause-circle", count: venues.filter(v => v.isActive === false).length },
                   { key: "sponsored", label: "Sponsored", icon: "mdi:star-four-points", count: venues.filter(v => v.subscriptionTier === "featured").length },
                   { key: "manualFeatured", label: "Manual Featured", icon: "mdi:star", count: venues.filter(v => v.isFeatured && v.subscriptionTier !== "featured").length },
-                  { key: "pending",  label: "Pending",  count: venues.filter(v => !v.isApproved).length },
                 ].map(({ key, label, icon, count }) => (
                   <button
                     key={key}
@@ -623,9 +652,11 @@ const SuperAdminDashboardPage = () => {
                 ...venues.filter(v => !v.isApproved),
               ].filter((v) => {
                 if (venueFilter === "pending") return !v.isApproved;
-                if (venueFilter === "approved") return v.isApproved;
+                if (venueFilter === "live") return isVenuePublicReady(v);
                 if (venueFilter === "verified") return isVenueTrustVerified(v);
                 if (venueFilter === "pendingVerification") return v.verificationStatus === "pending_review";
+                if (venueFilter === "changesRequested") return v.verificationStatus === "changes_requested";
+                if (venueFilter === "paused") return v.isActive === false;
                 if (venueFilter === "sponsored") return v.subscriptionTier === "featured";
                 if (venueFilter === "manualFeatured") return v.isFeatured && v.subscriptionTier !== "featured";
                 return true;
@@ -638,9 +669,11 @@ const SuperAdminDashboardPage = () => {
                     ...venues.filter(v => !v.isApproved),
                   ].filter((v) => {
                     if (venueFilter === "pending") return !v.isApproved;
-                    if (venueFilter === "approved") return v.isApproved;
+                    if (venueFilter === "live") return isVenuePublicReady(v);
                     if (venueFilter === "verified") return isVenueTrustVerified(v);
                     if (venueFilter === "pendingVerification") return v.verificationStatus === "pending_review";
+                    if (venueFilter === "changesRequested") return v.verificationStatus === "changes_requested";
+                    if (venueFilter === "paused") return v.isActive === false;
                     if (venueFilter === "sponsored") return v.subscriptionTier === "featured";
                     if (venueFilter === "manualFeatured") return v.isFeatured && v.subscriptionTier !== "featured";
                     return true;
@@ -650,6 +683,8 @@ const SuperAdminDashboardPage = () => {
                     const statusBusy = !!actionLoading[`status-${venue._id}`];
                     const featuredBusy = !!actionLoading[`featured-${venue._id}`];
                     const verificationBusy = !!actionLoading[`verify-${venue._id}`];
+                    const venueStage = getVenueStage(venue);
+                    const recentVenueActivity = Array.isArray(venue.activityLog) ? venue.activityLog.slice(0, 3) : [];
 
                     return (
 
@@ -662,6 +697,9 @@ const SuperAdminDashboardPage = () => {
                       <div>
                         {/* Approval, verification, and placement badges */}
                         <div className="flex gap-1.5 flex-wrap">
+                          <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${venueStage.tone}`}>
+                            {venueStage.label}
+                          </span>
                           <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                             venue.isApproved ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20 animate-pulse"
                           }`}>
@@ -738,6 +776,12 @@ const SuperAdminDashboardPage = () => {
                                 <span>Admin Notes: {venue.verificationNotes}</span>
                               </p>
                             )}
+                            {venue.reviewReason && (
+                              <p className="text-amber-300 flex items-center gap-1.5">
+                                <Icon icon="lucide:file-warning" className="w-3.5 h-3.5 shrink-0" />
+                                <span>Owner sees: {venue.reviewReason}</span>
+                              </p>
+                            )}
                             {venue.verificationSubmittedAt && (
                               <p className="flex items-center gap-1.5">
                                 <Icon icon="mdi:clock-outline" className="w-3.5 h-3.5 shrink-0 text-[#D8B76A]" />
@@ -745,6 +789,19 @@ const SuperAdminDashboardPage = () => {
                               </p>
                             )}
                           </div>
+                          {recentVenueActivity.length > 0 && (
+                            <div className="mt-4 rounded-2xl border border-white/8 bg-white/3 p-3">
+                              <p className="mb-2 text-[9px] font-bold uppercase tracking-widest text-white/35">Recent activity</p>
+                              <div className="space-y-2">
+                                {recentVenueActivity.map((item, index) => (
+                                  <div key={`${venue._id}-${item.createdAt || index}`} className="flex items-start justify-between gap-3 text-[10px]">
+                                    <span className="text-white/65">{item.title}</span>
+                                    {item.createdAt && <span className="shrink-0 text-white/30">{new Date(item.createdAt).toLocaleDateString()}</span>}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -1095,6 +1152,9 @@ const SuperAdminDashboardPage = () => {
                           <p className="text-[10px] text-white/40 mt-0.5">
                             Email: {inq.user?.email || "N/A"} • Date: {inq.user?.weddingDate ? new Date(inq.user.weddingDate).toLocaleDateString() : "N/A"}
                           </p>
+                          <span className="mt-2 inline-flex rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/55">
+                            {getInquiryStatusLabel(inq.status)}
+                          </span>
                         </div>
                         <div className="text-right">
                           <p className="font-serif text-[#D8B76A] font-semibold text-sm">
@@ -1115,6 +1175,9 @@ const SuperAdminDashboardPage = () => {
 
                       <div className="flex justify-between text-[10px] text-white/30 italic pt-1 border-t border-white/5">
                         <span>Lead Generated: {new Date(inq.createdAt).toLocaleString()}</span>
+                        {inq.statusHistory?.[0]?.createdAt && (
+                          <span>Last update: {new Date(inq.statusHistory[0].createdAt).toLocaleString()}</span>
+                        )}
                         <span>Direct Inquiry Log ID: {inq._id}</span>
                       </div>
                     </div>

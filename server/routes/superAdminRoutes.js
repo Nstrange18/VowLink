@@ -8,6 +8,28 @@ const { protect } = require("../middleware/auth");
 
 const router = express.Router();
 
+const appendVenueActivity = (venue, entry) => {
+  const currentLog = Array.isArray(venue.activityLog) ? venue.activityLog : [];
+  venue.activityLog = [
+    {
+      type: entry.type || "listing",
+      title: entry.title,
+      message: entry.message || "",
+      actorRole: entry.actorRole || "admin",
+      createdAt: new Date(),
+    },
+    ...currentLog,
+  ].slice(0, 25);
+};
+
+const verificationStatusLabels = {
+  not_submitted: "Verification has not been submitted.",
+  pending_review: "Verification is still waiting for review.",
+  verified: "Safety checks were approved.",
+  changes_requested: "VowLink requested clearer proof.",
+  rejected: "Safety proof was rejected.",
+};
+
 // protectAdmin: verify logged in user exists and has role "admin"
 const protectAdmin = async (req, res, next) => {
   try {
@@ -40,7 +62,7 @@ router.get("/venues", async (req, res) => {
 // POST /api/super-admin/venues/status/:id — update venue approval / active status
 router.post("/venues/status/:id", async (req, res) => {
   try {
-    const { status } = req.body; // "approved" | "rejected" | "suspended" | "active"
+    const { status, reason = "" } = req.body; // "approved" | "rejected" | "suspended" | "active"
     if (!["approved", "rejected", "suspended", "active"].includes(status)) {
       return res.status(400).json({ message: "Invalid status value." });
     }
@@ -51,13 +73,38 @@ router.post("/venues/status/:id", async (req, res) => {
     if (status === "approved") {
       venue.isApproved = true;
       venue.isActive = true;
+      venue.approvedAt = venue.approvedAt || new Date();
+      venue.reviewReason = "";
+      appendVenueActivity(venue, {
+        type: "visibility",
+        title: "Listing approved",
+        message: "Your venue can be shown to couples once the profile checklist is complete.",
+      });
     } else if (status === "rejected") {
       venue.isApproved = false;
       venue.isActive = false;
+      venue.reviewReason = reason || "VowLink could not approve this listing yet.";
+      appendVenueActivity(venue, {
+        type: "visibility",
+        title: "Listing needs changes",
+        message: venue.reviewReason,
+      });
     } else if (status === "suspended") {
       venue.isActive = false;
+      venue.reviewReason = reason || "This listing is paused from public view.";
+      appendVenueActivity(venue, {
+        type: "visibility",
+        title: "Listing paused",
+        message: venue.reviewReason,
+      });
     } else if (status === "active") {
       venue.isActive = true;
+      venue.reviewReason = "";
+      appendVenueActivity(venue, {
+        type: "visibility",
+        title: "Listing reactivated",
+        message: "Your venue is eligible to appear to couples again.",
+      });
     }
 
     await venue.save();
@@ -74,6 +121,13 @@ router.post("/venues/featured/:id", async (req, res) => {
     if (!venue) return res.status(404).json({ message: "Venue not found." });
 
     venue.isFeatured = !venue.isFeatured;
+    appendVenueActivity(venue, {
+      type: "placement",
+      title: venue.isFeatured ? "Featured placement added" : "Featured placement removed",
+      message: venue.isFeatured
+        ? "VowLink added featured placement to this venue."
+        : "VowLink removed featured placement from this venue.",
+    });
     await venue.save();
     res.status(200).json({
       message: venue.isFeatured
@@ -139,6 +193,23 @@ router.put("/venues/verify/:id", async (req, res) => {
       venue.verificationReviewedAt = new Date();
     }
     if (verificationNotes !== undefined) venue.verificationNotes = verificationNotes;
+    if (["changes_requested", "rejected"].includes(venue.verificationStatus)) {
+      venue.reviewReason = verificationNotes || "VowLink needs clearer proof before approving these checks.";
+    } else if (venue.verificationStatus === "verified") {
+      venue.reviewReason = "";
+    }
+    appendVenueActivity(venue, {
+      type: "verification",
+      title:
+        venue.verificationStatus === "verified"
+          ? "Safety checks approved"
+          : venue.verificationStatus === "changes_requested"
+          ? "Changes requested"
+          : venue.verificationStatus === "rejected"
+          ? "Safety proof rejected"
+          : "Verification review updated",
+      message: verificationNotes || verificationStatusLabels[venue.verificationStatus] || "VowLink updated the verification review.",
+    });
 
     await venue.save();
     res.status(200).json({ message: "Venue verification checklist updated successfully.", venue });

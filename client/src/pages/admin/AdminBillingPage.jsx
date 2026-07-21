@@ -4,6 +4,7 @@ import api from "../../utils/api";
 import { Icon } from "@iconify/react";
 
 const INCLUDED_WHATSAPP_SENDS = 100;
+const BILLING_CURRENCY_STORAGE_KEY = "vowlink-billing-currency";
 
 const WHATSAPP_SEND_PACKS = [
   {
@@ -113,10 +114,10 @@ const PLANS = [
 
 const CURRENCIES = {
   USD: { symbol: "$", rate: 1.0, label: "USD ($) - United States Dollar" },
-  EUR: { symbol: "€", rate: 0.92, label: "EUR (€) - Euro" },
-  GBP: { symbol: "£", rate: 0.79, label: "GBP (£) - British Pound" },
-  NGN: { symbol: "₦", rate: 1500, label: "NGN (₦) - Nigerian Naira (Paystack Main)" },
-  GHS: { symbol: "GH₵", rate: 14.5, label: "GHS (GH₵) - Ghanaian Cedi" },
+  EUR: { symbol: "EUR ", rate: 0.92, label: "EUR - Euro" },
+  GBP: { symbol: "GBP ", rate: 0.79, label: "GBP - British Pound" },
+  NGN: { symbol: "NGN ", rate: 1500, label: "NGN - Nigerian Naira (Paystack Main)" },
+  GHS: { symbol: "GHS ", rate: 14.5, label: "GHS - Ghanaian Cedi" },
   KES: { symbol: "KSh", rate: 130, label: "KES (KSh) - Kenyan Shilling" },
   ZAR: { symbol: "R", rate: 18.5, label: "ZAR (R) - South African Rand" },
   CAD: { symbol: "C$", rate: 1.36, label: "CAD (C$) - Canadian Dollar" },
@@ -170,7 +171,7 @@ const AdminBillingPage = () => {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("user") || "{}")
   );
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState(() => localStorage.getItem(BILLING_CURRENCY_STORAGE_KEY) || "USD");
   const [loadingPaystack, setLoadingPaystack] = useState(false);
   const [checkoutLocked, setCheckoutLocked] = useState(false);
   const checkoutSubmittingRef = useRef(false);
@@ -209,21 +210,27 @@ const AdminBillingPage = () => {
     };
   }, [user.tier]);
 
-  const getFormattedPrice = (plan) => {
-    if (plan.priceInNgn === 0 || plan.priceInUsd === 0) {
+  useEffect(() => {
+    localStorage.setItem(BILLING_CURRENCY_STORAGE_KEY, currency);
+  }, [currency]);
+
+  const getFormattedNgnPrice = (priceInNgn) => {
+    if (!priceInNgn) {
       return CURRENCIES[currency].symbol + "0";
     }
-    const baseNgn = plan.priceInNgn;
+    const baseNgn = priceInNgn;
     const ngnRate = CURRENCIES["NGN"].rate;
     const priceInUsd = baseNgn / ngnRate;
 
     const conf = CURRENCIES[currency];
     const converted = priceInUsd * conf.rate;
     if (currency === "NGN") {
-      return `₦${baseNgn.toLocaleString()}`;
+      return `NGN ${baseNgn.toLocaleString()}`;
     }
     return `${conf.symbol}${converted.toFixed(2)}`;
   };
+
+  const getFormattedPrice = (plan) => getFormattedNgnPrice(plan.priceInNgn);
 
   const handleOpenCheckout = async (plan) => {
     if (checkoutSubmittingRef.current) return;
@@ -567,51 +574,6 @@ const AdminBillingPage = () => {
         </div>
       </section>
 
-      {currentTier === "pro" && (
-        <section className="mb-6 rounded-3xl border border-emerald-300/20 bg-emerald-400/8 p-5 sm:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-300">WhatsApp send packs</p>
-              <h3 className="mt-2 font-serif text-2xl text-white sm:text-3xl">Add more one-click sends when your guest list grows.</h3>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
-                Your Pro plan already includes {INCLUDED_WHATSAPP_SENDS} sends. Buy only the extra official WhatsApp submissions you need for larger guest lists.
-              </p>
-            </div>
-            {whatsappPackUsage && (
-              <div className="rounded-2xl border border-white/10 bg-[#070A13]/70 px-4 py-3 text-sm text-white/70">
-                <span className="font-semibold text-white">{whatsappPackUsage.remaining}</span> left from{" "}
-                <span className="font-semibold text-white">{whatsappPackUsage.limit}</span> total sends
-              </div>
-            )}
-          </div>
-
-          <div className="mt-5 grid gap-3 md:grid-cols-3">
-            {WHATSAPP_SEND_PACKS.map((pack) => (
-              <div key={pack.id} className="relative rounded-2xl border border-white/10 bg-[#0D1220] p-4">
-                {pack.badge && (
-                  <span className="absolute right-4 top-4 rounded-full bg-emerald-300 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-[#07130e]">
-                    {pack.badge}
-                  </span>
-                )}
-                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-300">{pack.sends} sends</p>
-                <h4 className="mt-2 pr-20 text-lg font-semibold text-white">{pack.label}</h4>
-                <p className="mt-2 min-h-10 text-xs leading-relaxed text-white/55">{pack.description}</p>
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  <p className="text-xl font-bold text-white">₦{pack.priceInNgn.toLocaleString()}</p>
-                  <button
-                    type="button"
-                    onClick={() => handleOpenWhatsAppPackCheckout(pack)}
-                    disabled={checkoutLocked}
-                    className="rounded-full bg-emerald-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#07130e] transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-45"
-                  >
-                    Buy pack
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       <div className="mb-6 grid gap-3 md:grid-cols-4">
         {[
@@ -706,6 +668,52 @@ const AdminBillingPage = () => {
           );
         })}
       </div>
+
+      {currentTier === "pro" && (
+        <section className="mt-6 rounded-3xl border border-emerald-300/20 bg-emerald-400/8 p-5 sm:p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-300">WhatsApp send packs</p>
+              <h3 className="mt-2 font-serif text-2xl text-white sm:text-3xl">Add more one-click sends when your guest list grows.</h3>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
+                Your Pro plan already includes {INCLUDED_WHATSAPP_SENDS} sends. Buy only the extra official WhatsApp submissions you need for larger guest lists.
+              </p>
+            </div>
+            {whatsappPackUsage && (
+              <div className="rounded-2xl border border-white/10 bg-[#070A13]/70 px-4 py-3 text-sm text-white/70">
+                <span className="font-semibold text-white">{whatsappPackUsage.remaining}</span> left from{" "}
+                <span className="font-semibold text-white">{whatsappPackUsage.limit}</span> total sends
+              </div>
+            )}
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {WHATSAPP_SEND_PACKS.map((pack) => (
+              <div key={pack.id} className="relative rounded-2xl border border-white/10 bg-[#0D1220] p-4">
+                {pack.badge && (
+                  <span className="absolute right-4 top-4 rounded-full bg-emerald-300 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-[#07130e]">
+                    {pack.badge}
+                  </span>
+                )}
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-300">{pack.sends} sends</p>
+                <h4 className="mt-2 pr-20 text-lg font-semibold text-white">{pack.label}</h4>
+                <p className="mt-2 min-h-10 text-xs leading-relaxed text-white/55">{pack.description}</p>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <p className="text-xl font-bold text-white">{getFormattedNgnPrice(pack.priceInNgn)}</p>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenWhatsAppPackCheckout(pack)}
+                    disabled={checkoutLocked}
+                    className="rounded-full bg-emerald-300 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#07130e] transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    Buy pack
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

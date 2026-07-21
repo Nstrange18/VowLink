@@ -210,6 +210,51 @@ const getVisibilityStatus = (venue, photos = [], proofUrls = []) => {
   };
 };
 
+const getVenueWorkflowSteps = (venue, checklist) => {
+  const profileComplete = (checklist?.percent || 0) === 100;
+  const proofSubmitted = ["pending_review", "verified", "changes_requested", "rejected"].includes(venue?.verificationStatus);
+  const approved = Boolean(venue?.isApproved);
+  const live = approved && venue?.isActive !== false && profileComplete;
+
+  return [
+    {
+      label: "Draft",
+      detail: "Create the venue workspace.",
+      complete: true,
+      active: !profileComplete,
+    },
+    {
+      label: "Profile ready",
+      detail: "Complete the listing checklist.",
+      complete: profileComplete,
+      active: profileComplete && !proofSubmitted,
+    },
+    {
+      label: "Admin review",
+      detail: "VowLink checks the listing and proof.",
+      complete: approved || venue?.verificationStatus === "verified",
+      active: proofSubmitted && !approved,
+    },
+    {
+      label: "Live",
+      detail: "Couples can discover and inquire.",
+      complete: live,
+      active: live,
+    },
+  ];
+};
+
+const getActivityIcon = (type) => {
+  const map = {
+    listing: "lucide:clipboard-check",
+    verification: "lucide:shield-check",
+    visibility: "lucide:eye",
+    placement: "lucide:star",
+    inquiry: "lucide:mail",
+  };
+  return map[type] || "lucide:activity";
+};
+
 const getVerificationStatusMeta = (status) => {
   const map = {
     not_submitted: {
@@ -284,6 +329,27 @@ const getInquiryStatusMeta = (inquiry) => {
       icon: "lucide:check-check",
     };
   }
+  if (inquiry?.status === "contacted") {
+    return {
+      label: "Contacted",
+      tone: "border-emerald-400/25 bg-emerald-400/10 text-emerald-200",
+      icon: "lucide:phone-call",
+    };
+  }
+  if (inquiry?.status === "inspection_booked") {
+    return {
+      label: "Inspection booked",
+      tone: "border-[#D8B76A]/30 bg-[#D8B76A]/10 text-[#F2D894]",
+      icon: "lucide:calendar-check",
+    };
+  }
+  if (inquiry?.status === "booked_elsewhere") {
+    return {
+      label: "Booked elsewhere",
+      tone: "border-white/10 bg-white/5 text-white/45",
+      icon: "lucide:calendar-minus",
+    };
+  }
   if (inquiry?.status === "unavailable") {
     return {
       label: "Unavailable",
@@ -308,8 +374,11 @@ const getInquiryStatusMeta = (inquiry) => {
 const inquiryFilters = [
   { value: "active", label: "Active" },
   { value: "new", label: "Unreplied" },
+  { value: "contacted", label: "Contacted" },
+  { value: "inspection_booked", label: "Inspection" },
   { value: "replied", label: "Replied" },
   { value: "unavailable", label: "Unavailable" },
+  { value: "booked_elsewhere", label: "Lost" },
   { value: "archived", label: "Archived" },
   { value: "all", label: "All" },
 ];
@@ -332,7 +401,18 @@ const VenueDashboardPage = () => {
   const [venueInquiries, setVenueInquiries] = useState([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
   const [inquiryFilter, setInquiryFilter] = useState("active");
-  const [inquiryCounts, setInquiryCounts] = useState({ active: 0, new: 0, replied: 0, unavailable: 0, archived: 0, all: 0, overdue: 0 });
+  const [inquiryCounts, setInquiryCounts] = useState({
+    active: 0,
+    new: 0,
+    contacted: 0,
+    inspection_booked: 0,
+    replied: 0,
+    unavailable: 0,
+    booked_elsewhere: 0,
+    archived: 0,
+    all: 0,
+    overdue: 0,
+  });
   const [updatingInquiryId, setUpdatingInquiryId] = useState("");
 
   // Photo management state
@@ -1052,6 +1132,8 @@ const VenueDashboardPage = () => {
   const visibilityStatus = getVisibilityStatus(venue, photos, proofUrls);
   const verificationStatus = getVerificationStatusMeta(venue?.verificationStatus);
   const performanceTips = getPerformanceTips(venue, photos, checklist.percent, proofUrls);
+  const workflowSteps = getVenueWorkflowSteps(venue, checklist);
+  const recentActivity = Array.isArray(venue?.activityLog) ? venue.activityLog.slice(0, 5) : [];
   const mainPhoto = photos[0] || venue?.photos?.[0] || "";
 
   const inputBase =
@@ -1267,6 +1349,45 @@ const VenueDashboardPage = () => {
                 </div>
               </div>
 
+              <div className="mt-4 rounded-2xl border border-white/10 bg-[#070A13]/60 p-4">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-white/45">Listing journey</p>
+                    <p className="mt-1 text-xs text-white/45">A simple view of where your venue stands.</p>
+                  </div>
+                  <Icon icon="lucide:route" className="h-4 w-4 text-[#D8B76A]" />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-4">
+                  {workflowSteps.map((step, index) => (
+                    <div
+                      key={step.label}
+                      className={`rounded-2xl border p-3 ${
+                        step.complete
+                          ? "border-emerald-400/20 bg-emerald-400/10"
+                          : step.active
+                          ? "border-[#D8B76A]/30 bg-[#D8B76A]/10"
+                          : "border-white/10 bg-white/3"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-[10px] text-white/35">{String(index + 1).padStart(2, "0")}</span>
+                        <Icon
+                          icon={step.complete ? "lucide:check-circle-2" : step.active ? "lucide:clock-3" : "lucide:circle"}
+                          className={`h-4 w-4 ${step.complete ? "text-emerald-300" : step.active ? "text-[#D8B76A]" : "text-white/25"}`}
+                        />
+                      </div>
+                      <p className="mt-3 text-xs font-bold text-white">{step.label}</p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-white/45">{step.detail}</p>
+                    </div>
+                  ))}
+                </div>
+                {venue?.reviewReason && (
+                  <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/8 p-3 text-xs leading-relaxed text-amber-100/80">
+                    {venue.reviewReason}
+                  </div>
+                )}
+              </div>
+
               <div className={`mt-4 rounded-2xl border p-4 ${verificationStatus.tone}`}>
                 <div className="flex items-start gap-3">
                   <Icon icon={verificationStatus.icon} className="mt-0.5 h-4 w-4 shrink-0" />
@@ -1300,6 +1421,32 @@ const VenueDashboardPage = () => {
                     <p className="text-xs leading-relaxed text-white/55">{tip}</p>
                   </div>
                 ))}
+              </div>
+              <div className="mt-5 border-t border-white/10 pt-5">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/45">Recent updates</p>
+                  <Icon icon="lucide:activity" className="h-4 w-4 text-white/35" />
+                </div>
+                {recentActivity.length ? (
+                  <div className="space-y-3">
+                    {recentActivity.map((item, index) => (
+                      <div key={`${item.title}-${item.createdAt || index}`} className="flex gap-3 rounded-2xl border border-white/8 bg-white/3 p-3">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/6 text-[#D8B76A]">
+                          <Icon icon={getActivityIcon(item.type)} className="h-3.5 w-3.5" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-white/80">{item.title}</p>
+                          {item.message && <p className="mt-1 text-[11px] leading-relaxed text-white/45">{item.message}</p>}
+                          {item.createdAt && <p className="mt-1 text-[10px] text-white/30">{formatShortDate(item.createdAt)}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="rounded-2xl border border-dashed border-white/10 bg-white/3 p-4 text-xs leading-relaxed text-white/40">
+                    Updates from VowLink review and couple inquiries will appear here.
+                  </p>
+                )}
               </div>
             </div>
           </section>
@@ -1551,6 +1698,28 @@ const VenueDashboardPage = () => {
                                 Mark replied
                               </button>
                             )}
+                            {!["contacted", "inspection_booked", "replied", "archived"].includes(inquiry.status || "new") && (
+                              <button
+                                type="button"
+                                onClick={() => updateInquiryStatus(inquiry._id, "contacted")}
+                                disabled={updatingInquiryId === inquiry._id}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-sky-200 transition hover:bg-sky-400/15 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Icon icon="lucide:phone-call" className="h-3.5 w-3.5" />
+                                Contacted
+                              </button>
+                            )}
+                            {!["inspection_booked", "archived", "booked_elsewhere"].includes(inquiry.status || "new") && (
+                              <button
+                                type="button"
+                                onClick={() => updateInquiryStatus(inquiry._id, "inspection_booked")}
+                                disabled={updatingInquiryId === inquiry._id}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-[#D8B76A]/30 bg-[#D8B76A]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#F2D894] transition hover:bg-[#D8B76A]/15 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Icon icon="lucide:calendar-check" className="h-3.5 w-3.5" />
+                                Inspection
+                              </button>
+                            )}
                             {(inquiry.status || "new") !== "unavailable" && (
                               <button
                                 type="button"
@@ -1571,6 +1740,17 @@ const VenueDashboardPage = () => {
                               >
                                 <Icon icon="lucide:calendar-check" className="h-3.5 w-3.5" />
                                 Available now
+                              </button>
+                            )}
+                            {!["booked_elsewhere", "archived"].includes(inquiry.status || "new") && (
+                              <button
+                                type="button"
+                                onClick={() => updateInquiryStatus(inquiry._id, "booked_elsewhere")}
+                                disabled={updatingInquiryId === inquiry._id}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/60 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Icon icon="lucide:calendar-minus" className="h-3.5 w-3.5" />
+                                Booked elsewhere
                               </button>
                             )}
                             {(inquiry.status || "new") === "archived" && (
