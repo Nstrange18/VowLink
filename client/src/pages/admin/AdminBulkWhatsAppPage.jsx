@@ -125,6 +125,34 @@ const getStatusHelpText = (status, failureReason) => {
   return "";
 };
 
+const getHistoryStatusLabel = (status) => {
+  if (status === "read") return "Opened";
+  if (status === "delivered") return "Delivered";
+  if (status === "sent") return "Sent";
+  if (status === "failed") return "Could not send";
+  return "Submitted";
+};
+
+const getHistoryStatusClass = (status) => {
+  if (status === "read") return "border-emerald-400/25 bg-emerald-400/12 text-emerald-200";
+  if (status === "delivered") return "border-teal-400/25 bg-teal-400/12 text-teal-200";
+  if (status === "sent") return "border-emerald-400/20 bg-emerald-400/10 text-emerald-300";
+  if (status === "failed") return "border-red-400/25 bg-red-400/12 text-red-200";
+  return "border-sky-400/25 bg-sky-400/12 text-sky-600";
+};
+
+const formatHistoryTime = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const formatMessage = (
   template,
   guestName,
@@ -158,6 +186,8 @@ const AdminBulkWhatsAppPage = () => {
   const [sendPackModalOpen, setSendPackModalOpen] = useState(false);
   const [loadingPaystack, setLoadingPaystack] = useState(false);
   const [checkoutLocked, setCheckoutLocked] = useState(false);
+  const [sendHistory, setSendHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const checkoutSubmittingRef = useRef(false);
 
   // Template settings
@@ -258,7 +288,10 @@ const AdminBulkWhatsAppPage = () => {
 
   const scheduleStatusRefresh = () => {
     [5000, 15000, 45000].forEach((delay) => {
-      window.setTimeout(() => fetchInvitations({ silent: true }), delay);
+      window.setTimeout(() => {
+        fetchInvitations({ silent: true });
+        fetchSendHistory({ silent: true });
+      }, delay);
     });
   };
 
@@ -285,11 +318,30 @@ const AdminBulkWhatsAppPage = () => {
     }
   };
 
+  const fetchSendHistory = async ({ silent = false } = {}) => {
+    if (!silent) {
+      setHistoryLoading(true);
+    }
+    try {
+      const res = await api.get("/whatsapp/send-history?limit=12");
+      setSendHistory(Array.isArray(res.data.history) ? res.data.history : []);
+    } catch {
+      if (!silent) {
+        toast.error("Could not load send history. Please refresh.");
+      }
+    } finally {
+      if (!silent) {
+        setHistoryLoading(false);
+      }
+    }
+  };
+
   useEffect(() => {
     if (user.tier === "pro") {
       fetchInvitations();
       fetchCloudConfig();
       fetchSendPacks();
+      fetchSendHistory();
     } else {
       setLoading(false);
     }
@@ -702,6 +754,7 @@ const AdminBulkWhatsAppPage = () => {
           inv._id === guest._id ? { ...inv, ...res.data.data } : inv,
         ),
       );
+      fetchSendHistory({ silent: true });
       scheduleStatusRefresh();
       toast.success(
         `Invite submitted for ${guest.guestName}.`,
@@ -769,6 +822,7 @@ const AdminBulkWhatsAppPage = () => {
         ),
       );
       setSelectedIds([]);
+      fetchSendHistory({ silent: true });
       scheduleStatusRefresh();
       const submitted = res.data.submitted ?? res.data.sent ?? 0;
       const failed = res.data.failed ?? 0;
@@ -1377,6 +1431,84 @@ const AdminBulkWhatsAppPage = () => {
                 </span>
               </button>
             ))}
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-[#0d1220]/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-white/35">
+                  Recent submissions
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-white/55">
+                  Track invites submitted through one-click WhatsApp sending.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  fetchInvitations({ silent: true });
+                  fetchSendHistory();
+                }}
+                disabled={historyLoading}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/60 transition hover:border-white/20 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                <Icon
+                  icon="lucide:refresh-cw"
+                  className={`h-3.5 w-3.5 ${historyLoading ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </button>
+            </div>
+
+            {historyLoading && sendHistory.length === 0 ? (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {[1, 2].map((item) => (
+                  <Skeleton key={item} className="h-16 w-full rounded-xl" />
+                ))}
+              </div>
+            ) : sendHistory.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-white/10 bg-white/3 px-4 py-5 text-center text-xs text-white/35">
+                No one-click WhatsApp invites have been submitted yet.
+              </div>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {sendHistory.slice(0, 6).map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-xl border border-white/8 bg-white/4 p-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold text-white">
+                          {item.guestName}
+                        </p>
+                        <p className="mt-1 text-[10px] text-white/40">
+                          {item.phoneLast4 ? `Phone ends ${item.phoneLast4}` : "Phone recorded"}
+                        </p>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full border px-2 py-1 text-[9px] font-bold uppercase tracking-wider ${getHistoryStatusClass(item.status)}`}
+                      >
+                        {getHistoryStatusLabel(item.status)}
+                      </span>
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-white/35">
+                      <span>{formatHistoryTime(item.submittedAt)}</span>
+                      {item.messageId && (
+                        <span className="max-w-32 truncate">
+                          ID ...{getShortMessageId(item.messageId)}
+                        </span>
+                      )}
+                    </div>
+                    {item.status === "failed" && item.failureReason && (
+                      <p className="mt-2 text-[10px] leading-relaxed text-red-300/75">
+                        {getFriendlyFailureReason(item.failureReason)}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Filtering, Search & Bulk Assignment controls */}

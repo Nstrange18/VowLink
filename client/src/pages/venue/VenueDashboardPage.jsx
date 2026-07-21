@@ -10,6 +10,7 @@ import { Icon } from "@iconify/react";
 import VenueListingForm from "../../components/venue/VenueListingForm";
 import VenuePhotosGallery from "../../components/venue/VenuePhotosGallery";
 import VenueSubscriptions from "../../components/venue/VenueSubscriptions";
+import VenueVisualGuide, { VENUE_VISUAL_GUIDE_STORAGE_KEY } from "../../components/venue/VenueVisualGuide";
 import Skeleton from "../../components/common/Skeleton";
 import { buildPublicUrl } from "../../utils/siteUrl";
 
@@ -324,6 +325,7 @@ const VenueDashboardPage = () => {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("listing"); // listing, photos, billing, security
   const [copyingVenueLink, setCopyingVenueLink] = useState(false);
+  const [visualGuideOpen, setVisualGuideOpen] = useState(false);
 
   // Live performance stats (polled every 30s)
   const [stats, setStats] = useState({ views: null, inquiries: null });
@@ -716,6 +718,13 @@ const VenueDashboardPage = () => {
   }, [fetchProfile]);
 
   useEffect(() => {
+    if (loading || !venue) return undefined;
+    if (localStorage.getItem(VENUE_VISUAL_GUIDE_STORAGE_KEY)) return undefined;
+    const timer = window.setTimeout(() => setVisualGuideOpen(true), 650);
+    return () => window.clearTimeout(timer);
+  }, [loading, venue]);
+
+  useEffect(() => {
     if (activeTab === "inquiries") {
       fetchInquiries();
     }
@@ -1051,6 +1060,11 @@ const VenueDashboardPage = () => {
 
   return (
     <div className="venue-dashboard min-h-screen bg-[#070A13] text-white flex flex-col overflow-x-clip">
+      <VenueVisualGuide
+        open={visualGuideOpen}
+        onClose={() => setVisualGuideOpen(false)}
+      />
+
       {/* Header Bar */}
       <header className="venue-dashboard-header fixed inset-x-0 top-0 z-30 border-b border-white/10 bg-[#0D1220]/95 py-3 px-3 sm:py-4 sm:px-8 flex justify-between items-center animate-fade-in shadow-2xl shadow-black/20 backdrop-blur">
         <div className="flex items-center gap-3">
@@ -1083,8 +1097,17 @@ const VenueDashboardPage = () => {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-4 sm:pr-28">
+        <div className="flex items-center gap-2 sm:gap-4 sm:pr-28">
           <span className="hidden sm:inline text-xs text-white/55 font-sans">Owner: <span className="text-[#D8B76A] font-semibold">{venue?.ownerEmail}</span></span>
+          <button
+            type="button"
+            onClick={() => setVisualGuideOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-[#D8B76A]/25 bg-[#D8B76A]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#F2D894] transition hover:bg-[#D8B76A]/16 sm:px-4"
+          >
+            <Icon icon="lucide:route" className="h-3.5 w-3.5" />
+            <span className="hidden min-[420px]:inline">Start guide</span>
+            <span className="min-[420px]:hidden">Guide</span>
+          </button>
           <button
             onClick={handleLogout}
             className="hidden sm:inline-block px-4 py-1.5 rounded-full border border-white/15 bg-white/5 text-[10px] uppercase tracking-wider font-bold hover:bg-white/10 hover:text-red-400 transition"

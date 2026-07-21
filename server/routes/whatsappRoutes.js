@@ -2,6 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const Invitation = require("../models/Invitation");
 const User = require("../models/User");
+const WhatsAppSendLedger = require("../models/WhatsAppSendLedger");
 const { protect } = require("../middleware/auth");
 const {
   getWhatsAppConfigStatus,
@@ -155,6 +156,44 @@ router.get("/send-packs", protect, requireProWorkspace, (req, res) => {
     packs: getWhatsAppSendPacks(),
     usage: getWhatsAppUsage(req.currentUser),
   });
+});
+
+router.get("/send-history", protect, requireProWorkspace, async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
+    const entries = await WhatsAppSendLedger.find({ userId: req.user.id })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate(
+        "invitationId",
+        "guestName phoneNumber whatsappStatus whatsappMessageId whatsappSentAt whatsappDeliveredAt whatsappReadAt whatsappFailedAt whatsappFailureReason slug",
+      )
+      .lean();
+
+    const history = entries.map((entry) => {
+      const invitation = entry.invitationId || {};
+      const status = invitation.whatsappStatus || entry.status || "queued";
+      return {
+        id: String(entry._id),
+        invitationId: invitation._id ? String(invitation._id) : String(entry.invitationId || ""),
+        guestName: invitation.guestName || entry.metadata?.guestName || "Guest",
+        phoneLast4: entry.phoneLast4 || "",
+        status,
+        messageId: invitation.whatsappMessageId || entry.whatsappMessageId || "",
+        submittedAt: invitation.whatsappSentAt || entry.createdAt,
+        deliveredAt: invitation.whatsappDeliveredAt || null,
+        readAt: invitation.whatsappReadAt || null,
+        failedAt: invitation.whatsappFailedAt || null,
+        failureReason: invitation.whatsappFailureReason || "",
+        inviteSlug: invitation.slug || "",
+      };
+    });
+
+    return res.json({ history });
+  } catch (error) {
+    console.error("[WHATSAPP SEND] Could not load send history:", error.message);
+    return res.status(500).json({ message: "Could not load WhatsApp send history." });
+  }
 });
 
 router.post("/send-packs/verify", protect, requireProWorkspace, async (req, res) => {
