@@ -5,6 +5,7 @@ Disallow: /super-admin/
 Disallow: /venue/
 Disallow: /signup
 Disallow: /rsvp-response
+Disallow: /check-in/
 Disallow: /invite/
 
 Sitemap: https://vowlink.co/sitemap.xml

@@ -377,7 +377,10 @@ const LandingPage = () => {
           </div>
 
           <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between">
-            <p>© {new Date().getFullYear()} Vowlink. All rights reserved.</p>
+            <div className="space-y-1">
+              <p>© {new Date().getFullYear()} Vowlink. All rights reserved.</p>
+              <p>VowLink is a product of FIRST AND LAST VENTURE.</p>
+            </div>
             <div className="flex flex-wrap gap-x-4 gap-y-2">
               <Link to="/privacy" className="transition hover:text-[#D8B76A]">Privacy</Link>
               <Link to="/terms" className="transition hover:text-[#D8B76A]">Terms</Link>
