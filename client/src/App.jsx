@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import ThemeToggle from './components/ThemeToggle'
 import SEO from './components/SEO'
 import VowLinkLoader from './components/VowLinkLoader'
+import NetworkStatusBanner from './components/NetworkStatusBanner'
 
 const InvitePage = lazy(() => import('./pages/InvitePage'))
 const CheckInPage = lazy(() => import('./pages/CheckInPage'))
@@ -191,6 +192,7 @@ function AppContent() {
         }}
       />
       <ThemeToggle theme={theme} onToggle={toggleTheme} />
+      <NetworkStatusBanner />
       <RouteMetadata />
       <ScrollToTop />
       <Suspense fallback={<RouteFallback />}>

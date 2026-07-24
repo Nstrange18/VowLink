@@ -15,8 +15,20 @@ const api = axios.create({
   baseURL: getBaseURL(),
 })
 
+const SLOW_REQUEST_MS = 8000
+
+const notifyNetworkIssue = (type) => {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent('vowlink:api-network-issue', { detail: { type } }))
+}
+
 // -- Attach access token to every request -----------------------------------
 api.interceptors.request.use((config) => {
+  config.metadata = {
+    ...(config.metadata || {}),
+    startedAt: Date.now(),
+  }
+
   const token = localStorage.getItem('token')
   if (token && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${token}`
@@ -72,9 +84,24 @@ const processQueue = (error, token = null) => {
 }
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const startedAt = response.config?.metadata?.startedAt
+    if (startedAt && Date.now() - startedAt > SLOW_REQUEST_MS) {
+      notifyNetworkIssue('slow-request')
+    }
+    return response
+  },
   async (error) => {
     const original = error.config
+
+    const startedAt = original?.metadata?.startedAt
+    if (startedAt && Date.now() - startedAt > SLOW_REQUEST_MS) {
+      notifyNetworkIssue('slow-request')
+    }
+
+    if (!error.response && error.request) {
+      notifyNetworkIssue('network-failure')
+    }
 
     // If there is no request config, just return the error
     if (!original) {

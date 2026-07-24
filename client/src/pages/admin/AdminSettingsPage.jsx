@@ -43,6 +43,119 @@ const SETTINGS_TOUR_STEPS = [
   },
 ];
 
+const SETTINGS_TAB_GUIDES = {
+  details: {
+    icon: "lucide:calendar-heart",
+    eyebrow: "Wedding details",
+    title: "Start with the information guests must trust.",
+    body: "Confirm names, date, venue, dress code, timeline, and the wording that appears on the invitation before you share links widely.",
+    steps: [
+      "Check the couple names and wedding date.",
+      "Add venue, address, time, and dress code.",
+      "Build the event timeline in the order guests should follow.",
+    ],
+    reminder: "Save after editing so invitation links show the latest details.",
+  },
+  design: {
+    icon: "lucide:palette",
+    eyebrow: "Design and theme",
+    title: "Make the invitation feel like the wedding.",
+    body: "Choose the card style, colors, fonts, and couple photo. Keep contrast clear so guests can read the invitation easily on mobile.",
+    steps: [
+      "Pick a template that matches the wedding mood.",
+      "Set readable colors before adding decorative details.",
+      "Use the live preview to check spacing before saving.",
+    ],
+    reminder:
+      "Some templates are plan-limited; preview first, then upgrade only if needed.",
+  },
+  media: {
+    icon: "lucide:music-2",
+    eyebrow: "Media and music",
+    title: "Add emotion without slowing the invite down.",
+    body: "Use music and photos to make the invitation more personal. Keep files clean and test the preview after uploads.",
+    steps: [
+      "Choose or upload the song guests should hear.",
+      "Add clear couple photos or gallery images.",
+      "Test the invite on mobile after changing media.",
+    ],
+    reminder: "Large files can take longer to upload on weak networks.",
+  },
+  registry: {
+    icon: "lucide:gift",
+    eyebrow: "Gift registry",
+    title: "Make gifting simple and clear.",
+    body: "Add only the account or registry details guests need. Keep the message polite, short, and easy to understand.",
+    steps: [
+      "Turn gifting on only when the details are ready.",
+      "Confirm bank name, account name, and account number.",
+      "Write a short note for guests who want to send gifts.",
+    ],
+    reminder: "Double-check account details before saving.",
+  },
+  security: {
+    icon: "lucide:shield-check",
+    eyebrow: "Security",
+    title: "Protect access before the event gets busy.",
+    body: "Update passwords, manage check-in PIN access, and keep account deletion separate from normal invitation editing.",
+    steps: [
+      "Use a strong password that is not shared with staff.",
+      "Create a check-in PIN only for trusted ushers.",
+      "Disable or reset the PIN if it was shared wrongly.",
+    ],
+    reminder:
+      "Security changes take effect immediately after saving or confirming.",
+  },
+};
+
+const SettingsTabGuide = ({ guide }) => {
+  if (!guide) return null;
+
+  return (
+    <section className="settings-tab-guide mb-6 rounded-3xl border border-[#D8B76A]/18 bg-[#0D1220]/70 p-4 shadow-2xl shadow-black/10 sm:p-5">
+      <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-start 2xl:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 text-[#D8B76A]">
+            <Icon icon={guide.icon} className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">
+              {guide.eyebrow}
+            </p>
+            <h3 className="mt-2 font-serif text-2xl leading-tight text-white sm:text-3xl">
+              {guide.title}
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
+              {guide.body}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-3 2xl:w-[46%]">
+          {guide.steps.map((step, index) => (
+            <div
+              key={step}
+              className="flex min-w-0 items-start gap-2 rounded-2xl border border-white/10 bg-white/5 p-3 sm:block"
+            >
+              <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-[#D8B76A]">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <p className="text-xs leading-relaxed text-white/75 sm:mt-2">
+                {step}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-start gap-2 rounded-2xl border border-emerald-300/15 bg-emerald-500/8 px-3 py-2.5 text-xs leading-relaxed text-emerald-500">
+        <Icon icon="lucide:info" className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        <span>{guide.reminder}</span>
+      </div>
+    </section>
+  );
+};
+
 const TIMELINE_ICONS = [
   { icon: "mdi:church", label: "Church/Ceremony" },
   { icon: "mdi:ring", label: "Exchange of Rings" },
@@ -331,6 +444,8 @@ const AdminSettingsPageContent = () => {
   const [savingCheckInPin, setSavingCheckInPin] = React.useState(false);
   const [disablingCheckInPin, setDisablingCheckInPin] = React.useState(false);
   const location = useLocation();
+  const activeSettingsGuide =
+    SETTINGS_TAB_GUIDES[activeTab] || SETTINGS_TAB_GUIDES.details;
 
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -413,85 +528,87 @@ const AdminSettingsPageContent = () => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl overflow-x-clip px-4 py-4 pb-36 text-white sm:px-8 sm:py-8 sm:pb-36 lg:h-full lg:flex lg:flex-col">
-      <div data-tour="settings-header" className="mb-6 min-w-0 lg:shrink-0">
-        <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">
-          Account
-        </p>
-        <h2 className="font-serif text-3xl sm:text-4xl">
-          Settings & Customization
-        </h2>
-        <p className="text-white/40 text-sm mt-1">
-          Customize your wedding invitation card appearance, photo gallery,
-          dress code, and venue preferences.
-        </p>
-        <PageMiniTour
-          title="Settings tour"
-          storageKey="vowlink-tour-settings"
-          steps={SETTINGS_TOUR_STEPS}
-          className="mt-4"
-        />
-      </div>
+    <div className="mx-auto w-full max-w-6xl overflow-x-clip px-4 py-4 pb-36 text-white sm:px-8 sm:py-8 sm:pb-36">
+      <div className="settings-page-header -mx-4 mb-8 border-b border-white/10 bg-[#070A13]/96 px-4 pt-4 pb-4 sm:-mx-8 sm:px-8 sm:pt-6">
+        <div data-tour="settings-header" className="mb-6 min-w-0">
+          <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-1">
+            Account
+          </p>
+          <h2 className="font-serif text-3xl sm:text-4xl">
+            Settings & Customization
+          </h2>
+          <p className="text-white/40 text-sm mt-1">
+            Customize your wedding invitation card appearance, photo gallery,
+            dress code, and venue preferences.
+          </p>
+          <PageMiniTour
+            title="Settings tour"
+            storageKey="vowlink-tour-settings"
+            steps={SETTINGS_TOUR_STEPS}
+            className="mt-4"
+          />
+        </div>
 
-      {/* Glassmorphic Tabs Selector */}
-      <div
-        data-tour="settings-tabs"
-        className="mb-8 flex min-w-0 flex-wrap gap-1.5 border-b border-white/10 pb-4 sm:gap-2 lg:shrink-0"
-      >
-        {[
-          {
-            id: "details",
-            label: "Details",
-            fullLabel: "Wedding Details",
-            icon: "lucide:calendar-days",
-          },
-          {
-            id: "design",
-            label: "Design",
-            fullLabel: "Design & Theme",
-            icon: "lucide:palette",
-          },
-          {
-            id: "media",
-            label: "Music",
-            fullLabel: "Media & Music",
-            icon: "lucide:music",
-          },
-          {
-            id: "registry",
-            label: "Registry",
-            fullLabel: "Gift Registry",
-            icon: "lucide:gift",
-          },
-          {
-            id: "security",
-            label: "Security",
-            fullLabel: "Security & Danger Zone",
-            icon: "lucide:lock",
-          },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => {
-              setActiveTab(tab.id);
-              if (tab.id !== "security") {
-                setShowDeleteConfirm(false);
-              }
-            }}
-            className={`min-w-0 px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${
-              activeTab === tab.id
-                ? "bg-[#D8B76A] text-[#070A13] shadow-[0_8px_20px_rgba(216,183,106,0.25)]"
-                : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
-            }`}
-          >
-            <span className="flex items-center gap-1.5 justify-center">
-              <Icon icon={tab.icon} className="w-3.5 h-3.5 shrink-0" />
-              <span className="sm:hidden">{tab.label}</span>
-              <span className="hidden sm:inline">{tab.fullLabel}</span>
-            </span>
-          </button>
-        ))}
+        {/* Glassmorphic Tabs Selector */}
+        <div
+          data-tour="settings-tabs"
+          className="flex min-w-0 flex-wrap gap-1.5 sm:gap-2"
+        >
+          {[
+            {
+              id: "details",
+              label: "Details",
+              fullLabel: "Wedding Details",
+              icon: "lucide:calendar-days",
+            },
+            {
+              id: "design",
+              label: "Design",
+              fullLabel: "Design & Theme",
+              icon: "lucide:palette",
+            },
+            {
+              id: "media",
+              label: "Music",
+              fullLabel: "Media & Music",
+              icon: "lucide:music",
+            },
+            {
+              id: "registry",
+              label: "Registry",
+              fullLabel: "Gift Registry",
+              icon: "lucide:gift",
+            },
+            {
+              id: "security",
+              label: "Security",
+              fullLabel: "Security & Danger Zone",
+              icon: "lucide:lock",
+            },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => {
+                setActiveTab(tab.id);
+                if (tab.id !== "security") {
+                  setShowDeleteConfirm(false);
+                }
+              }}
+              className={`min-w-0 px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${
+                activeTab === tab.id
+                  ? "bg-[#D8B76A] text-[#070A13] shadow-[0_8px_20px_rgba(216,183,106,0.25)]"
+                  : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              <span className="flex items-center gap-1.5 justify-center">
+                <Icon icon={tab.icon} className="w-3.5 h-3.5 shrink-0" />
+                <span className="sm:hidden">{tab.label}</span>
+                <span className="hidden sm:inline">{tab.fullLabel}</span>
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Mobile Live Preview Indicator */}
@@ -532,12 +649,14 @@ const AdminSettingsPageContent = () => {
 
       <div
         data-tour="settings-workspace"
-        className="grid min-w-0 grid-cols-1 items-start gap-6 overflow-x-clip lg:grid-cols-12 lg:items-stretch lg:gap-8 lg:flex-1 lg:min-h-0"
+        className="grid min-w-0 grid-cols-1 items-start gap-6 overflow-x-clip lg:grid-cols-12 lg:gap-8"
       >
         {/* LEFT COLUMN: Tabs/Forms container */}
         <div
-          className={`col-span-12 ${activeTab === "security" ? "lg:col-span-12" : "lg:col-span-6"} space-y-6 min-w-0 lg:h-full lg:overflow-y-auto lg:pr-2 lg:pb-40`}
+          className={`col-span-12 ${activeTab === "security" ? "lg:col-span-12" : "lg:col-span-6"} space-y-6 min-w-0 lg:pr-2`}
         >
+          <SettingsTabGuide guide={activeSettingsGuide} />
+
           {/* Main Form for Details, Design, Media, and Registry settings */}
           {(activeTab === "details" ||
             activeTab === "design" ||
@@ -1336,7 +1455,7 @@ const AdminSettingsPageContent = () => {
 
           {/* TAB 4: Security & Danger Zone */}
           {activeTab === "security" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start animate-fade-in">
+            <div className="grid grid-cols-1 gap-6 pb-16 animate-fade-in xl:grid-cols-2 xl:items-start">
               {/* Change Password Card */}
               <div className="p-3 sm:p-5 rounded-2xl border border-white/10 bg-[#0D1220] space-y-4">
                 <h3 className="text-sm font-semibold uppercase tracking-widest text-[#D8B76A]">

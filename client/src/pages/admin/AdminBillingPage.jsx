@@ -669,7 +669,7 @@ const AdminBillingPage = () => {
         })}
       </div>
 
-      {currentTier === "pro" && (
+      {currentTier === "pro" ? (
         <section className="mt-6 rounded-3xl border border-emerald-300/20 bg-emerald-400/8 p-5 sm:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -711,6 +711,38 @@ const AdminBillingPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+      ) : (
+        <section className="mt-6 rounded-3xl border border-emerald-300/15 bg-emerald-400/6 p-5 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-300/25 bg-emerald-300/10 text-emerald-300">
+                <Icon icon="lucide:send" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-300">
+                  WhatsApp sending
+                </p>
+                <h3 className="mt-2 font-serif text-2xl text-white">
+                  One-click WhatsApp sends are available on Pro.
+                </h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
+                  Classic and Plus keep manual WhatsApp opening. Upgrade to Pro to unlock the included one-click sends; extra send packs become available after Pro is active.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const proPlan = PLANS.find((plan) => plan.id === "pro");
+                if (proPlan) handleOpenCheckout(proPlan);
+              }}
+              disabled={checkoutLocked}
+              className="shrink-0 rounded-full bg-emerald-300 px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-[#07130e] transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Upgrade to Pro
+            </button>
           </div>
         </section>
       )}
