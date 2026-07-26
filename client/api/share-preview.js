@@ -7,6 +7,32 @@ const getPublicSiteUrl = (req) => {
   return configured || `https://${req.headers.host}`;
 };
 
+const escapeHtml = (value) =>
+  String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+const optimizePreviewImage = (url) => {
+  if (!url) return '';
+  if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+    return url.replace('/upload/', '/upload/f_jpg,q_auto,w_1200,h_630,c_fill,g_auto/');
+  }
+  return url;
+};
+
+const toAbsoluteImageUrl = (image, publicSiteUrl) => {
+  if (!image) return '';
+  if (image.startsWith('http://') || image.startsWith('https://')) {
+    return optimizePreviewImage(image);
+  }
+  if (image.startsWith('data:')) return '';
+  const cleanImage = image.startsWith('/') ? image : `/${image}`;
+  return `${publicSiteUrl}${cleanImage}`;
+};
+
 module.exports = async (req, res) => {
   const { slug } = req.query;
   if (!slug) {
@@ -50,63 +76,49 @@ module.exports = async (req, res) => {
       ? descriptionText
       : `${descriptionText} Powered by VowLink.`;
     
-    // Choose image:
-    // 1. couplePhotoUrl (uploaded photo)
-    // 2. customCardBg (selected template)
-    // 3. Fallback default VowLink logo
-    let imageUrl = '';
-    if (user.couplePhotoUrl) {
-      let url = user.couplePhotoUrl;
-      if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
-        url = url.replace('/upload/', '/upload/q_auto,w_500/');
-      }
-      imageUrl = url;
-    } else if (user.customCardBg) {
-      const bg = user.customCardBg;
-      if (bg.startsWith('http://') || bg.startsWith('https://')) {
-        let url = bg;
-        if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
-          url = url.replace('/upload/', '/upload/q_auto,w_500/');
-        }
-        imageUrl = url;
-      } else {
-        const cleanBg = bg.startsWith('/') ? bg : `/${bg}`;
-        imageUrl = `${publicSiteUrl}${cleanBg}`;
-      }
-    } else {
-      imageUrl = `${publicSiteUrl}/vowlink-logo.webp`;
-    }
+    const firstGalleryPhoto = Array.isArray(user.galleryPhotos) ? user.galleryPhotos.find(Boolean) : '';
+    const imageUrl =
+      toAbsoluteImageUrl(user.couplePhotoUrl, publicSiteUrl) ||
+      toAbsoluteImageUrl(firstGalleryPhoto, publicSiteUrl) ||
+      toAbsoluteImageUrl(user.customCardBg, publicSiteUrl) ||
+      `${publicSiteUrl}/vowlink-logo.png`;
 
     const inviteUrl = `${publicSiteUrl}/invite/${slug}`;
+    const safeTitle = escapeHtml(title);
+    const safeDescription = escapeHtml(description);
+    const safeInviteUrl = escapeHtml(inviteUrl);
+    const safeImageUrl = escapeHtml(imageUrl);
 
     const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>${title}</title>
-  <meta name="description" content="${description}">
+  <title>${safeTitle}</title>
+  <meta name="description" content="${safeDescription}">
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="${inviteUrl}">
-  <meta property="og:title" content="${title}">
-  <meta property="og:description" content="${description}">
-  <meta property="og:image" content="${imageUrl}">
+  <meta property="og:url" content="${safeInviteUrl}">
+  <meta property="og:title" content="${safeTitle}">
+  <meta property="og:description" content="${safeDescription}">
+  <meta property="og:image" content="${safeImageUrl}">
+  <meta property="og:image:secure_url" content="${safeImageUrl}">
+  <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="${inviteUrl}">
-  <meta property="twitter:title" content="${title}">
-  <meta property="twitter:description" content="${description}">
-  <meta property="twitter:image" content="${imageUrl}">
+  <meta property="twitter:url" content="${safeInviteUrl}">
+  <meta property="twitter:title" content="${safeTitle}">
+  <meta property="twitter:description" content="${safeDescription}">
+  <meta property="twitter:image" content="${safeImageUrl}">
 </head>
 <body>
   <p>Redirecting to invitation...</p>
   <script>
-    window.location.href = "${inviteUrl}";
+    window.location.href = ${JSON.stringify(inviteUrl)};
   </script>
 </body>
 </html>
@@ -120,28 +132,34 @@ module.exports = async (req, res) => {
     const fallbackTitle = "Wedding Invitation | VowLink";
     const fallbackDesc = "You are specially invited to celebrate. Tap the link to view your invitation and RSVP. Powered by VowLink.";
     const publicSiteUrl = getPublicSiteUrl(req);
-    const fallbackImg = `${publicSiteUrl}/vowlink-logo.webp`;
+    const fallbackImg = `${publicSiteUrl}/vowlink-logo.png`;
     const fallbackUrl = `${publicSiteUrl}/invite/${slug}`;
+    const safeFallbackTitle = escapeHtml(fallbackTitle);
+    const safeFallbackDesc = escapeHtml(fallbackDesc);
+    const safeFallbackImg = escapeHtml(fallbackImg);
+    const safeFallbackUrl = escapeHtml(fallbackUrl);
 
     const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>${fallbackTitle}</title>
-  <meta name="description" content="${fallbackDesc}">
+  <title>${safeFallbackTitle}</title>
+  <meta name="description" content="${safeFallbackDesc}">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="${fallbackUrl}">
-  <meta property="og:title" content="${fallbackTitle}">
-  <meta property="og:description" content="${fallbackDesc}">
-  <meta property="og:image" content="${fallbackImg}">
+  <meta property="og:url" content="${safeFallbackUrl}">
+  <meta property="og:title" content="${safeFallbackTitle}">
+  <meta property="og:description" content="${safeFallbackDesc}">
+  <meta property="og:image" content="${safeFallbackImg}">
+  <meta property="og:image:secure_url" content="${safeFallbackImg}">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 </head>
 <body>
   <p>Redirecting to invitation...</p>
   <script>
-    window.location.href = "${fallbackUrl}";
+    window.location.href = ${JSON.stringify(fallbackUrl)};
   </script>
 </body>
 </html>
