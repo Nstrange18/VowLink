@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -193,6 +194,7 @@ function AppContent() {
       />
       <ThemeToggle theme={theme} onToggle={toggleTheme} />
       <NetworkStatusBanner />
+      <Analytics />
       <RouteMetadata />
       <ScrollToTop />
       <Suspense fallback={<RouteFallback />}>

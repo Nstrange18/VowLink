@@ -141,7 +141,7 @@ const NetworkStatusBanner = () => {
     : 'network-status-banner__icon--weak bg-amber-300/15 text-amber-200'
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[90] flex justify-center px-3 sm:bottom-5">
+    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-90 flex justify-center px-3 sm:bottom-5">
       <div
         role="status"
         aria-live="polite"
