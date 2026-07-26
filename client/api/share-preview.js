@@ -33,7 +33,7 @@ const toAbsoluteImageUrl = (image, publicSiteUrl) => {
   return `${publicSiteUrl}${cleanImage}`;
 };
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   const { slug } = req.query;
   if (!slug) {
     return res.status(400).send('Slug is required');
@@ -167,4 +167,4 @@ module.exports = async (req, res) => {
     res.setHeader('Content-Type', 'text/html');
     return res.status(200).send(html);
   }
-};
+}
