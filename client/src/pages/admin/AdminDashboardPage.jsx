@@ -158,23 +158,6 @@ const DASHBOARD_TOUR_STEPS = [
     body: "Use this for table planning and guest placement. It is intended for larger events and stays locked until the plan supports seating tools.",
   },
   {
-    target: '[data-tour="admin-nav-venues-group"]',
-    title: "Venues",
-    body: "This dropdown keeps venue discovery and venue request follow-up together.",
-  },
-  {
-    target: '[data-tour="admin-nav-venues"]',
-    prepare: openSidebarGroup("venues"),
-    title: "Suggested Venues",
-    body: "Browse approved venue partners and contact details here. Trial accounts can see the entry point, but venue details unlock after plan activation.",
-  },
-  {
-    target: '[data-tour="admin-nav-venue-requests"]',
-    prepare: openSidebarGroup("venues"),
-    title: "Venue Requests",
-    body: "Track venues you have contacted and whether they have replied, are waiting, or are unavailable. This keeps venue follow-up from getting lost.",
-  },
-  {
     target: '[data-tour="admin-nav-billing"]',
     title: "Billing and tiers",
     body: "Choose Classic, Plus, or Pro here. Trial users should start here when they are ready to unlock live tools.",
@@ -230,7 +213,7 @@ const MOBILE_DASHBOARD_TOUR_STEPS = [
   {
     target: '[data-tour="admin-mobile-menu"]',
     title: "Open the menu",
-    body: "Tap this menu to reach invitations, RSVPs, WhatsApp sending, seating, venues, billing, settings, and support. Locked links send Trial accounts to billing.",
+    body: "Tap this menu to reach invitations, RSVPs, WhatsApp sending, seating, billing, settings, and support. Locked links send Trial accounts to billing.",
   },
   {
     target: '[data-tour="dashboard-heading"]',

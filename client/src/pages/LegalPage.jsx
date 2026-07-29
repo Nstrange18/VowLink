@@ -7,7 +7,7 @@ const pageContent = {
     eyebrow: 'Privacy Policy',
     title: 'VowLink Privacy Policy',
     intro:
-      'This Privacy Policy explains how VowLink collects, uses, stores, and protects information when couples, guests, and venue partners use our digital wedding invitation and RSVP services.',
+      'This Privacy Policy explains how VowLink collects, uses, stores, and protects information when couples and guests use our digital wedding invitation and RSVP services.',
     sections: [
       {
         title: 'Information We Collect',

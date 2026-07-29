@@ -1136,7 +1136,7 @@ router.post("/paystack/webhook", async (req, res) => {
       const { reference, customer, metadata } = event.data;
       const email = customer.email;
       
-      const paymentType = metadata?.paymentType || (reference.startsWith("VOWLINK-VENUE") ? "venue_subscription" : "couple_upgrade");
+      const paymentType = metadata?.paymentType || "couple_upgrade";
       const targetTier = metadata?.tier;
       
       if (paymentType === "couple_upgrade" && targetTier && ["free", "plus", "pro"].includes(targetTier)) {
@@ -1167,18 +1167,6 @@ router.post("/paystack/webhook", async (req, res) => {
               console.log(`[PAYSTACK WEBHOOK] Added ${pack.sends} WhatsApp sends to ${user.email}`);
             }
           }
-        }
-      } else if (paymentType === "venue_subscription" && targetTier) {
-        const Venue = require("../models/Venue");
-        const venue = await Venue.findOne({ ownerEmail: email.toLowerCase() });
-        if (venue) {
-          venue.subscriptionTier = targetTier;
-          venue.isFeatured = targetTier === "featured";
-          const expiry = new Date();
-          expiry.setDate(expiry.getDate() + 30);
-          venue.subscriptionExpiry = expiry;
-          await venue.save();
-          console.log(`[PAYSTACK WEBHOOK] Upgraded venue ${venue.name} to ${targetTier}`);
         }
       } else if (paymentType === "registry_gift") {
         const Gift = require("../models/Gift");

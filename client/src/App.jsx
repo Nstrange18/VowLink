@@ -31,18 +31,12 @@ const SignupPage = lazy(() => import('./pages/admin/SignupPage'))
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'))
 const AdminTemplatesPage = lazy(() => import('./pages/admin/AdminTemplatesPage'))
 const AdminBillingPage = lazy(() => import('./pages/admin/AdminBillingPage'))
-const AdminVenuesPage = lazy(() => import('./pages/admin/AdminVenuesPage'))
-const VenueDetailsPage = lazy(() => import('./pages/admin/VenueDetailsPage'))
-const AdminVenueInquiriesPage = lazy(() => import('./pages/admin/AdminVenueInquiriesPage'))
 const AdminBulkInvitationPage = lazy(() => import('./pages/admin/AdminBulkInvitationPage'))
 const AdminBulkWhatsAppPage = lazy(() => import('./pages/admin/AdminBulkWhatsAppPage'))
 const AdminSeatingPage = lazy(() => import('./pages/admin/AdminSeatingPage'))
 const AdminForgotPasswordPage = lazy(() => import('./pages/admin/AdminForgotPasswordPage'))
 const AdminLayout = lazy(() => import('./components/AdminLayout'))
 const SuperAdminDashboardPage = lazy(() => import('./pages/admin/SuperAdminDashboardPage'))
-const VenueLoginPage = lazy(() => import('./pages/venue/VenueLoginPage'))
-const VenueRegisterPage = lazy(() => import('./pages/venue/VenueRegisterPage'))
-const VenueDashboardPage = lazy(() => import('./pages/venue/VenueDashboardPage'))
 
 const APP_THEME_KEY = 'vowlink-theme'
 const GUEST_THEME_PREFIX = 'vowlink_guest_theme_'
@@ -54,7 +48,7 @@ const PUBLIC_ROUTE_META = {
   },
   '/features': {
     title: 'VowLink Features | Wedding Invitations, RSVPs and Guest Planning',
-    description: 'Explore VowLink features for personalized wedding invite links, RSVP tracking, WhatsApp sharing, guest categories, seating tools, templates, and venue planning.',
+    description: 'Explore VowLink features for personalized wedding invite links, RSVP tracking, WhatsApp sharing, guest categories, seating tools, and templates.',
   },
   '/pricing': {
     title: 'VowLink Pricing | Digital Wedding Invitation Plans',
@@ -77,8 +71,6 @@ const PUBLIC_ROUTE_META = {
 const isPrivateRoute = (pathname) => (
   pathname.startsWith('/admin') ||
   pathname.startsWith('/super-admin') ||
-  pathname === '/venue' ||
-  pathname.startsWith('/venue/') ||
   pathname.startsWith('/signup') ||
   pathname.startsWith('/rsvp-response') ||
   pathname.startsWith('/check-in/') ||
@@ -93,21 +85,11 @@ const RouteMetadata = () => {
     return <SEO {...publicMeta} path={pathname} />
   }
 
-  if (pathname.startsWith('/venues/')) {
-    return (
-      <SEO
-        title="VowLink Venue Profile | Wedding Venue Details"
-        description="View a public VowLink wedding venue profile with photos, location details, style, pricing guidance, and contact options."
-        path={pathname}
-      />
-    )
-  }
-
   if (isPrivateRoute(pathname)) {
     return (
       <SEO
         title="VowLink Private Wedding Portal"
-        description="Private VowLink wedding portal page for couples, guests, venue partners, or administrators."
+        description="Private VowLink wedding portal page for couples, guests, or administrators."
         path={pathname}
         noindex
       />
@@ -213,7 +195,6 @@ function AppContent() {
         <Route path="/invite/:slug" element={<InvitePage setThemePreference={setThemePreference} />} />
         <Route path="/check-in/staff" element={<CheckInStaffPage />} />
         <Route path="/check-in/:token" element={<CheckInPage />} />
-        <Route path="/venues/:id" element={<VenueDetailsPage />} />
         <Route path="/rsvp-response" element={<RsvpResponsePage />} />
 
         {/* Auth */}
@@ -221,11 +202,6 @@ function AppContent() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/admin/forgot-password" element={<AdminForgotPasswordPage />} />
         <Route path="/admin/reset-password/:token" element={<AdminResetPasswordPage />} />
-
-        {/* Venue Owner Portal */}
-        <Route path="/venue/login" element={<VenueLoginPage />} />
-        <Route path="/venue/register" element={<VenueRegisterPage />} />
-        <Route path="/venue/dashboard" element={<VenueDashboardPage />} />
 
         {/* Protected admin routes */}
         <Route
@@ -245,9 +221,6 @@ function AppContent() {
           <Route path="whatsapp-bulk" element={<AdminBulkWhatsAppPage />} />
           <Route path="rsvps" element={<AdminRsvpsPage />} />
           <Route path="billing" element={<AdminBillingPage />} />
-          <Route path="venues" element={<AdminVenuesPage />} />
-          <Route path="venues/:id" element={<VenueDetailsPage />} />
-          <Route path="venue-inquiries" element={<AdminVenueInquiriesPage />} />
           <Route path="seating" element={<AdminSeatingPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="templates" element={<AdminTemplatesPage />} />

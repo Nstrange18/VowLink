@@ -162,14 +162,6 @@ const AdminLoginPage = () => {
           </Link>
         </p>
 
-        <div className="mt-6 pt-5 border-t border-white/5 text-center">
-          <p className="text-[11px] text-white/30">Are you a wedding venue owner?</p>
-          <Link to="/venue/login" className="text-[#D8B76A] hover:underline text-xs font-semibold mt-1 inline-block">
-            <span className="inline-flex items-center gap-1">
-              Access Venue Partner Portal <Icon icon="lucide:arrow-right" className="h-3 w-3" />
-            </span>
-          </Link>
-        </div>
       </div>
     </section>
   );

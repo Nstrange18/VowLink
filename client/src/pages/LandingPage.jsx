@@ -24,8 +24,8 @@ const featureCards = [
   },
   {
     icon: "05",
-    title: "Venue Planning",
-    desc: "Browse venue suggestions, unlock maps and contact details, shortlist favorites, and send inquiries on Pro.",
+    title: "Guest Categories",
+    desc: "Organize family, friends, colleagues, VIPs, plus-ones, and sender groups so your guest list stays easy to manage.",
   },
   {
     icon: "06",
@@ -54,35 +54,12 @@ const plans = [
   {
     name: "Plus",
     detail:
-      "100 guest links, premium templates, music, gallery, full venue details.",
+      "100 guest links, premium templates, music, gallery, and richer invite customization.",
   },
   {
     name: "Pro",
     detail:
       "500 guest links, RSVP export, seating chart, WhatsApp queues, AI themes.",
-  },
-];
-
-const venueBenefits = [
-  {
-    icon: "lucide:badge-check",
-    title: "Verified profile",
-    desc: "Show couples your capacity, location, style, price range, proof status, and contact channels in one structured listing.",
-  },
-  {
-    icon: "lucide:image",
-    title: "Gallery-led trust",
-    desc: "Upload venue photos, keep your listing fresh, and make it easier for couples to understand the space before they inquire.",
-  },
-  {
-    icon: "lucide:mail",
-    title: "Direct leads",
-    desc: "Receive couple inquiries from the VowLink venue directory and track interest from your venue dashboard.",
-  },
-  {
-    icon: "lucide:sparkles",
-    title: "Featured placement",
-    desc: "Upgrade from directory listing to featured visibility when you want more attention from planning couples.",
   },
 ];
 
@@ -111,11 +88,6 @@ const faqs = [
     question: "Will private wedding dashboard pages show on Google?",
     answer:
       "No. The public marketing pages are prepared for search indexing, while admin, login, dashboard, RSVP response, and guest invite routes are marked as private.",
-  },
-  {
-    question: "Can venues join VowLink too?",
-    answer:
-      "Yes. Venues can create a partner listing, add photos and contact details, receive inquiries from planning couples, and upgrade for stronger visibility.",
   },
 ];
 
@@ -269,58 +241,6 @@ const LandingPage = () => {
               </p>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section className="border-y border-white/5 bg-[#0D1220]/40 px-6 py-20 sm:py-24">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center">
-          <div className="lg:col-span-5">
-            <p className="mb-4 text-xs uppercase tracking-[0.4em] text-[#D8B76A]">
-              For Venues
-            </p>
-            <h2 className="font-serif text-3xl leading-tight text-white sm:text-5xl">
-              Help wedding couples discover and trust your space
-            </h2>
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/55">
-              VowLink is not only for invitations. Venue partners can create a
-              searchable listing, show photos and location details, receive
-              inquiries, and upgrade visibility when they want stronger
-              placement.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to="/venue/register"
-                className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-8 py-3 text-center text-xs font-bold uppercase tracking-widest text-[#070A13]"
-              >
-                List Your Venue
-              </Link>
-              <Link
-                to="/venue/login"
-                className="rounded-full border border-white/15 px-8 py-3 text-center text-xs font-semibold uppercase tracking-widest text-white/75 transition hover:border-[#D8B76A]/35 hover:text-[#D8B76A]"
-              >
-                Venue Portal
-              </Link>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:col-span-7">
-            {venueBenefits.map((benefit) => (
-              <article
-                key={benefit.title}
-                className="rounded-3xl border border-white/10 bg-[#070A13]/70 p-5 transition hover:border-[#D8B76A]/30"
-              >
-                <span className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-[#D8B76A]/15 text-[#D8B76A]">
-                  <Icon icon={benefit.icon} className="h-5 w-5" />
-                </span>
-                <h3 className="text-sm font-semibold text-white">
-                  {benefit.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/50">
-                  {benefit.desc}
-                </p>
-              </article>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -508,18 +428,6 @@ const LandingPage = () => {
                   className="transition hover:text-[#D8B76A]"
                 >
                   Couple login
-                </Link>
-                <Link
-                  to="/venue/register"
-                  className="transition hover:text-[#D8B76A]"
-                >
-                  List a venue
-                </Link>
-                <Link
-                  to="/venue/login"
-                  className="transition hover:text-[#D8B76A]"
-                >
-                  Venue portal
                 </Link>
               </div>
             </div>

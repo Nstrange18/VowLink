@@ -18,17 +18,6 @@ const sidebarGroups = [
     ],
   },
   { type: 'link', to: '/admin/seating', label: 'Seating Charts', icon: 'lucide:grid', tourId: 'admin-nav-seating', lockedForUnpaid: true, lockReason: 'Seating chart is available on Pro.' },
-  {
-    type: 'group',
-    id: 'venues',
-    label: 'Venues',
-    icon: 'lucide:map-pin',
-    tourId: 'admin-nav-venues-group',
-    children: [
-      { to: '/admin/venues', label: 'Suggested Venues', icon: 'lucide:sparkles', tourId: 'admin-nav-venues', lockedForUnpaid: true, lockReason: 'Choose a plan to view venue marketplace details.' },
-      { to: '/admin/venue-inquiries', label: 'Venue Requests', icon: 'lucide:inbox', tourId: 'admin-nav-venue-requests', lockedForUnpaid: true, lockReason: 'Choose a plan before contacting venues.' },
-    ],
-  },
   { type: 'link', to: '/admin/billing', label: 'Billings and Tiers', icon: 'lucide:credit-card', tourId: 'admin-nav-billing' },
   { type: 'link', to: '/admin/settings', label: 'Settings', icon: 'lucide:settings', tourId: 'admin-nav-settings' },
 ]
@@ -55,7 +44,7 @@ const AdminLayout = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [openGroups, setOpenGroups] = useState({ invitations: true, venues: false })
+  const [openGroups, setOpenGroups] = useState({ invitations: true })
   const user = JSON.parse(localStorage.getItem('user') || '{}')
   const tier = user.tier || 'unpaid'
   const isUnpaid = tier === 'unpaid'

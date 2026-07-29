@@ -44,6 +44,7 @@ const getInitialState = () => ({
 const NetworkStatusBanner = () => {
   const [state, setState] = useState(getInitialState)
   const [now, setNow] = useState(() => Date.now())
+  const [dismissedStatusKey, setDismissedStatusKey] = useState(null)
 
   useEffect(() => {
     const updateOnlineState = () => {
@@ -93,6 +94,7 @@ const NetworkStatusBanner = () => {
   const status = useMemo(() => {
     if (!state.isOnline) {
       return {
+        key: `offline-${state.lastNetworkFailureAt}`,
         tone: 'offline',
         icon: 'mdi:wifi-off',
         title: "You're offline",
@@ -102,6 +104,7 @@ const NetworkStatusBanner = () => {
 
     if (now - state.lastNetworkFailureAt < RECENT_NETWORK_ISSUE_MS) {
       return {
+        key: `network-failure-${state.lastNetworkFailureAt}`,
         tone: 'weak',
         icon: 'mdi:wifi-alert',
         title: 'Connection issue',
@@ -111,6 +114,7 @@ const NetworkStatusBanner = () => {
 
     if (now - state.lastSlowRequestAt < RECENT_NETWORK_ISSUE_MS) {
       return {
+        key: `slow-request-${state.lastSlowRequestAt}`,
         tone: 'slow',
         icon: 'mdi:speedometer-slow',
         title: 'Slow connection',
@@ -120,6 +124,7 @@ const NetworkStatusBanner = () => {
 
     if (isWeakConnection(state.connection)) {
       return {
+        key: `weak-${state.connection.effectiveType || 'unknown'}-${state.connection.downlink || 'na'}-${state.connection.rtt || 'na'}`,
         tone: 'weak',
         icon: 'mdi:wifi-strength-1-alert',
         title: 'Weak connection',
@@ -130,7 +135,7 @@ const NetworkStatusBanner = () => {
     return null
   }, [now, state])
 
-  if (!status) return null
+  if (!status || dismissedStatusKey === status.key) return null
 
   const isOffline = status.tone === 'offline'
   const shellClass = isOffline
@@ -145,15 +150,23 @@ const NetworkStatusBanner = () => {
       <div
         role="status"
         aria-live="polite"
-        className={`network-status-banner pointer-events-auto flex w-full max-w-xl items-start gap-3 rounded-2xl border px-4 py-3 text-sm shadow-2xl backdrop-blur-md ${shellClass}`}
+        className={`network-status-banner pointer-events-auto flex w-full max-w-xl items-start gap-3 rounded-2xl border px-4 py-3 pr-3 text-sm shadow-2xl backdrop-blur-md ${shellClass}`}
       >
         <span className={`network-status-banner__icon mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${iconClass}`}>
           <Icon icon={status.icon} className="h-4 w-4" />
         </span>
-        <span className="min-w-0">
+        <span className="min-w-0 flex-1">
           <span className="block font-semibold leading-tight">{status.title}</span>
           <span className="mt-1 block text-xs leading-relaxed opacity-85">{status.message}</span>
         </span>
+        <button
+          type="button"
+          onClick={() => setDismissedStatusKey(status.key)}
+          className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-current opacity-65 transition hover:bg-white/10 hover:opacity-100"
+          aria-label="Dismiss network status"
+        >
+          <Icon icon="lucide:x" className="h-4 w-4" />
+        </button>
       </div>
     </div>
   )
