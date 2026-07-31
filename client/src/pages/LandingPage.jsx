@@ -94,54 +94,54 @@ const faqs = [
 const LandingPage = () => {
   return (
     <div className="min-h-screen bg-[#070A13] text-white">
-      <section className="landing-hero relative min-h-screen bg-[url('/hero-bg.webp')] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-6 text-center">
+      <section className="landing-hero relative flex min-h-screen flex-col items-center justify-center bg-[url('/hero-bg.webp')] bg-cover bg-center bg-no-repeat px-5 py-14 text-center sm:px-6 sm:py-16">
         <div className="absolute inset-0 bg-[#070A13]/60" />
 
-        <div className="relative z-10 max-w-2xl mx-auto">
-          <div className="flex items-center justify-center gap-3 mb-10">
+        <div className="relative z-10 mx-auto max-w-2xl">
+          <div className="mb-7 flex items-center justify-center gap-2.5 sm:mb-10 sm:gap-3">
             <img
               src="/vowlink-icon.svg"
               alt="Vowlink"
-              className="h-10 w-10 object-contain"
+              className="h-8 w-8 object-contain sm:h-10 sm:w-10"
             />
-            <span className="font-serif text-3xl tracking-wide text-white">
+            <span className="font-serif text-2xl tracking-wide text-white sm:text-3xl">
               Vowlink
             </span>
           </div>
 
-          <p className="text-xs uppercase tracking-[0.4em] text-[#D8B76A] mb-6">
+          <p className="mb-4 text-[10px] uppercase tracking-[0.3em] text-[#D8B76A] sm:mb-6 sm:text-xs sm:tracking-[0.4em]">
             Digital Wedding Invitations
           </p>
 
-          <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl font-normal leading-tight mb-6">
+          <h1 className="mb-5 font-serif text-[2.65rem] font-normal leading-[1.08] text-white sm:mb-6 sm:text-6xl sm:leading-tight md:text-7xl">
             Your Wedding,
             <br />
             <span className="text-[#D8B76A]">Beautifully Shared</span>
           </h1>
 
-          <p className="text-base sm:text-lg text-white/80 max-w-lg mx-auto mb-10 leading-relaxed">
+          <p className="mx-auto mb-8 max-w-md text-sm leading-7 text-white/80 sm:mb-10 sm:max-w-lg sm:text-lg sm:leading-relaxed">
             Build your invitation portal, share personal guest links, collect
             RSVPs, and keep the planning details organized from one elegant
             workspace.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Link
               to="/signup"
-              className="w-full sm:w-auto rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.4)]"
+              className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-7 py-3.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.4)] sm:w-auto sm:px-10 sm:py-4 sm:text-sm"
             >
               Get Started Free
             </Link>
             <Link
               to="/admin/login"
-              className="w-full sm:w-auto rounded-full border border-white/20 bg-white/5 px-10 py-4 text-sm font-semibold uppercase tracking-widest text-white/80 backdrop-blur-sm transition hover:bg-white/10 hover:border-white/30"
+              className="w-full rounded-full border border-white/20 bg-white/5 px-7 py-3.5 text-xs font-semibold uppercase tracking-widest text-white/80 backdrop-blur-sm transition hover:border-white/30 hover:bg-white/10 sm:w-auto sm:px-10 sm:py-4 sm:text-sm"
             >
               Sign In
             </Link>
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50 animate-bounce">
+        <div className="absolute bottom-4 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-white/50 animate-bounce sm:flex lg:bottom-8">
           <span className="text-xs uppercase tracking-widest">Scroll</span>
           <Icon icon="lucide:arrow-down" className="h-4 w-4" />
         </div>
