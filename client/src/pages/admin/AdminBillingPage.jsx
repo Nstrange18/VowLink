@@ -5,6 +5,7 @@ import { Icon } from "@iconify/react";
 
 const INCLUDED_WHATSAPP_SENDS = 100;
 const BILLING_CURRENCY_STORAGE_KEY = "vowlink-billing-currency";
+const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY?.trim();
 
 const WHATSAPP_SEND_PACKS = [
   {
@@ -235,6 +236,11 @@ const AdminBillingPage = () => {
   const handleOpenCheckout = async (plan) => {
     if (checkoutSubmittingRef.current) return;
 
+    if (!PAYSTACK_PUBLIC_KEY?.startsWith("pk_")) {
+      toast.error("Payments are temporarily unavailable. Please contact support.");
+      return;
+    }
+
     if (plan.id === currentTier) {
       toast.info(`You are already subscribed to the ${plan.name}.`);
       return;
@@ -264,7 +270,7 @@ const AdminBillingPage = () => {
     const amountInMinor = plan.priceInNgn * 100; // Native NGN amount in kobo
 
     const paystackOptions = {
-      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
+      key: PAYSTACK_PUBLIC_KEY,
       email: user.email,
       amount: amountInMinor,
       currency: paystackCurrency,
@@ -331,6 +337,11 @@ const AdminBillingPage = () => {
   const handleOpenWhatsAppPackCheckout = async (pack) => {
     if (checkoutSubmittingRef.current) return;
 
+    if (!PAYSTACK_PUBLIC_KEY?.startsWith("pk_")) {
+      toast.error("Payments are temporarily unavailable. Please contact support.");
+      return;
+    }
+
     if (currentTier !== "pro") {
       toast.info("WhatsApp send packs are available after upgrading to Pro.");
       return;
@@ -355,7 +366,7 @@ const AdminBillingPage = () => {
     };
 
     const paystackOptions = {
-      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
+      key: PAYSTACK_PUBLIC_KEY,
       email: user.email,
       amount: pack.priceInNgn * 100,
       currency: "NGN",

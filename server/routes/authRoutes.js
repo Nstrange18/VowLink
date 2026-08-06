@@ -22,6 +22,31 @@ cloudinary.config({
 
 const router = express.Router();
 
+const getPaystackSecretKey = () => {
+  const secretKey = process.env.PAYSTACK_SECRET_KEY?.trim();
+  if (!secretKey || !secretKey.startsWith("sk_")) {
+    const error = new Error("Paystack is not configured.");
+    error.statusCode = 503;
+    throw error;
+  }
+  return secretKey;
+};
+
+const matchesPaystackMode = (secretKey, transaction) => {
+  const expectedDomain = secretKey.startsWith("sk_test_") ? "test" : "live";
+  return !transaction.domain || transaction.domain === expectedDomain;
+};
+
+const hasValidPaystackSignature = (payload, signature, secretKey) => {
+  if (typeof signature !== "string") return false;
+  const expected = crypto
+    .createHmac("sha512", secretKey)
+    .update(JSON.stringify(payload))
+    .digest("hex");
+  if (signature.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+};
+
 // ── Rate limiters ─────────────────────────────────────────────────────────────
 // These protect sensitive auth routes from spam, brute-force attempts, and abuse.
 
@@ -952,8 +977,8 @@ router.post("/upgrade/verify", protect, async (req, res) => {
       });
     }
 
-    const secretKey = process.env.PAYSTACK_SECRET_KEY;
-    const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+    const secretKey = getPaystackSecretKey();
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
 
       headers: {
         Authorization: `Bearer ${secretKey}`,
@@ -965,6 +990,17 @@ router.post("/upgrade/verify", protect, async (req, res) => {
     }
 
     const paystackData = response.data.data;
+    if (!matchesPaystackMode(secretKey, paystackData)) {
+      return res.status(400).json({ message: "Payment mode mismatch." });
+    }
+    if (
+      paystackData.metadata?.paymentType !== "couple_upgrade" ||
+      paystackData.metadata?.tier !== tier ||
+      String(paystackData.metadata?.userId) !== String(req.user.id) ||
+      paystackData.customer?.email?.toLowerCase() !== req.user.email.toLowerCase()
+    ) {
+      return res.status(400).json({ message: "Payment details do not match this account or plan." });
+    }
     const paystackAmount = paystackData.amount;
     const paystackCurrency = paystackData.currency;
 
@@ -1037,8 +1073,8 @@ router.post("/registry/verify", async (req, res) => {
 
 
 
-    const secretKey = process.env.PAYSTACK_SECRET_KEY;
-    const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+    const secretKey = getPaystackSecretKey();
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
       headers: {
         Authorization: `Bearer ${secretKey}`,
       },
@@ -1049,6 +1085,15 @@ router.post("/registry/verify", async (req, res) => {
     }
 
     const paystackData = response.data.data;
+    if (!matchesPaystackMode(secretKey, paystackData)) {
+      return res.status(400).json({ message: "Payment mode mismatch." });
+    }
+    if (
+      paystackData.metadata?.paymentType !== "registry_gift" ||
+      String(paystackData.metadata?.coupleId) !== String(coupleId)
+    ) {
+      return res.status(400).json({ message: "Payment details do not match this gift." });
+    }
     const paystackAmount = paystackData.amount; // in kobo
     const paystackCurrency = paystackData.currency;
 
@@ -1121,13 +1166,8 @@ router.get("/registry/gifts", protect, async (req, res) => {
 // ── POST /api/auth/paystack/webhook — Paystack Webhook Listener ──────────────
 router.post("/paystack/webhook", async (req, res) => {
   try {
-    const secretKey = process.env.PAYSTACK_SECRET_KEY;
-    const hash = crypto
-      .createHmac("sha512", secretKey)
-      .update(JSON.stringify(req.body))
-      .digest("hex");
-
-    if (hash !== req.headers["x-paystack-signature"]) {
+    const secretKey = getPaystackSecretKey();
+    if (!hasValidPaystackSignature(req.body, req.headers["x-paystack-signature"], secretKey)) {
       return res.status(401).json({ message: "Invalid signature" });
     }
 
@@ -1135,13 +1175,24 @@ router.post("/paystack/webhook", async (req, res) => {
     if (event.event === "charge.success") {
       const { reference, customer, metadata } = event.data;
       const email = customer.email;
+      if (!matchesPaystackMode(secretKey, event.data)) {
+        return res.status(400).json({ message: "Payment mode mismatch." });
+      }
       
       const paymentType = metadata?.paymentType || "couple_upgrade";
       const targetTier = metadata?.tier;
       
       if (paymentType === "couple_upgrade" && targetTier && ["free", "plus", "pro"].includes(targetTier)) {
-        const user = await User.findOne({ email: email.toLowerCase() });
-        if (user) {
+        const expectedAmounts = { free: 3000000, plus: 6800000, pro: 12000000 };
+        const user = metadata?.userId
+          ? await User.findById(metadata.userId)
+          : await User.findOne({ email: email.toLowerCase() });
+        const paymentMatches =
+          user &&
+          user.email.toLowerCase() === email.toLowerCase() &&
+          event.data.currency === "NGN" &&
+          event.data.amount === expectedAmounts[targetTier];
+        if (paymentMatches) {
           user.tier = targetTier;
           await user.save();
           console.log(`[PAYSTACK WEBHOOK] Upgraded couple ${email} to ${targetTier}`);
@@ -1213,7 +1264,7 @@ router.post("/paystack/webhook", async (req, res) => {
     res.status(200).send("Webhook received");
   } catch (error) {
     console.error("Paystack webhook error:", error.message);
-    res.status(500).json({ message: "Webhook handler failed", error: error.message });
+    res.status(error.statusCode || 500).json({ message: "Webhook handler failed" });
   }
 });
 

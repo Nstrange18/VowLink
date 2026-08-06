@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { WEDDING_COLORS } from "../ColorPicker";
+import { getWeddingColorHex } from "../ColorPicker";
 import { useSettings } from "../../context/SettingsContext";
 import { getTemplateLayout, getBlockStyles } from "../../utils/templateLayouts";
 import { Icon } from "@iconify/react";
@@ -1010,7 +1010,7 @@ const InvitationCardPreview = () => {
                     </p>
                     <div className="flex flex-wrap gap-1.5 justify-center">
                       {weddingColors.map((name, i) => {
-                        const hex = WEDDING_COLORS.find(c => c.name === name)?.hex || "#999";
+                        const hex = getWeddingColorHex(name);
                         const blockStyles = getBlockProps("colors").style;
                         const isDark = isDarkColor(hex);
                         return (
@@ -1047,8 +1047,8 @@ const InvitationCardPreview = () => {
 
         {/* Quick Upload Own Card Action (Pro Only) */}
         {isPro && (
-          <div className="flex flex-col gap-2 items-center justify-center p-4 rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5">
-            <p className="text-[10px] uppercase font-bold text-[#D8B76A] tracking-wider text-center">Pro Premium Quick Action</p>
+          <div className="flex flex-col gap-3 p-4 rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/5">
+            <p className="text-center text-[10px] uppercase font-bold text-[#D8B76A] tracking-wider">Pro Premium Quick Action</p>
             <button
               type="button"
               onClick={() => {
@@ -1057,14 +1057,18 @@ const InvitationCardPreview = () => {
                   customBgInputRef.current.click();
                 }
               }}
-              className="w-full py-2.5 rounded-xl bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-xs font-bold uppercase tracking-wider text-[#070A13] transition flex items-center justify-center gap-2"
+              className="grid w-full grid-cols-[1.75rem_minmax(0,1fr)] items-center gap-2 rounded-xl bg-[#D8B76A] px-3 py-3 text-xs font-bold uppercase tracking-wider text-[#070A13] transition hover:bg-[#D8B76A]/90"
             >
-              <Icon
-                icon={customCardBg ? "mdi:image-edit" : "mdi:image-plus"}
-                className="h-4 w-4 shrink-0"
-                aria-hidden="true"
-              />
-              <span>{customCardBg ? "Change Your Card Background" : "Add Your Own Card Design"}</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#070A13]/10">
+                <Icon
+                  icon={customCardBg ? "mdi:image-edit" : "mdi:image-plus"}
+                  className="h-4 w-4"
+                  aria-hidden="true"
+                />
+              </span>
+              <span className="min-w-0 text-center leading-snug">
+                {customCardBg ? "Change your card background" : "Add your own card design"}
+              </span>
             </button>
             <p className="text-[8px] text-white/40 text-center">Select custom card theme to preview your own card design.</p>
           </div>

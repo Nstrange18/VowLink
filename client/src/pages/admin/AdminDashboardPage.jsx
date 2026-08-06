@@ -608,11 +608,13 @@ const CountdownWidget = ({ weddingDate, loading }) => {
 };
 
 const AdminDashboardPage = () => {
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const [invitations, setInvitations] = useState([]);
   const [rsvps, setRsvps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [weddingDate, setWeddingDate] = useState(null);
+  const [profile, setProfile] = useState(storedUser);
   const [tourOpen, setTourOpen] = useState(false);
   const initialTourConfig = getDashboardTourConfig();
   const [tourStorageKey, setTourStorageKey] = useState(
@@ -620,8 +622,7 @@ const AdminDashboardPage = () => {
   );
   const [tourTitle, setTourTitle] = useState("Getting started");
   const [tourSteps, setTourSteps] = useState(initialTourConfig.steps);
-  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const tier = storedUser.tier || "unpaid";
+  const tier = profile?.tier || storedUser.tier || "unpaid";
   const isUnpaid = tier === "unpaid";
 
   useEffect(() => {
@@ -637,17 +638,18 @@ const AdminDashboardPage = () => {
         setInvitations(invRes.data);
         setRsvps(rsvpRes.data);
 
-        const profile = profileRes.data || {};
-        const backendTier = profile.tier || "unpaid";
+        const profileData = profileRes.data || {};
+        setProfile({ ...storedUser, ...profileData });
+        const backendTier = profileData.tier || "unpaid";
         const storedTier = storedUser.tier || "unpaid";
         if (backendTier !== storedTier) {
           const nextUser = {
             ...storedUser,
             tier: backendTier,
-            partner1Name: profile.partner1Name || storedUser.partner1Name,
-            partner2Name: profile.partner2Name || storedUser.partner2Name,
-            email: profile.email || storedUser.email,
-            weddingDate: profile.weddingDate || storedUser.weddingDate,
+            partner1Name: profileData.partner1Name || storedUser.partner1Name,
+            partner2Name: profileData.partner2Name || storedUser.partner2Name,
+            email: profileData.email || storedUser.email,
+            weddingDate: profileData.weddingDate || storedUser.weddingDate,
           };
           localStorage.setItem("user", JSON.stringify(nextUser));
           if (getTierRank(backendTier) > getTierRank(storedTier)) {
@@ -809,6 +811,40 @@ const AdminDashboardPage = () => {
 
   // Categories with any invitations
   const activeCategories = Object.entries(byCategory);
+  const setupSteps = [
+    {
+      label: "Account created",
+      complete: Boolean(profile?._id || profile?.email),
+      to: "/admin/dashboard",
+    },
+    {
+      label: "Add wedding details",
+      complete: Boolean(profile?.partner1Name && profile?.partner2Name && profile?.weddingDate),
+      to: "/admin/settings?tab=details",
+    },
+    {
+      label: "Choose a template",
+      complete: Boolean(profile?.cardTheme || profile?.customCardBg),
+      to: "/admin/settings?tab=design",
+    },
+    {
+      label: "Select colours",
+      complete: Array.isArray(profile?.weddingColors) && profile.weddingColors.length >= 3,
+      to: "/admin/settings?tab=design&section=colours",
+    },
+    {
+      label: "Add guests",
+      complete: invitations.length > 0,
+      to: "/admin/invitations",
+    },
+    {
+      label: "Preview and publish",
+      complete: !isUnpaid && invitations.length > 0,
+      to: isUnpaid ? "/admin/billing" : "/admin/invitations",
+    },
+  ];
+  const setupCompleteCount = setupSteps.filter((step) => step.complete).length;
+  const setupPercent = Math.round((setupCompleteCount / setupSteps.length) * 100);
 
   return (
     <div className="p-4 sm:p-8 space-y-10">
@@ -847,6 +883,62 @@ const AdminDashboardPage = () => {
             <Icon icon="lucide:map" className="h-3.5 w-3.5" />
             Take Tour
           </button>
+        </div>
+
+        <div className="mb-6 rounded-3xl border border-white/10 bg-[#0D1220] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.14)] sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">
+                Your invitation setup
+              </p>
+              <h3 className="mt-1 font-serif text-2xl text-white">
+                Finish the essentials
+              </h3>
+              <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/50">
+                Complete these steps to move from workspace setup to a shareable invitation.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/10 px-4 py-3 text-center">
+              <p className="font-serif text-3xl leading-none text-[#D8B76A]">
+                {setupPercent}%
+              </p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/45">
+                Complete
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full bg-[#D8B76A] transition-all duration-700"
+              style={{ width: `${setupPercent}%` }}
+            />
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {setupSteps.map((step) => (
+              <Link
+                key={step.label}
+                to={step.to}
+                className={`group flex min-w-0 items-center gap-3 rounded-2xl border p-3 transition active:scale-[0.99] ${
+                  step.complete
+                    ? "border-emerald-400/20 bg-emerald-400/10"
+                    : "border-white/10 bg-white/5 hover:border-[#D8B76A]/30 hover:bg-[#D8B76A]/10"
+                }`}
+              >
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border ${
+                    step.complete
+                      ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                      : "border-white/10 bg-[#070A13]/70 text-white/35 group-hover:text-[#D8B76A]"
+                  }`}
+                >
+                  <Icon icon={step.complete ? "lucide:check" : "lucide:circle"} className="h-3.5 w-3.5" />
+                </span>
+                <span className="min-w-0 text-xs font-semibold text-white/75">
+                  {step.label}
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
 
         {isUnpaid && (

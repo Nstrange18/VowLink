@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../utils/api";
 import { settingsSchema } from "../utils/schemas";
-import { WEDDING_COLORS } from "../components/ColorPicker";
+import { WEDDING_COLORS, isHexColor } from "../components/ColorPicker";
 import { normalizePublicImageUrl } from "../utils/publicAssets";
 
 const SettingsContext = createContext(null);
@@ -35,7 +35,12 @@ const resolveWeddingColors = (colors, defaultColorsList) => {
     colorMap[c.name.toLowerCase()] = c.hex;
   });
 
-  const hexList = (colors || []).map(name => colorMap[name.toLowerCase()]).filter(Boolean);
+  const hexList = (colors || [])
+    .map((name) => {
+      if (isHexColor(name)) return name.toUpperCase();
+      return colorMap[String(name).toLowerCase()];
+    })
+    .filter(Boolean);
 
   const primary = hexList[0] || "#1A2E4A"; // Default Navy
   

@@ -45,6 +45,7 @@ const AdminLayout = () => {
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [openGroups, setOpenGroups] = useState({ invitations: true })
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const user = JSON.parse(localStorage.getItem('user') || '{}')
   const tier = user.tier || 'unpaid'
   const isUnpaid = tier === 'unpaid'
@@ -84,46 +85,17 @@ const AdminLayout = () => {
   }
 
   const handleLogout = () => {
-    toast.dismiss();
-    toast.warn(
-      ({ closeToast }) => (
-        <div className="flex flex-col gap-2 p-1 text-white">
-          <p className="font-semibold text-xs leading-relaxed">
-            Are you sure you want to log out of your wedding portal?
-          </p>
-          <div className="flex gap-2 justify-end mt-1">
-            <button
-              type="button"
-              onClick={closeToast}
-              className="px-2.5 py-1 text-[10px] font-semibold bg-white/10 hover:bg-white/20 text-white rounded transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('user');
-                closeToast();
-                toast.info("Logged out successfully.");
-                navigate('/admin/login');
-              }}
-              className="px-2.5 py-1 text-[10px] font-semibold bg-red-600 hover:bg-red-700 text-white rounded transition"
-            >
-              Confirm Logout
-            </button>
-          </div>
-        </div>
-      ),
-      {
-        position: "top-center",
-        autoClose: false,
-        closeOnClick: false,
-        draggable: false,
-        closeButton: false,
-      }
-    );
+    setSidebarOpen(false)
+    setLogoutConfirmOpen(true)
+  }
+
+  const logout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('user')
+    setLogoutConfirmOpen(false)
+    toast.info('Logged out successfully.')
+    navigate('/admin/login')
   }
 
   const SidebarContent = () => (
@@ -297,6 +269,39 @@ const AdminLayout = () => {
 
   return (
     <div className="relative h-screen w-full overflow-hidden overflow-x-clip bg-[#070A13]">
+      {logoutConfirmOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/25 bg-[#0D1220] p-6 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#D8B76A]/12 text-[#D8B76A]">
+                <Icon icon="lucide:log-out" className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 className="font-serif text-2xl text-white">Log out?</h2>
+                <p className="mt-2 text-sm leading-relaxed text-white/80">
+                  Make sure your latest wedding workspace changes are saved before leaving.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setLogoutConfirmOpen(false)}
+                className="rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold text-white/70 transition hover:bg-white/10"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={logout}
+                className="rounded-full bg-[#D8B76A] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-[#070A13] transition hover:bg-[#F2D894]"
+              >
+                Log out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* ── Mobile sidebar overlay ────────────────────────────── */}
       {sidebarOpen && (
         <div

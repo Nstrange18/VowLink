@@ -9,7 +9,7 @@ import { getTemplateLayout, getBlockStyles } from "../utils/templateLayouts";
 import { normalizePublicImageUrl } from "../utils/publicAssets";
 import api from "../utils/api";
 import { rsvpSchema } from "../utils/schemas";
-import { WEDDING_COLORS } from "../components/ColorPicker";
+import { WEDDING_COLORS, getWeddingColorHex, isHexColor } from "../components/ColorPicker";
 import { Icon } from "@iconify/react";
 import { buildPublicUrl } from "../utils/siteUrl";
 
@@ -53,7 +53,12 @@ const resolveWeddingColors = (colors, defaultColorsList) => {
     colorMap[c.name.toLowerCase()] = c.hex;
   });
 
-  const hexList = (colors || []).map(name => colorMap[name.toLowerCase()]).filter(Boolean);
+  const hexList = (colors || [])
+    .map((name) => {
+      if (isHexColor(name)) return name.toUpperCase();
+      return colorMap[String(name).toLowerCase()];
+    })
+    .filter(Boolean);
 
   const primary = hexList[0] || "#1A2E4A"; // Default Navy
 
@@ -61,8 +66,10 @@ const resolveWeddingColors = (colors, defaultColorsList) => {
   const tertiary = hexList[2] || secondary;
 
   const lightColors = ["ivory", "white", "cream", "nude", "blush pink", "peach", "mint green", "champagne gold"];
-  const selectedBgColorName = (colors || []).find(name => lightColors.includes(name.toLowerCase()));
-  const selectedBgHex = selectedBgColorName ? colorMap[selectedBgColorName.toLowerCase()] : null;
+  const selectedBgColorName = (colors || []).find((name) =>
+    !isHexColor(name) && lightColors.includes(String(name).toLowerCase()),
+  );
+  const selectedBgHex = selectedBgColorName ? colorMap[String(selectedBgColorName).toLowerCase()] : null;
 
   return { primary, secondary, tertiary, selectedBgHex };
 };
@@ -1409,7 +1416,7 @@ const InvitePage = ({ setThemePreference }) => {
         chips.style.gap = "8px";
 
         weddingColors.forEach((name) => {
-          const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999999";
+          const hex = getWeddingColorHex(name);
           const chip = document.createElement("div");
           chip.style.display = "inline-flex";
           chip.style.alignItems = "center";
@@ -2462,7 +2469,7 @@ const InvitePage = ({ setThemePreference }) => {
                           </p>
                           <div className="invite-card-color-chips flex flex-wrap justify-center gap-1.5">
                             {weddingColors.map((name, i) => {
-                              const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999";
+                              const hex = getWeddingColorHex(name);
                               const blockStyles = getBlockProps("colors", "2000ms").style;
                               const isDark = isDarkColor(hex);
                               return (
@@ -2845,7 +2852,7 @@ const InvitePage = ({ setThemePreference }) => {
               {weddingColors.length > 0 ? (
                 <div className="flex justify-center flex-wrap gap-2">
                   {weddingColors.map((name, i) => {
-                    const hex = WEDDING_COLORS.find((c) => c.name === name)?.hex || "#999";
+                    const hex = getWeddingColorHex(name);
                     const isDark = isDarkColor(hex);
                     return (
                       <div

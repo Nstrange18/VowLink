@@ -469,7 +469,7 @@ const LandingPage = () => {
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition group-hover:bg-[#D8B76A] group-hover:text-[#070A13]">
                     <Icon icon="ri:whatsapp-line" className="h-4 w-4" />
                   </span>
-                  <span>09127315930</span>
+                  <span>+ 2349127315930</span>
                 </a>
                 <a
                   href="https://instagram.com/vowlink.co"

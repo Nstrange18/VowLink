@@ -5,21 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { signupSchema } from "../../utils/schemas";
-import ColorPicker, { WEDDING_COLORS } from "../../components/ColorPicker";
 import CustomSelect from "../../components/CustomSelect";
 import InternationalPhoneInput from "../../components/InternationalPhoneInput";
 import { Icon } from "@iconify/react";
-
-const isDarkColor = (hex) => {
-  if (!hex || hex === '#999') return false;
-  const c = hex.replace('#', '');
-  if (c.length !== 6) return false;
-  const r = parseInt(c.substring(0, 2), 16);
-  const g = parseInt(c.substring(2, 4), 16);
-  const b = parseInt(c.substring(4, 6), 16);
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness < 120;
-};
 
 const EyeIcon = ({ open }) => (
   <svg
@@ -57,7 +45,6 @@ const cls = (err) => `${inputBase} ${err ? inputErr : inputOk}`;
 const SignupPage = () => {
   const [show, setShow] = useState({ password: false, confirm: false });
   const [loading, setLoading] = useState(false);
-  const [weddingColors, setWeddingColors] = useState([]);
   const navigate = useNavigate();
 
   const {
@@ -109,7 +96,6 @@ const SignupPage = () => {
         rsvpDeadline: data.rsvpDeadline || null,
         venue: data.venue || "",
         receptionLocation: data.receptionLocation || "",
-        weddingColors,
         dressCode: data.dressCode || "",
         plusOnePolicy: data.plusOnePolicy,
         kidsAllowed: data.kidsAllowed,
@@ -144,15 +130,14 @@ const SignupPage = () => {
 
   return (
     <section className="auth-shell flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg2.webp')] bg-cover bg-top bg-no-repeat px-4 sm:px-6 py-10">
-      <Link
-        to="/"
-        className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-1 bg-[#070A13] rounded-full py-1.5 sm:py-2 px-2 sm:px-3 text-xs sm:text-sm text-[#D8B76A] hover:text-[#D8B76A]/70 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] transition whitespace-nowrap"
-      >
-        <span>←</span>
-        <span className="hidden sm:inline">Back to Home</span>
-        <span className="sm:hidden">Home</span>
-      </Link>
       <div className="w-full max-w-md rounded-3xl border border-[#D8B76A]/40 bg-[#070A13]/85 px-6 sm:px-8 py-10 sm:py-12 shadow-2xl backdrop-blur-md max-h-[95vh] overflow-y-auto no-scrollbar">
+        <Link
+          to="/"
+          className="mb-6 inline-flex items-center gap-2 text-xs font-semibold text-[#D8B76A]"
+        >
+          <Icon icon="lucide:arrow-left" className="h-4 w-4" />
+          Back to VowLink
+        </Link>
         <p className="mb-2 text-center text-xs uppercase tracking-[0.35em] text-[#D8B76A]">
           Create Your Account
         </p>
@@ -210,7 +195,8 @@ const SignupPage = () => {
             />
             <FieldError name="couplePhone" />
             <p className="mt-1 text-[10px] text-white/30">
-              Optional. Used as the couple contact number for event follow-up and admin tools.
+              Optional. Used as the couple contact number for event follow-up
+              and admin tools.
             </p>
           </div>
 
@@ -360,16 +346,33 @@ const SignupPage = () => {
             </p>
           </div>
 
-          {/* Wedding Colours */}
-          <div>
-            <label className="mb-2 block text-xs uppercase tracking-widest text-white/50">
-              Wedding Colours
-            </label>
-            <ColorPicker value={weddingColors} onChange={setWeddingColors} />
-            <p className="mt-1 text-xs text-white/30">
-              Pick up to 5 colours for your dress code &amp; invitation. You can
-              update later.
-            </p>
+          <div className="rounded-2xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 p-4">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 text-[#D8B76A]">
+                <Icon icon="lucide:palette" className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <h3 className="font-serif text-xl leading-tight text-white">
+                  Choose your wedding style later
+                </h3>
+                <p className="mt-1 text-xs leading-relaxed text-white/55">
+                  Select your colours, fonts and invitation design from your dashboard.
+                </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    document.getElementById("signup-submit-btn")?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                    })
+                  }
+                  className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#D8B76A]/25 bg-[#070A13]/60 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#D8B76A] transition hover:bg-[#D8B76A] hover:text-[#070A13]"
+                >
+                  Skip for now
+                  <Icon icon="lucide:arrow-down" className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Dress Code */}
@@ -411,9 +414,7 @@ const SignupPage = () => {
                         value: "invitation_only",
                         label: "Strictly by invitation",
                       },
-                      { value: "plus_one_allowed", 
-                        label: "Plus one allowed" 
-                      },
+                      { value: "plus_one_allowed", label: "Plus one allowed" },
                     ]}
                   />
                 )}
@@ -468,7 +469,10 @@ const SignupPage = () => {
               )}
               {weddingTime && (
                 <p className="flex items-center gap-1.5 text-xs text-[#D8B76A]">
-                  <Icon icon="mdi:clock-time-four-outline" className="h-3.5 w-3.5 shrink-0" />
+                  <Icon
+                    icon="mdi:clock-time-four-outline"
+                    className="h-3.5 w-3.5 shrink-0"
+                  />
                   <span>{formattedTimeWithFormat}</span>
                 </p>
               )}
@@ -501,24 +505,6 @@ const SignupPage = () => {
                   <Icon icon="mdi:tie" className="h-3.5 w-3.5" />
                   {dressCode}
                 </p>
-              )}
-              {weddingColors.length > 0 && (
-                <div className="flex justify-center gap-1 pt-1">
-                  {weddingColors.map((name, i) => {
-                    const hex =
-                      WEDDING_COLORS.find((c) => c.name === name)?.hex ||
-                      "#999";
-                    const isDark = isDarkColor(hex);
-                    return (
-                      <div
-                        key={i}
-                        title={name}
-                        className={`h-4 w-4 rounded-full border ${isDark ? 'border-white/60' : 'border-white/20'}`}
-                        style={{ background: hex }}
-                      />
-                    );
-                  })}
-                </div>
               )}
             </div>
           )}

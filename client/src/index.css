@@ -755,9 +755,42 @@ html.vowlink-light .template-lock-overlay .text-white\/50 {
 }
 
 html.vowlink-light .settings-theme-panel,
-html.vowlink-light .settings-theme-subpanel {
+html.vowlink-light .settings-theme-subpanel,
+html.vowlink-light .settings-colour-panel {
   background-color: rgba(255, 255, 255, 0.78) !important;
   border-color: rgba(31, 41, 51, 0.14) !important;
+}
+
+html.vowlink-light .colour-picker {
+  color: #1f2933;
+}
+
+html.vowlink-light .colour-picker .text-white,
+html.vowlink-light .colour-picker .text-white\/75,
+html.vowlink-light .colour-picker .text-white\/70,
+html.vowlink-light .colour-picker .text-white\/65,
+html.vowlink-light .colour-picker .text-white\/55 {
+  color: rgba(31, 41, 51, 0.78) !important;
+}
+
+html.vowlink-light .colour-picker .text-white\/50,
+html.vowlink-light .colour-picker .text-white\/45,
+html.vowlink-light .colour-picker .text-white\/40,
+html.vowlink-light .colour-picker .text-white\/35 {
+  color: rgba(31, 41, 51, 0.56) !important;
+}
+
+html.vowlink-light .colour-picker .colour-picker-input,
+html.vowlink-light .colour-picker .colour-picker-swatch,
+html.vowlink-light .colour-picker .bg-white\/5,
+html.vowlink-light .colour-picker aside {
+  background-color: rgba(255, 250, 240, 0.74) !important;
+  border-color: rgba(31, 41, 51, 0.14) !important;
+  color: #1f2933 !important;
+}
+
+html.vowlink-light .colour-picker .colour-picker-input::placeholder {
+  color: rgba(31, 41, 51, 0.42) !important;
 }
 
 html.vowlink-light .templates-gallery-page .template-gallery-card {

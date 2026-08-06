@@ -54,7 +54,10 @@ const AdminLoginPage = () => {
       localStorage.setItem("refreshToken", res.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       toast.success("Welcome back!");
-      if (res.data.user?.role === "admin" && res.data.user?.email?.toLowerCase() === "nwubachukwuemelie@gmail.com") {
+      if (
+        res.data.user?.role === "admin" &&
+        res.data.user?.email?.toLowerCase() === "nwubachukwuemelie@gmail.com"
+      ) {
         navigate("/super-admin/dashboard");
       } else {
         navigate("/admin/dashboard");
@@ -75,15 +78,14 @@ const AdminLoginPage = () => {
 
   return (
     <section className="auth-shell flex min-h-screen items-center justify-center bg-[#070A13] bg-[url('/hero-bg2.webp')] bg-cover bg-top bg-no-repeat px-6">
-      <Link
-        to="/"
-        className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-1 bg-[#070A13] rounded-full py-1.5 sm:py-2 px-2 sm:px-3 text-xs sm:text-sm text-[#D8B76A] hover:text-[#D8B76A]/70 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)] transition whitespace-nowrap"
-      >
-        <span>←</span>
-        <span className="hidden sm:inline">Back to Home</span>
-        <span className="sm:hidden">Home</span>
-      </Link>
       <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/40 bg-[#070A13]/85 px-8 py-12 shadow-2xl backdrop-blur-md">
+        <Link
+          to="/"
+          className="mb-6 inline-flex items-center gap-2 text-xs font-semibold text-[#D8B76A]"
+        >
+          <Icon icon="lucide:arrow-left" className="h-4 w-4" />
+          Back to VowLink
+        </Link>
         <p className="mb-2 text-center text-xs uppercase tracking-[0.35em] text-[#D8B76A]">
           Couple Portal
         </p>
@@ -161,7 +163,6 @@ const AdminLoginPage = () => {
             Create your account
           </Link>
         </p>
-
       </div>
     </section>
   );

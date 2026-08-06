@@ -9,6 +9,8 @@ import { buildPublicUrl } from "../../utils/siteUrl";
 import PageMiniTour from "../../components/PageMiniTour";
 import { normalizeInternationalPhone } from "../../utils/phoneNumbers";
 
+const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY?.trim();
+
 const WHATSAPP_TOUR_STEPS = [
   {
     target: '[data-tour="whatsapp-header"]',
@@ -653,6 +655,11 @@ const AdminBulkWhatsAppPage = () => {
   const handleOpenSendPackCheckout = async (pack) => {
     if (checkoutSubmittingRef.current) return;
 
+    if (!PAYSTACK_PUBLIC_KEY?.startsWith("pk_")) {
+      toast.error("Payments are temporarily unavailable. Please contact support.");
+      return;
+    }
+
     checkoutSubmittingRef.current = true;
     setCheckoutLocked(true);
     setLoadingPaystack(true);
@@ -672,9 +679,7 @@ const AdminBulkWhatsAppPage = () => {
     };
 
     const paystackOptions = {
-      key:
-        import.meta.env.VITE_PAYSTACK_PUBLIC_KEY ||
-        "pk_live_c3d7e8c28a21ae50bd22b5d448b1a80d0a00ed07",
+      key: PAYSTACK_PUBLIC_KEY,
       email: user.email,
       amount: pack.priceInNgn * 100,
       currency: "NGN",

@@ -337,6 +337,9 @@ const AdminSettingsPageContent = () => {
     customCardBg,
     savedCardBg,
     savedCardTheme,
+    customTextColor,
+    setCustomTextColor,
+    setUserHasCustomTextColor,
     couplePhotoUrl,
     setCouplePhotoUrl,
     customShareMessage,
@@ -454,6 +457,17 @@ const AdminSettingsPageContent = () => {
       setActiveTab(tabParam);
     }
   }, [location, setActiveTab]);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const sectionParam = params.get("section");
+    if (activeTab !== "design" || sectionParam !== "colours") return;
+    window.setTimeout(() => {
+      document
+        .querySelector('[data-section="colours"]')
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+  }, [activeTab, location.search]);
 
   React.useEffect(() => {
     const loadCheckInPinStatus = async () => {
@@ -860,21 +874,6 @@ const AdminSettingsPageContent = () => {
                       </p>
                     </div>
 
-                    {/* Wedding Colours Selector */}
-                    <div>
-                      <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50 font-semibold">
-                        Wedding Colours
-                      </label>
-                      <ColorPicker
-                        value={weddingColors}
-                        onChange={setWeddingColors}
-                      />
-                      <p className="mt-1 text-[9px] text-white/30">
-                        Pick up to 5 colours for your dress code & invitation.
-                        You can update later.
-                      </p>
-                    </div>
-
                     {/* Dress Code */}
                     <div>
                       <label className="mb-1.5 block text-[10px] uppercase tracking-widest text-white/50">
@@ -954,6 +953,19 @@ const AdminSettingsPageContent = () => {
               {activeTab === "design" && (
                 <div className="space-y-6">
                   <ThemeSelector />
+
+                  <div className="settings-colour-panel min-w-0 rounded-2xl border border-[#D8B76A]/20 bg-[#111827] p-3 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-5">
+                    <ColorPicker
+                      value={weddingColors}
+                      onChange={setWeddingColors}
+                      textColor={customTextColor}
+                      onUseRecommendedTextColor={(color) => {
+                        setCustomTextColor(color);
+                        setUserHasCustomTextColor(true);
+                        toast.info("Recommended text colour applied. Save changes to publish it.");
+                      }}
+                    />
+                  </div>
 
                   {/* AI Invitation Background Generator — teaser linking to Templates page */}
                   <div className="relative isolate min-w-0 overflow-hidden rounded-2xl border border-[#D8B76A]/25 bg-[#111827] p-3 shadow-[0_18px_50px_rgba(0,0,0,0.22)] sm:p-5 space-y-4">
