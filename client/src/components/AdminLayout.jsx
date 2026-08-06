@@ -270,7 +270,7 @@ const AdminLayout = () => {
   return (
     <div className="relative h-screen w-full overflow-hidden overflow-x-clip bg-[#070A13]">
       {logoutConfirmOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/25 bg-[#0D1220] p-6 shadow-2xl">
             <div className="flex items-start gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#D8B76A]/12 text-[#D8B76A]">
