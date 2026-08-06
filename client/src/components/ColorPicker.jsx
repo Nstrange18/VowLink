@@ -38,16 +38,17 @@ export const WEDDING_COLORS = [
 ];
 
 export const RECOMMENDED_WEDDING_PALETTES = [
-  ["Champagne Gold", "Ivory", "Midnight Black"],
-  ["Burgundy", "Blush Pink", "Gold"],
-  ["Sage Green", "Cream", "Nude"],
-  ["Royal Blue", "Silver", "White"],
-  ["Terracotta", "Peach", "Cream"],
-  ["Emerald Green", "Gold", "Ivory"],
+  { name: "Classic Luxury", colors: ["Champagne Gold", "Ivory", "Midnight Black"] },
+  { name: "Romantic Burgundy", colors: ["Burgundy", "Blush Pink", "Gold"] },
+  { name: "Soft Garden", colors: ["Sage Green", "Cream", "Nude"] },
+  { name: "Royal Evening", colors: ["Royal Blue", "Silver", "White"] },
+  { name: "Warm Sunset", colors: ["Terracotta", "Peach", "Cream"] },
+  { name: "Emerald Luxe", colors: ["Emerald Green", "Gold", "Ivory"] },
 ];
 
 const FILTERS = ["Warm", "Cool", "Neutral", "Bold", "Pastel", "Metallic", "Earthy"];
 const ROLES = ["Primary", "Secondary", "Accent"];
+const PREVIEW_SURFACES = ["Card", "Guest page", "RSVP"];
 const HEX_RE = /^#[0-9A-F]{6}$/i;
 const RECENT_KEY = "vowlink_recent_custom_colours";
 const COLOUR_PAGE_SIZE = 10;
@@ -173,6 +174,8 @@ const ColorPicker = ({
   onChange,
   textColor = "#1A2E4A",
   onUseRecommendedTextColor,
+  hasUnsavedChanges = false,
+  templateColours = RECOMMENDED_WEDDING_PALETTES[0].colors,
   showSaveAction = true,
 }) => {
   const selected = normalizeWeddingColors(value);
@@ -185,6 +188,7 @@ const ColorPicker = ({
   const [brightness, setBrightness] = useState(0);
   const [customPreviewHex, setCustomPreviewHex] = useState("#C9A84C");
   const [recentColours, setRecentColours] = useState([]);
+  const [previewSurface, setPreviewSurface] = useState("Card");
 
   useEffect(() => {
     setRecentColours(getStoredRecent());
@@ -208,6 +212,7 @@ const ColorPicker = ({
   const recommendedText = readableTextColor(primaryHex);
   const activeContrast = contrastRatio(primaryHex, isHexColor(textColor) ? textColor : recommendedText);
   const hasPoorContrast = activeContrast < 4.5;
+  const textColorAlreadyReadable = isHexColor(textColor) && textColor.toUpperCase() === recommendedText.toUpperCase();
 
   const updateSlot = (slot, colorName) => {
     const next = [...selected];
@@ -271,6 +276,11 @@ const ColorPicker = ({
     setRecentColours(storeRecent(customPreviewHex));
   };
 
+  const resetToTemplateColours = () => {
+    onChange(normalizeWeddingColors(templateColours).length ? normalizeWeddingColors(templateColours) : RECOMMENDED_WEDDING_PALETTES[0].colors);
+    setActiveRole(0);
+  };
+
   return (
     <section id="colours-style" data-section="colours" className="colour-picker space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -282,6 +292,26 @@ const ColorPicker = ({
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/55">
             Choose up to three confirmed shades. Typed descriptions only guide the swatches shown here.
           </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                hasUnsavedChanges
+                  ? "border-amber-300/30 bg-amber-400/10 text-amber-200"
+                  : "border-emerald-300/25 bg-emerald-400/10 text-emerald-200"
+              }`}
+            >
+              <Icon icon={hasUnsavedChanges ? "lucide:pencil-line" : "lucide:check-circle"} className="h-3.5 w-3.5" />
+              {hasUnsavedChanges ? "Previewing changes" : "Saved colours"}
+            </span>
+            <button
+              type="button"
+              onClick={resetToTemplateColours}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white/55 transition hover:border-[#D8B76A]/35 hover:text-[#D8B76A]"
+            >
+              <Icon icon="lucide:rotate-ccw" className="h-3.5 w-3.5" />
+              Reset to template colours
+            </button>
+          </div>
         </div>
         <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-2 sm:w-auto sm:min-w-44">
           <div className="grid grid-cols-3 overflow-hidden rounded-xl border border-white/10">
@@ -300,6 +330,20 @@ const ColorPicker = ({
         </div>
       </div>
 
+      <div className="rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/8 p-3">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 text-[#D8B76A]">
+            <Icon icon="lucide:route" className="h-4 w-4" />
+          </span>
+          <div>
+            <p className="text-xs font-bold text-white">Pick a palette, adjust colours, then save.</p>
+            <p className="mt-1 text-[10px] leading-relaxed text-white/50">
+              Search helps you find visual swatches. Custom hex colours are only applied after confirmation.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-3">
         <label className="block rounded-2xl border border-white/10 bg-white/5 p-3 transition focus-within:border-[#D8B76A]/50 focus-within:bg-white/8">
           <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-[#D8B76A]">
@@ -315,7 +359,9 @@ const ColorPicker = ({
             />
           </span>
           <span className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-white/45">
-            {query ? `${filteredColors.length} matching visual shades` : "Typing filters the swatches below. It never saves text by itself."}
+            {query
+              ? `Showing ${filteredColors.length} visual shade${filteredColors.length === 1 ? "" : "s"} related to "${query}". Pick a swatch to preview it.`
+              : "Typing filters the swatches below. It never saves text by itself."}
             {queryTag && (
               <span className="rounded-full border border-[#D8B76A]/25 bg-[#D8B76A]/10 px-2 py-1 font-bold uppercase tracking-wider text-[#D8B76A]">
                 {queryTag}
@@ -404,21 +450,40 @@ const ColorPicker = ({
         <div className="grid gap-3 sm:grid-cols-2">
           {RECOMMENDED_WEDDING_PALETTES.map((palette) => (
             <button
-              key={palette.join("-")}
+              key={palette.name}
               type="button"
-              onClick={() => onChange(palette)}
+              onClick={() => onChange(palette.colors)}
               className="group rounded-2xl border border-white/10 bg-[#070A13]/55 p-3 text-left transition hover:border-[#D8B76A]/45 hover:bg-[#D8B76A]/10 active:scale-[0.99]"
             >
               <div className="flex overflow-hidden rounded-xl border border-white/10">
-                {palette.map((name) => (
+                {palette.colors.map((name) => (
                   <span key={name} className="h-10 flex-1" style={{ background: getWeddingColorHex(name) }} />
                 ))}
               </div>
-              <p className="mt-2 text-[10px] font-semibold text-white/65">{palette.join(", ")}</p>
+              <p className="mt-2 text-xs font-bold text-white/80">{palette.name}</p>
+              <p className="mt-1 text-[10px] font-semibold leading-snug text-white/50">{palette.colors.join(", ")}</p>
             </button>
           ))}
         </div>
       </div>
+
+      {recentColours.length > 0 && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4">
+          <h4 className="mb-3 text-[10px] font-bold uppercase tracking-[0.24em] text-[#D8B76A]">
+            Recently used
+          </h4>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {recentColours.slice(0, 4).map((hex) => (
+              <ColorSwatchButton
+                key={`recent-${hex}`}
+                color={{ name: hex, hex }}
+                active={selected.includes(hex)}
+                onClick={() => updateSlot(activeRole, hex)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-4">
         <div className="space-y-4">
@@ -493,7 +558,7 @@ const ColorPicker = ({
               )}
               {filteredColors.length === 0 && (
                 <p className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/50">
-                  No saved colour matches that phrase. Try a broader word like soft, luxury, blue, or earthy.
+                  No exact visual match. Try champagne, wine, blue, soft, luxury, or earthy.
                 </p>
               )}
             </div>
@@ -545,8 +610,36 @@ const ColorPicker = ({
           </div>
           <div className="overflow-hidden rounded-2xl border border-white/10" style={{ background: primaryHex }}>
             <div className="p-4" style={{ color: recommendedText }}>
-              <p className="text-[10px] uppercase tracking-[0.24em] opacity-70">Preview invitation colours</p>
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                {PREVIEW_SURFACES.map((surface) => (
+                  <button
+                    key={surface}
+                    type="button"
+                    onClick={() => setPreviewSurface(surface)}
+                    className={`rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider transition ${
+                      previewSurface === surface
+                        ? "border-white/50 bg-white/20"
+                        : "border-white/15 bg-black/10 opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    {surface}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] uppercase tracking-[0.24em] opacity-70">
+                Preview {previewSurface.toLowerCase()} colours
+              </p>
               <p className="mt-2 font-serif text-2xl">Allen & Justina</p>
+              {previewSurface === "Guest page" && (
+                <p className="mt-2 max-w-[16rem] text-xs leading-relaxed opacity-80">
+                  Guest details, RSVP prompts, and invitation links use this contrast.
+                </p>
+              )}
+              {previewSurface === "RSVP" && (
+                <div className="mt-3 inline-flex rounded-full border border-white/25 px-3 py-1 text-[10px] font-bold uppercase tracking-wider">
+                  Attending
+                </div>
+              )}
               <div className="mt-3 flex gap-2">
                 {selected.map((item, index) => (
                   <span key={`${item}-preview-${index}`} className="h-5 w-5 rounded-full border border-black/10" style={{ background: getWeddingColorHex(item) }} />
@@ -554,18 +647,23 @@ const ColorPicker = ({
               </div>
             </div>
           </div>
-          {hasPoorContrast && (
-            <div className="rounded-xl border border-red-300/25 bg-red-500/10 p-3 text-[10px] leading-relaxed text-red-200">
-              This text/background combination may be hard to read.
-            </div>
-          )}
+          <div
+            className={`rounded-xl border p-3 text-[10px] font-semibold leading-relaxed ${
+              hasPoorContrast
+                ? "border-red-300/25 bg-red-500/10 text-red-200"
+                : "border-emerald-300/20 bg-emerald-400/10 text-emerald-200"
+            }`}
+          >
+            {hasPoorContrast ? "Low contrast. Text may be hard to read on this background." : "Readable contrast for the selected background."}
+          </div>
           <button
             type="button"
+            disabled={textColorAlreadyReadable}
             onClick={() => onUseRecommendedTextColor?.(recommendedText)}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/70 transition hover:border-[#D8B76A]/35 hover:text-[#D8B76A]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/70 transition hover:border-[#D8B76A]/35 hover:text-[#D8B76A] disabled:cursor-default disabled:opacity-60"
           >
             <Icon icon="lucide:wand-sparkles" className="h-3.5 w-3.5" />
-            Use recommended text colour ({recommendedText})
+            {textColorAlreadyReadable ? "Readable text colour active" : `Fix text contrast (${recommendedText})`}
           </button>
           {showSaveAction && (
             <button

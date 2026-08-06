@@ -43,6 +43,20 @@ const SETTINGS_TOUR_STEPS = [
   },
 ];
 
+const getTemplateColourDefaults = (cardTheme, customCardBg = "") => {
+  const source = `${cardTheme || ""} ${customCardBg || ""}`.toLowerCase();
+  if (source.includes("burgundy") || source.includes("rose")) return ["Burgundy", "Blush Pink", "Gold"];
+  if (source.includes("emerald") || source.includes("forest") || source.includes("eucalyptus")) return ["Emerald Green", "Gold", "Ivory"];
+  if (source.includes("navy") || source.includes("blue")) return ["Royal Blue", "Champagne Gold", "Ivory"];
+  if (source.includes("blush") || source.includes("pink")) return ["Blush Pink", "Rose Gold", "Ivory"];
+  if (source.includes("cream") || source.includes("linen") || source.includes("minimalist")) return ["Sage Green", "Cream", "Nude"];
+  if (source.includes("terracotta") || source.includes("peach")) return ["Terracotta", "Peach", "Cream"];
+  if (source.includes("midnight") || source.includes("black") || source.includes("stardust") || source.includes("gold")) {
+    return ["Champagne Gold", "Ivory", "Midnight Black"];
+  }
+  return ["Champagne Gold", "Ivory", "Midnight Black"];
+};
+
 const SETTINGS_TAB_GUIDES = {
   details: {
     icon: "lucide:calendar-heart",
@@ -959,10 +973,12 @@ const AdminSettingsPageContent = () => {
                       value={weddingColors}
                       onChange={setWeddingColors}
                       textColor={customTextColor}
+                      hasUnsavedChanges={changedSettingsSections.includes("design")}
+                      templateColours={getTemplateColourDefaults(cardTheme, customCardBg)}
                       onUseRecommendedTextColor={(color) => {
                         setCustomTextColor(color);
                         setUserHasCustomTextColor(true);
-                        toast.info("Recommended text colour applied. Save changes to publish it.");
+                        toast.info("Readable text colour applied. Save changes to publish it.");
                       }}
                     />
                   </div>

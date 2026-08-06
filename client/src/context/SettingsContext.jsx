@@ -593,7 +593,10 @@ export const SettingsProvider = ({ children }) => {
       const savedSections = changedSettingsSections.length
         ? changedSettingsSections.join(", ")
         : "settings";
-      toast.success(`Saved ${savedSections}. Updates applied to invitation cards.`);
+      const nextStep = changedSettingsSections.includes("design")
+        ? " Next: preview your invitation from Invitations."
+        : "";
+      toast.success(`Saved ${savedSections}. Updates applied to invitation cards.${nextStep}`);
       window.setTimeout(() => window.location.reload(), 650);
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed. Please try again.");

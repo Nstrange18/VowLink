@@ -816,31 +816,37 @@ const AdminDashboardPage = () => {
       label: "Account created",
       complete: Boolean(profile?._id || profile?.email),
       to: "/admin/dashboard",
+      action: "View",
     },
     {
       label: "Add wedding details",
       complete: Boolean(profile?.partner1Name && profile?.partner2Name && profile?.weddingDate),
       to: "/admin/settings?tab=details",
+      action: "Edit details",
     },
     {
       label: "Choose a template",
       complete: Boolean(profile?.cardTheme || profile?.customCardBg),
       to: "/admin/settings?tab=design",
+      action: "Choose",
     },
     {
       label: "Select colours",
       complete: Array.isArray(profile?.weddingColors) && profile.weddingColors.length >= 3,
       to: "/admin/settings?tab=design&section=colours",
+      action: "Select",
     },
     {
       label: "Add guests",
       complete: invitations.length > 0,
       to: "/admin/invitations",
+      action: "Add guests",
     },
     {
       label: "Preview and publish",
       complete: !isUnpaid && invitations.length > 0,
       to: isUnpaid ? "/admin/billing" : "/admin/invitations",
+      action: isUnpaid ? "Choose plan" : "Preview",
     },
   ];
   const setupCompleteCount = setupSteps.filter((step) => step.complete).length;
@@ -883,6 +889,50 @@ const AdminDashboardPage = () => {
             <Icon icon="lucide:map" className="h-3.5 w-3.5" />
             Take Tour
           </button>
+        </div>
+
+        <div className="mb-6 rounded-3xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 p-4 shadow-[0_16px_40px_rgba(0,0,0,0.14)] sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 text-[#D8B76A]">
+                <Icon icon="lucide:sparkles" className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">
+                  Next step
+                </p>
+                <h3 className="mt-1 font-serif text-2xl text-white">
+                  Personalize your invitation
+                </h3>
+                <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/55">
+                  Start with the card look, then add guests when the design feels ready.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[32rem]">
+              <Link
+                to="/admin/settings?tab=design"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-[#D8B76A]/30 bg-[#D8B76A] px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#070A13] transition hover:bg-[#F2D894]"
+              >
+                <Icon icon="lucide:layout-template" className="h-3.5 w-3.5" />
+                Choose template
+              </Link>
+              <Link
+                to="/admin/settings?tab=design&section=colours"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white/70 transition hover:border-[#D8B76A]/35 hover:text-[#D8B76A]"
+              >
+                <Icon icon="lucide:palette" className="h-3.5 w-3.5" />
+                Select colours
+              </Link>
+              <Link
+                to="/admin/invitations"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white/70 transition hover:border-[#D8B76A]/35 hover:text-[#D8B76A]"
+              >
+                <Icon icon="lucide:user-plus" className="h-3.5 w-3.5" />
+                Add guests
+              </Link>
+            </div>
+          </div>
         </div>
 
         <div className="mb-6 rounded-3xl border border-white/10 bg-[#0D1220] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.14)] sm:p-5">
@@ -935,6 +985,10 @@ const AdminDashboardPage = () => {
                 </span>
                 <span className="min-w-0 text-xs font-semibold text-white/75">
                   {step.label}
+                </span>
+                <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/35 transition group-hover:text-[#D8B76A]">
+                  {step.action}
+                  <Icon icon="lucide:arrow-right" className="h-3 w-3" />
                 </span>
               </Link>
             ))}
