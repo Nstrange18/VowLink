@@ -6,9 +6,15 @@ const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 const { checkAiCredits, checkAiImageCredits } = require("../utils/aiCredits");
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_API_SECRET_KEY || process.env.OPENAI_API_KEY,
-});
+const AI_GENERATION_LOCKED = true;
+const AI_COMING_SOON_MESSAGE =
+  "AI generation is coming soon. This feature is currently disabled for launch.";
+
+const openai = AI_GENERATION_LOCKED
+  ? null
+  : new OpenAI({
+      apiKey: process.env.AI_API_SECRET_KEY || process.env.OPENAI_API_KEY,
+    });
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -44,6 +50,14 @@ const checkSafety = (text) => {
 // ── POST /api/ai/generate-invitation-text ─────────────────────────────────────
 router.post("/generate-invitation-text", protect, async (req, res) => {
   try {
+    if (AI_GENERATION_LOCKED) {
+      return res.status(503).json({
+        success: false,
+        message: AI_COMING_SOON_MESSAGE,
+        comingSoon: true,
+      });
+    }
+
     const { coupleNames, guestName, weddingDate, tone, currentMessage, extraNotes, action } = req.body;
 
     // ── Basic validation ──────────────────────────────────────────────────────
@@ -147,6 +161,14 @@ router.post("/generate-invitation-text", protect, async (req, res) => {
 // ── POST /api/ai/generate-invitation-background ───────────────────────────────
 router.post("/generate-invitation-background", protect, async (req, res) => {
   try {
+    if (AI_GENERATION_LOCKED) {
+      return res.status(503).json({
+        success: false,
+        message: AI_COMING_SOON_MESSAGE,
+        comingSoon: true,
+      });
+    }
+
     const { stylePreset, colors, mood, floralPreference, culturalInfluence, extraNotes } = req.body;
 
     const user = await User.findById(req.user.id);

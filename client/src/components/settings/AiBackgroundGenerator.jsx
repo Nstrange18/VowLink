@@ -43,6 +43,8 @@ const CULTURAL_OPTIONS = [
   "Vintage Nordic / European",
 ];
 
+const AI_IMAGE_COMING_SOON = true;
+
 const AiBackgroundGenerator = () => {
   const navigate = useNavigate();
   const settings = useSettings();
@@ -74,6 +76,11 @@ const AiBackgroundGenerator = () => {
   const [generatedImages, setGeneratedImages] = useState([]);
 
   const fetchAiCredits = async () => {
+    if (AI_IMAGE_COMING_SOON) {
+      setLoadingCredits(false);
+      return;
+    }
+
     try {
       const res = await api.get("/ai/credits");
       if (res.data && res.data.imageCredits) {
@@ -93,6 +100,11 @@ const AiBackgroundGenerator = () => {
 
   const handleGenerate = async (e) => {
     e.preventDefault();
+
+    if (AI_IMAGE_COMING_SOON) {
+      toast.info("AI image generation is coming soon.");
+      return;
+    }
 
     if (isFree) {
       toast.warning(
@@ -222,7 +234,12 @@ const AiBackgroundGenerator = () => {
               />
               AI Invitation Background Generator
             </h3>
-            {isFree && (
+            {AI_IMAGE_COMING_SOON ? (
+              <span className="text-[9px] uppercase font-bold tracking-wider text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded flex items-center gap-1">
+                <Icon icon="lucide:lock" className="w-2.5 h-2.5" />
+                Coming Soon
+              </span>
+            ) : isFree && (
               <span className="text-[9px] uppercase font-bold tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded flex items-center gap-1">
                 <Icon icon="lucide:lock" className="w-2.5 h-2.5" /> Upgrade
                 Required
@@ -230,9 +247,9 @@ const AiBackgroundGenerator = () => {
             )}
           </div>
           <p className="text-[10px] text-white/50 mt-1 leading-relaxed max-w-xl">
-            Generate high-resolution, custom AI wedding invitation frame
-            backgrounds matching your exact colors and style. The AI generates
-            background graphics only — VowLink overlays your text seamlessly!
+            AI background generation is locked for launch while API funding is
+            inactive. You can still use pre-made templates or upload your own
+            Pro background design.
           </p>
         </div>
 
@@ -241,7 +258,11 @@ const AiBackgroundGenerator = () => {
           <p className="text-[9px] uppercase tracking-wider text-white/40 font-semibold">
             AI Image Credits
           </p>
-          {loadingCredits ? (
+          {AI_IMAGE_COMING_SOON ? (
+            <p className="text-xs text-amber-300 font-semibold mt-0.5">
+              Coming soon
+            </p>
+          ) : loadingCredits ? (
             <p className="text-xs text-white/40 animate-pulse">Checking...</p>
           ) : isFree ? (
             <p className="text-xs text-amber-400 font-semibold mt-0.5">
@@ -255,8 +276,21 @@ const AiBackgroundGenerator = () => {
         </div>
       </div>
 
-      {/* Classic Plan Lock Banner */}
-      {isFree && (
+      {/* Coming Soon Lock Banner */}
+      {AI_IMAGE_COMING_SOON ? (
+        <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 flex flex-col sm:flex-row items-start justify-between gap-3 text-xs">
+          <div className="flex items-start gap-2.5 text-amber-200">
+            <Icon
+              icon="lucide:lock"
+              className="mt-0.5 text-lg text-[#D8B76A] shrink-0"
+            />
+            <span className="leading-relaxed">
+              AI image generation is coming soon. This is disabled for launch,
+              so no AI API calls or image credits will be used.
+            </span>
+          </div>
+        </div>
+      ) : isFree && (
         <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5 text-amber-300">
             <Icon
@@ -287,7 +321,7 @@ const AiBackgroundGenerator = () => {
               1. Style Preset / Vibe
             </label>
             <select
-              disabled={isFree}
+              disabled={AI_IMAGE_COMING_SOON || isFree}
               value={stylePreset}
               onChange={(e) => setStylePreset(e.target.value)}
               className="w-full rounded-xl border border-white/10 bg-[#070A13] px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#D8B76A]/60 disabled:opacity-50"
@@ -307,7 +341,7 @@ const AiBackgroundGenerator = () => {
             </label>
             <input
               type="text"
-              disabled={isFree}
+              disabled={AI_IMAGE_COMING_SOON || isFree}
               placeholder="e.g. Emerald Green, Gold, Ivory"
               value={colors}
               onChange={(e) => setColors(e.target.value)}
@@ -321,7 +355,7 @@ const AiBackgroundGenerator = () => {
               3. Mood / Aesthetic
             </label>
             <select
-              disabled={isFree}
+              disabled={AI_IMAGE_COMING_SOON || isFree}
               value={mood}
               onChange={(e) => setMood(e.target.value)}
               className="w-full rounded-xl border border-white/10 bg-[#070A13] px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#D8B76A]/60 disabled:opacity-50"
@@ -340,7 +374,7 @@ const AiBackgroundGenerator = () => {
               4. Floral & Frame Preference
             </label>
             <select
-              disabled={isFree}
+              disabled={AI_IMAGE_COMING_SOON || isFree}
               value={floralPreference}
               onChange={(e) => setFloralPreference(e.target.value)}
               className="w-full rounded-xl border border-white/10 bg-[#070A13] px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#D8B76A]/60 disabled:opacity-50"
@@ -359,7 +393,7 @@ const AiBackgroundGenerator = () => {
               5. Cultural / Traditional Influence
             </label>
             <select
-              disabled={isFree}
+              disabled={AI_IMAGE_COMING_SOON || isFree}
               value={culturalInfluence}
               onChange={(e) => setCulturalInfluence(e.target.value)}
               className="w-full rounded-xl border border-white/10 bg-[#070A13] px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#D8B76A]/60 disabled:opacity-50"
@@ -379,7 +413,7 @@ const AiBackgroundGenerator = () => {
             </label>
             <input
               type="text"
-              disabled={isFree}
+              disabled={AI_IMAGE_COMING_SOON || isFree}
               placeholder="e.g. subtle glitter shimmer, marble texture"
               value={extraNotes}
               onChange={(e) => setExtraNotes(e.target.value)}
@@ -403,9 +437,14 @@ const AiBackgroundGenerator = () => {
 
           <button
             type="submit"
-            disabled={isFree || generating || credits.remaining <= 0}
+            disabled={
+              AI_IMAGE_COMING_SOON ||
+              isFree ||
+              generating ||
+              credits.remaining <= 0
+            }
             className={`w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer ${
-              isFree || credits.remaining <= 0
+              AI_IMAGE_COMING_SOON || isFree || credits.remaining <= 0
                 ? "bg-white/5 border border-white/10 text-white/40 cursor-not-allowed"
                 : "bg-linear-to-r from-[#D8B76A] to-[#F2D894] text-[#070A13] hover:opacity-95 shadow-[0_4px_20px_rgba(216,183,106,0.2)]"
             }`}
@@ -414,6 +453,11 @@ const AiBackgroundGenerator = () => {
               <>
                 <Icon icon="lucide:loader-2" className="animate-spin text-sm" />
                 <span>Generating AI Background...</span>
+              </>
+            ) : AI_IMAGE_COMING_SOON ? (
+              <>
+                <Icon icon="lucide:lock" className="w-3.5 h-3.5" />
+                <span>Coming Soon</span>
               </>
             ) : isFree ? (
               <>

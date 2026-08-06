@@ -28,7 +28,7 @@ const pages = {
     sections: [
       ['Classic', 'Create one invite link, collect up to 20 RSVPs, and use the Classic Floral and Modern Minimalist templates for intimate celebrations.'],
       ['Plus', 'Unlock more guest links, premium templates, music, gallery, venue details, and richer invitation personalization.'],
-      ['Pro', 'Use larger guest limits, RSVP export, seating chart tools, WhatsApp queues, AI-assisted themes, and more advanced planning controls.'],
+      ['Pro', 'Use larger guest limits, RSVP export, seating chart tools, WhatsApp queues, custom designs, and more advanced planning controls.'],
     ],
   },
   templates: {

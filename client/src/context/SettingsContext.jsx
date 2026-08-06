@@ -81,6 +81,9 @@ export const SettingsProvider = ({ children }) => {
   const isPro = tier === "pro";
 
   const [weddingColors, setWeddingColors] = useState(storedUser.weddingColors || []);
+  const [showWeddingColors, setShowWeddingColors] = useState(
+    typeof storedUser.showWeddingColors === "boolean" ? storedUser.showWeddingColors : true
+  );
   // Refs for file inputs
   const galleryInputRef = useRef(null);
   const customBgInputRef = useRef(null);
@@ -181,7 +184,8 @@ export const SettingsProvider = ({ children }) => {
     fetchGifts();
   }, [storedUser._id, storedUser.role]);
 
-  // AI Matcher state
+  // AI matcher is intentionally locked for launch.
+  const AI_THEME_MATCHER_COMING_SOON = true;
   const [aiVibe, setAiVibe] = useState("Royal Velvet");
   const [aiGenerating, setAiGenerating] = useState(false);
 
@@ -287,6 +291,7 @@ export const SettingsProvider = ({ children }) => {
       hasTemplatePreviewChanges ||
       defaultGuestTheme !== (["dark", "light", "system"].includes(baseline.defaultGuestTheme) ? baseline.defaultGuestTheme : "dark") ||
       !sameJson(weddingColors, baseline.weddingColors) ||
+      showWeddingColors !== (typeof baseline.showWeddingColors === "boolean" ? baseline.showWeddingColors : true) ||
       customTextColor !== (baseline.customTextColor || "#1A2E4A") ||
       JSON.stringify(customTextColors || {}) !== JSON.stringify(normalizeTextColors(baseline.customTextColors)) ||
       customFontFamily !== (baseline.customFontFamily || "classic") ||
@@ -382,6 +387,7 @@ export const SettingsProvider = ({ children }) => {
         if (freshUser.timeline) setTimeline(freshUser.timeline);
         if (freshUser.customShareMessage) setCustomShareMessage(freshUser.customShareMessage);
         if (Array.isArray(freshUser.weddingColors) && freshUser.weddingColors.length) setWeddingColors(freshUser.weddingColors);
+        setShowWeddingColors(typeof freshUser.showWeddingColors === "boolean" ? freshUser.showWeddingColors : true);
         
         // Mark media as fully loaded so saves can safely include gallery/photo fields
         mediaLoaded.current = true;
@@ -552,6 +558,7 @@ export const SettingsProvider = ({ children }) => {
       const res = await api.put("/auth/me", {
         ...data,
         weddingColors,
+        showWeddingColors,
         cardTheme,
         defaultGuestTheme: normalizedDefaultGuestTheme,
         customCardBg,
@@ -887,6 +894,11 @@ export const SettingsProvider = ({ children }) => {
   };
 
   const handleAiVibeGenerate = () => {
+    if (AI_THEME_MATCHER_COMING_SOON) {
+      toast.info("AI theme matching is coming soon.");
+      return;
+    }
+
     if (!isPro) {
       toast.info("The AI Theme Matcher is a Pro feature! Upgrade to unlock.");
       return;
@@ -1226,6 +1238,7 @@ export const SettingsProvider = ({ children }) => {
         localAudioInputRef,
 
         weddingColors, setWeddingColors,
+        showWeddingColors, setShowWeddingColors,
         cardTheme, setCardTheme,
         defaultGuestTheme, setDefaultGuestTheme,
         pageBgTemplate, setPageBgTemplate,

@@ -80,7 +80,7 @@ const PLANS = [
       { text: "Printable QR sheet and check-in reset", enabled: false },
       { text: "RSVP CSV export", enabled: false },
       { text: "Bulk WhatsApp invite sender", enabled: false },
-      { text: "Custom design upload and AI theme matcher", enabled: false },
+      { text: "Custom design upload", enabled: false },
     ],
   },
   {
@@ -107,7 +107,7 @@ const PLANS = [
       { text: "All Pro templates and animated themes", enabled: true },
       { text: "Custom invitation design upload", enabled: true },
       { text: "Photo gallery up to 15 images", enabled: true },
-      { text: "AI theme matcher", enabled: true },
+      { text: "AI tools coming soon", enabled: false },
       { text: "Venue shortlist and direct inquiries", enabled: true },
     ],
   },
@@ -164,7 +164,7 @@ const ACTIVATION_COPY = {
   },
   pro: {
     title: "Pro activated",
-    body: "You can now use staff mode, printable QR sheets, RSVP export, seating, bulk WhatsApp, custom designs, and AI tools.",
+    body: "You can now use staff mode, printable QR sheets, RSVP export, seating, bulk WhatsApp, and custom designs. AI tools are coming soon.",
   },
 };
 

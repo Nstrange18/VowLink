@@ -59,7 +59,7 @@ const plans = [
   {
     name: "Pro",
     detail:
-      "500 guest links, RSVP export, seating chart, WhatsApp queues, AI themes.",
+      "500 guest links, RSVP export, seating chart, WhatsApp queues, and advanced controls.",
   },
 ];
 

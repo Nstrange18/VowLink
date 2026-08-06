@@ -17,6 +17,7 @@ const inputBase =
   "w-full rounded-xl border bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition";
 const inputOk =
   "border-white/10 focus:border-[#D8B76A]/60 focus:ring-1 focus:ring-[#D8B76A]/30";
+const AI_ASSIST_COMING_SOON = true;
 
 /**
  * AiMessageAssist — AI-powered wedding invitation message generator.
@@ -39,6 +40,7 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
 
   // Fetch credits when panel opens
   const fetchCredits = useCallback(async () => {
+    if (AI_ASSIST_COMING_SOON) return;
     try {
       const res = await api.get("/ai/credits");
       if (res.data.success) setCredits(res.data.textCredits);
@@ -52,6 +54,10 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
   }, [isOpen, fetchCredits]);
 
   const callGenerate = async (action) => {
+    if (AI_ASSIST_COMING_SOON) {
+      setError("AI text generation is coming soon.");
+      return;
+    }
     setError("");
     setGeneratedText("");
 
@@ -118,10 +124,13 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
       <button
         type="button"
         onClick={() => setIsOpen((o) => !o)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] hover:bg-[#D8B76A]/20 text-[10px] font-bold uppercase tracking-wider transition cursor-pointer"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/55 hover:border-[#D8B76A]/25 hover:text-[#D8B76A] text-[10px] font-bold uppercase tracking-wider transition cursor-pointer"
       >
-        <Icon icon="lucide:sparkles" className="w-3.5 h-3.5" />
+        <Icon icon="lucide:lock" className="w-3.5 h-3.5" />
         <span>AI Assist</span>
+        <span className="rounded-full border border-amber-300/20 bg-amber-400/10 px-2 py-0.5 text-[8px] text-amber-200">
+          Coming soon
+        </span>
         {credits && (
           <span className={`ml-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
             creditsExhausted
@@ -137,6 +146,18 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
       {/* Panel */}
       {isOpen && (
         <div className="mt-2 rounded-2xl border border-[#D8B76A]/20 bg-[#0A0F1E] p-4 sm:p-5 space-y-4 animate-fade-in shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+          {AI_ASSIST_COMING_SOON ? (
+            <div className="rounded-2xl border border-amber-300/20 bg-amber-400/10 p-4 text-center">
+              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-300/25 bg-amber-400/10 text-amber-200">
+                <Icon icon="lucide:lock" className="h-5 w-5" />
+              </span>
+              <h4 className="mt-3 text-sm font-bold text-white">AI text generation is coming soon</h4>
+              <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-white/55">
+                This is locked for launch while AI funding is not active. You can still write and edit invitation messages manually.
+              </p>
+            </div>
+          ) : (
+          <>
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -299,6 +320,8 @@ const AiMessageAssist = ({ guestName, coupleNames, weddingDate, currentMessage, 
               {credits.remaining === 1 ? "1 credit remaining." : `${credits.remaining} credits remaining.`}{" "}
               <Link to="/admin/billing" className="underline hover:text-amber-400 transition">Upgrade to Plus or Pro</Link> for more.
             </p>
+          )}
+          </>
           )}
         </div>
       )}

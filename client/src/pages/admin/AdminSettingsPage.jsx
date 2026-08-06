@@ -347,6 +347,8 @@ const AdminSettingsPageContent = () => {
 
     weddingColors,
     setWeddingColors,
+    showWeddingColors,
+    setShowWeddingColors,
     cardTheme,
     customCardBg,
     savedCardBg,
@@ -972,6 +974,8 @@ const AdminSettingsPageContent = () => {
                     <ColorPicker
                       value={weddingColors}
                       onChange={setWeddingColors}
+                      showWeddingColors={showWeddingColors}
+                      onToggleWeddingColors={setShowWeddingColors}
                       textColor={customTextColor}
                       hasUnsavedChanges={changedSettingsSections.includes("design")}
                       templateColours={getTemplateColourDefaults(cardTheme, customCardBg)}
@@ -997,18 +1001,15 @@ const AdminSettingsPageContent = () => {
                           3. AI Invitation Background Generator
                         </span>
                       </h3>
-                      {!isPro && !isPlus && (
-                        <span className="inline-flex w-fit max-w-full items-center gap-1 rounded border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400">
-                          <Icon icon="lucide:lock" className="w-2.5 h-2.5" />{" "}
-                          Plus / Pro Feature
-                        </span>
-                      )}
+                      <span className="inline-flex w-fit max-w-full items-center gap-1 rounded border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+                        <Icon icon="lucide:lock" className="w-2.5 h-2.5" />
+                        Coming Soon
+                      </span>
                     </div>
                     <p className="text-[10px] text-white/65 leading-relaxed">
-                      Generate stunning, one-of-a-kind AI wedding invitation
-                      backgrounds tailored to your exact colors, style, and
-                      cultural influence. The AI creates beautiful frame
-                      graphics — VowLink overlays your text automatically.
+                      AI image generation is locked for launch while API funding
+                      is inactive. Use pre-made templates now, or upload your
+                      own Pro background design.
                     </p>
                     <div className="flex min-w-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                       <div className="flex min-w-0 flex-wrap gap-2">
@@ -1034,22 +1035,13 @@ const AdminSettingsPageContent = () => {
                       <button
                         type="button"
                         onClick={() =>
-                          navigate("/admin/templates#ai-backgrounds")
+                          toast.info("AI image generation is coming soon.")
                         }
-                        className={`w-full min-w-0 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer sm:w-auto sm:shrink-0 ${
-                          !isPro && !isPlus
-                            ? "bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white"
-                            : "bg-[#D8B76A] hover:bg-[#D8B76A]/90 text-[#070A13] shadow-[0_4px_16px_rgba(216,183,106,0.25)]"
-                        }`}
+                        className="w-full min-w-0 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer sm:w-auto sm:shrink-0 bg-white/5 border border-white/10 text-white/45 hover:bg-white/10 hover:text-white"
                       >
-                        <Icon icon="lucide:sparkles" className="w-3.5 h-3.5" />
+                        <Icon icon="lucide:lock" className="w-3.5 h-3.5" />
                         <span className="inline-flex min-w-0 items-center justify-center gap-1.5 text-center leading-tight">
-                          {!isPro && !isPlus
-                            ? "Upgrade to Generate"
-                            : "Generate AI Background"}
-                          {!isPro && !isPlus && (
-                            <Icon icon="lucide:lock" className="h-3.5 w-3.5" />
-                          )}
+                          Coming Soon
                         </span>
                       </button>
                     </div>

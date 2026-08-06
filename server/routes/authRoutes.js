@@ -135,6 +135,7 @@ const userPayload = (user) => ({
   receptionLocation: user.receptionLocation || "",
   receptionName: user.receptionName || "",
   weddingColors: user.weddingColors || [],
+  showWeddingColors: typeof user.showWeddingColors === "boolean" ? user.showWeddingColors : true,
   dressCode: user.dressCode || "",
   plusOnePolicy: user.plusOnePolicy || "invitation_only",
   kidsAllowed: typeof user.kidsAllowed === "boolean" ? user.kidsAllowed : true,
@@ -198,6 +199,7 @@ const userPublic = (user) => ({
   receptionLocation: user.receptionLocation || "",
   receptionName: user.receptionName || "",
   weddingColors: user.weddingColors || [],
+  showWeddingColors: typeof user.showWeddingColors === "boolean" ? user.showWeddingColors : true,
   dressCode: user.dressCode || "",
   plusOnePolicy: user.plusOnePolicy || "invitation_only",
   kidsAllowed: typeof user.kidsAllowed === "boolean" ? user.kidsAllowed : true,
@@ -482,6 +484,7 @@ router.put("/me", protect, async (req, res) => {
       receptionLocation,
       receptionName,
       weddingColors,
+      showWeddingColors,
       dressCode,
       plusOnePolicy,
       kidsAllowed,
@@ -562,6 +565,7 @@ router.put("/me", protect, async (req, res) => {
     if (receptionLocation !== undefined) user.receptionLocation = receptionLocation || "";
     if (receptionName !== undefined) user.receptionName = receptionName || "";
     if (weddingColors !== undefined) user.weddingColors = Array.isArray(weddingColors) ? weddingColors : [];
+    if (showWeddingColors !== undefined) user.showWeddingColors = typeof showWeddingColors === "boolean" ? showWeddingColors : true;
     if (dressCode !== undefined) user.dressCode = dressCode || "";
     if (plusOnePolicy !== undefined) {
       user.plusOnePolicy = plusOnePolicy === "plus_one_allowed" ? "plus_one_allowed" : "invitation_only";

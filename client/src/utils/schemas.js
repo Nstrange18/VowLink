@@ -20,6 +20,7 @@ export const signupSchema = z
     venue: z.string().optional(),
     receptionLocation: z.string().optional().default(""),
     weddingColors: z.array(z.string()).optional().default([]),
+    showWeddingColors: z.coerce.boolean().optional().default(true),
     dressCode: z.string().optional().default(""),
     plusOnePolicy: z
       .enum(["invitation_only", "plus_one_allowed"])
@@ -83,6 +84,7 @@ export const settingsSchema = z
     receptionLocation: z.string().optional().default(""),
     receptionName: z.string().optional().default(""),
     weddingColors: z.array(z.string()).optional().default([]),
+    showWeddingColors: z.coerce.boolean().optional().default(true),
     dressCode: z.string().optional().default(""),
     plusOnePolicy: z
       .enum(["invitation_only", "plus_one_allowed"])

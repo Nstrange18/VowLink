@@ -108,7 +108,7 @@ const getUpgradeTourSteps = (tier) => {
     {
       target: '[data-tour="dashboard-checkin"]',
       title: "Pro event operations",
-      body: "Pro unlocks staff mode, printable QR sheets, check-in reset controls, exports, seating, bulk WhatsApp, AI, and custom design tools.",
+      body: "Pro unlocks staff mode, printable QR sheets, check-in reset controls, exports, seating, bulk WhatsApp, and custom design tools.",
     },
     {
       target: '[data-tour="dashboard-categories"]',

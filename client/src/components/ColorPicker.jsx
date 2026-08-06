@@ -172,6 +172,8 @@ const ColorSwatchButton = ({ color, active, disabled, onClick, label }) => (
 const ColorPicker = ({
   value = [],
   onChange,
+  showWeddingColors = true,
+  onToggleWeddingColors,
   textColor = "#1A2E4A",
   onUseRecommendedTextColor,
   hasUnsavedChanges = false,
@@ -331,16 +333,30 @@ const ColorPicker = ({
       </div>
 
       <div className="rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/8 p-3">
-        <div className="flex items-start gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 text-[#D8B76A]">
-            <Icon icon="lucide:route" className="h-4 w-4" />
-          </span>
-          <div>
-            <p className="text-xs font-bold text-white">Pick a palette, adjust colours, then save.</p>
-            <p className="mt-1 text-[10px] leading-relaxed text-white/50">
-              Search helps you find visual swatches. Custom hex colours are only applied after confirmation.
-            </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 text-[#D8B76A]">
+              <Icon icon="lucide:route" className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="text-xs font-bold text-white">Pick a palette, adjust colours, then save.</p>
+              <p className="mt-1 text-[10px] leading-relaxed text-white/50">
+                Search helps you find visual swatches. Custom hex colours are only applied after confirmation.
+              </p>
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() => onToggleWeddingColors?.(!showWeddingColors)}
+            className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-full border px-4 py-2 text-[10px] font-bold uppercase tracking-wider transition ${
+              showWeddingColors
+                ? "border-emerald-300/25 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/15"
+                : "border-white/10 bg-white/5 text-white/55 hover:border-[#D8B76A]/35 hover:text-[#D8B76A]"
+            }`}
+          >
+            <Icon icon={showWeddingColors ? "lucide:eye" : "lucide:eye-off"} className="h-3.5 w-3.5" />
+            {showWeddingColors ? "Shown on invite" : "Hidden on invite"}
+          </button>
         </div>
       </div>
 
@@ -640,11 +656,17 @@ const ColorPicker = ({
                   Attending
                 </div>
               )}
-              <div className="mt-3 flex gap-2">
-                {selected.map((item, index) => (
-                  <span key={`${item}-preview-${index}`} className="h-5 w-5 rounded-full border border-black/10" style={{ background: getWeddingColorHex(item) }} />
-                ))}
-              </div>
+              {showWeddingColors ? (
+                <div className="mt-3 flex gap-2">
+                  {selected.map((item, index) => (
+                    <span key={`${item}-preview-${index}`} className="h-5 w-5 rounded-full border border-black/10" style={{ background: getWeddingColorHex(item) }} />
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 rounded-xl border border-white/15 bg-black/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider opacity-80">
+                  Colour of the Day hidden from guests
+                </p>
+              )}
             </div>
           </div>
           <div

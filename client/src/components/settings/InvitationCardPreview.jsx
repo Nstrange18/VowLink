@@ -630,6 +630,7 @@ const InvitationCardPreview = () => {
     receptionLocation,
     receptionName,
     weddingColors,
+    showWeddingColors,
     isPro,
     customCardBg,
     customBgInputRef,
@@ -998,7 +999,7 @@ const InvitationCardPreview = () => {
                   </p>
                 )}
 
-                {weddingColors.length > 0 && (
+                {showWeddingColors && weddingColors.length > 0 && (
                   <div
                     {...getBlockProps("colors", "2000ms")}
                     style={{
