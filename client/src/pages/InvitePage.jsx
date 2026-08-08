@@ -1391,7 +1391,7 @@ const InvitePage = ({ setThemePreference }) => {
       addDetail(detailsGrid, "Additional Guest", plusOnePolicy === "plus_one_allowed" ? "Plus one allowed" : "Strictly by invitation");
       addDetail(detailsGrid, "Children", kidsAllowed ? "Children are welcome" : "Adults only");
 
-      if (showWeddingColors && weddingColors.length > 0) {
+      if (weddingColors.length > 0) {
         const colorsItem = document.createElement("div");
         colorsItem.style.gridColumn = "1 / -1";
         colorsItem.style.border = "1px solid rgba(216, 183, 106, 0.18)";
@@ -1543,10 +1543,6 @@ const InvitePage = ({ setThemePreference }) => {
   const weddingTime = invitation?.userId?.weddingTime;
   const dressCode = invitation.userId?.dressCode || "";
   const weddingColors = invitation.userId?.weddingColors || [];
-  const showWeddingColors =
-    typeof invitation.userId?.showWeddingColors === "boolean"
-      ? invitation.userId.showWeddingColors
-      : true;
   const plusOnePolicy = invitation.userId?.plusOnePolicy || "invitation_only";
   const kidsAllowed =
     typeof invitation.userId?.kidsAllowed === "boolean"
@@ -2453,7 +2449,7 @@ const InvitePage = ({ setThemePreference }) => {
                       </div>
 
                       {/* Colors */}
-                      {showWeddingColors && weddingColors.length > 0 && (
+                      {weddingColors.length > 0 && (
                         <div
                           {...getBlockProps("colors", "2000ms")}
                           className={`${getBlockProps("colors", "2000ms").className} invite-card-colors`}
@@ -2850,8 +2846,7 @@ const InvitePage = ({ setThemePreference }) => {
             </div>
 
             {/* Colour of the Day */}
-            {showWeddingColors && (
-              <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
+            <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
                 <Icon icon="lucide:palette" className="mx-auto h-6 w-6 text-[#D8B76A]" />
                 <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-3">Colour of the Day</p>
                 {weddingColors.length > 0 ? (
@@ -2878,7 +2873,6 @@ const InvitePage = ({ setThemePreference }) => {
                   <p className="text-white text-sm">To be announced</p>
                 )}
               </div>
-            )}
 
             {/* Your Category */}
             <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">

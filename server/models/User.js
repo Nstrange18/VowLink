@@ -21,7 +21,6 @@ const userSchema = new mongoose.Schema(
     receptionLocation: { type: String, trim: true, default: "" },
     receptionName: { type: String, trim: true, default: "" },
     weddingColors: { type: [String], default: [] },
-    showWeddingColors: { type: Boolean, default: true },
     dressCode: { type: String, trim: true, default: "" }, // e.g. "Black Tie", "Smart Casual"
     plusOnePolicy: {
       type: String,

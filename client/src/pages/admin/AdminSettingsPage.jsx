@@ -347,8 +347,6 @@ const AdminSettingsPageContent = () => {
 
     weddingColors,
     setWeddingColors,
-    showWeddingColors,
-    setShowWeddingColors,
     cardTheme,
     customCardBg,
     savedCardBg,
@@ -453,6 +451,7 @@ const AdminSettingsPageContent = () => {
     : "settings";
 
   const [showCouplePortrait, setShowCouplePortrait] = React.useState(true);
+  const [showColoursStyle, setShowColoursStyle] = React.useState(true);
   const [showSocialShare, setShowSocialShare] = React.useState(false);
   const [checkInPin, setCheckInPin] = React.useState("");
   const [checkInPinStatus, setCheckInPinStatus] = React.useState({
@@ -971,20 +970,47 @@ const AdminSettingsPageContent = () => {
                   <ThemeSelector />
 
                   <div className="settings-colour-panel min-w-0 rounded-2xl border border-[#D8B76A]/20 bg-[#111827] p-3 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-5">
-                    <ColorPicker
-                      value={weddingColors}
-                      onChange={setWeddingColors}
-                      showWeddingColors={showWeddingColors}
-                      onToggleWeddingColors={setShowWeddingColors}
-                      textColor={customTextColor}
-                      hasUnsavedChanges={changedSettingsSections.includes("design")}
-                      templateColours={getTemplateColourDefaults(cardTheme, customCardBg)}
-                      onUseRecommendedTextColor={(color) => {
-                        setCustomTextColor(color);
-                        setUserHasCustomTextColor(true);
-                        toast.info("Readable text colour applied. Save changes to publish it.");
-                      }}
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowColoursStyle(!showColoursStyle)}
+                      className="flex w-full min-w-0 items-start justify-between gap-3 py-1 text-sm font-semibold uppercase tracking-widest text-[#D8B76A] transition hover:text-white cursor-pointer outline-none"
+                    >
+                      <span className="flex min-w-0 items-start gap-2 text-left leading-snug">
+                        <Icon
+                          icon="lucide:palette"
+                          className="w-4 h-4 text-[#D8B76A]"
+                        />
+                        3. Colours & Style
+                      </span>
+                      <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] text-[#D8B76A]">
+                        <Icon
+                          icon={
+                            showColoursStyle
+                              ? "lucide:chevron-up"
+                              : "lucide:chevron-down"
+                          }
+                          className="h-3 w-3"
+                        />
+                        {showColoursStyle ? "Hide" : "Show"}
+                      </span>
+                    </button>
+
+                    {showColoursStyle && (
+                      <div className="mt-4 animate-fade-in">
+                        <ColorPicker
+                          value={weddingColors}
+                          onChange={setWeddingColors}
+                          textColor={customTextColor}
+                          hasUnsavedChanges={changedSettingsSections.includes("design")}
+                          templateColours={getTemplateColourDefaults(cardTheme, customCardBg)}
+                          onUseRecommendedTextColor={(color) => {
+                            setCustomTextColor(color);
+                            setUserHasCustomTextColor(true);
+                            toast.info("Readable text colour applied. Save changes to publish it.");
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* AI Invitation Background Generator — teaser linking to Templates page */}
@@ -998,7 +1024,7 @@ const AdminSettingsPageContent = () => {
                           className="w-4 h-4 text-[#D8B76A]"
                         />
                         <span className="min-w-0 leading-snug">
-                          3. AI Invitation Background Generator
+                          4. AI Invitation Background Generator
                         </span>
                       </h3>
                       <span className="inline-flex w-fit max-w-full items-center gap-1 rounded border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
@@ -1059,7 +1085,7 @@ const AdminSettingsPageContent = () => {
                           icon="lucide:camera"
                           className="w-4 h-4 text-[#D8B76A]"
                         />{" "}
-                        4. Couple Portrait Page Background
+                        5. Couple Portrait Page Background
                         {isFree && (
                           <span className="text-[9px] uppercase font-bold tracking-wider text-white/30 bg-white/5 px-2 py-0.5 rounded shrink-0">
                             Locked
@@ -1199,7 +1225,7 @@ const AdminSettingsPageContent = () => {
                           icon="lucide:link"
                           className="w-4 h-4 text-[#D8B76A]"
                         />{" "}
-                        5. Social Share Preview Message
+                        6. Social Share Preview Message
                       </span>
                       <span className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] text-[#D8B76A]">
                         <Icon

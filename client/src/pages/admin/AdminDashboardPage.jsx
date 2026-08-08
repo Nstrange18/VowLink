@@ -851,6 +851,8 @@ const AdminDashboardPage = () => {
   ];
   const setupCompleteCount = setupSteps.filter((step) => step.complete).length;
   const setupPercent = Math.round((setupCompleteCount / setupSteps.length) * 100);
+  const setupIsComplete = setupCompleteCount === setupSteps.length;
+  const nextSetupStep = setupSteps.find((step) => !step.complete);
 
   return (
     <div className="p-4 sm:p-8 space-y-10">
@@ -891,65 +893,53 @@ const AdminDashboardPage = () => {
           </button>
         </div>
 
-        <div className="mb-6 rounded-3xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 p-4 shadow-[0_16px_40px_rgba(0,0,0,0.14)] sm:p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 text-[#D8B76A]">
-                <Icon icon="lucide:sparkles" className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">
-                  Next step
-                </p>
-                <h3 className="mt-1 font-serif text-2xl text-white">
-                  Personalize your invitation
-                </h3>
-                <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/55">
-                  Start with the card look, then add guests when the design feels ready.
-                </p>
+        {!setupIsComplete && nextSetupStep && (
+          <div className="mb-6 rounded-3xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 p-4 shadow-[0_16px_40px_rgba(0,0,0,0.14)] sm:p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/30 bg-[#D8B76A]/10 text-[#D8B76A]">
+                  <Icon icon="lucide:sparkles" className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">
+                    Next step
+                  </p>
+                  <h3 className="mt-1 font-serif text-xl text-white sm:text-2xl">
+                    {nextSetupStep.label}
+                  </h3>
+                  <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/55">
+                    Continue setup from the next unfinished item.
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[32rem]">
               <Link
-                to="/admin/settings?tab=design"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-[#D8B76A]/30 bg-[#D8B76A] px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#070A13] transition hover:bg-[#F2D894]"
+                to={nextSetupStep.to}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#D8B76A]/30 bg-[#D8B76A] px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[#070A13] transition hover:bg-[#F2D894] sm:w-auto"
               >
-                <Icon icon="lucide:layout-template" className="h-3.5 w-3.5" />
-                Choose template
-              </Link>
-              <Link
-                to="/admin/settings?tab=design&section=colours"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white/70 transition hover:border-[#D8B76A]/35 hover:text-[#D8B76A]"
-              >
-                <Icon icon="lucide:palette" className="h-3.5 w-3.5" />
-                Select colours
-              </Link>
-              <Link
-                to="/admin/invitations"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white/70 transition hover:border-[#D8B76A]/35 hover:text-[#D8B76A]"
-              >
-                <Icon icon="lucide:user-plus" className="h-3.5 w-3.5" />
-                Add guests
+                <Icon icon="lucide:arrow-right" className="h-3.5 w-3.5" />
+                {nextSetupStep.action}
               </Link>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="mb-6 rounded-3xl border border-white/10 bg-[#0D1220] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.14)] sm:p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="mb-6 rounded-3xl border border-white/10 bg-[#0D1220] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.14)] sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">
                 Your invitation setup
               </p>
-              <h3 className="mt-1 font-serif text-2xl text-white">
-                Finish the essentials
+              <h3 className="mt-1 font-serif text-xl text-white sm:text-2xl">
+                {setupIsComplete ? "Setup complete" : "Finish the essentials"}
               </h3>
               <p className="mt-1 max-w-2xl text-xs leading-relaxed text-white/50">
-                Complete these steps to move from workspace setup to a shareable invitation.
+                {setupIsComplete
+                  ? "Your invitation setup is ready. You can still edit anything from the sidebar."
+                  : "Complete these steps to move from workspace setup to a shareable invitation."}
               </p>
             </div>
-            <div className="rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/10 px-4 py-3 text-center">
-              <p className="font-serif text-3xl leading-none text-[#D8B76A]">
+            <div className="rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/10 px-3 py-2 text-center sm:px-4 sm:py-3">
+              <p className="font-serif text-2xl leading-none text-[#D8B76A] sm:text-3xl">
                 {setupPercent}%
               </p>
               <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/45">
@@ -963,36 +953,42 @@ const AdminDashboardPage = () => {
               style={{ width: `${setupPercent}%` }}
             />
           </div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {setupSteps.map((step) => (
-              <Link
-                key={step.label}
-                to={step.to}
-                className={`group flex min-w-0 items-center gap-3 rounded-2xl border p-3 transition active:scale-[0.99] ${
-                  step.complete
-                    ? "border-emerald-400/20 bg-emerald-400/10"
-                    : "border-white/10 bg-white/5 hover:border-[#D8B76A]/30 hover:bg-[#D8B76A]/10"
-                }`}
-              >
-                <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border ${
+          {setupIsComplete ? (
+            <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-xs font-semibold text-emerald-200">
+              All essentials are complete.
+            </div>
+          ) : (
+            <div className="mt-4 grid gap-2 min-[520px]:grid-cols-2 xl:grid-cols-3">
+              {setupSteps.map((step) => (
+                <Link
+                  key={step.label}
+                  to={step.to}
+                  className={`group flex min-w-0 items-center gap-2 rounded-2xl border p-2.5 transition active:scale-[0.99] sm:gap-3 sm:p-3 ${
                     step.complete
-                      ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                      : "border-white/10 bg-[#070A13]/70 text-white/35 group-hover:text-[#D8B76A]"
+                      ? "border-emerald-400/20 bg-emerald-400/10"
+                      : "border-white/10 bg-white/5 hover:border-[#D8B76A]/30 hover:bg-[#D8B76A]/10"
                   }`}
                 >
-                  <Icon icon={step.complete ? "lucide:check" : "lucide:circle"} className="h-3.5 w-3.5" />
-                </span>
-                <span className="min-w-0 text-xs font-semibold text-white/75">
-                  {step.label}
-                </span>
-                <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/35 transition group-hover:text-[#D8B76A]">
-                  {step.action}
-                  <Icon icon="lucide:arrow-right" className="h-3 w-3" />
-                </span>
-              </Link>
-            ))}
-          </div>
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border sm:h-8 sm:w-8 ${
+                      step.complete
+                        ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                        : "border-white/10 bg-[#070A13]/70 text-white/35 group-hover:text-[#D8B76A]"
+                    }`}
+                  >
+                    <Icon icon={step.complete ? "lucide:check" : "lucide:circle"} className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="min-w-0 flex-1 text-[11px] font-semibold leading-snug text-white/75 sm:text-xs">
+                    {step.label}
+                  </span>
+                  <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-white/35 transition group-hover:text-[#D8B76A] sm:text-[10px]">
+                    <span className="hidden min-[380px]:inline">{step.action}</span>
+                    <Icon icon="lucide:arrow-right" className="h-3 w-3" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         {isUnpaid && (
