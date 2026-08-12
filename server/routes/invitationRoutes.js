@@ -59,6 +59,19 @@ const normalizeGuestCategory = (value) => {
   return GUEST_CATEGORY_ALIASES[normalized] || "Guest";
 };
 
+const getCheckInEligibilityIssue = async (invitation) => {
+  if (!invitation?.hasRSVPed) {
+    return "This guest has not submitted their RSVP yet. Ask them to RSVP before checking them in.";
+  }
+
+  const rsvp = await RSVP.findOne({ invitationId: invitation._id }).sort({ createdAt: -1 });
+  if (rsvp?.attending === "No") {
+    return "This guest RSVP'd that they are not attending, so they cannot be checked in.";
+  }
+
+  return "";
+};
+
 const getOptionalUserFromRequest = (req) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
@@ -317,6 +330,11 @@ router.post("/check-in/:token", async (req, res) => {
       return res.status(200).json({ message: "Guest was already checked in.", invitation });
     }
 
+    const eligibilityIssue = await getCheckInEligibilityIssue(invitation);
+    if (eligibilityIssue) {
+      return res.status(409).json({ message: eligibilityIssue });
+    }
+
     invitation.checkedIn = true;
     invitation.checkedInAt = new Date();
     invitation.checkedInBy = authUser?.id || undefined;
@@ -400,6 +418,11 @@ router.post("/check-in/staff/:id", async (req, res) => {
       return res.status(200).json({ message: "Guest was already checked in.", invitation });
     }
 
+    const eligibilityIssue = await getCheckInEligibilityIssue(invitation);
+    if (eligibilityIssue) {
+      return res.status(409).json({ message: eligibilityIssue });
+    }
+
     invitation.checkedIn = true;
     invitation.checkedInAt = new Date();
     invitation.checkedInBy = undefined;
@@ -415,6 +438,46 @@ router.post("/check-in/staff/:id", async (req, res) => {
     res.status(200).json({ message: "Guest checked in successfully.", invitation });
   } catch (error) {
     res.status(500).json({ message: "Failed to check in guest", error: error.message });
+  }
+});
+
+// PATCH /api/invitations/check-in/staff/:id/undo - undo staff check-in mistake
+router.patch("/check-in/staff/:id/undo", async (req, res) => {
+  try {
+    const invitation = await Invitation.findById(req.params.id);
+    if (!invitation) {
+      return res.status(404).json({ message: "Invitation not found." });
+    }
+
+    const eventOwner = await User.findById(invitation.userId).select("tier");
+    if (!canUseAdvancedCheckIn(eventOwner)) {
+      return res.status(403).json({ message: "Staff check-in undo is available on the Pro plan." });
+    }
+
+    const hasCheckInAccess = await getCheckInAccessForEvent(req, invitation.userId);
+    if (!hasCheckInAccess) {
+      return res.status(403).json({ message: "Enter the event check-in PIN before undoing check-ins." });
+    }
+
+    if (!invitation.checkedIn) {
+      return res.status(200).json({ message: "Guest is already marked as not checked in.", invitation });
+    }
+
+    invitation.checkedIn = false;
+    invitation.checkedInAt = undefined;
+    invitation.checkedInBy = undefined;
+    invitation.checkedInVia = "unknown";
+    invitation.checkInHistory.push({
+      action: "reset",
+      at: new Date(),
+      via: "pin",
+      note: "Check-in undone from staff mode.",
+    });
+    await invitation.save();
+
+    res.status(200).json({ message: "Guest check-in has been undone.", invitation });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to undo check-in", error: error.message });
   }
 });
 // --- PROTECTED: All routes below require login -------------------------------

@@ -172,6 +172,24 @@ const CheckInStaffPage = () => {
     }
   };
 
+  const handleUndoCheckIn = async (guest) => {
+    if (!accessToken || !guest?.checkedIn) return;
+    const confirmed = window.confirm(`Undo check-in for ${guest.guestName}?`);
+    if (!confirmed) return;
+
+    setCheckingId(guest._id);
+    try {
+      const res = await api.patch(`/invitations/check-in/staff/${guest._id}/undo`, { accessToken });
+      const updated = res.data?.invitation || { ...guest, checkedIn: false, checkedInAt: undefined, checkedInVia: "unknown" };
+      setGuests((current) => current.map((item) => (item._id === guest._id ? updated : item)));
+      toast.success(res.data?.message || "Guest check-in undone.");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Unable to undo check-in.");
+    } finally {
+      setCheckingId("");
+    }
+  };
+
   const handleScannedToken = useCallback(async (token) => {
     if (!token || !accessToken || scanChecking) return;
 
@@ -455,12 +473,16 @@ const CheckInStaffPage = () => {
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleCheckIn(guest)}
-                          disabled={checkingId === guest._id || guest.checkedIn}
-                          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#D8B76A] px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#070A13] transition hover:bg-[#F2D894] disabled:cursor-not-allowed disabled:opacity-55"
+                          onClick={() => (guest.checkedIn ? handleUndoCheckIn(guest) : handleCheckIn(guest))}
+                          disabled={checkingId === guest._id}
+                          className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest transition disabled:cursor-not-allowed disabled:opacity-55 ${
+                            guest.checkedIn
+                              ? "border border-red-300/25 bg-red-500/10 text-red-200 hover:bg-red-500/15"
+                              : "bg-[#D8B76A] text-[#070A13] hover:bg-[#F2D894]"
+                          }`}
                         >
-                          <Icon icon={checkingId === guest._id ? "lucide:loader-2" : guest.checkedIn ? "lucide:check" : "lucide:badge-check"} className={`h-4 w-4 ${checkingId === guest._id ? "animate-spin" : ""}`} />
-                          {checkingId === guest._id ? "Checking..." : guest.checkedIn ? "Done" : "Check In"}
+                          <Icon icon={checkingId === guest._id ? "lucide:loader-2" : guest.checkedIn ? "lucide:rotate-ccw" : "lucide:badge-check"} className={`h-4 w-4 ${checkingId === guest._id ? "animate-spin" : ""}`} />
+                          {checkingId === guest._id ? "Working..." : guest.checkedIn ? "Undo" : "Check In"}
                         </button>
                       </div>
                     </article>
