@@ -3933,20 +3933,20 @@ const InvitePage = ({ setThemePreference }) => {
                 className="w-full download-exclude"
                 style={{ maxWidth: `${608 * scale}px` }}
               >
-                <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">
+                <p className="invite-countdown-heading text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">
                   Counting Down
                 </p>
                 <div className="flex items-end justify-center gap-2">
                   <CountdownBox value={countdown.days} label="Days" />
-                  <span className="mb-4 text-[#D8B76A] font-light text-xl">
+                  <span className="invite-countdown-separator mb-4 text-[#D8B76A] font-light text-xl">
                     :
                   </span>
                   <CountdownBox value={countdown.hours} label="Hours" />
-                  <span className="mb-4 text-[#D8B76A] font-light text-xl">
+                  <span className="invite-countdown-separator mb-4 text-[#D8B76A] font-light text-xl">
                     :
                   </span>
                   <CountdownBox value={countdown.minutes} label="Mins" />
-                  <span className="mb-4 text-[#D8B76A] font-light text-xl">
+                  <span className="invite-countdown-separator mb-4 text-[#D8B76A] font-light text-xl">
                     :
                   </span>
                   <CountdownBox value={countdown.seconds} label="Secs" />
@@ -3957,7 +3957,7 @@ const InvitePage = ({ setThemePreference }) => {
           {/* RSVP Deadline badge */}
           {rsvpDeadline && (
             <div
-              className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 download-exclude ${
+              className={`invite-rsvp-deadline flex items-center gap-2 rounded-xl border px-5 py-2.5 download-exclude ${
                 deadlinePassed
                   ? "border-red-400/30 bg-red-400/10 text-red-400"
                   : "border-amber-400/30 bg-amber-400/10 text-amber-300"
@@ -3984,14 +3984,14 @@ const InvitePage = ({ setThemePreference }) => {
 
           {/* RSVP Status / Button */}
           {invitation.hasRSVPed ? (
-            <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-8 py-4 download-exclude">
+            <div className="invite-rsvp-status rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-8 py-4 download-exclude">
               <p className="flex items-center justify-center gap-1.5 text-sm text-emerald-400">
                 <Icon icon="lucide:check" className="h-4 w-4" />
                 We've received your RSVP. Thank you!
               </p>
             </div>
           ) : deadlinePassed ? (
-            <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-8 py-4 download-exclude">
+            <div className="invite-rsvp-status invite-rsvp-status-closed rounded-2xl border border-red-400/20 bg-red-400/10 px-8 py-4 download-exclude">
               <p className="flex items-center justify-center gap-1.5 text-sm text-red-400">
                 <Icon icon="lucide:lock" className="h-4 w-4" />
                 RSVP is now closed.
@@ -4019,7 +4019,7 @@ const InvitePage = ({ setThemePreference }) => {
               type="button"
               onClick={handleOpenCheckInQr}
               disabled={!checkInUrl}
-              className="flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#1A2E4A]/80 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#D8B76A] backdrop-blur-sm transition hover:bg-[#1A2E4A] hover:shadow-[0_8px_24px_rgba(216,183,106,0.2)] disabled:opacity-50"
+              className="invite-action-button flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#1A2E4A]/80 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#D8B76A] backdrop-blur-sm transition hover:bg-[#1A2E4A] hover:shadow-[0_8px_24px_rgba(216,183,106,0.2)] disabled:opacity-50"
             >
               <Icon icon="lucide:qr-code" className="h-4 w-4" />
               Entry QR
@@ -4027,7 +4027,7 @@ const InvitePage = ({ setThemePreference }) => {
             <button
               onClick={handleDownload}
               disabled={downloading}
-              className="flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#1A2E4A]/80 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#D8B76A] backdrop-blur-sm transition hover:bg-[#1A2E4A] hover:shadow-[0_8px_24px_rgba(216,183,106,0.2)] disabled:opacity-50"
+              className="invite-action-button flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#1A2E4A]/80 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#D8B76A] backdrop-blur-sm transition hover:bg-[#1A2E4A] hover:shadow-[0_8px_24px_rgba(216,183,106,0.2)] disabled:opacity-50"
             >
               {downloading ? (
                 <span className="animate-pulse">Downloading...</span>
