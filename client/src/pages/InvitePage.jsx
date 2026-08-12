@@ -9,7 +9,11 @@ import { getTemplateLayout, getBlockStyles } from "../utils/templateLayouts";
 import { normalizePublicImageUrl } from "../utils/publicAssets";
 import api from "../utils/api";
 import { rsvpSchema } from "../utils/schemas";
-import { WEDDING_COLORS, getWeddingColorHex, isHexColor } from "../components/ColorPicker";
+import {
+  WEDDING_COLORS,
+  getWeddingColorHex,
+  isHexColor,
+} from "../components/ColorPicker";
 import { Icon } from "@iconify/react";
 import { buildPublicUrl } from "../utils/siteUrl";
 
@@ -19,7 +23,9 @@ const WISHES_PAGE_SIZE = 10;
 const resolveGuestDefaultTheme = (defaultGuestTheme) => {
   if (defaultGuestTheme === "light") return "light";
   if (defaultGuestTheme === "system") {
-    const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)")?.matches;
+    const prefersLight = window.matchMedia?.(
+      "(prefers-color-scheme: light)",
+    )?.matches;
     return prefersLight ? "light" : "dark";
   }
   return "dark";
@@ -27,7 +33,9 @@ const resolveGuestDefaultTheme = (defaultGuestTheme) => {
 
 const getSpotifyEmbedUrl = (url) => {
   if (!url) return "";
-  const match = url.match(/spotify\.com\/(playlist|track|album)\/([a-zA-Z0-9\-_]+)/);
+  const match = url.match(
+    /spotify\.com\/(playlist|track|album)\/([a-zA-Z0-9\-_]+)/,
+  );
   if (match) {
     const type = match[1];
     const id = match[2];
@@ -37,8 +45,8 @@ const getSpotifyEmbedUrl = (url) => {
 };
 
 const isDarkColor = (hex) => {
-  if (!hex || hex === '#999') return false;
-  const c = hex.replace('#', '');
+  if (!hex || hex === "#999") return false;
+  const c = hex.replace("#", "");
   if (c.length !== 6) return false;
   const r = parseInt(c.substring(0, 2), 16);
   const g = parseInt(c.substring(2, 4), 16);
@@ -49,7 +57,7 @@ const isDarkColor = (hex) => {
 
 const resolveWeddingColors = (colors, defaultColorsList) => {
   const colorMap = {};
-  defaultColorsList.forEach(c => {
+  defaultColorsList.forEach((c) => {
     colorMap[c.name.toLowerCase()] = c.hex;
   });
 
@@ -62,14 +70,28 @@ const resolveWeddingColors = (colors, defaultColorsList) => {
 
   const primary = hexList[0] || "#1A2E4A"; // Default Navy
 
-  const secondary = hexList[1] || (hexList[0] && !isDarkColor(hexList[0]) ? hexList[0] : "#C9A84C");
+  const secondary =
+    hexList[1] ||
+    (hexList[0] && !isDarkColor(hexList[0]) ? hexList[0] : "#C9A84C");
   const tertiary = hexList[2] || secondary;
 
-  const lightColors = ["ivory", "white", "cream", "nude", "blush pink", "peach", "mint green", "champagne gold"];
-  const selectedBgColorName = (colors || []).find((name) =>
-    !isHexColor(name) && lightColors.includes(String(name).toLowerCase()),
+  const lightColors = [
+    "ivory",
+    "white",
+    "cream",
+    "nude",
+    "blush pink",
+    "peach",
+    "mint green",
+    "champagne gold",
+  ];
+  const selectedBgColorName = (colors || []).find(
+    (name) =>
+      !isHexColor(name) && lightColors.includes(String(name).toLowerCase()),
   );
-  const selectedBgHex = selectedBgColorName ? colorMap[String(selectedBgColorName).toLowerCase()] : null;
+  const selectedBgHex = selectedBgColorName
+    ? colorMap[String(selectedBgColorName).toLowerCase()]
+    : null;
 
   return { primary, secondary, tertiary, selectedBgHex };
 };
@@ -83,19 +105,55 @@ const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
     return (
       <>
         {/* Top-Left Floral Cluster */}
-        <svg className="absolute top-0 left-0 w-28 h-28 pointer-events-none select-none opacity-85 z-0" viewBox="0 0 100 100" fill="none">
-          <path d="M0,0 Q30,10 50,40 Q40,60 30,70" stroke={leafColor} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-          <path d="M0,0 Q10,30 30,60 Q50,70 60,80" stroke={leafColor} strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+        <svg
+          className="absolute top-0 left-0 w-28 h-28 pointer-events-none select-none opacity-85 z-0"
+          viewBox="0 0 100 100"
+          fill="none"
+        >
+          <path
+            d="M0,0 Q30,10 50,40 Q40,60 30,70"
+            stroke={leafColor}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            opacity="0.6"
+          />
+          <path
+            d="M0,0 Q10,30 30,60 Q50,70 60,80"
+            stroke={leafColor}
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
 
           {/* Leaf Shapes */}
-          <path d="M25,12 C20,18 28,24 35,18 C30,12 25,12 25,12" fill={leafColor} opacity="0.8" />
-          <path d="M12,25 C18,20 24,28 18,35 C12,30 12,25 12,25" fill={leafColor} opacity="0.8" />
-          <path d="M40,30 C35,38 45,45 48,38 C43,30 40,30 40,30" fill={leafColor} opacity="0.7" />
-          <path d="M30,48 C25,55 35,62 38,55 C33,48 30,48 30,48" fill={leafColor} opacity="0.7" />
+          <path
+            d="M25,12 C20,18 28,24 35,18 C30,12 25,12 25,12"
+            fill={leafColor}
+            opacity="0.8"
+          />
+          <path
+            d="M12,25 C18,20 24,28 18,35 C12,30 12,25 12,25"
+            fill={leafColor}
+            opacity="0.8"
+          />
+          <path
+            d="M40,30 C35,38 45,45 48,38 C43,30 40,30 40,30"
+            fill={leafColor}
+            opacity="0.7"
+          />
+          <path
+            d="M30,48 C25,55 35,62 38,55 C33,48 30,48 30,48"
+            fill={leafColor}
+            opacity="0.7"
+          />
 
           {/* Flower blooms */}
           <circle cx="15" cy="15" r="9" fill={flowerColor} />
-          <path d="M9,15 C9,9 21,9 21,15 C21,21 9,21 9,15 Z" fill={flowerColor} opacity="0.9" />
+          <path
+            d="M9,15 C9,9 21,9 21,15 C21,21 9,21 9,15 Z"
+            fill={flowerColor}
+            opacity="0.9"
+          />
           <circle cx="15" cy="15" r="4" fill={accentColor} />
 
           <circle cx="38" cy="20" r="6" fill={flowerColor} opacity="0.95" />
@@ -105,19 +163,55 @@ const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
         </svg>
 
         {/* Bottom-Right Floral Cluster */}
-        <svg className="absolute bottom-0 right-0 w-28 h-28 pointer-events-none select-none opacity-85 rotate-180 z-0" viewBox="0 0 100 100" fill="none">
-          <path d="M0,0 Q30,10 50,40 Q40,60 30,70" stroke={leafColor} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-          <path d="M0,0 Q10,30 30,60 Q50,70 60,80" stroke={leafColor} strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+        <svg
+          className="absolute bottom-0 right-0 w-28 h-28 pointer-events-none select-none opacity-85 rotate-180 z-0"
+          viewBox="0 0 100 100"
+          fill="none"
+        >
+          <path
+            d="M0,0 Q30,10 50,40 Q40,60 30,70"
+            stroke={leafColor}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            opacity="0.6"
+          />
+          <path
+            d="M0,0 Q10,30 30,60 Q50,70 60,80"
+            stroke={leafColor}
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
 
           {/* Leaf Shapes */}
-          <path d="M25,12 C20,18 28,24 35,18 C30,12 25,12 25,12" fill={leafColor} opacity="0.8" />
-          <path d="M12,25 C18,20 24,28 18,35 C12,30 12,25 12,25" fill={leafColor} opacity="0.8" />
-          <path d="M40,30 C35,38 45,45 48,38 C43,30 40,30 40,30" fill={leafColor} opacity="0.7" />
-          <path d="M30,48 C25,55 35,62 38,55 C33,48 30,48 30,48" fill={leafColor} opacity="0.7" />
+          <path
+            d="M25,12 C20,18 28,24 35,18 C30,12 25,12 25,12"
+            fill={leafColor}
+            opacity="0.8"
+          />
+          <path
+            d="M12,25 C18,20 24,28 18,35 C12,30 12,25 12,25"
+            fill={leafColor}
+            opacity="0.8"
+          />
+          <path
+            d="M40,30 C35,38 45,45 48,38 C43,30 40,30 40,30"
+            fill={leafColor}
+            opacity="0.7"
+          />
+          <path
+            d="M30,48 C25,55 35,62 38,55 C33,48 30,48 30,48"
+            fill={leafColor}
+            opacity="0.7"
+          />
 
           {/* Flower blooms */}
           <circle cx="15" cy="15" r="9" fill={flowerColor} />
-          <path d="M9,15 C9,9 21,9 21,15 C21,21 9,21 9,15 Z" fill={flowerColor} opacity="0.9" />
+          <path
+            d="M9,15 C9,9 21,9 21,15 C21,21 9,21 9,15 Z"
+            fill={flowerColor}
+            opacity="0.9"
+          />
           <circle cx="15" cy="15" r="4" fill={accentColor} />
 
           <circle cx="38" cy="20" r="6" fill={flowerColor} opacity="0.95" />
@@ -131,14 +225,41 @@ const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
 
   if (theme === "minimalist") {
     return (
-      <svg className="absolute top-4 left-4 w-[calc(100%-32px)] h-[calc(100%-32px)] pointer-events-none select-none z-0" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <rect x="2" y="2" width="96" height="96" fill="none" stroke={pri} strokeWidth="0.75" opacity="0.4" />
-        <rect x="4" y="4" width="92" height="92" fill="none" stroke={sec} strokeWidth="0.5" opacity="0.3" />
+      <svg
+        className="absolute top-4 left-4 w-[calc(100%-32px)] h-[calc(100%-32px)] pointer-events-none select-none z-0"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+      >
+        <rect
+          x="2"
+          y="2"
+          width="96"
+          height="96"
+          fill="none"
+          stroke={pri}
+          strokeWidth="0.75"
+          opacity="0.4"
+        />
+        <rect
+          x="4"
+          y="4"
+          width="92"
+          height="92"
+          fill="none"
+          stroke={sec}
+          strokeWidth="0.5"
+          opacity="0.3"
+        />
 
         <path d="M10,4 L4,4 L4,10" fill="none" stroke={pri} strokeWidth="1" />
         <path d="M90,4 L96,4 L96,10" fill="none" stroke={pri} strokeWidth="1" />
         <path d="M10,96 L4,96 L4,90" fill="none" stroke={pri} strokeWidth="1" />
-        <path d="M90,96 L96,96 L96,90" fill="none" stroke={pri} strokeWidth="1" />
+        <path
+          d="M90,96 L96,96 L96,90"
+          fill="none"
+          stroke={pri}
+          strokeWidth="1"
+        />
       </svg>
     );
   }
@@ -154,12 +275,39 @@ const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
           @keyframes invite-sd-ping { 75%,100% { transform: scale(2); opacity: 0; } }
           @keyframes invite-sd-pulse { 0%,100% { opacity: 0.9; } 50% { opacity: 0.35; } }
         `}</style>
-        <div className="absolute top-1/4 left-1/4 w-40 h-40 rounded-full blur-[60px] opacity-25" style={{ backgroundColor: pri }} />
-        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 rounded-full blur-[60px] opacity-20" style={{ backgroundColor: sec }} />
-        <div className="absolute top-10 left-10 w-2 h-2 rounded-full bg-white opacity-80" style={{ animation: "invite-sd-ping 3s cubic-bezier(0,0,0.2,1) infinite" }} />
-        <div className="absolute top-1/3 right-12 w-1.5 h-1.5 rounded-full bg-white opacity-60" style={{ animation: "invite-sd-ping 5s cubic-bezier(0,0,0.2,1) infinite" }} />
-        <div className="absolute bottom-1/3 left-16 w-2.5 h-2.5 rounded-full bg-white opacity-40" style={{ animation: "invite-sd-pulse 4s cubic-bezier(0.4,0,0.6,1) infinite" }} />
-        <div className="absolute bottom-20 right-20 w-2 h-2 rounded-full bg-white opacity-90" style={{ animation: "invite-sd-pulse 2.5s cubic-bezier(0.4,0,0.6,1) infinite" }} />
+        <div
+          className="absolute top-1/4 left-1/4 w-40 h-40 rounded-full blur-[60px] opacity-25"
+          style={{ backgroundColor: pri }}
+        />
+        <div
+          className="absolute bottom-1/4 right-1/4 w-40 h-40 rounded-full blur-[60px] opacity-20"
+          style={{ backgroundColor: sec }}
+        />
+        <div
+          className="absolute top-10 left-10 w-2 h-2 rounded-full bg-white opacity-80"
+          style={{
+            animation: "invite-sd-ping 3s cubic-bezier(0,0,0.2,1) infinite",
+          }}
+        />
+        <div
+          className="absolute top-1/3 right-12 w-1.5 h-1.5 rounded-full bg-white opacity-60"
+          style={{
+            animation: "invite-sd-ping 5s cubic-bezier(0,0,0.2,1) infinite",
+          }}
+        />
+        <div
+          className="absolute bottom-1/3 left-16 w-2.5 h-2.5 rounded-full bg-white opacity-40"
+          style={{
+            animation: "invite-sd-pulse 4s cubic-bezier(0.4,0,0.6,1) infinite",
+          }}
+        />
+        <div
+          className="absolute bottom-20 right-20 w-2 h-2 rounded-full bg-white opacity-90"
+          style={{
+            animation:
+              "invite-sd-pulse 2.5s cubic-bezier(0.4,0,0.6,1) infinite",
+          }}
+        />
       </div>
     );
   }
@@ -173,17 +321,46 @@ const renderThemeOrnaments = (theme, pri, sec, ter, isFreeUser) => {
             50% { transform: translateY(-15px); animation-timing-function: cubic-bezier(0,0,0.2,1); }
           }
         `}</style>
-        <svg className="absolute top-0 left-0 w-full h-20 opacity-80" viewBox="0 0 100 20" preserveAspectRatio="none">
-          <path d="M0,0 Q10,8 20,2 Q30,12 40,4 Q50,15 60,3 Q70,12 80,2 Q90,10 100,0" stroke={sec} strokeWidth="1.2" fill="none" />
+        <svg
+          className="absolute top-0 left-0 w-full h-20 opacity-80"
+          viewBox="0 0 100 20"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,0 Q10,8 20,2 Q30,12 40,4 Q50,15 60,3 Q70,12 80,2 Q90,10 100,0"
+            stroke={sec}
+            strokeWidth="1.2"
+            fill="none"
+          />
           <circle cx="10" cy="5" r="2" fill={pri} />
           <circle cx="28" cy="7" r="2.5" fill={sec} />
           <circle cx="48" cy="9" r="2.2" fill={pri} />
           <circle cx="68" cy="8" r="2" fill={sec} />
           <circle cx="88" cy="6" r="1.8" fill={pri} />
         </svg>
-        <Icon icon="mdi:leaf" className="absolute top-5 left-1/4 h-4 w-4" style={{ animation: "invite-forest-bounce 6s infinite", color: pri }} />
-        <Icon icon="mdi:leaf-maple" className="absolute top-12 left-2/3 h-4 w-4" style={{ animation: "invite-forest-bounce 8s infinite", animationDelay: "2s", color: sec }} />
-        <Icon icon="mdi:leaf" className="absolute top-20 right-10 h-4 w-4" style={{ animation: "invite-forest-bounce 5s infinite", animationDelay: "1s", color: pri }} />
+        <Icon
+          icon="mdi:leaf"
+          className="absolute top-5 left-1/4 h-4 w-4"
+          style={{ animation: "invite-forest-bounce 6s infinite", color: pri }}
+        />
+        <Icon
+          icon="mdi:leaf-maple"
+          className="absolute top-12 left-2/3 h-4 w-4"
+          style={{
+            animation: "invite-forest-bounce 8s infinite",
+            animationDelay: "2s",
+            color: sec,
+          }}
+        />
+        <Icon
+          icon="mdi:leaf"
+          className="absolute top-20 right-10 h-4 w-4"
+          style={{
+            animation: "invite-forest-bounce 5s infinite",
+            animationDelay: "1s",
+            color: pri,
+          }}
+        />
       </div>
     );
   }
@@ -253,7 +430,13 @@ const WeddingDayParticles = () => {
     const size = `${Math.random() * 15 + 10}px`;
     const delay = `${Math.random() * 5}s`;
     const duration = `${Math.random() * 4 + 4}s`;
-    const icon = ["mdi:heart", "lucide:sparkles", "mdi:ring", "mdi:flower", "mdi:glass-cocktail"][Math.floor(Math.random() * 5)];
+    const icon = [
+      "mdi:heart",
+      "lucide:sparkles",
+      "mdi:ring",
+      "mdi:flower",
+      "mdi:glass-cocktail",
+    ][Math.floor(Math.random() * 5)];
     return {
       id: i,
       icon,
@@ -267,14 +450,15 @@ const WeddingDayParticles = () => {
         pointerEvents: "none",
         animation: "floatDown 8s linear infinite",
         opacity: Math.random() * 0.7 + 0.3,
-      }
+      },
     };
   });
 
   return (
     <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden">
-      <style dangerouslySetInnerHTML={{
-        __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @keyframes floatDown {
           0% {
             transform: translateY(0) rotate(0deg);
@@ -283,7 +467,9 @@ const WeddingDayParticles = () => {
             transform: translateY(105vh) rotate(360deg);
           }
         }
-      `}} />
+      `,
+        }}
+      />
       {pieces.map((p) => (
         <Icon key={p.id} icon={p.icon} style={p.style} />
       ))}
@@ -351,13 +537,22 @@ const renderFrameBorder = (frameBorder) => {
   return null;
 };
 
-const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary = false) => {
+const renderOrnamentDivider = (
+  dividerType,
+  color,
+  spacing = "my-3",
+  isSecondary = false,
+) => {
   const lineStyle = { background: color, opacity: isSecondary ? 0.3 : 0.4 };
   const getDividerIcon = () => {
-    if (dividerType === "floral-rose") return isSecondary ? "mdi:flower-tulip-outline" : "mdi:flower";
-    if (dividerType === "leaf-right" || dividerType === "eucalyptus") return "mdi:leaf";
-    if (dividerType === "gold-royal") return isSecondary ? "lucide:sparkle" : "mdi:crown-outline";
-    if (dividerType === "starry" || dividerType === "glitter") return isSecondary ? "lucide:sparkle" : "lucide:sparkles";
+    if (dividerType === "floral-rose")
+      return isSecondary ? "mdi:flower-tulip-outline" : "mdi:flower";
+    if (dividerType === "leaf-right" || dividerType === "eucalyptus")
+      return "mdi:leaf";
+    if (dividerType === "gold-royal")
+      return isSecondary ? "lucide:sparkle" : "mdi:crown-outline";
+    if (dividerType === "starry" || dividerType === "glitter")
+      return isSecondary ? "lucide:sparkle" : "lucide:sparkles";
     if (dividerType === "filigree") return "mdi:ornament";
     return isSecondary ? "lucide:sparkle" : "mdi:flower-pollen-outline";
   };
@@ -379,23 +574,63 @@ const renderOrnamentDivider = (dividerType, color, spacing = "my-3", isSecondary
       <Icon
         icon={dividerIcon}
         className="h-3.5 w-3.5"
-        style={{ color: dividerType?.includes("gold") || dividerType === "glitter" ? "#D8B76A" : color }}
+        style={{
+          color:
+            dividerType?.includes("gold") || dividerType === "glitter"
+              ? "#D8B76A"
+              : color,
+        }}
       />
       <div className="h-px w-10" style={lineStyle} />
     </div>
   );
 };
 
-const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHex, _isFreeUser) => {
+const renderTemplateBackgroundGraphics = (
+  customCardBg,
+  _priHex,
+  _secHex,
+  _terHex,
+  _isFreeUser,
+) => {
   if (!customCardBg) return null;
 
   if (customCardBg === "/templates/Blush Pink Watercolor.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
-        <circle cx="85" cy="115" r="30" fill="#FFE5E9" opacity="0.6" filter="blur(10px)" />
-        <circle cx="95" cy="50" r="25" fill="#FFF0F2" opacity="0.8" filter="blur(8px)" />
-        <path d="M100,20 Q80,40 85,60 Q90,80 100,90" stroke="#C3A38A" strokeWidth="1" opacity="0.6" />
-        <path d="M100,50 Q75,70 80,95 Q85,120 100,130" stroke="#C3A38A" strokeWidth="1.2" opacity="0.5" />
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
+        <circle
+          cx="85"
+          cy="115"
+          r="30"
+          fill="#FFE5E9"
+          opacity="0.6"
+          filter="blur(10px)"
+        />
+        <circle
+          cx="95"
+          cy="50"
+          r="25"
+          fill="#FFF0F2"
+          opacity="0.8"
+          filter="blur(8px)"
+        />
+        <path
+          d="M100,20 Q80,40 85,60 Q90,80 100,90"
+          stroke="#C3A38A"
+          strokeWidth="1"
+          opacity="0.6"
+        />
+        <path
+          d="M100,50 Q75,70 80,95 Q85,120 100,130"
+          stroke="#C3A38A"
+          strokeWidth="1.2"
+          opacity="0.5"
+        />
         <circle cx="82" cy="55" r="5" fill="#F4B2B9" opacity="0.9" />
         <circle cx="78" cy="85" r="6" fill="#F4B2B9" opacity="0.95" />
         <circle cx="81" cy="110" r="5.5" fill="#F4B2B9" opacity="0.9" />
@@ -408,11 +643,42 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
 
   if (customCardBg === "/templates/Cream Floral Elegance.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
-        <circle cx="15" cy="35" r="35" fill="#F4ECE1" opacity="0.7" filter="blur(12px)" />
-        <circle cx="10" cy="100" r="30" fill="#EFE5D8" opacity="0.6" filter="blur(10px)" />
-        <path d="M0,15 Q25,35 20,60 Q15,85 0,110" stroke="#A89276" strokeWidth="1" strokeLinecap="round" opacity="0.6" />
-        <path d="M0,50 Q18,75 15,100 Q12,125 0,140" stroke="#A89276" strokeWidth="0.8" strokeLinecap="round" opacity="0.5" />
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
+        <circle
+          cx="15"
+          cy="35"
+          r="35"
+          fill="#F4ECE1"
+          opacity="0.7"
+          filter="blur(12px)"
+        />
+        <circle
+          cx="10"
+          cy="100"
+          r="30"
+          fill="#EFE5D8"
+          opacity="0.6"
+          filter="blur(10px)"
+        />
+        <path
+          d="M0,15 Q25,35 20,60 Q15,85 0,110"
+          stroke="#A89276"
+          strokeWidth="1"
+          strokeLinecap="round"
+          opacity="0.6"
+        />
+        <path
+          d="M0,50 Q18,75 15,100 Q12,125 0,140"
+          stroke="#A89276"
+          strokeWidth="0.8"
+          strokeLinecap="round"
+          opacity="0.5"
+        />
         <path d="M12,28 C18,24 22,28 12,32" fill="#D2C2AD" opacity="0.8" />
         <path d="M18,48 C24,44 26,49 18,52" fill="#D2C2AD" opacity="0.9" />
         <path d="M15,85 C22,81 24,86 15,89" fill="#D2C2AD" opacity="0.8" />
@@ -426,7 +692,12 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
 
   if (customCardBg === "/templates/template_free_1.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes floatGoldDust1 {
             0% { transform: translateY(0px) translateX(0px) scale(0.8); opacity: 0.2; }
@@ -435,50 +706,165 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
           }
         `}</style>
         {/* Soft floating gold dust particles that overlay on top of the cream background */}
-        <circle cx="15" cy="35" r="0.7" fill="#D8B76A" style={{ animation: "floatGoldDust1 6s ease-in-out infinite" }} />
-        <circle cx="25" cy="115" r="0.5" fill="#D8B76A" style={{ animation: "floatGoldDust1 8s ease-in-out infinite 2s" }} />
-        <circle cx="80" cy="45" r="0.6" fill="#D8B76A" style={{ animation: "floatGoldDust1 7s ease-in-out infinite 4s" }} />
-        <circle cx="75" cy="105" r="0.8" fill="#D8B76A" style={{ animation: "floatGoldDust1 6s ease-in-out infinite" }} />
-        <circle cx="45" cy="20" r="0.5" fill="#D8B76A" style={{ animation: "floatGoldDust1 8s ease-in-out infinite 2s" }} />
-        <circle cx="55" cy="130" r="0.6" fill="#D8B76A" style={{ animation: "floatGoldDust1 7s ease-in-out infinite 4s" }} />
-        <circle cx="90" cy="85" r="0.5" fill="#D8B76A" style={{ animation: "floatGoldDust1 6s ease-in-out infinite" }} />
-        <circle cx="12" cy="80" r="0.7" fill="#D8B76A" style={{ animation: "floatGoldDust1 8s ease-in-out infinite 2s" }} />
+        <circle
+          cx="15"
+          cy="35"
+          r="0.7"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust1 6s ease-in-out infinite" }}
+        />
+        <circle
+          cx="25"
+          cy="115"
+          r="0.5"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust1 8s ease-in-out infinite 2s" }}
+        />
+        <circle
+          cx="80"
+          cy="45"
+          r="0.6"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust1 7s ease-in-out infinite 4s" }}
+        />
+        <circle
+          cx="75"
+          cy="105"
+          r="0.8"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust1 6s ease-in-out infinite" }}
+        />
+        <circle
+          cx="45"
+          cy="20"
+          r="0.5"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust1 8s ease-in-out infinite 2s" }}
+        />
+        <circle
+          cx="55"
+          cy="130"
+          r="0.6"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust1 7s ease-in-out infinite 4s" }}
+        />
+        <circle
+          cx="90"
+          cy="85"
+          r="0.5"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust1 6s ease-in-out infinite" }}
+        />
+        <circle
+          cx="12"
+          cy="80"
+          r="0.7"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust1 8s ease-in-out infinite 2s" }}
+        />
       </svg>
     );
   }
 
   if (customCardBg === "/templates/Emerald Eucalyptus Frame.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes rustlePlusLeaves {
             0%, 100% { transform: rotate(0deg) scale(1); }
             50% { transform: rotate(1.5deg) scale(1.02); }
           }
         `}</style>
-        <rect x="5" y="5" width="90" height="140" rx="6" fill="none" stroke="#D8B76A" strokeWidth="0.5" opacity="0.3" />
-        <g style={{ animation: "rustlePlusLeaves 5s ease-in-out infinite", transformOrigin: "center" }}>
-          <path d="M6,6 Q20,8 15,22 Q12,30 6,35" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+        <rect
+          x="5"
+          y="5"
+          width="90"
+          height="140"
+          rx="6"
+          fill="none"
+          stroke="#D8B76A"
+          strokeWidth="0.5"
+          opacity="0.3"
+        />
+        <g
+          style={{
+            animation: "rustlePlusLeaves 5s ease-in-out infinite",
+            transformOrigin: "center",
+          }}
+        >
+          <path
+            d="M6,6 Q20,8 15,22 Q12,30 6,35"
+            stroke="#A3B899"
+            strokeWidth="1"
+            strokeLinecap="round"
+            opacity="0.7"
+          />
           <circle cx="12" cy="12" r="2.5" fill="#D8B76A" opacity="0.9" />
           <path d="M14,15 C10,13 10,20 14,21 Z" fill="#7D9B76" opacity="0.7" />
           <circle cx="18" cy="8" r="2" fill="#A3B899" />
         </g>
-        <g style={{ animation: "rustlePlusLeaves 6s ease-in-out infinite 1.5s", transformOrigin: "center" }}>
-          <path d="M94,6 Q80,8 85,22 Q88,30 94,35" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+        <g
+          style={{
+            animation: "rustlePlusLeaves 6s ease-in-out infinite 1.5s",
+            transformOrigin: "center",
+          }}
+        >
+          <path
+            d="M94,6 Q80,8 85,22 Q88,30 94,35"
+            stroke="#A3B899"
+            strokeWidth="1"
+            strokeLinecap="round"
+            opacity="0.7"
+          />
           <circle cx="88" cy="12" r="2.5" fill="#D8B76A" opacity="0.9" />
           <path d="M86,15 C90,13 90,20 86,21 Z" fill="#7D9B76" opacity="0.7" />
           <circle cx="82" cy="8" r="2" fill="#A3B899" />
         </g>
-        <g style={{ animation: "rustlePlusLeaves 6s ease-in-out infinite 1.5s", transformOrigin: "center" }}>
-          <path d="M6,144 Q20,142 15,128 Q12,120 6,115" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+        <g
+          style={{
+            animation: "rustlePlusLeaves 6s ease-in-out infinite 1.5s",
+            transformOrigin: "center",
+          }}
+        >
+          <path
+            d="M6,144 Q20,142 15,128 Q12,120 6,115"
+            stroke="#A3B899"
+            strokeWidth="1"
+            strokeLinecap="round"
+            opacity="0.7"
+          />
           <circle cx="12" cy="138" r="2.5" fill="#D8B76A" opacity="0.9" />
-          <path d="M14,135 C10,137 10,130 14,129 Z" fill="#7D9B76" opacity="0.7" />
+          <path
+            d="M14,135 C10,137 10,130 14,129 Z"
+            fill="#7D9B76"
+            opacity="0.7"
+          />
           <circle cx="18" cy="142" r="2" fill="#A3B899" />
         </g>
-        <g style={{ animation: "rustlePlusLeaves 5s ease-in-out infinite", transformOrigin: "center" }}>
-          <path d="M94,144 Q80,142 85,128 Q88,120 94,115" stroke="#A3B899" strokeWidth="1" strokeLinecap="round" opacity="0.7" />
+        <g
+          style={{
+            animation: "rustlePlusLeaves 5s ease-in-out infinite",
+            transformOrigin: "center",
+          }}
+        >
+          <path
+            d="M94,144 Q80,142 85,128 Q88,120 94,115"
+            stroke="#A3B899"
+            strokeWidth="1"
+            strokeLinecap="round"
+            opacity="0.7"
+          />
           <circle cx="88" cy="138" r="2.5" fill="#D8B76A" opacity="0.9" />
-          <path d="M86,135 C90,137 90,130 86,129 Z" fill="#7D9B76" opacity="0.7" />
+          <path
+            d="M86,135 C90,137 90,130 86,129 Z"
+            fill="#7D9B76"
+            opacity="0.7"
+          />
           <circle cx="82" cy="142" r="2" fill="#A3B899" />
         </g>
       </svg>
@@ -487,25 +873,60 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
 
   if (customCardBg === "/templates/Royal Navy Lace Accent.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes laceGlow {
             0%, 100% { opacity: 0.4; }
             50% { opacity: 0.8; }
           }
         `}</style>
-        <line x1="10" y1="0" x2="10" y2="150" stroke="#D8B76A" strokeWidth="0.75" style={{ animation: "laceGlow 4s ease-in-out infinite" }} />
-        <line x1="12" y1="0" x2="12" y2="150" stroke="#D8B76A" strokeWidth="0.25" opacity="0.2" />
-        <path d="M10,10 Q6,15 10,20 M10,30 Q6,35 10,40 M10,50 Q6,55 10,60 M10,70 Q6,75 10,80 M10,90 Q6,95 10,100 M10,110 Q6,115 10,120 M10,130 Q6,135 10,140" stroke="#D8B76A" strokeWidth="0.5" style={{ animation: "laceGlow 4s ease-in-out infinite" }} />
+        <line
+          x1="10"
+          y1="0"
+          x2="10"
+          y2="150"
+          stroke="#D8B76A"
+          strokeWidth="0.75"
+          style={{ animation: "laceGlow 4s ease-in-out infinite" }}
+        />
+        <line
+          x1="12"
+          y1="0"
+          x2="12"
+          y2="150"
+          stroke="#D8B76A"
+          strokeWidth="0.25"
+          opacity="0.2"
+        />
+        <path
+          d="M10,10 Q6,15 10,20 M10,30 Q6,35 10,40 M10,50 Q6,55 10,60 M10,70 Q6,75 10,80 M10,90 Q6,95 10,100 M10,110 Q6,115 10,120 M10,130 Q6,135 10,140"
+          stroke="#D8B76A"
+          strokeWidth="0.5"
+          style={{ animation: "laceGlow 4s ease-in-out infinite" }}
+        />
         <path d="M0,0 Q18,0 18,18 Q0,18 0,0 Z" fill="#D8B76A" opacity="0.12" />
-        <path d="M0,150 Q18,150 18,132 Q0,132 0,150 Z" fill="#D8B76A" opacity="0.12" />
+        <path
+          d="M0,150 Q18,150 18,132 Q0,132 0,150 Z"
+          fill="#D8B76A"
+          opacity="0.12"
+        />
       </svg>
     );
   }
 
   if (customCardBg === "/templates/Elegant purple and silver floral.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes floatSilverDust {
             0% { transform: translateY(0px) translateX(0px) scale(0.8); opacity: 0.15; }
@@ -513,21 +934,77 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
             100% { transform: translateY(-20px) translateX(0px) scale(0.8); opacity: 0.15; }
           }
         `}</style>
-        <circle cx="15" cy="35" r="0.8" fill="#D8B76A" style={{ animation: "floatSilverDust 7s ease-in-out infinite" }} opacity="0.3" />
-        <circle cx="25" cy="115" r="0.6" fill="#9F86C0" style={{ animation: "floatSilverDust 9s ease-in-out infinite 2.5s" }} />
-        <circle cx="80" cy="45" r="0.7" fill="#E0AAFF" style={{ animation: "floatSilverDust 8s ease-in-out infinite 5s" }} />
-        <circle cx="75" cy="105" r="0.9" fill="#D8B76A" style={{ animation: "floatSilverDust 7s ease-in-out infinite" }} opacity="0.3" />
-        <circle cx="45" cy="20" r="0.6" fill="#E0AAFF" style={{ animation: "floatSilverDust 9s ease-in-out infinite 2.5s" }} />
-        <circle cx="55" cy="130" r="0.7" fill="#9F86C0" style={{ animation: "floatSilverDust 8s ease-in-out infinite 5s" }} />
-        <circle cx="90" cy="85" r="0.6" fill="#D8B76A" style={{ animation: "floatSilverDust 7s ease-in-out infinite" }} opacity="0.2" />
-        <circle cx="12" cy="80" r="0.8" fill="#E0AAFF" style={{ animation: "floatSilverDust 9s ease-in-out infinite 2.5s" }} />
+        <circle
+          cx="15"
+          cy="35"
+          r="0.8"
+          fill="#D8B76A"
+          style={{ animation: "floatSilverDust 7s ease-in-out infinite" }}
+          opacity="0.3"
+        />
+        <circle
+          cx="25"
+          cy="115"
+          r="0.6"
+          fill="#9F86C0"
+          style={{ animation: "floatSilverDust 9s ease-in-out infinite 2.5s" }}
+        />
+        <circle
+          cx="80"
+          cy="45"
+          r="0.7"
+          fill="#E0AAFF"
+          style={{ animation: "floatSilverDust 8s ease-in-out infinite 5s" }}
+        />
+        <circle
+          cx="75"
+          cy="105"
+          r="0.9"
+          fill="#D8B76A"
+          style={{ animation: "floatSilverDust 7s ease-in-out infinite" }}
+          opacity="0.3"
+        />
+        <circle
+          cx="45"
+          cy="20"
+          r="0.6"
+          fill="#E0AAFF"
+          style={{ animation: "floatSilverDust 9s ease-in-out infinite 2.5s" }}
+        />
+        <circle
+          cx="55"
+          cy="130"
+          r="0.7"
+          fill="#9F86C0"
+          style={{ animation: "floatSilverDust 8s ease-in-out infinite 5s" }}
+        />
+        <circle
+          cx="90"
+          cy="85"
+          r="0.6"
+          fill="#D8B76A"
+          style={{ animation: "floatSilverDust 7s ease-in-out infinite" }}
+          opacity="0.2"
+        />
+        <circle
+          cx="12"
+          cy="80"
+          r="0.8"
+          fill="#E0AAFF"
+          style={{ animation: "floatSilverDust 9s ease-in-out infinite 2.5s" }}
+        />
       </svg>
     );
   }
 
   if (customCardBg === "/templates/template_plus_3.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes floatGoldDust2 {
             0% { transform: translateY(0px) translateX(0px) scale(0.7); opacity: 0.15; }
@@ -535,21 +1012,74 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
             100% { transform: translateY(-24px) translateX(0px) scale(0.7); opacity: 0.15; }
           }
         `}</style>
-        <circle cx="20" cy="40" r="0.8" fill="#D8B76A" style={{ animation: "floatGoldDust2 5s ease-in-out infinite" }} />
-        <circle cx="30" cy="110" r="0.6" fill="#D8B76A" style={{ animation: "floatGoldDust2 7s ease-in-out infinite 1.5s" }} />
-        <circle cx="75" cy="50" r="0.7" fill="#D8B76A" style={{ animation: "floatGoldDust2 6s ease-in-out infinite 3s" }} />
-        <circle cx="80" cy="100" r="0.9" fill="#D8B76A" style={{ animation: "floatGoldDust2 8s ease-in-out infinite 4.5s" }} />
-        <circle cx="40" cy="30" r="0.5" fill="#D8B76A" style={{ animation: "floatGoldDust2 7s ease-in-out infinite 1.5s" }} />
-        <circle cx="60" cy="120" r="0.7" fill="#D8B76A" style={{ animation: "floatGoldDust2 5s ease-in-out infinite" }} />
-        <circle cx="85" cy="80" r="0.6" fill="#D8B76A" style={{ animation: "floatGoldDust2 6s ease-in-out infinite 3s" }} />
-        <circle cx="15" cy="70" r="0.8" fill="#D8B76A" style={{ animation: "floatGoldDust2 8s ease-in-out infinite 4.5s" }} />
+        <circle
+          cx="20"
+          cy="40"
+          r="0.8"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust2 5s ease-in-out infinite" }}
+        />
+        <circle
+          cx="30"
+          cy="110"
+          r="0.6"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust2 7s ease-in-out infinite 1.5s" }}
+        />
+        <circle
+          cx="75"
+          cy="50"
+          r="0.7"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust2 6s ease-in-out infinite 3s" }}
+        />
+        <circle
+          cx="80"
+          cy="100"
+          r="0.9"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust2 8s ease-in-out infinite 4.5s" }}
+        />
+        <circle
+          cx="40"
+          cy="30"
+          r="0.5"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust2 7s ease-in-out infinite 1.5s" }}
+        />
+        <circle
+          cx="60"
+          cy="120"
+          r="0.7"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust2 5s ease-in-out infinite" }}
+        />
+        <circle
+          cx="85"
+          cy="80"
+          r="0.6"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust2 6s ease-in-out infinite 3s" }}
+        />
+        <circle
+          cx="15"
+          cy="70"
+          r="0.8"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust2 8s ease-in-out infinite 4.5s" }}
+        />
       </svg>
     );
   }
 
   if (customCardBg === "/templates/Midnight Black Floral2.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes floatGoldDust3 {
             0% { transform: translateY(0px) translateX(0px) scale(0.7); opacity: 0.15; }
@@ -557,28 +1087,84 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
             100% { transform: translateY(-30px) translateX(0px) scale(0.7); opacity: 0.15; }
           }
         `}</style>
-        <circle cx="25" cy="45" r="0.8" fill="#D8B76A" style={{ animation: "floatGoldDust3 6s ease-in-out infinite" }} />
-        <circle cx="35" cy="115" r="0.6" fill="#F5EBD6" style={{ animation: "floatGoldDust3 8s ease-in-out infinite 2s" }} />
-        <circle cx="70" cy="55" r="0.7" fill="#D8B76A" style={{ animation: "floatGoldDust3 7s ease-in-out infinite 4s" }} />
-        <circle cx="85" cy="95" r="0.9" fill="#F5EBD6" style={{ animation: "floatGoldDust3 6s ease-in-out infinite" }} />
-        <circle cx="45" cy="25" r="0.5" fill="#D8B76A" style={{ animation: "floatGoldDust3 8s ease-in-out infinite 2s" }} />
-        <circle cx="65" cy="125" r="0.7" fill="#F5EBD6" style={{ animation: "floatGoldDust3 7s ease-in-out infinite 4s" }} />
+        <circle
+          cx="25"
+          cy="45"
+          r="0.8"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust3 6s ease-in-out infinite" }}
+        />
+        <circle
+          cx="35"
+          cy="115"
+          r="0.6"
+          fill="#F5EBD6"
+          style={{ animation: "floatGoldDust3 8s ease-in-out infinite 2s" }}
+        />
+        <circle
+          cx="70"
+          cy="55"
+          r="0.7"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust3 7s ease-in-out infinite 4s" }}
+        />
+        <circle
+          cx="85"
+          cy="95"
+          r="0.9"
+          fill="#F5EBD6"
+          style={{ animation: "floatGoldDust3 6s ease-in-out infinite" }}
+        />
+        <circle
+          cx="45"
+          cy="25"
+          r="0.5"
+          fill="#D8B76A"
+          style={{ animation: "floatGoldDust3 8s ease-in-out infinite 2s" }}
+        />
+        <circle
+          cx="65"
+          cy="125"
+          r="0.7"
+          fill="#F5EBD6"
+          style={{ animation: "floatGoldDust3 7s ease-in-out infinite 4s" }}
+        />
       </svg>
     );
   }
 
   if (customCardBg === "/templates/Dark Black Gold Marble.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes veinGlow {
             0%, 100% { opacity: 0.5; stroke-width: 0.8px; filter: drop-shadow(0 0 1px rgba(216,183,106,0.3)); }
             50% { opacity: 0.95; stroke-width: 1.2px; filter: drop-shadow(0 0 5px rgba(216,183,106,0.9)); }
           }
         `}</style>
-        <path d="M100,5 Q70,40 85,75 Q100,110 80,145" stroke="#D8B76A" style={{ animation: "veinGlow 4s ease-in-out infinite" }} fill="none" />
-        <path d="M100,35 Q85,55 92,80 Q99,105 100,120" stroke="#D8B76A" style={{ animation: "veinGlow 5s ease-in-out infinite 2.2s" }} fill="none" />
-        <path d="M100,70 Q90,95 93,115 Q96,135 100,140" stroke="#D8B76A" style={{ animation: "veinGlow 4s ease-in-out infinite" }} fill="none" />
+        <path
+          d="M100,5 Q70,40 85,75 Q100,110 80,145"
+          stroke="#D8B76A"
+          style={{ animation: "veinGlow 4s ease-in-out infinite" }}
+          fill="none"
+        />
+        <path
+          d="M100,35 Q85,55 92,80 Q99,105 100,120"
+          stroke="#D8B76A"
+          style={{ animation: "veinGlow 5s ease-in-out infinite 2.2s" }}
+          fill="none"
+        />
+        <path
+          d="M100,70 Q90,95 93,115 Q96,135 100,140"
+          stroke="#D8B76A"
+          style={{ animation: "veinGlow 4s ease-in-out infinite" }}
+          fill="none"
+        />
         <circle cx="88" cy="20" r="1" fill="#D8B76A" opacity="0.4" />
         <circle cx="94" cy="55" r="1.5" fill="#D8B76A" opacity="0.5" />
         <circle cx="82" cy="95" r="0.75" fill="#D8B76A" opacity="0.3" />
@@ -589,7 +1175,12 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
 
   if (customCardBg === "/templates/Burgundy Velvet Filigree.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes filigreeSpin {
             0% { transform: rotate(0deg); opacity: 0.7; }
@@ -598,20 +1189,80 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
           }
         `}</style>
         <path d="M0,15 A15,15 0 0,0 15,0 L0,0 Z" fill="#3D0C1A" opacity="0.9" />
-        <path d="M0,15 A15,15 0 0,0 15,0" stroke="#D8B76A" strokeWidth="0.75" opacity="0.8" />
-        <path d="M0,12 A12,12 0 0,0 12,0" stroke="#D8B76A" strokeWidth="0.25" opacity="0.5" />
-        <path d="M0,135 A15,15 0 0,1 15,150 L0,150 Z" fill="#3D0C1A" opacity="0.9" />
-        <path d="M0,135 A15,15 0 0,1 15,150" stroke="#D8B76A" strokeWidth="0.75" opacity="0.8" />
-        <path d="M0,138 A12,12 0 0,1 12,150" stroke="#D8B76A" strokeWidth="0.25" opacity="0.5" />
-        <line x1="12" y1="0" x2="12" y2="150" stroke="#D8B76A" strokeWidth="0.75" opacity="0.8" />
-        <g style={{ animation: "filigreeSpin 25s linear infinite", transformOrigin: "12px 75px" }}>
-          <circle cx="12" cy="75" r="8" stroke="#D8B76A" strokeWidth="0.5" strokeDasharray="2,2" />
-          <path d="M12,65 L12,85 M2,75 L22,75" stroke="#D8B76A" strokeWidth="0.5" />
+        <path
+          d="M0,15 A15,15 0 0,0 15,0"
+          stroke="#D8B76A"
+          strokeWidth="0.75"
+          opacity="0.8"
+        />
+        <path
+          d="M0,12 A12,12 0 0,0 12,0"
+          stroke="#D8B76A"
+          strokeWidth="0.25"
+          opacity="0.5"
+        />
+        <path
+          d="M0,135 A15,15 0 0,1 15,150 L0,150 Z"
+          fill="#3D0C1A"
+          opacity="0.9"
+        />
+        <path
+          d="M0,135 A15,15 0 0,1 15,150"
+          stroke="#D8B76A"
+          strokeWidth="0.75"
+          opacity="0.8"
+        />
+        <path
+          d="M0,138 A12,12 0 0,1 12,150"
+          stroke="#D8B76A"
+          strokeWidth="0.25"
+          opacity="0.5"
+        />
+        <line
+          x1="12"
+          y1="0"
+          x2="12"
+          y2="150"
+          stroke="#D8B76A"
+          strokeWidth="0.75"
+          opacity="0.8"
+        />
+        <g
+          style={{
+            animation: "filigreeSpin 25s linear infinite",
+            transformOrigin: "12px 75px",
+          }}
+        >
+          <circle
+            cx="12"
+            cy="75"
+            r="8"
+            stroke="#D8B76A"
+            strokeWidth="0.5"
+            strokeDasharray="2,2"
+          />
+          <path
+            d="M12,65 L12,85 M2,75 L22,75"
+            stroke="#D8B76A"
+            strokeWidth="0.5"
+          />
         </g>
         <circle cx="12" cy="75" r="2.5" fill="#D8B76A" />
-        <path d="M12,38 A7,7 0 0,1 12,52" stroke="#D8B76A" strokeWidth="0.75" fill="none" opacity="0.8" />
+        <path
+          d="M12,38 A7,7 0 0,1 12,52"
+          stroke="#D8B76A"
+          strokeWidth="0.75"
+          fill="none"
+          opacity="0.8"
+        />
         <circle cx="16" cy="45" r="1.5" fill="#D8B76A" opacity="0.9" />
-        <path d="M12,98 A7,7 0 0,1 12,112" stroke="#D8B76A" strokeWidth="0.75" fill="none" opacity="0.8" />
+        <path
+          d="M12,98 A7,7 0 0,1 12,112"
+          stroke="#D8B76A"
+          strokeWidth="0.75"
+          fill="none"
+          opacity="0.8"
+        />
         <circle cx="16" cy="105" r="1.5" fill="#D8B76A" opacity="0.9" />
       </svg>
     );
@@ -619,30 +1270,112 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
 
   if (customCardBg === "/templates/Royal Emerald Gold Frame.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes sparkleStar {
             0%, 100% { opacity: 0.2; transform: scale(0.6) rotate(0deg); }
             50% { opacity: 1; transform: scale(1.1) rotate(90deg); filter: drop-shadow(0 0 5px #D8B76A); }
           }
         `}</style>
-        <rect x="6" y="6" width="88" height="138" rx="8" fill="none" stroke="#D8B76A" strokeWidth="1.5" opacity="0.6" />
-        <rect x="7.5" y="7.5" width="85" height="135" rx="6.5" fill="none" stroke="#D8B76A" strokeWidth="0.5" opacity="0.3" />
-        <path d="M6,20 Q16,16 20,6" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
-        <path d="M94,20 Q84,16 80,6" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
-        <path d="M6,130 Q16,134 20,144" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
-        <path d="M94,130 Q84,134 80,144" stroke="#D8B76A" strokeWidth="1" fill="none" opacity="0.7" />
-        <path style={{ animation: "sparkleStar 3s ease-in-out infinite", transformOrigin: "20px 20px" }} d="M20,16 L21,19 L24,20 L21,21 L20,24 L19,21 L16,20 L19,19 Z" fill="#D8B76A" />
-        <path style={{ animation: "sparkleStar 3.5s ease-in-out infinite 1.2s", transformOrigin: "80px 20px" }} d="M80,16 L81,19 L84,20 L81,21 L80,24 L79,21 L76,20 L79,19 Z" fill="#D8B76A" />
-        <path style={{ animation: "sparkleStar 4s ease-in-out infinite 0.5s", transformOrigin: "20px 130px" }} d="M20,126 L21,129 L24,130 L21,131 L20,134 L19,131 L16,130 L19,129 Z" fill="#D8B76A" />
-        <path style={{ animation: "sparkleStar 3.2s ease-in-out infinite 1.8s", transformOrigin: "80px 130px" }} d="M80,126 L81,129 L84,130 L81,131 L80,134 L79,131 L76,130 L79,129 Z" fill="#D8B76A" />
+        <rect
+          x="6"
+          y="6"
+          width="88"
+          height="138"
+          rx="8"
+          fill="none"
+          stroke="#D8B76A"
+          strokeWidth="1.5"
+          opacity="0.6"
+        />
+        <rect
+          x="7.5"
+          y="7.5"
+          width="85"
+          height="135"
+          rx="6.5"
+          fill="none"
+          stroke="#D8B76A"
+          strokeWidth="0.5"
+          opacity="0.3"
+        />
+        <path
+          d="M6,20 Q16,16 20,6"
+          stroke="#D8B76A"
+          strokeWidth="1"
+          fill="none"
+          opacity="0.7"
+        />
+        <path
+          d="M94,20 Q84,16 80,6"
+          stroke="#D8B76A"
+          strokeWidth="1"
+          fill="none"
+          opacity="0.7"
+        />
+        <path
+          d="M6,130 Q16,134 20,144"
+          stroke="#D8B76A"
+          strokeWidth="1"
+          fill="none"
+          opacity="0.7"
+        />
+        <path
+          d="M94,130 Q84,134 80,144"
+          stroke="#D8B76A"
+          strokeWidth="1"
+          fill="none"
+          opacity="0.7"
+        />
+        <path
+          style={{
+            animation: "sparkleStar 3s ease-in-out infinite",
+            transformOrigin: "20px 20px",
+          }}
+          d="M20,16 L21,19 L24,20 L21,21 L20,24 L19,21 L16,20 L19,19 Z"
+          fill="#D8B76A"
+        />
+        <path
+          style={{
+            animation: "sparkleStar 3.5s ease-in-out infinite 1.2s",
+            transformOrigin: "80px 20px",
+          }}
+          d="M80,16 L81,19 L84,20 L81,21 L80,24 L79,21 L76,20 L79,19 Z"
+          fill="#D8B76A"
+        />
+        <path
+          style={{
+            animation: "sparkleStar 4s ease-in-out infinite 0.5s",
+            transformOrigin: "20px 130px",
+          }}
+          d="M20,126 L21,129 L24,130 L21,131 L20,134 L19,131 L16,130 L19,129 Z"
+          fill="#D8B76A"
+        />
+        <path
+          style={{
+            animation: "sparkleStar 3.2s ease-in-out infinite 1.8s",
+            transformOrigin: "80px 130px",
+          }}
+          d="M80,126 L81,129 L84,130 L81,131 L80,134 L79,131 L76,130 L79,129 Z"
+          fill="#D8B76A"
+        />
       </svg>
     );
   }
 
   if (customCardBg === "/templates/Blush Pink & Rose Gold Glitter.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes glitterFall {
             0% { transform: translateY(-10px) translateX(0px); opacity: 0; }
@@ -658,23 +1391,47 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
         <circle cx="96" cy="85" r="4.5" fill="#E8B5AC" opacity="0.8" />
         <circle cx="89" cy="110" r="3" fill="#E8B5AC" opacity="0.6" />
         <circle cx="94" cy="135" r="4" fill="#E8B5AC" opacity="0.8" />
-        <g style={{ animation: "glitterFall 10s linear infinite", transformOrigin: "center" }}>
+        <g
+          style={{
+            animation: "glitterFall 10s linear infinite",
+            transformOrigin: "center",
+          }}
+        >
           <circle cx="20" cy="10" r="1" fill="#E8B5AC" />
           <circle cx="45" cy="30" r="0.75" fill="#D8B76A" />
           <circle cx="75" cy="5" r="1.2" fill="#FFE5E9" />
-          <path d="M85,25 L86,22 L89,21 L86,20 L85,17 L84,20 L81,21 L84,22 Z" fill="#E8B5AC" />
+          <path
+            d="M85,25 L86,22 L89,21 L86,20 L85,17 L84,20 L81,21 L84,22 Z"
+            fill="#E8B5AC"
+          />
         </g>
-        <g style={{ animation: "glitterFall 14s linear infinite 3s", transformOrigin: "center" }}>
+        <g
+          style={{
+            animation: "glitterFall 14s linear infinite 3s",
+            transformOrigin: "center",
+          }}
+        >
           <circle cx="15" cy="40" r="1.2" fill="#D8B76A" />
           <circle cx="60" cy="15" r="0.8" fill="#FFE5E9" />
           <circle cx="80" cy="50" r="1" fill="#E8B5AC" />
-          <path d="M30,55 L31,52 L34,51 L31,50 L30,47 L29,50 L26,51 L29,52 Z" fill="#E8B5AC" />
+          <path
+            d="M30,55 L31,52 L34,51 L31,50 L30,47 L29,50 L26,51 L29,52 Z"
+            fill="#E8B5AC"
+          />
         </g>
-        <g style={{ animation: "glitterFall 12s linear infinite 6s", transformOrigin: "center" }}>
+        <g
+          style={{
+            animation: "glitterFall 12s linear infinite 6s",
+            transformOrigin: "center",
+          }}
+        >
           <circle cx="35" cy="25" r="0.8" fill="#E8B5AC" />
           <circle cx="70" cy="35" r="1.1" fill="#D8B76A" />
           <circle cx="90" cy="75" r="0.7" fill="#FFE5E9" />
-          <path d="M55,100 L56,97 L59,96 L56,95 L55,92 L54,95 L51,96 L54,97 Z" fill="#E8B5AC" />
+          <path
+            d="M55,100 L56,97 L59,96 L56,95 L55,92 L54,95 L51,96 L54,97 Z"
+            fill="#E8B5AC"
+          />
         </g>
       </svg>
     );
@@ -682,7 +1439,12 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
 
   if (customCardBg === "/templates/template_pro_5.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes leafDrift {
             0% { transform: translateY(-10px) translateX(0px) rotate(0deg); opacity: 0; }
@@ -691,17 +1453,33 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
             100% { transform: translateY(160px) translateX(-20px) rotate(180deg); opacity: 0; }
           }
         `}</style>
-        <path d="M0,25 Q18,40 10,75 Q2,110 0,135" stroke="#7A8E7E" strokeWidth="0.8" strokeLinecap="round" opacity="0.7" />
+        <path
+          d="M0,25 Q18,40 10,75 Q2,110 0,135"
+          stroke="#7A8E7E"
+          strokeWidth="0.8"
+          strokeLinecap="round"
+          opacity="0.7"
+        />
         <path d="M9,32 C15,31 16,36 9,38 Z" fill="#99AB9D" opacity="0.6" />
         <path d="M12,48 C18,49 16,54 12,53 Z" fill="#99AB9D" opacity="0.6" />
         <path d="M11,68 C17,71 14,75 11,72 Z" fill="#99AB9D" opacity="0.6" />
         <path d="M6,90 C12,94 9,98 6,95 Z" fill="#99AB9D" opacity="0.5" />
         <path d="M4,112 C10,115 8,119 4,116 Z" fill="#99AB9D" opacity="0.5" />
-        <g style={{ animation: "leafDrift 12s linear infinite", transformOrigin: "center" }}>
+        <g
+          style={{
+            animation: "leafDrift 12s linear infinite",
+            transformOrigin: "center",
+          }}
+        >
           <path d="M45,20 C49,19 48,24 45,23 Z" fill="#99AB9D" opacity="0.7" />
           <path d="M75,50 C79,49 78,54 75,53 Z" fill="#99AB9D" opacity="0.6" />
         </g>
-        <g style={{ animation: "leafDrift 16s linear infinite 4s", transformOrigin: "center" }}>
+        <g
+          style={{
+            animation: "leafDrift 16s linear infinite 4s",
+            transformOrigin: "center",
+          }}
+        >
           <path d="M60,30 C64,29 63,34 60,33 Z" fill="#99AB9D" opacity="0.5" />
           <path d="M30,80 C34,79 33,84 30,83 Z" fill="#99AB9D" opacity="0.6" />
         </g>
@@ -711,7 +1489,12 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
 
   if (customCardBg === "/templates/template_pro_6.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes twinkle {
             0%, 100% { opacity: 0.35; transform: scale(0.85); }
@@ -726,26 +1509,75 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
         `}</style>
         <g stroke="#D8B76A" strokeWidth="0.75" opacity="0.75">
           <line x1="6" y1="0" x2="6" y2="150" />
-          <line x1="8" y1="0" x2="8" y2="150" strokeWidth="0.25" opacity="0.5" />
-          <path d="M6,5 Q2,10 6,15 M6,20 Q2,25 6,30 M6,35 Q2,40 6,45 M6,50 Q2,55 6,60 M6,65 Q2,70 6,75 M6,80 Q2,85 6,90 M6,95 Q2,100 6,105 M6,110 Q2,115 6,120 M6,125 Q2,130 6,135 M6,140 Q2,145 6,150" fill="none" />
-          <path d="M6,7 Q9,12 6,17 M6,22 Q9,27 6,32 M6,37 Q9,42 6,47 M6,52 Q9,57 6,62 M6,67 Q9,72 6,77 M6,82 Q9,87 6,92 M6,97 Q9,102 6,107 M6,112 Q9,117 6,122 M6,127 Q9,132 6,137 M6,142 Q9,147 6,147" fill="none" opacity="0.5" />
+          <line
+            x1="8"
+            y1="0"
+            x2="8"
+            y2="150"
+            strokeWidth="0.25"
+            opacity="0.5"
+          />
+          <path
+            d="M6,5 Q2,10 6,15 M6,20 Q2,25 6,30 M6,35 Q2,40 6,45 M6,50 Q2,55 6,60 M6,65 Q2,70 6,75 M6,80 Q2,85 6,90 M6,95 Q2,100 6,105 M6,110 Q2,115 6,120 M6,125 Q2,130 6,135 M6,140 Q2,145 6,150"
+            fill="none"
+          />
+          <path
+            d="M6,7 Q9,12 6,17 M6,22 Q9,27 6,32 M6,37 Q9,42 6,47 M6,52 Q9,57 6,62 M6,67 Q9,72 6,77 M6,82 Q9,87 6,92 M6,97 Q9,102 6,107 M6,112 Q9,117 6,122 M6,127 Q9,132 6,137 M6,142 Q9,147 6,147"
+            fill="none"
+            opacity="0.5"
+          />
         </g>
         <g stroke="#D8B76A" strokeWidth="0.75" opacity="0.75">
           <line x1="94" y1="0" x2="94" y2="150" />
-          <line x1="92" y1="0" x2="92" y2="150" strokeWidth="0.25" opacity="0.5" />
-          <path d="M94,5 Q98,10 94,15 M94,20 Q98,25 94,30 M94,35 Q98,40 94,45 M94,50 Q98,55 94,60 M94,65 Q98,70 94,75 M94,80 Q98,85 94,90 M94,95 Q98,100 94,105 M94,110 Q98,115 94,120 M94,125 Q98,130 94,135 M94,140 Q98,145 94,150" fill="none" />
-          <path d="M94,7 Q91,12 94,17 M94,22 Q91,27 94,32 M94,37 Q91,42 94,47 M94,52 Q91,57 94,62 M94,67 Q91,72 94,77 M94,82 Q91,87 94,92 M94,97 Q91,102 94,107 M94,112 Q91,117 94,122 M94,127 Q91,132 94,137 M94,142 Q91,147 94,147" fill="none" opacity="0.5" />
+          <line
+            x1="92"
+            y1="0"
+            x2="92"
+            y2="150"
+            strokeWidth="0.25"
+            opacity="0.5"
+          />
+          <path
+            d="M94,5 Q98,10 94,15 M94,20 Q98,25 94,30 M94,35 Q98,40 94,45 M94,50 Q98,55 94,60 M94,65 Q98,70 94,75 M94,80 Q98,85 94,90 M94,95 Q98,100 94,105 M94,110 Q98,115 94,120 M94,125 Q98,130 94,135 M94,140 Q98,145 94,150"
+            fill="none"
+          />
+          <path
+            d="M94,7 Q91,12 94,17 M94,22 Q91,27 94,32 M94,37 Q91,42 94,47 M94,52 Q91,57 94,62 M94,67 Q91,72 94,77 M94,82 Q91,87 94,92 M94,97 Q91,102 94,107 M94,112 Q91,117 94,122 M94,127 Q91,132 94,137 M94,142 Q91,147 94,147"
+            fill="none"
+            opacity="0.5"
+          />
         </g>
         <g style={{ animation: "twinkle 3s ease-in-out infinite" }}>
-          <path d="M22,30 L23,28 L25,27 L23,26 L22,24 L21,26 L19,27 L21,28 Z" fill="#FFFFFF" />
-          <path d="M25,110 L26,108 L28,107 L26,106 L25,104 L24,106 L22,107 L24,108 Z" fill="#FFFFFF" />
+          <path
+            d="M22,30 L23,28 L25,27 L23,26 L22,24 L21,26 L19,27 L21,28 Z"
+            fill="#FFFFFF"
+          />
+          <path
+            d="M25,110 L26,108 L28,107 L26,106 L25,104 L24,106 L22,107 L24,108 Z"
+            fill="#FFFFFF"
+          />
         </g>
         <g style={{ animation: "twinkle 4s ease-in-out infinite 1.5s" }}>
-          <path d="M78,45 L79,43 L81,42 L79,41 L78,39 L77,41 L75,42 L77,43 Z" fill="#FFFFFF" />
-          <path d="M75,115 L76,113 L78,112 L76,111 L75,109 L74,111 L72,112 L74,113 Z" fill="#FFFFFF" />
+          <path
+            d="M78,45 L79,43 L81,42 L79,41 L78,39 L77,41 L75,42 L77,43 Z"
+            fill="#FFFFFF"
+          />
+          <path
+            d="M75,115 L76,113 L78,112 L76,111 L75,109 L74,111 L72,112 L74,113 Z"
+            fill="#FFFFFF"
+          />
         </g>
         <g style={{ animation: "shootingStar 8s linear infinite 2s" }}>
-          <line x1="0" y1="0" x2="-25" y2="-25" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
+          <line
+            x1="0"
+            y1="0"
+            x2="-25"
+            y2="-25"
+            stroke="#FFFFFF"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            opacity="0.8"
+          />
           <circle cx="0" cy="0" r="1.5" fill="#FFFFFF" />
         </g>
         <circle cx="30" cy="15" r="0.75" fill="#D8B76A" opacity="0.5" />
@@ -759,29 +1591,84 @@ const renderTemplateBackgroundGraphics = (customCardBg, _priHex, _secHex, _terHe
 
   if (customCardBg === "/templates/template_pro_7.webp") {
     return (
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 150" fill="none" preserveAspectRatio="none">
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        viewBox="0 0 100 150"
+        fill="none"
+        preserveAspectRatio="none"
+      >
         <style>{`
           @keyframes charcoalGoldFloat {
             0%, 100% { transform: translateY(0px) scale(0.95); opacity: 0.4; }
             50% { transform: translateY(-8px) scale(1.05); opacity: 0.8; }
           }
         `}</style>
-        <path d="M100,30 Q78,50 82,75 Q86,100 100,110" stroke="#D8B76A" strokeWidth="0.8" strokeLinecap="round" opacity="0.5" />
-        <circle cx="85" cy="55" r="4" stroke="#D8B76A" strokeWidth="0.6" fill="none" opacity="0.6" style={{ animation: "charcoalGoldFloat 5s ease-in-out infinite" }} />
+        <path
+          d="M100,30 Q78,50 82,75 Q86,100 100,110"
+          stroke="#D8B76A"
+          strokeWidth="0.8"
+          strokeLinecap="round"
+          opacity="0.5"
+        />
+        <circle
+          cx="85"
+          cy="55"
+          r="4"
+          stroke="#D8B76A"
+          strokeWidth="0.6"
+          fill="none"
+          opacity="0.6"
+          style={{ animation: "charcoalGoldFloat 5s ease-in-out infinite" }}
+        />
         <circle cx="85" cy="55" r="1.5" fill="#D8B76A" opacity="0.5" />
-        <circle cx="80" cy="80" r="5" stroke="#D8B76A" strokeWidth="0.6" fill="none" opacity="0.6" style={{ animation: "charcoalGoldFloat 6s ease-in-out infinite 2s" }} />
+        <circle
+          cx="80"
+          cy="80"
+          r="5"
+          stroke="#D8B76A"
+          strokeWidth="0.6"
+          fill="none"
+          opacity="0.6"
+          style={{ animation: "charcoalGoldFloat 6s ease-in-out infinite 2s" }}
+        />
         <circle cx="80" cy="80" r="2" fill="#D8B76A" opacity="0.5" />
-        <path d="M78,48 Q70,42 76,38 Q82,34 84,42 Z" fill="#D8B76A" opacity="0.15" />
-        <path d="M72,72 Q64,66 70,62 Q76,58 78,66 Z" fill="#D8B76A" opacity="0.15" />
-        <circle cx="45" cy="40" r="0.8" fill="#D8B76A" style={{ animation: "charcoalGoldFloat 5s ease-in-out infinite" }} />
-        <circle cx="35" cy="90" r="1" fill="#D8B76A" style={{ animation: "charcoalGoldFloat 6s ease-in-out infinite 2s" }} />
-        <circle cx="65" cy="115" r="0.6" fill="#D8B76A" style={{ animation: "charcoalGoldFloat 5s ease-in-out infinite" }} />
+        <path
+          d="M78,48 Q70,42 76,38 Q82,34 84,42 Z"
+          fill="#D8B76A"
+          opacity="0.15"
+        />
+        <path
+          d="M72,72 Q64,66 70,62 Q76,58 78,66 Z"
+          fill="#D8B76A"
+          opacity="0.15"
+        />
+        <circle
+          cx="45"
+          cy="40"
+          r="0.8"
+          fill="#D8B76A"
+          style={{ animation: "charcoalGoldFloat 5s ease-in-out infinite" }}
+        />
+        <circle
+          cx="35"
+          cy="90"
+          r="1"
+          fill="#D8B76A"
+          style={{ animation: "charcoalGoldFloat 6s ease-in-out infinite 2s" }}
+        />
+        <circle
+          cx="65"
+          cy="115"
+          r="0.6"
+          fill="#D8B76A"
+          style={{ animation: "charcoalGoldFloat 5s ease-in-out infinite" }}
+        />
       </svg>
     );
   }
 
   return null;
-}
+};
 
 const InvitePage = ({ setThemePreference }) => {
   const { slug } = useParams();
@@ -819,32 +1706,41 @@ const InvitePage = ({ setThemePreference }) => {
   const [checkInQrDataUrl, setCheckInQrDataUrl] = useState("");
   const [checkInQrLoading, setCheckInQrLoading] = useState(false);
 
-  // Declare variables unconditionally at the very top of the render scope 
+  // Declare variables unconditionally at the very top of the render scope
   // to completely eliminate any Temporal Dead Zone (TDZ) reference errors.
   let musicUrl = "";
   let isDirectAudio = false;
   const galleryPhotos = useMemo(
     () => invitation?.userId?.galleryPhotos || [],
-    [invitation?.userId?.galleryPhotos]
+    [invitation?.userId?.galleryPhotos],
   );
   const customTextSize = invitation?.userId?.customTextSize || 1.0;
   const customTextSizeTitle = invitation?.userId?.customTextSizeTitle || 1.0;
   const visibleWishes = useMemo(
     () => wishes.slice(0, visibleWishCount),
-    [visibleWishCount, wishes]
+    [visibleWishCount, wishes],
   );
   const checkInUrl = useMemo(
-    () => invitation?.checkInToken ? buildPublicUrl(`/check-in/${invitation.checkInToken}`) : "",
-    [invitation?.checkInToken]
+    () =>
+      invitation?.checkInToken
+        ? buildPublicUrl(`/check-in/${invitation.checkInToken}`)
+        : "",
+    [invitation?.checkInToken],
   );
   const hasMoreWishes = wishes.length > visibleWishCount;
   const canShowLessWishes = visibleWishCount > WISHES_PAGE_SIZE;
-  const customTextSizeSubtitle = invitation?.userId?.customTextSizeSubtitle || 1.0;
-  const customTextSizeCoupleNames = invitation?.userId?.customTextSizeCoupleNames || 1.0;
-  const customTextSizeGreeting = invitation?.userId?.customTextSizeGreeting || 1.0;
-  const customTextSizeMessage = invitation?.userId?.customTextSizeMessage || 1.0;
-  const customTextSizeDetails = invitation?.userId?.customTextSizeDetails || 1.0;
-  const customTextSizeReception = invitation?.userId?.customTextSizeReception || 1.0;
+  const customTextSizeSubtitle =
+    invitation?.userId?.customTextSizeSubtitle || 1.0;
+  const customTextSizeCoupleNames =
+    invitation?.userId?.customTextSizeCoupleNames || 1.0;
+  const customTextSizeGreeting =
+    invitation?.userId?.customTextSizeGreeting || 1.0;
+  const customTextSizeMessage =
+    invitation?.userId?.customTextSizeMessage || 1.0;
+  const customTextSizeDetails =
+    invitation?.userId?.customTextSizeDetails || 1.0;
+  const customTextSizeReception =
+    invitation?.userId?.customTextSizeReception || 1.0;
   const customTextSizeColors = invitation?.userId?.customTextSizeColors || 1.0;
 
   // Populate/re-assign variables once invitation details are asynchronously loaded.
@@ -855,24 +1751,62 @@ const InvitePage = ({ setThemePreference }) => {
     const ownerUserId = invitation.userId._id;
     if (ownerUserId) {
       try {
-        const localAudio = localStorage.getItem(`vowlink_local_audio_url_${ownerUserId}`);
+        const localAudio = localStorage.getItem(
+          `vowlink_local_audio_url_${ownerUserId}`,
+        );
         if (localAudio && localAudio.startsWith("data:audio")) {
           musicUrl = localAudio;
         }
-      } catch { }
+      } catch {}
     }
     // Map old placeholder SoundHelix loops to actual wedding instrumentals
-    if (musicUrl && !musicUrl.startsWith("data:") && (musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" || musicUrl === "https://archive.org/download/PianoGuysMusic/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3")) {
-      musicUrl = "https://archive.org/download/20-piano-guys-lord-of-the-rings-the-hobbit/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3";
-    } else if (musicUrl && !musicUrl.startsWith("data:") && musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3") {
-      musicUrl = "https://archive.org/download/fave2/Ed%20Sheeran%20-%20Perfect.mp3";
-    } else if (musicUrl && !musicUrl.startsWith("data:") && (musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" || musicUrl === "https://archive.org/download/CantHelpFallingInLoveWYou/Cant%20Help%20Falling%20In%20Love%20W%20You.mp3")) {
-      musicUrl = "https://archive.org/download/fave2/Haley%20Reinhart%20-%20Cant%20Help%20Falling%20In%20Love%20With%20You.mp3";
-    } else if (musicUrl && !musicUrl.startsWith("data:") && musicUrl === "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3") {
-      musicUrl = "https://archive.org/download/AlsPlaylistMixedGenre/John%20Legend%20-%20All%20of%20Me.mp3";
-    } else if (musicUrl && !musicUrl.startsWith("data:") && (musicUrl === "https://archive.org/download/100ClassicalMusicMasterpieces/18%20Mendelssohn%20-%20Wedding%20March.mp3" || musicUrl === "https://archive.org/download/ClassicalMusicMidi/Mendelssohn_-_Wedding_March.mp3")) {
+    if (
+      musicUrl &&
+      !musicUrl.startsWith("data:") &&
+      (musicUrl ===
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" ||
+        musicUrl ===
+          "https://archive.org/download/PianoGuysMusic/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3")
+    ) {
+      musicUrl =
+        "https://archive.org/download/20-piano-guys-lord-of-the-rings-the-hobbit/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3";
+    } else if (
+      musicUrl &&
+      !musicUrl.startsWith("data:") &&
+      musicUrl ===
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    ) {
+      musicUrl =
+        "https://archive.org/download/fave2/Ed%20Sheeran%20-%20Perfect.mp3";
+    } else if (
+      musicUrl &&
+      !musicUrl.startsWith("data:") &&
+      (musicUrl ===
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" ||
+        musicUrl ===
+          "https://archive.org/download/CantHelpFallingInLoveWYou/Cant%20Help%20Falling%20In%20Love%20W%20You.mp3")
+    ) {
+      musicUrl =
+        "https://archive.org/download/fave2/Haley%20Reinhart%20-%20Cant%20Help%20Falling%20In%20Love%20With%20You.mp3";
+    } else if (
+      musicUrl &&
+      !musicUrl.startsWith("data:") &&
+      musicUrl ===
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    ) {
+      musicUrl =
+        "https://archive.org/download/AlsPlaylistMixedGenre/John%20Legend%20-%20All%20of%20Me.mp3";
+    } else if (
+      musicUrl &&
+      !musicUrl.startsWith("data:") &&
+      (musicUrl ===
+        "https://archive.org/download/100ClassicalMusicMasterpieces/18%20Mendelssohn%20-%20Wedding%20March.mp3" ||
+        musicUrl ===
+          "https://archive.org/download/ClassicalMusicMidi/Mendelssohn_-_Wedding_March.mp3")
+    ) {
       // Remap any old Wedding March URL to the verified working source
-      musicUrl = "https://archive.org/download/wedding-march/Wedding%20March.mp3";
+      musicUrl =
+        "https://archive.org/download/wedding-march/Wedding%20March.mp3";
     }
     isDirectAudio = musicUrl && !getSpotifyEmbedUrl(musicUrl);
   }
@@ -895,7 +1829,8 @@ const InvitePage = ({ setThemePreference }) => {
       setAudioReady(true);
       if (pendingPlayRef.current) {
         pendingPlayRef.current = false;
-        audio.play()
+        audio
+          .play()
           .then(() => setIsPlaying(true))
           .catch((err) => console.log("Deferred playback failed", err));
       }
@@ -964,11 +1899,14 @@ const InvitePage = ({ setThemePreference }) => {
         }
       } else {
         if (wasPlayingRef.current && audioRef.current && isOpen) {
-          audioRef.current.play()
+          audioRef.current
+            .play()
             .then(() => {
               wasPlayingRef.current = false;
             })
-            .catch((err) => console.log("Failed to resume playback on tab return", err));
+            .catch((err) =>
+              console.log("Failed to resume playback on tab return", err),
+            );
         }
       }
     };
@@ -983,7 +1921,9 @@ const InvitePage = ({ setThemePreference }) => {
   useEffect(() => {
     if (galleryPhotos.length <= 1) return;
     const interval = setInterval(() => {
-      setGalleryIndex((prev) => (prev === galleryPhotos.length - 1 ? 0 : prev + 1));
+      setGalleryIndex((prev) =>
+        prev === galleryPhotos.length - 1 ? 0 : prev + 1,
+      );
     }, 4000);
     return () => clearInterval(interval);
   }, [galleryPhotos]);
@@ -1068,7 +2008,10 @@ const InvitePage = ({ setThemePreference }) => {
       setTimeout(computeScale, 100),
       setTimeout(computeScale, 300),
       setTimeout(computeScale, 800),
-      setTimeout(() => { computeScale(); scaleLocked = true; }, 1500),
+      setTimeout(() => {
+        computeScale();
+        scaleLocked = true;
+      }, 1500),
     ];
 
     return () => {
@@ -1114,13 +2057,16 @@ const InvitePage = ({ setThemePreference }) => {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.play()
+      audioRef.current
+        .play()
         .then(() => setIsPlaying(true))
         .catch((err) => console.log("Playback failed", err));
     }
   };
   const rsvpDeadline = invitation?.userId?.rsvpDeadline;
-  const deadlinePassed = rsvpDeadline ? new Date(rsvpDeadline) < new Date() : false;
+  const deadlinePassed = rsvpDeadline
+    ? new Date(rsvpDeadline) < new Date()
+    : false;
 
   const {
     register,
@@ -1148,16 +2094,21 @@ const InvitePage = ({ setThemePreference }) => {
       .then((res) => {
         setInvitation(res.data);
         try {
-          const savedTheme = localStorage.getItem(getGuestThemeStorageKey(slug));
+          const savedTheme = localStorage.getItem(
+            getGuestThemeStorageKey(slug),
+          );
           const hasSavedTheme = savedTheme === "light" || savedTheme === "dark";
-          const defaultGuestTheme = res.data?.userId?.defaultGuestTheme || "dark";
+          const defaultGuestTheme =
+            res.data?.userId?.defaultGuestTheme || "dark";
           if (typeof setThemePreference === "function") {
             setThemePreference(
-              hasSavedTheme ? savedTheme : resolveGuestDefaultTheme(defaultGuestTheme),
-              { savePreference: false }
+              hasSavedTheme
+                ? savedTheme
+                : resolveGuestDefaultTheme(defaultGuestTheme),
+              { savePreference: false },
             );
           }
-        } catch { }
+        } catch {}
         setValue("guestName", res.data.guestName);
       })
       .catch((err) => {
@@ -1172,23 +2123,29 @@ const InvitePage = ({ setThemePreference }) => {
         const seen = new Set();
         const uniqueWishes = (Array.isArray(res.data) ? res.data : [])
           .filter((wish) => {
-            const guest = (wish.guestName || "").trim().replace(/\s+/g, " ").toLowerCase();
-            const message = (wish.message || "").trim().replace(/\s+/g, " ").toLowerCase();
+            const guest = (wish.guestName || "")
+              .trim()
+              .replace(/\s+/g, " ")
+              .toLowerCase();
+            const message = (wish.message || "")
+              .trim()
+              .replace(/\s+/g, " ")
+              .toLowerCase();
             const key = `${guest}::${message}`;
 
             if (!message || seen.has(key)) return false;
             seen.add(key);
             return true;
           })
-          .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+          .sort(
+            (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
+          );
 
         setWishes(uniqueWishes);
         setVisibleWishCount(WISHES_PAGE_SIZE);
       })
-      .catch(() => { });
+      .catch(() => {});
   }, [slug, setValue, setThemePreference]);
-
-
 
   // Component lifecycle hooks
 
@@ -1227,14 +2184,17 @@ const InvitePage = ({ setThemePreference }) => {
       rsvpSubmittingRef.current = false;
       setRsvpSubmitting(false);
       toast.error(
-        err.response?.data?.message || "Failed to submit RSVP. Please try again."
+        err.response?.data?.message ||
+          "Failed to submit RSVP. Please try again.",
       );
     }
   };
 
   const handleOpenCheckInQr = () => {
     if (!checkInUrl) {
-      toast.info("Your entry QR is still being prepared. Please try again in a moment.");
+      toast.info(
+        "Your entry QR is still being prepared. Please try again in a moment.",
+      );
       return;
     }
 
@@ -1345,7 +2305,8 @@ const InvitePage = ({ setThemePreference }) => {
       exportPoster.style.width = `${exportWidth}px`;
       exportPoster.style.boxSizing = "border-box";
       exportPoster.style.padding = "0 0 34px";
-      exportPoster.style.background = "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)";
+      exportPoster.style.background =
+        "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)";
       exportPoster.style.fontFamily = activeFont;
 
       const detailsPanel = document.createElement("div");
@@ -1381,15 +2342,29 @@ const InvitePage = ({ setThemePreference }) => {
       detailsGrid.style.gap = "10px";
 
       addDetail(detailsGrid, "Date", formattedDate || "To be announced");
-      addDetail(detailsGrid, "Time", formattedTimeWithFormat || "To be announced");
+      addDetail(
+        detailsGrid,
+        "Time",
+        formattedTimeWithFormat || "To be announced",
+      );
       addDetail(detailsGrid, "Venue", venueName || venue || "To be announced");
       if (receptionLocation) {
         addDetail(detailsGrid, "Reception", receptionName || receptionLocation);
       }
       addDetail(detailsGrid, "Dress Code", dressCode || "To be announced");
       addDetail(detailsGrid, "Category", invitation.category || "Guest");
-      addDetail(detailsGrid, "Additional Guest", plusOnePolicy === "plus_one_allowed" ? "Plus one allowed" : "Strictly by invitation");
-      addDetail(detailsGrid, "Children", kidsAllowed ? "Children are welcome" : "Adults only");
+      addDetail(
+        detailsGrid,
+        "Additional Guest",
+        plusOnePolicy === "plus_one_allowed"
+          ? "Plus one allowed"
+          : "Strictly by invitation",
+      );
+      addDetail(
+        detailsGrid,
+        "Children",
+        kidsAllowed ? "Children are welcome" : "Adults only",
+      );
 
       if (weddingColors.length > 0) {
         const colorsItem = document.createElement("div");
@@ -1477,17 +2452,21 @@ const InvitePage = ({ setThemePreference }) => {
         style: {
           width: `${exportWidth}px`,
           height: `${exportHeight}px`,
-          background: "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)",
+          background:
+            "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)",
         },
         filter: (node) => {
-          if (node.id === "rsvp-open-btn" || node.id === "download-actions-bar") {
+          if (
+            node.id === "rsvp-open-btn" ||
+            node.id === "download-actions-bar"
+          ) {
             return false;
           }
           if (node.classList && node.classList.contains("download-exclude")) {
             return false;
           }
           return true;
-        }
+        },
       });
       const link = document.createElement("a");
       link.download = `invitation-${invitation.guestName?.toLowerCase().replace(/\s+/g, "-") || "card"}.png`;
@@ -1560,14 +2539,28 @@ const InvitePage = ({ setThemePreference }) => {
   const customHorizontalOffset = invitation.userId?.customHorizontalOffset || 0;
   const customTextBoldness = invitation.userId?.customTextBoldness || "normal";
   const customTextAlign = invitation.userId?.customTextAlign || "center";
-  const userHasCustomAlignment = invitation.userId?.userHasCustomAlignment || false;
-  const userHasCustomTextColor = invitation.userId?.userHasCustomTextColor || false;
+  const userHasCustomAlignment =
+    invitation.userId?.userHasCustomAlignment || false;
+  const userHasCustomTextColor =
+    invitation.userId?.userHasCustomTextColor || false;
 
   const layout = getTemplateLayout(cardTheme, customCardBg);
-  const textAlignment = userHasCustomAlignment ? (customTextAlign || "center") : (layout.align || "center");
+  const textAlignment = userHasCustomAlignment
+    ? customTextAlign || "center"
+    : layout.align || "center";
 
-  const baseWeight = customTextBoldness === "bold" ? "700" : (customTextBoldness === "medium" ? "500" : "400");
-  const headingWeight = customTextBoldness === "bold" ? "950" : (customTextBoldness === "medium" ? "750" : "600");
+  const baseWeight =
+    customTextBoldness === "bold"
+      ? "700"
+      : customTextBoldness === "medium"
+        ? "500"
+        : "400";
+  const headingWeight =
+    customTextBoldness === "bold"
+      ? "950"
+      : customTextBoldness === "medium"
+        ? "750"
+        : "600";
   const couplePhotoUrl = invitation.userId?.couplePhotoUrl || "";
   const coupleOverlayOpacity = invitation.userId?.coupleOverlayOpacity ?? 0.45;
 
@@ -1576,19 +2569,19 @@ const InvitePage = ({ setThemePreference }) => {
 
   const formattedDate = weddingDate
     ? new Date(weddingDate).toLocaleDateString("en-GB", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
     : null;
 
   const formattedTime = weddingTime
     ? new Date(`1970-01-01T${weddingTime}:00`).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    })
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
     : null;
 
   const formattedTimeWithFormat = formattedTime;
@@ -1601,7 +2594,12 @@ const InvitePage = ({ setThemePreference }) => {
   };
   const activeFont = fontMap[customFontFamily] || fontMap.classic;
 
-  const { primary: priHex, secondary: secHex, tertiary: terHex, selectedBgHex } = resolveWeddingColors(weddingColors, WEDDING_COLORS);
+  const {
+    primary: priHex,
+    secondary: secHex,
+    tertiary: terHex,
+    selectedBgHex,
+  } = resolveWeddingColors(weddingColors, WEDDING_COLORS);
   const isFreeUser = invitation.userId?.tier === "free";
 
   // Plan-based Card Theme styling configuration
@@ -1613,7 +2611,8 @@ const InvitePage = ({ setThemePreference }) => {
 
   if (cardTheme === "floral") {
     cardStyles = {
-      background: selectedBgHex || "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)",
+      background:
+        selectedBgHex || "radial-gradient(circle, #FFFDF9 60%, #FAF6F0 100%)",
       color: customTextColor || "#1A2E4A",
       fontFamily: activeFont,
     };
@@ -1621,25 +2620,38 @@ const InvitePage = ({ setThemePreference }) => {
     cardStyles = {
       background: "radial-gradient(circle, #FFFFFF 60%, #F5F7FA 100%)",
       border: `8px double ${secHex}33`,
-      color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#2E3A59",
+      color:
+        customTextColor && customTextColor !== "#1A2E4A"
+          ? customTextColor
+          : "#2E3A59",
       fontFamily: activeFont,
     };
   } else if (cardTheme === "navy") {
     cardStyles = {
-      background: "url('/templates/elegant_gold_frame_with_navy_backdrop.webp') 0% 0% / 100% 100% no-repeat",
-      color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A",
+      background:
+        "url('/templates/elegant_gold_frame_with_navy_backdrop.webp') 0% 0% / 100% 100% no-repeat",
+      color:
+        customTextColor && customTextColor !== "#1A2E4A"
+          ? customTextColor
+          : "#D8B76A",
       fontFamily: activeFont,
     };
   } else if (cardTheme === "stardust") {
     cardStyles = {
       background: "radial-gradient(circle, #0D0B1C 0%, #05040B 100%)",
-      color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#FFFFFF",
+      color:
+        customTextColor && customTextColor !== "#1A2E4A"
+          ? customTextColor
+          : "#FFFFFF",
       fontFamily: activeFont,
     };
   } else if (cardTheme === "forest") {
     cardStyles = {
       background: "radial-gradient(circle, #071C11 0%, #030C07 100%)",
-      color: customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : secHex,
+      color:
+        customTextColor && customTextColor !== "#1A2E4A"
+          ? customTextColor
+          : secHex,
       fontFamily: activeFont,
     };
   } else if (cardTheme === "custom" && customCardBg) {
@@ -1648,93 +2660,206 @@ const InvitePage = ({ setThemePreference }) => {
 
     switch (customCardBg) {
       case "/templates/template_free_1.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#1A2E4A";
         break;
       case "/templates/template_free_2.png":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#4A5D4E";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#4A5D4E";
         break;
       case "/templates/template_free_3.png":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6E5B4F";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#6E5B4F";
         break;
       case "/templates/Blush Pink Watercolor.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3D2124";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#3D2124";
         break;
       case "/templates/Cream Floral Elegance.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#6B5847";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#6B5847";
         break;
       case "/templates/template_plus_1.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#B8963A";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#B8963A";
         break;
       case "/templates/template_plus_2.png":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#800020";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#800020";
         break;
       case "/templates/Emerald Eucalyptus Frame.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#E2E8F0";
         break;
       case "/templates/elegant_gold_frame_with_navy_backdrop.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#D8B76A";
         break;
       case "/templates/Royal Navy Lace Accent.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#F5EBD6";
         break;
       case "/templates/Elegant purple and silver floral.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#3C2A4D";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#3C2A4D";
         break;
       case "/templates/template_pro_1.png":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D4AF37";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#D4AF37";
         break;
       case "/templates/template_pro_2.png":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#E2E8F0";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#E2E8F0";
         break;
       case "/templates/template_pro_3.png":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#D8B76A";
         break;
       case "/templates/template_pro_4.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D4AF37";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#D4AF37";
         break;
       case "/templates/template_plus_3.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#F5EBD6";
         break;
       case "/templates/Midnight Black Floral2.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#F5EBD6";
         break;
       case "/templates/Dark Black Gold Marble.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#D8B76A";
         break;
       case "/templates/Burgundy Velvet Filigree.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#F5EBD6";
         break;
       case "/templates/Royal Emerald Gold Frame.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#D8B76A";
         break;
       case "/templates/Blush Pink & Rose Gold Glitter.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#8C715A";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#8C715A";
         break;
       case "/templates/template_pro_5.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#5C6B5E";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#5C6B5E";
         break;
       case "/templates/template_pro_6.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#F5EBD6";
         break;
       case "/templates/template_pro_7.webp":
-        color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#D8B76A";
+        color =
+          customTextColor && customTextColor !== "#1A2E4A"
+            ? customTextColor
+            : "#D8B76A";
         break;
       default:
         if (customCardBg.startsWith("/Free Plan Vowlink/")) {
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+          color =
+            customTextColor && customTextColor !== "#1A2E4A"
+              ? customTextColor
+              : "#1A2E4A";
         } else if (customCardBg.startsWith("/Plus Plans Vowlink/")) {
-          const isDark = customCardBg.includes("Midnight") || customCardBg.includes("Velvet") || customCardBg.includes("Dark") || customCardBg.includes("Onyx") || customCardBg.includes("Black") || customCardBg.includes("Navy");
+          const isDark =
+            customCardBg.includes("Midnight") ||
+            customCardBg.includes("Velvet") ||
+            customCardBg.includes("Dark") ||
+            customCardBg.includes("Onyx") ||
+            customCardBg.includes("Black") ||
+            customCardBg.includes("Navy");
           const defaultColor = isDark ? "#F5EBD6" : "#1A2E4A";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : defaultColor;
+          color =
+            customTextColor && customTextColor !== "#1A2E4A"
+              ? customTextColor
+              : defaultColor;
         } else if (customCardBg.startsWith("/Pro Plans Vowlink/")) {
-          const isDark = customCardBg.includes("Midnight") || customCardBg.includes("Velvet") || customCardBg.includes("Dark") || customCardBg.includes("Onyx") || customCardBg.includes("Black") || customCardBg.includes("Navy") || customCardBg.includes("Purple") || customCardBg.includes("Blue") || customCardBg.includes("Emerald") || customCardBg.includes("Celestial") || customCardBg.includes("(1).png") || customCardBg.includes("(2).png") || customCardBg.includes("(3).png") || customCardBg.includes("(5).png") || customCardBg.includes("(6).png") || customCardBg.includes("(7).png") || customCardBg.includes("(10).png");
+          const isDark =
+            customCardBg.includes("Midnight") ||
+            customCardBg.includes("Velvet") ||
+            customCardBg.includes("Dark") ||
+            customCardBg.includes("Onyx") ||
+            customCardBg.includes("Black") ||
+            customCardBg.includes("Navy") ||
+            customCardBg.includes("Purple") ||
+            customCardBg.includes("Blue") ||
+            customCardBg.includes("Emerald") ||
+            customCardBg.includes("Celestial") ||
+            customCardBg.includes("(1).png") ||
+            customCardBg.includes("(2).png") ||
+            customCardBg.includes("(3).png") ||
+            customCardBg.includes("(5).png") ||
+            customCardBg.includes("(6).png") ||
+            customCardBg.includes("(7).png") ||
+            customCardBg.includes("(10).png");
           const defaultColor = isDark ? "#F5EBD6" : "#1A2E4A";
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : defaultColor;
-        } else if (customCardBg.startsWith("https://res.cloudinary.com") && customCardBg.includes("ai_backgrounds")) {
+          color =
+            customTextColor && customTextColor !== "#1A2E4A"
+              ? customTextColor
+              : defaultColor;
+        } else if (
+          customCardBg.startsWith("https://res.cloudinary.com") &&
+          customCardBg.includes("ai_backgrounds")
+        ) {
           // AI-generated backgrounds — default to light/ivory text since AI-generated backgrounds are typically rich/dark
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6";
+          color =
+            customTextColor && customTextColor !== "#1A2E4A"
+              ? customTextColor
+              : "#F5EBD6";
         } else {
-          color = customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A";
+          color =
+            customTextColor && customTextColor !== "#1A2E4A"
+              ? customTextColor
+              : "#1A2E4A";
         }
     }
     cardStyles = {
@@ -1746,7 +2871,12 @@ const InvitePage = ({ setThemePreference }) => {
 
   // Adjust theme color tags
   const primaryTextColor = cardStyles.color;
-  const accentColor = cardTheme === "navy" || cardTheme === "forest" || cardTheme === "stardust" ? secHex : (isFreeUser ? "#B8963A" : priHex);
+  const accentColor =
+    cardTheme === "navy" || cardTheme === "forest" || cardTheme === "stardust"
+      ? secHex
+      : isFreeUser
+        ? "#B8963A"
+        : priHex;
 
   const isPlusTemplate = layout.tier === "plus";
   const isProTemplate = layout.tier === "pro";
@@ -1781,7 +2911,7 @@ const InvitePage = ({ setThemePreference }) => {
       primaryTextColor,
       userHasCustomTextColor,
       customTextSizesObj,
-      customTextColors
+      customTextColors,
     );
 
     let className = "";
@@ -1797,27 +2927,47 @@ const InvitePage = ({ setThemePreference }) => {
     return { className, style };
   };
 
-  const isEnvelopeDark = ["navy", "stardust", "forest", "custom"].includes(cardTheme);
-  const envelopeBg = cardTheme === "custom"
-    ? "linear-gradient(to bottom, #0F172A, #070A13)"
-    : cardStyles.background;
+  const isEnvelopeDark = ["navy", "stardust", "forest", "custom"].includes(
+    cardTheme,
+  );
+  const envelopeBg =
+    cardTheme === "custom"
+      ? "linear-gradient(to bottom, #0F172A, #070A13)"
+      : cardStyles.background;
   const envelopeTextColor = isEnvelopeDark
-    ? (customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#F5EBD6")
-    : (customTextColor && customTextColor !== "#1A2E4A" ? customTextColor : "#1A2E4A");
-  const envelopeAccentColor = isEnvelopeDark ? secHex : (isFreeUser ? "#B8963A" : priHex);
+    ? customTextColor && customTextColor !== "#1A2E4A"
+      ? customTextColor
+      : "#F5EBD6"
+    : customTextColor && customTextColor !== "#1A2E4A"
+      ? customTextColor
+      : "#1A2E4A";
+  const envelopeAccentColor = isEnvelopeDark
+    ? secHex
+    : isFreeUser
+      ? "#B8963A"
+      : priHex;
   const pulseColor = isEnvelopeDark ? envelopeAccentColor : envelopeTextColor;
 
-  const isTodayWeddingDay = weddingDate && (new Date(weddingDate).toDateString() === new Date().toDateString());
+  const isTodayWeddingDay =
+    weddingDate &&
+    new Date(weddingDate).toDateString() === new Date().toDateString();
 
   return (
-    <div className={`invite-page min-h-screen relative ${isOpen ? "overflow-x-hidden" : "h-screen overflow-hidden"}`} style={{ background: "#070A13" }}>
+    <div
+      className={`invite-page min-h-screen relative ${isOpen ? "overflow-x-hidden" : "h-screen overflow-hidden"}`}
+      style={{ background: "#070A13" }}
+    >
       {showCheckInQr && (
         <div className="download-exclude fixed inset-0 z-90 flex items-end justify-center bg-black/65 px-4 pb-4 backdrop-blur-md sm:items-center sm:pb-0">
           <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/25 bg-[#0D1220] p-5 text-white shadow-2xl">
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">Entry QR</p>
-                <h3 className="mt-2 font-serif text-2xl">{invitation.guestName}</h3>
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">
+                  Entry QR
+                </p>
+                <h3 className="mt-2 font-serif text-2xl">
+                  {invitation.guestName}
+                </h3>
                 <p className="mt-1 text-xs text-white/45">
                   Show this at the entrance for usher check-in.
                 </p>
@@ -1835,8 +2985,13 @@ const InvitePage = ({ setThemePreference }) => {
             <div className="flex min-h-72 items-center justify-center rounded-3xl bg-white p-4">
               {checkInQrLoading ? (
                 <div className="flex flex-col items-center gap-3 text-[#070A13]/55">
-                  <Icon icon="lucide:loader-2" className="h-8 w-8 animate-spin" />
-                  <p className="text-[10px] font-bold uppercase tracking-wider">Preparing QR</p>
+                  <Icon
+                    icon="lucide:loader-2"
+                    className="h-8 w-8 animate-spin"
+                  />
+                  <p className="text-[10px] font-bold uppercase tracking-wider">
+                    Preparing QR
+                  </p>
                 </div>
               ) : checkInQrDataUrl ? (
                 <img
@@ -1847,13 +3002,16 @@ const InvitePage = ({ setThemePreference }) => {
               ) : (
                 <div className="flex flex-col items-center gap-3 text-center text-[#070A13]/55">
                   <Icon icon="lucide:triangle-alert" className="h-8 w-8" />
-                  <p className="text-[10px] font-bold uppercase tracking-wider">QR unavailable</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider">
+                    QR unavailable
+                  </p>
                 </div>
               )}
             </div>
 
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3 text-[11px] leading-relaxed text-white/55">
-              Ushers will scan this code and enter the event PIN on their own device. This QR alone cannot check you in.
+              Ushers will scan this code and enter the event PIN on their own
+              device. This QR alone cannot check you in.
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
@@ -1945,13 +3103,17 @@ const InvitePage = ({ setThemePreference }) => {
         <div className="download-exclude fixed inset-0 z-80 flex items-center justify-center bg-[#070A13]/72 px-6 backdrop-blur-md">
           <div className="w-full max-w-xs rounded-3xl border border-[#D8B76A]/30 bg-[#0D1220]/95 p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10">
-              <Icon icon="lucide:download" className="h-6 w-6 animate-pulse text-[#D8B76A]" />
+              <Icon
+                icon="lucide:download"
+                className="h-6 w-6 animate-pulse text-[#D8B76A]"
+              />
             </div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#D8B76A]">
               Preparing Invite
             </p>
             <p className="mt-2 text-sm leading-6 text-white/70">
-              We are arranging the card and wedding details into a downloadable image.
+              We are arranging the card and wedding details into a downloadable
+              image.
             </p>
             <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/10">
               <div className="h-full w-full animate-pulse rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894]" />
@@ -1963,14 +3125,27 @@ const InvitePage = ({ setThemePreference }) => {
       {isTodayWeddingDay && (
         <div className="bg-linear-to-r from-[#D8B76A] via-[#F2D894] to-[#D8B76A] text-[#070A13] px-4 py-3 text-center text-xs font-bold uppercase tracking-widest relative z-35 shadow-lg flex items-center justify-center gap-2">
           <Icon icon="mdi:ring" className="h-4 w-4" />
-          <span>Happy Wedding Day! Today is the Big Day for {invitation.userId?.partner1Name} & {invitation.userId?.partner2Name}!</span>
+          <span>
+            Happy Wedding Day! Today is the Big Day for{" "}
+            {invitation.userId?.partner1Name} &{" "}
+            {invitation.userId?.partner2Name}!
+          </span>
           <Icon icon="lucide:sparkles" className="h-4 w-4" />
         </div>
       )}
       {/* Premium page background: deep dark with radial gold bokeh */}
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-screen z-0" aria-hidden="true">
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 h-screen z-0"
+        aria-hidden="true"
+      >
         {/* Dark base */}
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)" }} />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 120% 80% at 50% 0%, #0D1730 0%, #070A13 60%)",
+          }}
+        />
 
         {/* Page Background Image (Couple Photo) */}
         {couplePhotoUrl && (
@@ -1989,15 +3164,29 @@ const InvitePage = ({ setThemePreference }) => {
             />
             <div
               className="absolute inset-0 transition-all duration-300"
-              style={{ backgroundColor: `rgba(0, 0, 0, ${coupleOverlayOpacity})` }}
+              style={{
+                backgroundColor: `rgba(0, 0, 0, ${coupleOverlayOpacity})`,
+              }}
             />
           </>
         )}
 
         {/* Gold shimmer top-left */}
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #D8B76A 0%, transparent 70%)", filter: "blur(60px)" }} />
+        <div
+          className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-10"
+          style={{
+            background: "radial-gradient(circle, #D8B76A 0%, transparent 70%)",
+            filter: "blur(60px)",
+          }}
+        />
         {/* Gold shimmer bottom-right */}
-        <div className="absolute -bottom-40 -right-20 w-96 h-96 rounded-full opacity-8" style={{ background: "radial-gradient(circle, #B8963A 0%, transparent 70%)", filter: "blur(80px)" }} />
+        <div
+          className="absolute -bottom-40 -right-20 w-96 h-96 rounded-full opacity-8"
+          style={{
+            background: "radial-gradient(circle, #B8963A 0%, transparent 70%)",
+            filter: "blur(80px)",
+          }}
+        />
         {/* Subtle star dots */}
         <div className="absolute top-10 left-[15%] w-1 h-1 rounded-full bg-white opacity-30" />
         <div className="absolute top-24 left-[42%] w-0.5 h-0.5 rounded-full bg-white opacity-20" />
@@ -2012,13 +3201,14 @@ const InvitePage = ({ setThemePreference }) => {
       {/* Fullscreen Envelope Welcome Overlay */}
       {!hiddenOverlay && (
         <div
-          className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out select-none ${isOpen
+          className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out select-none ${
+            isOpen
               ? "translate-y-[-100vh] opacity-0 pointer-events-none"
               : "translate-y-0 opacity-100"
-            }`}
+          }`}
           style={{
             background: envelopeBg,
-            fontFamily: cardStyles.fontFamily
+            fontFamily: cardStyles.fontFamily,
           }}
         >
           {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
@@ -2031,21 +3221,38 @@ const InvitePage = ({ setThemePreference }) => {
               VowLink Invitation
             </p>
 
-            <div className="my-6 h-px w-24" style={{ background: envelopeAccentColor, opacity: 0.6 }} />
+            <div
+              className="my-6 h-px w-24"
+              style={{ background: envelopeAccentColor, opacity: 0.6 }}
+            />
 
             <p
               className="italic mb-2"
-              style={{ color: envelopeTextColor, ...script, fontSize: "1.8rem" }}
+              style={{
+                color: envelopeTextColor,
+                ...script,
+                fontSize: "1.8rem",
+              }}
             >
               You are cordially invited to the wedding of
             </p>
 
             <h1
               className="mb-8"
-              style={{ color: envelopeTextColor, ...script, fontSize: "3.2rem", lineHeight: 1.1 }}
+              style={{
+                color: envelopeTextColor,
+                ...script,
+                fontSize: "3.2rem",
+                lineHeight: 1.1,
+              }}
             >
               {invitation.userId?.partner1Name || "Partner 1"}
-              <span className="block my-1 text-2xl font-serif not-italic opacity-80" style={{ color: envelopeTextColor }}>&</span>
+              <span
+                className="block my-1 text-2xl font-serif not-italic opacity-80"
+                style={{ color: envelopeTextColor }}
+              >
+                &
+              </span>
               {invitation.userId?.partner2Name || "Partner 2"}
             </h1>
 
@@ -2055,7 +3262,7 @@ const InvitePage = ({ setThemePreference }) => {
               style={{
                 backgroundColor: envelopeAccentColor,
                 borderColor: `${envelopeTextColor}22`,
-                color: isEnvelopeDark ? "#070A13" : "#FFFFFF"
+                color: isEnvelopeDark ? "#070A13" : "#FFFFFF",
               }}
             >
               {/* Outer pulsing ring for high-contrast visibility on light/dark themes */}
@@ -2064,7 +3271,7 @@ const InvitePage = ({ setThemePreference }) => {
                 style={{
                   border: `2px solid ${pulseColor}`,
                   boxShadow: `0 0 20px ${pulseColor}${isEnvelopeDark ? "55" : "33"}`,
-                  opacity: isEnvelopeDark ? 0.4 : 0.6
+                  opacity: isEnvelopeDark ? 0.4 : 0.6,
                 }}
               />
               {/* Inner expanding ping ring */}
@@ -2072,20 +3279,33 @@ const InvitePage = ({ setThemePreference }) => {
                 className="absolute inset-0 rounded-full animate-ping pointer-events-none"
                 style={{
                   backgroundColor: pulseColor,
-                  opacity: isEnvelopeDark ? 0.6 : 0.25
+                  opacity: isEnvelopeDark ? 0.6 : 0.25,
                 }}
               />
-              <div className="absolute inset-2 rounded-full border border-dashed opacity-40" style={{ borderColor: isEnvelopeDark ? "#FFFFFF" : "#070A13" }} />
+              <div
+                className="absolute inset-2 rounded-full border border-dashed opacity-40"
+                style={{ borderColor: isEnvelopeDark ? "#FFFFFF" : "#070A13" }}
+              />
               <Icon icon="lucide:mail" className="mb-1 h-6 w-6 z-10" />
-              <span className="text-[10px] uppercase font-bold tracking-widest z-10">Open</span>
+              <span className="text-[10px] uppercase font-bold tracking-widest z-10">
+                Open
+              </span>
             </button>
 
-            <p className="mt-8 text-[10px] uppercase tracking-[0.2em] opacity-40" style={{ color: envelopeTextColor }}>
-              {musicUrl ? "Click to unveil details & play music" : "Click to unveil details"}
+            <p
+              className="mt-8 text-[10px] uppercase tracking-[0.2em] opacity-40"
+              style={{ color: envelopeTextColor }}
+            >
+              {musicUrl
+                ? "Click to unveil details & play music"
+                : "Click to unveil details"}
             </p>
             {/* Music buffering hint — only visible while audio is still loading */}
             {isDirectAudio && !audioReady && (
-              <p className="mt-2 text-[9px] uppercase tracking-widest opacity-30 flex items-center gap-1" style={{ color: envelopeTextColor }}>
+              <p
+                className="mt-2 text-[9px] uppercase tracking-widest opacity-30 flex items-center gap-1"
+                style={{ color: envelopeTextColor }}
+              >
                 <Icon icon="lucide:loader-2" className="h-3 w-3 animate-spin" />
                 Loading music...
               </p>
@@ -2107,20 +3327,33 @@ const InvitePage = ({ setThemePreference }) => {
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#E6C45A ]">
             Scroll down for details
           </span>
-          <span className="text-xs font-bold animate-pulse text-[#E6C45A ]">↓</span>
+          <span className="text-xs font-bold animate-pulse text-[#E6C45A ]">
+            ↓
+          </span>
         </div>
       )}
-
 
       {/* Background Animated Stardust Effect (Pro) */}
       {cardTheme === "stardust" && (
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 bg-[#06080F]" />
           {/* Sparkles simulation using styled animated divs */}
-          <div className="absolute -bottom-25 left-1/4 h-2 w-2 rounded-full bg-yellow-400 opacity-60 animate-bounce" style={{ animationDuration: "5s", animationDelay: "1s" }} />
-          <div className="absolute -bottom-25 left-1/2 h-3 w-3 rounded-full bg-white opacity-40 animate-bounce" style={{ animationDuration: "7s", animationDelay: "3s" }} />
-          <div className="absolute -bottom-25 left-3/4 h-2 w-2 rounded-full bg-yellow-200 opacity-80 animate-bounce" style={{ animationDuration: "4s", animationDelay: "2s" }} />
-          <div className="absolute -bottom-25 left-10 h-3 w-3 rounded-full bg-yellow-300 opacity-50 animate-bounce" style={{ animationDuration: "8s", animationDelay: "0s" }} />
+          <div
+            className="absolute -bottom-25 left-1/4 h-2 w-2 rounded-full bg-yellow-400 opacity-60 animate-bounce"
+            style={{ animationDuration: "5s", animationDelay: "1s" }}
+          />
+          <div
+            className="absolute -bottom-25 left-1/2 h-3 w-3 rounded-full bg-white opacity-40 animate-bounce"
+            style={{ animationDuration: "7s", animationDelay: "3s" }}
+          />
+          <div
+            className="absolute -bottom-25 left-3/4 h-2 w-2 rounded-full bg-yellow-200 opacity-80 animate-bounce"
+            style={{ animationDuration: "4s", animationDelay: "2s" }}
+          />
+          <div
+            className="absolute -bottom-25 left-10 h-3 w-3 rounded-full bg-yellow-300 opacity-50 animate-bounce"
+            style={{ animationDuration: "8s", animationDelay: "0s" }}
+          />
         </div>
       )}
 
@@ -2128,9 +3361,18 @@ const InvitePage = ({ setThemePreference }) => {
       {cardTheme === "forest" && (
         <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 bg-[#09150E]" />
-          <Icon icon="mdi:leaf" className="absolute top-10 left-10 h-8 w-8 rotate-45 select-none text-amber-500/20" />
-          <Icon icon="mdi:leaf-maple" className="absolute top-40 right-20 h-7 w-7 -rotate-12 select-none text-amber-500/10" />
-          <Icon icon="mdi:leaf" className="absolute bottom-60 left-1/3 h-6 w-6 rotate-90 select-none text-amber-500/15" />
+          <Icon
+            icon="mdi:leaf"
+            className="absolute top-10 left-10 h-8 w-8 rotate-45 select-none text-amber-500/20"
+          />
+          <Icon
+            icon="mdi:leaf-maple"
+            className="absolute top-40 right-20 h-7 w-7 -rotate-12 select-none text-amber-500/10"
+          />
+          <Icon
+            icon="mdi:leaf"
+            className="absolute bottom-60 left-1/3 h-6 w-6 rotate-90 select-none text-amber-500/15"
+          />
         </div>
       )}
 
@@ -2140,8 +3382,13 @@ const InvitePage = ({ setThemePreference }) => {
           {showSpotifyPlayer && (
             <div className="w-72 sm:w-80 p-3.5 rounded-2xl bg-[#0D1220]/90 backdrop-blur-md border border-[#D8B76A]/20 shadow-2xl animate-fade-in transition-all duration-300">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-[10px] uppercase tracking-widest text-[#D8B76A] font-semibold">Soundtrack Player</span>
-                <button onClick={() => setShowSpotifyPlayer(false)} className="text-white/60 hover:text-white text-xs px-1.5 py-0.5 rounded hover:bg-white/10">
+                <span className="text-[10px] uppercase tracking-widest text-[#D8B76A] font-semibold">
+                  Soundtrack Player
+                </span>
+                <button
+                  onClick={() => setShowSpotifyPlayer(false)}
+                  className="text-white/60 hover:text-white text-xs px-1.5 py-0.5 rounded hover:bg-white/10"
+                >
                   <Icon icon="lucide:x" className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -2159,7 +3406,7 @@ const InvitePage = ({ setThemePreference }) => {
           )}
           <button
             onClick={() => setShowSpotifyPlayer(!showSpotifyPlayer)}
-            className={`invite-audio-toggle h-12 w-12 rounded-full bg-[#1A2E4A] border border-[#D8B76A]/40 flex items-center justify-center text-lg text-[#D8B76A] shadow-xl hover:scale-110 active:scale-95 transition ${showSpotifyPlayer ? 'ring-2 ring-[#D8B76A]' : ''}`}
+            className={`invite-audio-toggle h-12 w-12 rounded-full bg-[#1A2E4A] border border-[#D8B76A]/40 flex items-center justify-center text-lg text-[#D8B76A] shadow-xl hover:scale-110 active:scale-95 transition ${showSpotifyPlayer ? "ring-2 ring-[#D8B76A]" : ""}`}
             title="Play background soundtrack"
           >
             <Icon icon="lucide:music" className="h-5 w-5" />
@@ -2172,9 +3419,12 @@ const InvitePage = ({ setThemePreference }) => {
         <div className="fixed bottom-6 right-6 z-40">
           <button
             onClick={handleAudioToggle}
-            className={`invite-audio-toggle h-12 w-12 rounded-full bg-[#1A2E4A] border flex items-center justify-center text-lg text-[#D8B76A] shadow-xl hover:scale-110 active:scale-95 transition-all duration-300 ${isPlaying ? "animate-pulse" : ""
-              }`}
-            style={{ borderColor: isPlaying ? accentColor : "rgba(255,255,255,0.2)" }}
+            className={`invite-audio-toggle h-12 w-12 rounded-full bg-[#1A2E4A] border flex items-center justify-center text-lg text-[#D8B76A] shadow-xl hover:scale-110 active:scale-95 transition-all duration-300 ${
+              isPlaying ? "animate-pulse" : ""
+            }`}
+            style={{
+              borderColor: isPlaying ? accentColor : "rgba(255,255,255,0.2)",
+            }}
             title={isPlaying ? "Pause music" : "Play music"}
           >
             <Icon
@@ -2194,8 +3444,11 @@ const InvitePage = ({ setThemePreference }) => {
           <div
             className="w-full flex items-start justify-center relative"
             style={{
-              height: cardHeight > 0 && isOpen && !downloading ? `${cardHeight * (downloading ? 1 : scale)}px` : "auto",
-              transition: "height 0.3s ease-out"
+              height:
+                cardHeight > 0 && isOpen && !downloading
+                  ? `${cardHeight * (downloading ? 1 : scale)}px`
+                  : "auto",
+              transition: "height 0.3s ease-out",
             }}
           >
             <div
@@ -2211,30 +3464,53 @@ const InvitePage = ({ setThemePreference }) => {
               <div
                 ref={cardRef}
                 key={customCardBg || cardTheme}
-                className={`w-152 flex-none rounded-2xl overflow-hidden transition-all duration-300 ${isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
-                  } ${isProTemplate ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]" : "shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
-                  }`}
+                className={`w-152 flex-none rounded-2xl overflow-hidden transition-all duration-300 ${
+                  isPlusTemplate ? "animate-plus-fade-in shadow-2xl" : ""
+                } ${
+                  isProTemplate
+                    ? "animate-pro-card-entrance animate-pro-border-glow shadow-[0_0_25px_rgba(216,183,106,0.15)]"
+                    : "shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+                }`}
               >
                 {/* Card background container */}
                 <div
                   className="relative w-full overflow-hidden"
                   style={cardStyles}
                 >
-                  {isProTemplate && <div className="pro-card-shimmer-overlay" />}
+                  {isProTemplate && (
+                    <div className="pro-card-shimmer-overlay" />
+                  )}
 
-                  <div key={`${cardTheme}__${customCardBg}`} className={isProTemplate ? "animate-pro-float" : ""}>
-                    {renderThemeOrnaments(cardTheme, priHex, secHex, terHex, isFreeUser)}
-                    {cardTheme === "custom" && renderTemplateBackgroundGraphics(customCardBg, priHex, secHex, terHex, isFreeUser)}
+                  <div
+                    key={`${cardTheme}__${customCardBg}`}
+                    className={isProTemplate ? "animate-pro-float" : ""}
+                  >
+                    {renderThemeOrnaments(
+                      cardTheme,
+                      priHex,
+                      secHex,
+                      terHex,
+                      isFreeUser,
+                    )}
+                    {cardTheme === "custom" &&
+                      renderTemplateBackgroundGraphics(
+                        customCardBg,
+                        priHex,
+                        secHex,
+                        terHex,
+                        isFreeUser,
+                      )}
                   </div>
                   {renderFrameBorder(layout.frameBorder)}
                   {/* Custom Spacing & Scaling wrapper */}
                   <div
-                    className={`invite-card-content relative z-10 flex flex-col justify-center w-full min-h-155 transition-all ${textAlignment === "left"
+                    className={`invite-card-content relative z-10 flex flex-col justify-center w-full min-h-155 transition-all ${
+                      textAlignment === "left"
                         ? "items-start text-left"
                         : textAlignment === "right"
                           ? "items-end text-right"
                           : "items-center text-center"
-                      }`}
+                    }`}
                     style={{
                       /* fontSize intentionally NOT set here — applied per-block via getBlockStyles */
                       fontWeight: baseWeight,
@@ -2243,29 +3519,41 @@ const InvitePage = ({ setThemePreference }) => {
                       paddingLeft: `${scalePadding(layout.pl)}px`,
                       paddingRight: `${scalePadding(layout.pr)}px`,
                       transform: `translateX(${customHorizontalOffset || 0}px)`,
-                      ...(layout?.contrastHelpers?.overlayBehindText ? {
-                        background: layout.contrastHelpers.overlayBehindText === true
-                          ? (layout.tier === "free" ? "rgba(255, 255, 255, 0.25)" : "rgba(0, 0, 0, 0.2)")
-                          : layout.contrastHelpers.overlayBehindText,
-                        borderRadius: "16px",
-                        backdropFilter: "blur(4px)",
-                        boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)",
-                        padding: "16px",
-                        width: "90%",
-                        margin: "0 auto",
-                      } : {})
+                      ...(layout?.contrastHelpers?.overlayBehindText
+                        ? {
+                            background:
+                              layout.contrastHelpers.overlayBehindText === true
+                                ? layout.tier === "free"
+                                  ? "rgba(255, 255, 255, 0.25)"
+                                  : "rgba(0, 0, 0, 0.2)"
+                                : layout.contrastHelpers.overlayBehindText,
+                            borderRadius: "16px",
+                            backdropFilter: "blur(4px)",
+                            boxShadow: "inset 0 0 10px rgba(0,0,0,0.05)",
+                            padding: "16px",
+                            width: "90%",
+                            margin: "0 auto",
+                          }
+                        : {}),
                     }}
                   >
                     <div
-                      className={`invite-card-inner w-full flex flex-col justify-center transition-all ${textAlignment === "left"
+                      className={`invite-card-inner w-full flex flex-col justify-center transition-all ${
+                        textAlignment === "left"
                           ? "items-start text-left"
                           : textAlignment === "right"
                             ? "items-end text-right"
                             : "items-center text-center"
-                        }`}
+                      }`}
                       style={{
-                        maxWidth: layout.layoutConfig?.safeArea?.maxWidth || "85%",
-                        margin: textAlignment === "left" ? "0 auto 0 0" : textAlignment === "right" ? "0 0 0 auto" : "0 auto",
+                        maxWidth:
+                          layout.layoutConfig?.safeArea?.maxWidth || "85%",
+                        margin:
+                          textAlignment === "left"
+                            ? "0 auto 0 0"
+                            : textAlignment === "right"
+                              ? "0 0 0 auto"
+                              : "0 auto",
                       }}
                     >
                       {/* ── Wedding Invitation title ── */}
@@ -2281,8 +3569,15 @@ const InvitePage = ({ setThemePreference }) => {
                       </h2>
 
                       {/* ornament divider */}
-                      <div {...getBlockProps("divider1", "300ms")} className={`${getBlockProps("divider1", "300ms").className} flex justify-center w-full`}>
-                        {renderOrnamentDivider(layout.dividerType, getBlockProps("divider1", "300ms").style.color, "my-3")}
+                      <div
+                        {...getBlockProps("divider1", "300ms")}
+                        className={`${getBlockProps("divider1", "300ms").className} flex justify-center w-full`}
+                      >
+                        {renderOrnamentDivider(
+                          layout.dividerType,
+                          getBlockProps("divider1", "300ms").style.color,
+                          "my-3",
+                        )}
                       </div>
 
                       {/* ── Marriage between ── */}
@@ -2305,26 +3600,67 @@ const InvitePage = ({ setThemePreference }) => {
                           ...getBlockProps("coupleNames", "700ms").style,
                           fontFamily: activeFont,
                           fontWeight: headingWeight,
-                          backgroundImage: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "linear-gradient(135deg, #FFF 0%, #D8B76A 60%, #A37F28 100%)" : "none",
-                          WebkitBackgroundClip: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "text" : "border-box",
-                          WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "transparent" : "initial",
-                          display: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "inline-block" : "block"
+                          backgroundImage:
+                            layout.dividerType?.includes("gold") ||
+                            layout.dividerType === "glitter" ||
+                            cardTheme === "navy"
+                              ? "linear-gradient(135deg, #FFF 0%, #D8B76A 60%, #A37F28 100%)"
+                              : "none",
+                          WebkitBackgroundClip:
+                            layout.dividerType?.includes("gold") ||
+                            layout.dividerType === "glitter" ||
+                            cardTheme === "navy"
+                              ? "text"
+                              : "border-box",
+                          WebkitTextFillColor:
+                            layout.dividerType?.includes("gold") ||
+                            layout.dividerType === "glitter" ||
+                            cardTheme === "navy"
+                              ? "transparent"
+                              : "initial",
+                          display:
+                            layout.dividerType?.includes("gold") ||
+                            layout.dividerType === "glitter" ||
+                            cardTheme === "navy"
+                              ? "inline-block"
+                              : "block",
                         }}
                       >
                         {invitation.userId?.partner1Name || "Partner 1"}{" "}
-                        <span style={{
-                          color: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : getBlockProps("coupleNames", "700ms").style.color,
-                          WebkitTextFillColor: (layout.dividerType?.includes("gold") || layout.dividerType === "glitter" || cardTheme === "navy") ? "#D8B76A" : "initial",
-                          opacity: 0.9
-                        }}>
+                        <span
+                          style={{
+                            color:
+                              layout.dividerType?.includes("gold") ||
+                              layout.dividerType === "glitter" ||
+                              cardTheme === "navy"
+                                ? "#D8B76A"
+                                : getBlockProps("coupleNames", "700ms").style
+                                    .color,
+                            WebkitTextFillColor:
+                              layout.dividerType?.includes("gold") ||
+                              layout.dividerType === "glitter" ||
+                              cardTheme === "navy"
+                                ? "#D8B76A"
+                                : "initial",
+                            opacity: 0.9,
+                          }}
+                        >
                           and
                         </span>{" "}
                         {invitation.userId?.partner2Name || "Partner 2"}
                       </h1>
 
                       {/* ornament */}
-                      <div {...getBlockProps("divider2", "900ms")} className={`${getBlockProps("divider2", "900ms").className} flex justify-center w-full`}>
-                        {renderOrnamentDivider(layout.dividerType, getBlockProps("divider2", "900ms").style.color, "my-3", true)}
+                      <div
+                        {...getBlockProps("divider2", "900ms")}
+                        className={`${getBlockProps("divider2", "900ms").className} flex justify-center w-full`}
+                      >
+                        {renderOrnamentDivider(
+                          layout.dividerType,
+                          getBlockProps("divider2", "900ms").style.color,
+                          "my-3",
+                          true,
+                        )}
                       </div>
 
                       {/* ── You are cordially invited ── */}
@@ -2385,8 +3721,8 @@ const InvitePage = ({ setThemePreference }) => {
                       </p>
 
                       {/* Venue (clickable -> Maps Selector Modal) */}
-                      {venue && (
-                        isFreeUser ? (
+                      {venue &&
+                        (isFreeUser ? (
                           <div
                             {...getBlockProps("details", "1700ms")}
                             className={`${getBlockProps("details", "1700ms").className} invite-card-location-text block w-full px-2`}
@@ -2398,7 +3734,10 @@ const InvitePage = ({ setThemePreference }) => {
                           <button
                             onClick={(e) => {
                               e.preventDefault();
-                              setMapSelectAddress({ label: venueName || venue, query: venue });
+                              setMapSelectAddress({
+                                label: venueName || venue,
+                                query: venue,
+                              });
                             }}
                             {...getBlockProps("details", "1700ms")}
                             style={{
@@ -2411,11 +3750,10 @@ const InvitePage = ({ setThemePreference }) => {
                           >
                             Location: {venueName || venue}
                           </button>
-                        )
-                      )}
+                        ))}
 
-                      {receptionLocation && (
-                        isFreeUser ? (
+                      {receptionLocation &&
+                        (isFreeUser ? (
                           <div
                             {...getBlockProps("reception", "1800ms")}
                             className={`${getBlockProps("reception", "1800ms").className} invite-card-location-text invite-card-reception block w-full px-2`}
@@ -2427,7 +3765,10 @@ const InvitePage = ({ setThemePreference }) => {
                           <button
                             onClick={(e) => {
                               e.preventDefault();
-                              setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
+                              setMapSelectAddress({
+                                label: receptionName || receptionLocation,
+                                query: receptionLocation,
+                              });
                             }}
                             {...getBlockProps("reception", "1800ms")}
                             style={{
@@ -2440,12 +3781,19 @@ const InvitePage = ({ setThemePreference }) => {
                           >
                             Reception at: {receptionName || receptionLocation}
                           </button>
-                        )
-                      )}
+                        ))}
 
                       {/* bottom ornament */}
-                      <div {...getBlockProps("divider2", "1900ms")} className={`${getBlockProps("divider2", "1900ms").className} invite-card-bottom-divider flex justify-center w-full`}>
-                        {renderOrnamentDivider(layout.dividerType, primaryTextColor, "my-3", true)}
+                      <div
+                        {...getBlockProps("divider2", "1900ms")}
+                        className={`${getBlockProps("divider2", "1900ms").className} invite-card-bottom-divider flex justify-center w-full`}
+                      >
+                        {renderOrnamentDivider(
+                          layout.dividerType,
+                          primaryTextColor,
+                          "my-3",
+                          true,
+                        )}
                       </div>
 
                       {/* Colors */}
@@ -2459,9 +3807,12 @@ const InvitePage = ({ setThemePreference }) => {
                         >
                           <p
                             style={{
-                              color: getBlockProps("colors", "2000ms").style.color,
+                              color: getBlockProps("colors", "2000ms").style
+                                .color,
                               opacity: 0.8,
-                              textShadow: getBlockProps("colors", "2000ms").style.textShadow || "none",
+                              textShadow:
+                                getBlockProps("colors", "2000ms").style
+                                  .textShadow || "none",
                             }}
                             className="uppercase mb-2 tracking-widest"
                           >
@@ -2470,19 +3821,31 @@ const InvitePage = ({ setThemePreference }) => {
                           <div className="invite-card-color-chips flex flex-wrap justify-center gap-1.5">
                             {weddingColors.map((name, i) => {
                               const hex = getWeddingColorHex(name);
-                              const blockStyles = getBlockProps("colors", "2000ms").style;
+                              const blockStyles = getBlockProps(
+                                "colors",
+                                "2000ms",
+                              ).style;
                               const isDark = isDarkColor(hex);
                               return (
                                 <div
                                   key={i}
                                   className="flex items-center gap-1.5 rounded-full px-2.5 py-0.75 border text-[1.2em] font-extrabold shadow-xs whitespace-nowrap"
                                   style={{
-                                    borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
-                                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
+                                    borderColor: isDark
+                                      ? "rgba(255, 255, 255, 0.35)"
+                                      : `${hex}44`,
+                                    backgroundColor: isDark
+                                      ? "rgba(255, 255, 255, 0.08)"
+                                      : `${hex}11`,
                                   }}
                                 >
-                                  <div className={`h-2.5 w-2.5 rounded-full shrink-0 shadow-xs border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ backgroundColor: hex }} />
-                                  <span style={{ color: blockStyles.color }}>{name}</span>
+                                  <div
+                                    className={`h-2.5 w-2.5 rounded-full shrink-0 shadow-xs border ${isDark ? "border-white/60" : "border-white/20"}`}
+                                    style={{ backgroundColor: hex }}
+                                  />
+                                  <span style={{ color: blockStyles.color }}>
+                                    {name}
+                                  </span>
                                 </div>
                               );
                             })}
@@ -2506,7 +3869,10 @@ const InvitePage = ({ setThemePreference }) => {
 
                     {isFreeUser && (
                       <div className="absolute bottom-2.5 left-0 right-0 text-center select-none pointer-events-none opacity-45 z-20">
-                        <span className="text-[10px] font-mono tracking-widest uppercase" style={{ color: cardStyles.color || "#000000" }}>
+                        <span
+                          className="text-[10px] font-mono tracking-widest uppercase"
+                          style={{ color: cardStyles.color || "#000000" }}
+                        >
                           Powered by VowLink
                         </span>
                       </div>
@@ -2520,43 +3886,64 @@ const InvitePage = ({ setThemePreference }) => {
         </section>
 
         {/* Section 2: Details & RSVP actions below the card */}
-        <section id="details-start-anchor" className="flex flex-col items-center justify-center py-10 px-4 gap-6 relative z-10 w-full download-exclude">
-
+        <section
+          id="details-start-anchor"
+          className="flex flex-col items-center justify-center py-10 px-4 gap-6 relative z-10 w-full download-exclude"
+        >
           {/* ── Countdown (outside card, not downloaded) ── */}
-          {countdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
-            <div className="w-full download-exclude" style={{ maxWidth: `${608 * scale}px` }}>
-              <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">
-                Counting Down
-              </p>
-              <div className="flex items-end justify-center gap-2">
-                <CountdownBox value={countdown.days} label="Days" />
-                <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
-                <CountdownBox value={countdown.hours} label="Hours" />
-                <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
-                <CountdownBox value={countdown.minutes} label="Mins" />
-                <span className="mb-4 text-[#D8B76A] font-light text-xl">:</span>
-                <CountdownBox value={countdown.seconds} label="Secs" />
+          {countdown &&
+            (countdown.days > 0 ||
+              countdown.hours > 0 ||
+              countdown.minutes > 0) && (
+              <div
+                className="w-full download-exclude"
+                style={{ maxWidth: `${608 * scale}px` }}
+              >
+                <p className="text-center text-xs uppercase tracking-[0.25em] text-[#D8B76A] mb-3">
+                  Counting Down
+                </p>
+                <div className="flex items-end justify-center gap-2">
+                  <CountdownBox value={countdown.days} label="Days" />
+                  <span className="mb-4 text-[#D8B76A] font-light text-xl">
+                    :
+                  </span>
+                  <CountdownBox value={countdown.hours} label="Hours" />
+                  <span className="mb-4 text-[#D8B76A] font-light text-xl">
+                    :
+                  </span>
+                  <CountdownBox value={countdown.minutes} label="Mins" />
+                  <span className="mb-4 text-[#D8B76A] font-light text-xl">
+                    :
+                  </span>
+                  <CountdownBox value={countdown.seconds} label="Secs" />
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* RSVP Deadline badge */}
           {rsvpDeadline && (
             <div
-              className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 download-exclude ${deadlinePassed
+              className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 download-exclude ${
+                deadlinePassed
                   ? "border-red-400/30 bg-red-400/10 text-red-400"
                   : "border-amber-400/30 bg-amber-400/10 text-amber-300"
-                }`}
+              }`}
             >
-              <Icon icon={deadlinePassed ? "lucide:lock" : "lucide:clock"} className="h-4 w-4 shrink-0" />
+              <Icon
+                icon={deadlinePassed ? "lucide:lock" : "lucide:clock"}
+                className="h-4 w-4 shrink-0"
+              />
               <p className="text-xs font-medium">
                 {deadlinePassed
                   ? "RSVP is now closed"
-                  : `RSVP by ${new Date(rsvpDeadline).toLocaleDateString("en-GB", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}`}
+                  : `RSVP by ${new Date(rsvpDeadline).toLocaleDateString(
+                      "en-GB",
+                      {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      },
+                    )}`}
               </p>
             </div>
           )}
@@ -2580,8 +3967,9 @@ const InvitePage = ({ setThemePreference }) => {
             <button
               id="rsvp-open-btn"
               onClick={() => setShowForm(true)}
-              className={`rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.45)] download-exclude ${isProTemplate ? "animate-pro-btn-glow" : ""
-                }`}
+              className={`rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-10 py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.45)] download-exclude ${
+                isProTemplate ? "animate-pro-btn-glow" : ""
+              }`}
             >
               <Icon icon="lucide:sparkle" className="mr-1 inline h-4 w-4" />
               RSVP Now
@@ -2589,12 +3977,15 @@ const InvitePage = ({ setThemePreference }) => {
           )}
 
           {/* Download */}
-          <div id="download-actions-bar" className="flex flex-wrap items-center justify-center gap-3 pb-4 download-exclude">
+          <div
+            id="download-actions-bar"
+            className="flex flex-wrap items-center justify-center gap-3 pb-4 download-exclude"
+          >
             <button
               type="button"
               onClick={handleOpenCheckInQr}
               disabled={!checkInUrl}
-              className="flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/15 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#F2D894] backdrop-blur-sm transition hover:bg-[#D8B76A]/25 hover:shadow-[0_8px_24px_rgba(216,183,106,0.2)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 rounded-full border border-[#D8B76A]/40 bg-[#1A2E4A]/80 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-[#D8B76A] backdrop-blur-sm transition hover:bg-[#1A2E4A] hover:shadow-[0_8px_24px_rgba(216,183,106,0.2)] disabled:opacity-50"
             >
               <Icon icon="lucide:qr-code" className="h-4 w-4" />
               Entry QR
@@ -2619,8 +4010,12 @@ const InvitePage = ({ setThemePreference }) => {
         {/* Love Story Couple Gallery Section (Plus/Pro) */}
         {galleryPhotos.length > 0 && (
           <section className="invite-section px-4 py-16 bg-[#090D19] border-t border-white/5 relative z-10 flex flex-col items-center download-exclude">
-            <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-2 text-center">Love Story</p>
-            <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 text-center">Our Gallery</h2>
+            <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-2 text-center">
+              Love Story
+            </p>
+            <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 text-center">
+              Our Gallery
+            </h2>
 
             <div className="invite-feature-card invite-gallery-card w-full max-w-2xl rounded-3xl overflow-hidden border border-white/10 bg-[#070A13] p-3 sm:p-4 flex flex-col items-center">
               {/* Big slide */}
@@ -2630,30 +4025,50 @@ const InvitePage = ({ setThemePreference }) => {
                     key={i}
                     src={photo}
                     alt={`Couple photo ${i + 1}`}
-                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${i === galleryIndex ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 z-0 pointer-events-none"
-                      }`}
+                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
+                      i === galleryIndex
+                        ? "opacity-100 scale-100 z-10"
+                        : "opacity-0 scale-105 z-0 pointer-events-none"
+                    }`}
                   />
                 ))}
                 {/* Carousel controls — SVG chevron arrows */}
                 <div className="absolute inset-x-0 top-0 z-20 h-28 bg-linear-to-b from-black/50 to-transparent pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 z-20 h-32 bg-linear-to-t from-black/65 to-transparent pointer-events-none" />
                 <div className="absolute left-4 top-4 z-30 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white/90 backdrop-blur-md">
-                  <Icon icon="lucide:images" className="h-3.5 w-3.5 text-[#D8B76A]" />
+                  <Icon
+                    icon="lucide:images"
+                    className="h-3.5 w-3.5 text-[#D8B76A]"
+                  />
                   {galleryIndex + 1} / {galleryPhotos.length}
                 </div>
                 <button
-                  onClick={() => setGalleryIndex((prev) => (prev === 0 ? galleryPhotos.length - 1 : prev - 1))}
+                  onClick={() =>
+                    setGalleryIndex((prev) =>
+                      prev === 0 ? galleryPhotos.length - 1 : prev - 1,
+                    )
+                  }
                   className="invite-gallery-control absolute left-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-black/60 border border-white/15 flex items-center justify-center hover:bg-[#D8B76A]/20 hover:border-[#D8B76A]/40 transition-all duration-200 group z-30"
                   aria-label="Previous photo"
                 >
-                  <Icon icon="lucide:chevron-left" className="h-5 w-5 text-white/70 group-hover:text-[#D8B76A] transition-colors" />
+                  <Icon
+                    icon="lucide:chevron-left"
+                    className="h-5 w-5 text-white/70 group-hover:text-[#D8B76A] transition-colors"
+                  />
                 </button>
                 <button
-                  onClick={() => setGalleryIndex((prev) => (prev === galleryPhotos.length - 1 ? 0 : prev + 1))}
+                  onClick={() =>
+                    setGalleryIndex((prev) =>
+                      prev === galleryPhotos.length - 1 ? 0 : prev + 1,
+                    )
+                  }
                   className="invite-gallery-control absolute right-3 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full bg-black/60 border border-white/15 flex items-center justify-center hover:bg-[#D8B76A]/20 hover:border-[#D8B76A]/40 transition-all duration-200 group z-30"
                   aria-label="Next photo"
                 >
-                  <Icon icon="lucide:chevron-right" className="h-5 w-5 text-white/70 group-hover:text-[#D8B76A] transition-colors" />
+                  <Icon
+                    icon="lucide:chevron-right"
+                    className="h-5 w-5 text-white/70 group-hover:text-[#D8B76A] transition-colors"
+                  />
                 </button>
                 <div className="absolute bottom-4 left-4 right-4 z-30">
                   <div className="flex gap-1.5">
@@ -2676,11 +4091,18 @@ const InvitePage = ({ setThemePreference }) => {
                   <button
                     key={i}
                     onClick={() => setGalleryIndex(i)}
-                    className={`h-14 w-14 shrink-0 rounded-xl overflow-hidden border transition-all duration-200 ${i === galleryIndex ? "border-[#D8B76A] opacity-100 shadow-[0_0_0_3px_rgba(216,183,106,0.16)]" : "border-white/10 opacity-55 hover:opacity-90 hover:border-white/30"
-                      }`}
+                    className={`h-14 w-14 shrink-0 rounded-xl overflow-hidden border transition-all duration-200 ${
+                      i === galleryIndex
+                        ? "border-[#D8B76A] opacity-100 shadow-[0_0_0_3px_rgba(216,183,106,0.16)]"
+                        : "border-white/10 opacity-55 hover:opacity-90 hover:border-white/30"
+                    }`}
                     aria-label={`Show gallery photo ${i + 1}`}
                   >
-                    <img src={photo} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={photo}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -2689,64 +4111,77 @@ const InvitePage = ({ setThemePreference }) => {
         )}
 
         {/* Timeline / Schedule Section */}
-        {invitation.userId?.timeline && invitation.userId.timeline.length > 0 && (
-          <section className="invite-section px-4 sm:px-6 py-16 text-center bg-[#070A13] relative z-10 border-t border-white/5 flex flex-col items-center download-exclude">
-            <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Timeline</p>
-            <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Wedding Schedule</h2>
-            <p className="text-white/40 text-xs max-w-sm mb-12 -mt-4 leading-relaxed font-normal">
-              Here is what to expect on our special day. We look forward to celebrating each moment with you!
-            </p>
+        {invitation.userId?.timeline &&
+          invitation.userId.timeline.length > 0 && (
+            <section className="invite-section px-4 sm:px-6 py-16 text-center bg-[#070A13] relative z-10 border-t border-white/5 flex flex-col items-center download-exclude">
+              <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">
+                Timeline
+              </p>
+              <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">
+                Wedding Schedule
+              </h2>
+              <p className="text-white/40 text-xs max-w-sm mb-12 -mt-4 leading-relaxed font-normal">
+                Here is what to expect on our special day. We look forward to
+                celebrating each moment with you!
+              </p>
 
-            <div className="relative w-full max-w-md mx-auto px-4">
-              {/* The vertical line */}
-              <div className="absolute left-8 top-2 bottom-2 w-0.5 bg-linear-to-b from-[#D8B76A] via-[#F2D894]/50 to-[#D8B76A] opacity-30" />
+              <div className="relative w-full max-w-md mx-auto px-4">
+                {/* The vertical line */}
+                <div className="absolute left-8 top-2 bottom-2 w-0.5 bg-linear-to-b from-[#D8B76A] via-[#F2D894]/50 to-[#D8B76A] opacity-30" />
 
-              <div className="space-y-8 text-left">
-                {invitation.userId.timeline.map((event, index) => {
-                  let displayTime = event.time;
-                  try {
-                    const [hourStr, minStr] = event.time.split(":");
-                    const hour = parseInt(hourStr);
-                    const period = hour >= 12 ? "PM" : "AM";
-                    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-                    displayTime = `${displayHour}:${minStr} ${period}`;
-                  } catch (e) {
-                    // Fallback
-                  }
+                <div className="space-y-8 text-left">
+                  {invitation.userId.timeline.map((event, index) => {
+                    let displayTime = event.time;
+                    try {
+                      const [hourStr, minStr] = event.time.split(":");
+                      const hour = parseInt(hourStr);
+                      const period = hour >= 12 ? "PM" : "AM";
+                      const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+                      displayTime = `${displayHour}:${minStr} ${period}`;
+                    } catch (e) {
+                      // Fallback
+                    }
 
-                  return (
-                    <div key={index} className="relative flex items-start pl-14 group">
-                      {/* Circle Node with icon/emoji */}
-                      <div className="absolute left-3 top-0 h-10 w-10 rounded-full bg-[#0D1220] border border-[#D8B76A]/40 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(216,183,106,0.15)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(216,183,106,0.4)] group-hover:border-[#D8B76A] transition-all duration-300 z-10">
-                        {event.icon}
+                    return (
+                      <div
+                        key={index}
+                        className="relative flex items-start pl-14 group"
+                      >
+                        {/* Circle Node with icon/emoji */}
+                        <div className="absolute left-3 top-0 h-10 w-10 rounded-full bg-[#0D1220] border border-[#D8B76A]/40 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(216,183,106,0.15)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(216,183,106,0.4)] group-hover:border-[#D8B76A] transition-all duration-300 z-10">
+                          {event.icon}
+                        </div>
+
+                        {/* Timeline card details */}
+                        <div className="invite-feature-card flex-1 p-5 rounded-2xl border border-white/10 bg-[#0D1220] hover:border-[#D8B76A]/30 transition duration-300 shadow-md">
+                          <span className="text-[10px] font-bold text-[#D8B76A] uppercase tracking-wider block mb-1">
+                            {displayTime}
+                          </span>
+                          <h4 className="text-white text-base font-semibold font-serif mb-1">
+                            {event.title}
+                          </h4>
+                          {event.description && (
+                            <p className="text-xs text-white/50 leading-relaxed font-normal">
+                              {event.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
-
-                      {/* Timeline card details */}
-                      <div className="invite-feature-card flex-1 p-5 rounded-2xl border border-white/10 bg-[#0D1220] hover:border-[#D8B76A]/30 transition duration-300 shadow-md">
-                        <span className="text-[10px] font-bold text-[#D8B76A] uppercase tracking-wider block mb-1">
-                          {displayTime}
-                        </span>
-                        <h4 className="text-white text-base font-semibold font-serif mb-1">
-                          {event.title}
-                        </h4>
-                        {event.description && (
-                          <p className="text-xs text-white/50 leading-relaxed font-normal">
-                            {event.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </section>
-        )}
+            </section>
+          )}
 
         {/* Details Section */}
         <section className="invite-section download-details-section px-4 sm:px-6 py-16 sm:py-20 text-center bg-[#070A13] relative z-10 border-t border-white/5">
-          <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-4">The Details</p>
-          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 sm:mb-10">Wedding Day</h2>
+          <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-4">
+            The Details
+          </p>
+          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8 sm:mb-10">
+            Wedding Day
+          </h2>
           {!isFreeUser && (venue || receptionLocation) && (
             <p className="mx-auto -mt-5 mb-8 flex max-w-md items-center justify-center gap-1.5 rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-[#D8B76A]">
               <Icon icon="lucide:map-pin" className="h-3.5 w-3.5" />
@@ -2757,23 +4192,30 @@ const InvitePage = ({ setThemePreference }) => {
             {/* Date */}
             <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
               <span className="text-2xl text-[#D8B76A]">◈</span>
-              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Date</p>
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
+                Date
+              </p>
               <p className="text-white text-sm leading-6">
                 {weddingDate
                   ? new Date(weddingDate).toLocaleDateString("en-GB", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })
                   : "To be announced"}
               </p>
             </div>
 
             {/* Time */}
             <div className="invite-detail-card rounded-2xl flex flex-col items-center border border-white/10 bg-[#0D1220] px-6 py-8">
-              <Icon icon="mdi:clock-time-four-outline" className="h-7 w-7 text-[#D8B76A]" />
-              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Time</p>
+              <Icon
+                icon="mdi:clock-time-four-outline"
+                className="h-7 w-7 text-[#D8B76A]"
+              />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
+                Time
+              </p>
               <p className="text-white text-sm leading-6">
                 {formattedTimeWithFormat || "To be announced"}
               </p>
@@ -2781,16 +4223,26 @@ const InvitePage = ({ setThemePreference }) => {
 
             {/* Venue */}
             <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-              <Icon icon="lucide:map-pin" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Venue</p>
+              <Icon
+                icon="lucide:map-pin"
+                className="mx-auto h-6 w-6 text-[#D8B76A]"
+              />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
+                Venue
+              </p>
               {venue ? (
                 isFreeUser ? (
-                  <p className="text-white text-sm leading-6">{venueName || venue}</p>
+                  <p className="text-white text-sm leading-6">
+                    {venueName || venue}
+                  </p>
                 ) : (
                   <button
                     onClick={(e) => {
                       e.preventDefault();
-                      setMapSelectAddress({ label: venueName || venue, query: venue });
+                      setMapSelectAddress({
+                        label: venueName || venue,
+                        query: venue,
+                      });
                     }}
                     style={{
                       ...serif,
@@ -2812,15 +4264,25 @@ const InvitePage = ({ setThemePreference }) => {
 
             {receptionLocation && (
               <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-                <Icon icon="mdi:glass-cocktail" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-                <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Reception at</p>
+                <Icon
+                  icon="mdi:glass-cocktail"
+                  className="mx-auto h-6 w-6 text-[#D8B76A]"
+                />
+                <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
+                  Reception at
+                </p>
                 {isFreeUser ? (
-                  <p className="cursor-pointer text-white text-sm leading-6">{receptionName || receptionLocation}</p>
+                  <p className="cursor-pointer text-white text-sm leading-6">
+                    {receptionName || receptionLocation}
+                  </p>
                 ) : (
                   <button
                     onClick={(e) => {
                       e.preventDefault();
-                      setMapSelectAddress({ label: receptionName || receptionLocation, query: receptionLocation });
+                      setMapSelectAddress({
+                        label: receptionName || receptionLocation,
+                        query: receptionLocation,
+                      });
                     }}
                     style={{
                       ...serif,
@@ -2841,59 +4303,96 @@ const InvitePage = ({ setThemePreference }) => {
             {/* Dress Code */}
             <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
               <Icon icon="mdi:tie" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Dress Code</p>
-              <p className="text-white text-sm leading-6">{dressCode || "To be announced"}</p>
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
+                Dress Code
+              </p>
+              <p className="text-white text-sm leading-6">
+                {dressCode || "To be announced"}
+              </p>
             </div>
 
             {/* Colour of the Day */}
             <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-                <Icon icon="lucide:palette" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-                <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-3">Colour of the Day</p>
-                {weddingColors.length > 0 ? (
-                  <div className="flex justify-center flex-wrap gap-2">
-                    {weddingColors.map((name, i) => {
-                      const hex = getWeddingColorHex(name);
-                      const isDark = isDarkColor(hex);
-                      return (
+              <Icon
+                icon="lucide:palette"
+                className="mx-auto h-6 w-6 text-[#D8B76A]"
+              />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-3">
+                Colour of the Day
+              </p>
+              {weddingColors.length > 0 ? (
+                <div className="flex justify-center flex-wrap gap-2">
+                  {weddingColors.map((name, i) => {
+                    const hex = getWeddingColorHex(name);
+                    const isDark = isDarkColor(hex);
+                    return (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 rounded-full border px-3.5 py-1.5 shadow-sm"
+                        style={{
+                          borderColor: isDark
+                            ? "rgba(255, 255, 255, 0.35)"
+                            : `${hex}44`,
+                          backgroundColor: isDark
+                            ? "rgba(255, 255, 255, 0.08)"
+                            : `${hex}11`,
+                        }}
+                      >
                         <div
-                          key={i}
-                          className="flex items-center gap-2 rounded-full border px-3.5 py-1.5 shadow-sm"
-                          style={{
-                            borderColor: isDark ? 'rgba(255, 255, 255, 0.35)' : `${hex}44`,
-                            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : `${hex}11`,
-                          }}
-                        >
-                          <div className={`h-5 w-5 rounded-full shrink-0 shadow-inner border ${isDark ? 'border-white/60' : 'border-white/20'}`} style={{ background: hex }} />
-                          <span className="text-xs font-bold text-white tracking-wide">{name}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-white text-sm">To be announced</p>
-                )}
-              </div>
+                          className={`h-5 w-5 rounded-full shrink-0 shadow-inner border ${isDark ? "border-white/60" : "border-white/20"}`}
+                          style={{ background: hex }}
+                        />
+                        <span className="text-xs font-bold text-white tracking-wide">
+                          {name}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-white text-sm">To be announced</p>
+              )}
+            </div>
 
             {/* Your Category */}
             <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-              <Icon icon="lucide:sparkle" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Your Category</p>
-              <p className="text-white text-sm leading-6">{invitation.category || "Guest"}</p>
+              <Icon
+                icon="lucide:sparkle"
+                className="mx-auto h-6 w-6 text-[#D8B76A]"
+              />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
+                Your Category
+              </p>
+              <p className="text-white text-sm leading-6">
+                {invitation.category || "Guest"}
+              </p>
             </div>
 
             {/* Additional guest policy */}
             <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-              <Icon icon="lucide:user-plus" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Additional Guest</p>
+              <Icon
+                icon="lucide:user-plus"
+                className="mx-auto h-6 w-6 text-[#D8B76A]"
+              />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
+                Additional Guest
+              </p>
               <p className="text-white text-sm leading-6">
-                {plusOnePolicy === "plus_one_allowed" ? "Plus one allowed" : "Strictly by invitation"}
+                {plusOnePolicy === "plus_one_allowed"
+                  ? "Plus one allowed"
+                  : "Strictly by invitation"}
               </p>
             </div>
 
             {/* Children policy */}
             <div className="invite-detail-card rounded-2xl border border-white/10 bg-[#0D1220] px-6 py-8">
-              <Icon icon="mdi:human-child" className="mx-auto h-6 w-6 text-[#D8B76A]" />
-              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">Children</p>
+              <Icon
+                icon="mdi:human-child"
+                className="mx-auto h-6 w-6 text-[#D8B76A]"
+              />
+              <p className="mt-4 text-xs uppercase tracking-widest text-white/40 mb-2">
+                Children
+              </p>
               <p className="text-white text-sm leading-6">
                 {kidsAllowed ? "Children are welcome" : "Adults only"}
               </p>
@@ -2906,7 +4405,9 @@ const InvitePage = ({ setThemePreference }) => {
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4 backdrop-blur-sm">
             <div className="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl border border-[#D8B76A]/20 bg-white p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="font-serif text-2xl text-[#1A2E4A]">Your RSVP</h2>
+                <h2 className="font-serif text-2xl text-[#1A2E4A]">
+                  Your RSVP
+                </h2>
                 <button
                   onClick={() => setShowForm(false)}
                   className="text-[#1A2E4A]/40 hover:text-[#1A2E4A] transition text-lg"
@@ -2927,14 +4428,18 @@ const InvitePage = ({ setThemePreference }) => {
               >
                 {/* Name */}
                 <div>
-                  <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">Name *</label>
+                  <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
+                    Name *
+                  </label>
                   <input
                     id="rsvp-name"
                     {...register("guestName")}
                     className={`${inputClass} ${errors.guestName ? "border-red-400/50" : ""}`}
                   />
                   {errors.guestName && (
-                    <p className="mt-1 text-xs text-red-500">{errors.guestName.message}</p>
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.guestName.message}
+                    </p>
                   )}
                 </div>
 
@@ -2949,13 +4454,20 @@ const InvitePage = ({ setThemePreference }) => {
                     {...register("phone")}
                     className={`${inputClass} ${errors.phone ? "border-red-400/50" : ""}`}
                   />
-                  {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone.message}</p>}
+                  {errors.phone && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.phone.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Optional Email for confirmation */}
                 <div>
                   <label className="mb-2 block text-xs uppercase tracking-widest text-[#1A2E4A]/50">
-                    Email <span className="text-[#1A2E4A]/30 normal-case">(optional — for confirmation)</span>
+                    Email{" "}
+                    <span className="text-[#1A2E4A]/30 normal-case">
+                      (optional — for confirmation)
+                    </span>
                   </label>
                   <input
                     id="rsvp-email"
@@ -2964,7 +4476,11 @@ const InvitePage = ({ setThemePreference }) => {
                     {...register("guestEmail")}
                     className={`${inputClass} ${errors.guestEmail ? "border-red-400/50" : ""}`}
                   />
-                  {errors.guestEmail && <p className="mt-1 text-xs text-red-500">{errors.guestEmail.message}</p>}
+                  {errors.guestEmail && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.guestEmail.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Attending toggle */}
@@ -2982,15 +4498,21 @@ const InvitePage = ({ setThemePreference }) => {
                             key={opt}
                             type="button"
                             onClick={() => field.onChange(opt)}
-                            className={`flex-1 rounded-xl border py-3 text-sm font-medium transition ${field.value === opt
+                            className={`flex-1 rounded-xl border py-3 text-sm font-medium transition ${
+                              field.value === opt
                                 ? opt === "Yes"
                                   ? "border-emerald-500/50 bg-emerald-50 text-emerald-700"
                                   : "border-red-400/50 bg-red-50 text-red-600"
                                 : "border-[#1A2E4A]/10 bg-[#F8F8F8] text-[#1A2E4A]/50 hover:border-[#1A2E4A]/20"
-                              }`}
+                            }`}
                           >
                             <span className="inline-flex items-center gap-1.5">
-                              <Icon icon={opt === "Yes" ? "lucide:check" : "lucide:x"} className="h-3.5 w-3.5" />
+                              <Icon
+                                icon={
+                                  opt === "Yes" ? "lucide:check" : "lucide:x"
+                                }
+                                className="h-3.5 w-3.5"
+                              />
                               {opt}
                             </span>
                           </button>
@@ -3007,10 +4529,12 @@ const InvitePage = ({ setThemePreference }) => {
                     </p>
                     <p className="text-sm text-[#1A2E4A]">
                       {plusOnePolicy === "plus_one_allowed"
-                        ? `You're confirming attendance for ${invitedCount} guest${invitedCount === 1 ? "" : "s"
-                        } (${invitation.allowedGuests || 1} on your invitation + 1 plus one).`
-                        : `You're confirming attendance for ${invitedCount} guest${invitedCount === 1 ? "" : "s"
-                        } as listed on your invitation.`}
+                        ? `You're confirming attendance for ${invitedCount} guest${
+                            invitedCount === 1 ? "" : "s"
+                          } (${invitation.allowedGuests || 1} on your invitation + 1 plus one).`
+                        : `You're confirming attendance for ${invitedCount} guest${
+                            invitedCount === 1 ? "" : "s"
+                          } as listed on your invitation.`}
                     </p>
                   </div>
                 )}
@@ -3030,10 +4554,11 @@ const InvitePage = ({ setThemePreference }) => {
                             key={opt}
                             type="button"
                             onClick={() => field.onChange(opt)}
-                            className={`rounded-full border px-4 py-1.5 text-xs font-medium transition ${field.value === opt
+                            className={`rounded-full border px-4 py-1.5 text-xs font-medium transition ${
+                              field.value === opt
                                 ? "border-[#B8963A]/60 bg-[#D8B76A]/15 text-[#B8963A]"
                                 : "border-[#1A2E4A]/10 bg-[#F8F8F8] text-[#1A2E4A]/50 hover:border-[#1A2E4A]/20"
-                              }`}
+                            }`}
                           >
                             {opt}
                           </button>
@@ -3057,13 +4582,15 @@ const InvitePage = ({ setThemePreference }) => {
                   />
                 </div>
 
-                  <button
+                <button
                   type="submit"
                   id="rsvp-submit-btn"
                   disabled={isSubmitting || rsvpSubmitting}
                   className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] py-4 text-sm font-bold uppercase tracking-widest text-[#1A2E4A] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.4)] disabled:opacity-60 mt-2"
                 >
-                  {isSubmitting || rsvpSubmitting ? "Sending..." : "Submit RSVP"}
+                  {isSubmitting || rsvpSubmitting
+                    ? "Sending..."
+                    : "Submit RSVP"}
                 </button>
               </form>
             </div>
@@ -3073,11 +4600,18 @@ const InvitePage = ({ setThemePreference }) => {
         {/* Gift Registry Section */}
         {invitation.userId?.registryEnabled && (
           <section className="invite-section px-4 sm:px-6 py-16 text-center bg-[#090D19] relative z-10 border-t border-white/5 flex flex-col items-center download-exclude">
-            <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Gifting</p>
-            <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">Gift Registry</h2>
+            <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">
+              Gifting
+            </p>
+            <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">
+              Gift Registry
+            </h2>
 
             <div className="invite-registry-card w-full max-w-xl rounded-3xl border border-[#D8B76A]/30 bg-[#070A13]/90 p-6 sm:p-8 shadow-2xl space-y-8 text-left relative overflow-hidden backdrop-blur-md">
-              <Icon icon="mdi:gift-outline" className="absolute top-4 right-4 h-28 w-28 opacity-5 pointer-events-none text-white" />
+              <Icon
+                icon="mdi:gift-outline"
+                className="absolute top-4 right-4 h-28 w-28 opacity-5 pointer-events-none text-white"
+              />
 
               {invitation.userId?.registryNotes && (
                 <p className="text-sm text-white/70 text-center leading-relaxed italic border-b border-white/5 pb-6">
@@ -3095,23 +4629,39 @@ const InvitePage = ({ setThemePreference }) => {
                   <div className="invite-feature-card rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
                     <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
                       <div>
-                        <span className="text-white/40 block text-[9px] uppercase tracking-wider">Bank Name</span>
-                        <span className="text-white font-medium">{invitation.userId.registryBankName || "Not Specified"}</span>
+                        <span className="text-white/40 block text-[9px] uppercase tracking-wider">
+                          Bank Name
+                        </span>
+                        <span className="text-white font-medium">
+                          {invitation.userId.registryBankName ||
+                            "Not Specified"}
+                        </span>
                       </div>
                       <div>
-                        <span className="text-white/40 block text-[9px] uppercase tracking-wider">Account Name</span>
-                        <span className="text-white font-medium">{invitation.userId.registryAccountName || "Not Specified"}</span>
+                        <span className="text-white/40 block text-[9px] uppercase tracking-wider">
+                          Account Name
+                        </span>
+                        <span className="text-white font-medium">
+                          {invitation.userId.registryAccountName ||
+                            "Not Specified"}
+                        </span>
                       </div>
                     </div>
 
                     <div className="invite-account-number flex items-center justify-between bg-black/40 rounded-xl p-3 sm:p-4 border border-white/5">
                       <div>
-                        <span className="text-white/40 block text-[9px] uppercase tracking-wider">Account Number</span>
-                        <span className="text-white font-mono text-base tracking-wide font-bold">{invitation.userId.registryAccountNumber}</span>
+                        <span className="text-white/40 block text-[9px] uppercase tracking-wider">
+                          Account Number
+                        </span>
+                        <span className="text-white font-mono text-base tracking-wide font-bold">
+                          {invitation.userId.registryAccountNumber}
+                        </span>
                       </div>
                       <button
                         onClick={() => {
-                          navigator.clipboard.writeText(invitation.userId.registryAccountNumber);
+                          navigator.clipboard.writeText(
+                            invitation.userId.registryAccountNumber,
+                          );
                           toast.success("Account number copied!");
                         }}
                         className="px-4 py-2 rounded-lg bg-[#D8B76A] text-[#070A13] text-xs font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition"
@@ -3129,7 +4679,9 @@ const InvitePage = ({ setThemePreference }) => {
                   Copy and Transfer
                 </h4>
                 <p className="text-xs text-white/45 leading-relaxed">
-                  Gifts are received by direct bank transfer only. Copy the account number above and complete the transfer in your banking app.
+                  Gifts are received by direct bank transfer only. Copy the
+                  account number above and complete the transfer in your banking
+                  app.
                 </p>
               </div>
             </div>
@@ -3140,10 +4692,15 @@ const InvitePage = ({ setThemePreference }) => {
       {/* Wish Wall / Guestbook Section */}
       {wishes.length > 0 && (
         <section className="invite-section px-4 sm:px-6 py-16 text-center bg-[#070A13] relative z-10 border-t border-white/5 flex flex-col items-center">
-          <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">Congratulations</p>
-          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">The Wish Wall</h2>
+          <p className="text-xs uppercase tracking-[0.35em] text-[#D8B76A] mb-3 font-semibold">
+            Congratulations
+          </p>
+          <h2 className="font-serif text-3xl sm:text-4xl text-white mb-8">
+            The Wish Wall
+          </h2>
           <p className="text-white/40 text-xs max-w-sm mb-10 -mt-4 leading-relaxed font-normal">
-            Beautiful wishes and congratulations from our dear guests who are attending.
+            Beautiful wishes and congratulations from our dear guests who are
+            attending.
           </p>
 
           <div className="w-full max-w-4xl columns-1 gap-6 sm:columns-2 lg:columns-3">
@@ -3152,7 +4709,9 @@ const InvitePage = ({ setThemePreference }) => {
                 key={w._id || `${w.guestName}-${w.createdAt}-${index}`}
                 className="invite-feature-card mb-6 inline-block w-full break-inside-avoid p-5 rounded-2xl border border-white/10 bg-[#0D1220] text-left relative overflow-hidden hover:border-[#D8B76A]/40 transition duration-300 shadow-lg"
               >
-                <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none text-4xl font-serif">“</div>
+                <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none text-4xl font-serif">
+                  “
+                </div>
                 <p className="text-white/80 text-sm leading-relaxed italic mb-4 font-normal">
                   "{w.message}"
                 </p>
@@ -3163,7 +4722,7 @@ const InvitePage = ({ setThemePreference }) => {
                   <span className="text-[9px] text-white/30">
                     {new Date(w.createdAt).toLocaleDateString("en-GB", {
                       day: "numeric",
-                      month: "short"
+                      month: "short",
                     })}
                   </span>
                 </div>
@@ -3175,7 +4734,11 @@ const InvitePage = ({ setThemePreference }) => {
               {hasMoreWishes && (
                 <button
                   type="button"
-                  onClick={() => setVisibleWishCount((count) => Math.min(count + WISHES_PAGE_SIZE, wishes.length))}
+                  onClick={() =>
+                    setVisibleWishCount((count) =>
+                      Math.min(count + WISHES_PAGE_SIZE, wishes.length),
+                    )
+                  }
                   className="inline-flex items-center justify-center gap-2 rounded-full border border-[#D8B76A]/35 bg-[#D8B76A]/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[#D8B76A] transition hover:border-[#D8B76A]/70 hover:bg-[#D8B76A]/15"
                 >
                   Show more wishes
@@ -3198,70 +4761,85 @@ const InvitePage = ({ setThemePreference }) => {
       )}
 
       {/* Map Selector Modal */}
-      {mapSelectAddress && (() => {
-        const isObj = typeof mapSelectAddress === "object" && mapSelectAddress !== null;
-        const displayLabel = isObj ? mapSelectAddress.label : mapSelectAddress;
-        const mapsQuery = isObj ? mapSelectAddress.query : mapSelectAddress;
-        return (
-          <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-fade-in">
-            <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/30 bg-[#0D1220] p-6 shadow-2xl space-y-6 text-center">
-              <div>
-                <Icon icon="mdi:compass-outline" className="mx-auto h-8 w-8 text-[#D8B76A]" />
-                <h3 className="font-serif text-xl text-white mt-2">Open in Maps</h3>
-                <p className="text-white/40 text-xs mt-1 leading-relaxed max-w-xs mx-auto">
-                  Choose your preferred navigation app to open routes for:<br />
-                  <span className="text-white/80 font-medium block mt-1 wrap-break-word">{displayLabel}</span>
-                  {isObj && displayLabel !== mapsQuery && (
-                    <span className="text-white/45 text-[10px] block mt-0.5 wrap-break-word italic">{mapsQuery}</span>
-                  )}
-                </p>
+      {mapSelectAddress &&
+        (() => {
+          const isObj =
+            typeof mapSelectAddress === "object" && mapSelectAddress !== null;
+          const displayLabel = isObj
+            ? mapSelectAddress.label
+            : mapSelectAddress;
+          const mapsQuery = isObj ? mapSelectAddress.query : mapSelectAddress;
+          return (
+            <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-fade-in">
+              <div className="w-full max-w-sm rounded-3xl border border-[#D8B76A]/30 bg-[#0D1220] p-6 shadow-2xl space-y-6 text-center">
+                <div>
+                  <Icon
+                    icon="mdi:compass-outline"
+                    className="mx-auto h-8 w-8 text-[#D8B76A]"
+                  />
+                  <h3 className="font-serif text-xl text-white mt-2">
+                    Open in Maps
+                  </h3>
+                  <p className="text-white/40 text-xs mt-1 leading-relaxed max-w-xs mx-auto">
+                    Choose your preferred navigation app to open routes for:
+                    <br />
+                    <span className="text-white/80 font-medium block mt-1 wrap-break-word">
+                      {displayLabel}
+                    </span>
+                    {isObj && displayLabel !== mapsQuery && (
+                      <span className="text-white/45 text-[10px] block mt-0.5 wrap-break-word italic">
+                        {mapsQuery}
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {/* Google Maps */}
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMapSelectAddress(null)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
+                  >
+                    <Icon icon="mdi:google-maps" className="h-4 w-4" /> Google
+                    Maps
+                  </a>
+
+                  {/* Apple Maps */}
+                  <a
+                    href={`https://maps.apple.com/?q=${encodeURIComponent(mapsQuery)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMapSelectAddress(null)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
+                  >
+                    <Icon icon="mdi:apple" className="h-4 w-4" /> Apple Maps
+                  </a>
+
+                  {/* Waze */}
+                  <a
+                    href={`https://waze.com/ul?q=${encodeURIComponent(mapsQuery)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMapSelectAddress(null)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
+                  >
+                    <Icon icon="mdi:car" className="h-4 w-4" /> Waze
+                  </a>
+                </div>
+
+                <button
+                  onClick={() => setMapSelectAddress(null)}
+                  className="w-full text-xs font-bold uppercase tracking-widest text-[#D8B76A] hover:underline"
+                >
+                  Cancel
+                </button>
               </div>
-
-              <div className="space-y-3">
-                {/* Google Maps */}
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setMapSelectAddress(null)}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
-                >
-                  <Icon icon="mdi:google-maps" className="h-4 w-4" /> Google Maps
-                </a>
-
-                {/* Apple Maps */}
-                <a
-                  href={`https://maps.apple.com/?q=${encodeURIComponent(mapsQuery)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setMapSelectAddress(null)}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
-                >
-                  <Icon icon="mdi:apple" className="h-4 w-4" /> Apple Maps
-                </a>
-
-                {/* Waze */}
-                <a
-                  href={`https://waze.com/ul?q=${encodeURIComponent(mapsQuery)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setMapSelectAddress(null)}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 px-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:border-[#D8B76A]/40 transition flex items-center justify-center gap-2"
-                >
-                  <Icon icon="mdi:car" className="h-4 w-4" /> Waze
-                </a>
-              </div>
-
-              <button
-                onClick={() => setMapSelectAddress(null)}
-                className="w-full text-xs font-bold uppercase tracking-widest text-[#D8B76A] hover:underline"
-              >
-                Cancel
-              </button>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
     </div>
   );
 };
