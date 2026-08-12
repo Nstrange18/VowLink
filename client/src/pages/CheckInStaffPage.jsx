@@ -6,6 +6,24 @@ import api from "../utils/api";
 
 const getAccessKey = (eventId) => `vowlink_checkin_access_${eventId}`;
 
+const getPortalHomeTarget = () => {
+  if (typeof window === "undefined") return { to: "/", label: "Home" };
+
+  const token = localStorage.getItem("token");
+  const storedUser = localStorage.getItem("user");
+  if (!token || !storedUser) return { to: "/", label: "Home" };
+
+  try {
+    const user = JSON.parse(storedUser);
+    if (user?.role === "admin") {
+      return { to: "/super-admin/dashboard", label: "Admin portal" };
+    }
+    return { to: "/admin/dashboard", label: "Back to portal" };
+  } catch {
+    return { to: "/admin/dashboard", label: "Back to portal" };
+  }
+};
+
 const extractCheckInToken = (value) => {
   const trimmed = String(value || "").trim();
   if (!trimmed) return "";
@@ -45,6 +63,7 @@ const CheckInStaffPage = () => {
   const lastScanRef = useRef({ token: "", at: 0 });
 
   const isUnlocked = Boolean(eventId && accessToken);
+  const homeTarget = useMemo(() => getPortalHomeTarget(), []);
 
   const searchGuests = useCallback(async () => {
     if (!eventId || !accessToken) return;
@@ -256,9 +275,9 @@ const CheckInStaffPage = () => {
               Search guests by name, phone, invite slug, or category after unlocking this device with the event PIN.
             </p>
           </div>
-          <Link to="/" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/65 transition hover:bg-white/10 hover:text-white">
-            <Icon icon="lucide:home" className="h-4 w-4" />
-            Home
+          <Link to={homeTarget.to} className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/65 transition hover:bg-white/10 hover:text-white">
+            <Icon icon={homeTarget.to === "/" ? "lucide:home" : "lucide:layout-dashboard"} className="h-4 w-4" />
+            {homeTarget.label}
           </Link>
         </div>
 
