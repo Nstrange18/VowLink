@@ -8,6 +8,7 @@ import {
   getPhoneCountryByIso,
   normalizeInternationalPhone,
 } from "../../utils/phoneNumbers";
+import { GUEST_CATEGORIES, normalizeGuestCategory } from "../../utils/guestCategories";
 
 // Robust CSV parser supporting quotes and escaped quotes
 const parseCSVLine = (line) => {
@@ -90,7 +91,8 @@ const AdminBulkInvitationPage = () => {
           const guestName = parts[0].replace(/^"|"$/g, '').trim();
           if (!guestName) return null;
           
-          const category = (parts[1] || "").replace(/^"|"$/g, '').trim() || "Guest";
+          const rawCategory = (parts[1] || "").replace(/^"|"$/g, '').trim();
+          const category = normalizeGuestCategory(rawCategory);
           const allowedGuests = parseInt((parts[2] || "").trim()) || 1;
           const customGreeting = (parts[3] || "").replace(/^"|"$/g, '').trim();
           const customMessage = (parts[4] || "").replace(/^"|"$/g, '').trim();
@@ -105,6 +107,7 @@ const AdminBulkInvitationPage = () => {
           const guestObj = { 
             guestName, 
             category, 
+            rawCategory,
             allowedGuests, 
             greeting,
             customMessage: actualMessage,
@@ -223,7 +226,7 @@ const AdminBulkInvitationPage = () => {
           </div>
           <div>
             <strong className="text-white block text-[11px]">2. Category <span className="text-white/40 font-normal">(Opt)</span></strong>
-            <span className="text-white/40 text-[9px] block mt-0.5">Grouping for sorting. Defaults to "Guest". (e.g. "Family")</span>
+            <span className="text-white/40 text-[9px] block mt-0.5">Use {GUEST_CATEGORIES.join(", ")}. Unknown labels become "Guest".</span>
           </div>
           <div>
             <strong className="text-white block text-[11px]">3. Seats <span className="text-white/40 font-normal">(Opt)</span></strong>
@@ -384,7 +387,10 @@ Example:
                         {guest.guestName}
                       </td>
                       <td className="px-4 py-3 text-white/50">
-                        <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full block w-fit mb-1">{guest.category}</span>
+                        <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full block w-fit mb-1">
+                          {guest.category}
+                          {guest.rawCategory && guest.rawCategory !== guest.category ? " (mapped)" : ""}
+                        </span>
                         <span className="text-[10px] text-[#D8B76A] block mb-1">Seats: {guest.allowedGuests}</span>
                         <span className="text-[9px] uppercase tracking-wider bg-white/10 text-white/70 px-2 py-0.5 rounded-full block w-fit">
                           {guest.senderGroup === "bride" ? "Bride" :

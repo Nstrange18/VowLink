@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { Icon } from '@iconify/react'
+import api from '../utils/api'
 
 const sidebarGroups = [
   { type: 'link', to: '/admin/dashboard', label: 'Dashboard', icon: 'lucide:layout-dashboard', tourId: 'admin-nav-dashboard' },
@@ -93,6 +94,7 @@ const AdminLayout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
+    delete api.defaults.headers.common.Authorization
     setLogoutConfirmOpen(false)
     toast.info('Logged out successfully.')
     navigate('/admin/login')

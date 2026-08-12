@@ -2968,13 +2968,31 @@ const InvitePage = ({ setThemePreference }) => {
     cardTheme === "custom"
       ? "linear-gradient(to bottom, #0F172A, #070A13)"
       : cardStyles.background;
+  const envelopeBgValue = String(envelopeBg || "").toLowerCase();
+  const needsDarkEnvelopeText =
+    isEnvelopeDark ||
+    envelopeBgValue.includes("#070a13") ||
+    envelopeBgValue.includes("#0f172a") ||
+    envelopeBgValue.includes("navy") ||
+    envelopeBgValue.includes("0d0b1c") ||
+    envelopeBgValue.includes("05040b") ||
+    envelopeBgValue.includes("071c11") ||
+    envelopeBgValue.includes("030c07") ||
+    envelopeBgValue.includes("elegant_gold_frame_with_navy_backdrop");
   const envelopeTextColor = isEnvelopeDark
-    ? getReadableTextColor("#070A13", customTextColor, "#070A13", "#F5EBD6")
+    ? "#F8ECD2"
     : selectedBgHex
       ? getReadableTextColor(selectedBgHex, customTextColor, "#1A2E4A", "#FFFFFF")
       : customTextColor && customTextColor !== "#1A2E4A"
         ? customTextColor
         : "#1A2E4A";
+  const envelopeTextStyle = {
+    color: needsDarkEnvelopeText ? "#F8ECD2" : envelopeTextColor,
+    WebkitTextFillColor: needsDarkEnvelopeText ? "#F8ECD2" : envelopeTextColor,
+    textShadow: needsDarkEnvelopeText
+      ? "0 2px 18px rgba(0,0,0,0.72), 0 0 18px rgba(248,236,210,0.12)"
+      : "0 1px 8px rgba(255,255,255,0.45)",
+  };
   const envelopeAccentColor = isEnvelopeDark
     ? secHex
     : isFreeUser
@@ -3250,7 +3268,7 @@ const InvitePage = ({ setThemePreference }) => {
           <div className="max-w-md w-full px-8 text-center flex flex-col items-center justify-center z-10">
             <p
               className="text-xs uppercase tracking-[0.4em] mb-3 opacity-60 font-semibold"
-              style={{ color: envelopeTextColor }}
+              style={envelopeTextStyle}
             >
               VowLink Invitation
             </p>
@@ -3263,7 +3281,7 @@ const InvitePage = ({ setThemePreference }) => {
             <p
               className="italic mb-2"
               style={{
-                color: envelopeTextColor,
+                ...envelopeTextStyle,
                 ...script,
                 fontSize: "1.8rem",
               }}
@@ -3274,7 +3292,7 @@ const InvitePage = ({ setThemePreference }) => {
             <h1
               className="mb-8"
               style={{
-                color: envelopeTextColor,
+                ...envelopeTextStyle,
                 ...script,
                 fontSize: "3.2rem",
                 lineHeight: 1.1,
@@ -3283,7 +3301,7 @@ const InvitePage = ({ setThemePreference }) => {
               {invitation.userId?.partner1Name || "Partner 1"}
               <span
                 className="block my-1 text-2xl font-serif not-italic opacity-80"
-                style={{ color: envelopeTextColor }}
+                style={envelopeTextStyle}
               >
                 &
               </span>
@@ -3328,7 +3346,7 @@ const InvitePage = ({ setThemePreference }) => {
 
             <p
               className="mt-8 text-[10px] uppercase tracking-[0.2em] opacity-40"
-              style={{ color: envelopeTextColor }}
+              style={envelopeTextStyle}
             >
               {musicUrl
                 ? "Click to unveil details & play music"
@@ -3338,7 +3356,7 @@ const InvitePage = ({ setThemePreference }) => {
             {isDirectAudio && !audioReady && (
               <p
                 className="mt-2 text-[9px] uppercase tracking-widest opacity-30 flex items-center gap-1"
-                style={{ color: envelopeTextColor }}
+                style={envelopeTextStyle}
               >
                 <Icon icon="lucide:loader-2" className="h-3 w-3 animate-spin" />
                 Loading music...

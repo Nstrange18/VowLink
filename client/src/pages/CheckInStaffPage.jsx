@@ -42,9 +42,10 @@ const formatDateTime = (value) => {
 const CheckInStaffPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialEventId = searchParams.get("event") || "";
+  const initialCheckInToken = searchParams.get("token") || "";
   const [eventId, setEventId] = useState(initialEventId);
   const [accessToken, setAccessToken] = useState(() => (initialEventId ? sessionStorage.getItem(getAccessKey(initialEventId)) || "" : ""));
-  const [unlockLink, setUnlockLink] = useState("");
+  const [unlockLink, setUnlockLink] = useState(initialCheckInToken);
   const [pin, setPin] = useState("");
   const [unlocking, setUnlocking] = useState(false);
   const [query, setQuery] = useState("");
@@ -64,6 +65,18 @@ const CheckInStaffPage = () => {
 
   const isUnlocked = Boolean(eventId && accessToken);
   const homeTarget = useMemo(() => getPortalHomeTarget(), []);
+
+  useEffect(() => {
+    const nextEventId = searchParams.get("event") || "";
+    const nextToken = searchParams.get("token") || "";
+    const nextAccessToken = nextEventId ? sessionStorage.getItem(getAccessKey(nextEventId)) || "" : "";
+
+    setEventId(nextEventId);
+    setAccessToken(nextAccessToken);
+    if (!nextAccessToken && nextToken) {
+      setUnlockLink(nextToken);
+    }
+  }, [searchParams]);
 
   const searchGuests = useCallback(async () => {
     if (!eventId || !accessToken) return;

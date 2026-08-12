@@ -47,6 +47,7 @@ const invitationSchema = new mongoose.Schema(
     category: {
       type: String,
       trim: true,
+      enum: ["VIP", "Family", "Friend", "Colleague", "Guest"],
       default: "Guest",
     },
 

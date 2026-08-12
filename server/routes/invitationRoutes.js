@@ -28,6 +28,37 @@ const createCheckInAccessToken = (userId, pinUpdatedAt) =>
     { expiresIn: "18h" }
   );
 
+const ALLOWED_GUEST_CATEGORIES = ["VIP", "Family", "Friend", "Colleague", "Guest"];
+const GUEST_CATEGORY_ALIASES = {
+  vip: "VIP",
+  vips: "VIP",
+  family: "Family",
+  families: "Family",
+  relative: "Family",
+  relatives: "Family",
+  friend: "Friend",
+  friends: "Friend",
+  colleague: "Colleague",
+  colleagues: "Colleague",
+  coworker: "Colleague",
+  coworkers: "Colleague",
+  co_worker: "Colleague",
+  co_workers: "Colleague",
+  guest: "Guest",
+  guests: "Guest",
+};
+
+const normalizeGuestCategory = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) return "Guest";
+
+  const exact = ALLOWED_GUEST_CATEGORIES.find((category) => category.toLowerCase() === raw.toLowerCase());
+  if (exact) return exact;
+
+  const normalized = raw.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return GUEST_CATEGORY_ALIASES[normalized] || "Guest";
+};
+
 const getOptionalUserFromRequest = (req) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
@@ -448,7 +479,7 @@ router.post("/", protect, async (req, res) => {
       greeting,
       customMessage,
       allowedGuests,
-      category,
+      category: normalizeGuestCategory(category),
       phoneNumber: phoneNumber || "",
       senderGroup: senderGroup || "general",
       createdByPartner: senderGroup || "general",
@@ -510,7 +541,7 @@ router.post("/bulk", protect, async (req, res) => {
         customMessage = customMessage.substring(0, 170);
       }
       const allowedGuests = Number(g.allowedGuests) || 1;
-      const category = g.category?.trim() || "Guest";
+      const category = normalizeGuestCategory(g.category);
 
       let slug = createSlug(guestName);
       // To prevent bulk collisions, append unique timestamps for duplicates

@@ -30,8 +30,10 @@ api.interceptors.request.use((config) => {
   }
 
   const token = localStorage.getItem('token')
-  if (token && !config.headers.Authorization) {
+  if (token) {
     config.headers.Authorization = `Bearer ${token}`
+  } else if (config.headers.Authorization) {
+    delete config.headers.Authorization
   }
   return config
 })
@@ -125,6 +127,7 @@ api.interceptors.response.use(
         localStorage.removeItem('refreshToken')
 
         localStorage.removeItem('user')
+        delete api.defaults.headers.common.Authorization
         showSessionExpired('Your session has expired. Please sign in again.')
         redirectAfterSessionFailure('/admin/login')
         return Promise.reject(error)
@@ -169,6 +172,7 @@ api.interceptors.response.use(
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('user')
+        delete api.defaults.headers.common.Authorization
         showSessionExpired('Your session has expired. Please sign in again.')
         redirectAfterSessionFailure('/admin/login')
 

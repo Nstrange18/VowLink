@@ -24,7 +24,11 @@ const CheckInPage = () => {
   const isLoggedIn = Boolean(localStorage.getItem("token"));
   const getAccessKey = (eventId) => `vowlink_checkin_access_${eventId}`;
   const pinAccessAvailable = record?.checkInPinEnabled !== false;
-  const needsPinAccess = Boolean(record && !isLoggedIn && !hasCheckInAccess && !record.checkedIn);
+  const shouldShowPinAccess = Boolean(record && !hasCheckInAccess && !record.checkedIn);
+  const needsPinBeforeCheckIn = Boolean(shouldShowPinAccess && !isLoggedIn);
+  const staffModePath = record?.eventId
+    ? `/check-in/staff?event=${encodeURIComponent(record.eventId)}&token=${encodeURIComponent(token || "")}`
+    : "/check-in/staff";
 
   useEffect(() => {
     const loadCheckIn = async () => {
@@ -49,20 +53,22 @@ const CheckInPage = () => {
 
     let accessToken = record.eventId ? sessionStorage.getItem(getAccessKey(record.eventId)) : "";
 
-    if (!isLoggedIn && !accessToken) {
+    const normalizedPin = pin.trim();
+
+    if (!accessToken && normalizedPin) {
       if (record.checkInPinEnabled === false) {
         toast.info("This wedding has not enabled usher PIN access yet.");
         return;
       }
 
-      if (!/^\d{4,8}$/.test(pin.trim())) {
+      if (!/^\d{4,8}$/.test(normalizedPin)) {
         toast.info("Enter the 4 to 8 digit event check-in PIN.");
         return;
       }
 
       setCheckingIn(true);
       try {
-        const accessRes = await api.post(`/invitations/check-in/${token}/access`, { pin: pin.trim() });
+        const accessRes = await api.post(`/invitations/check-in/${token}/access`, { pin: normalizedPin });
         accessToken = accessRes.data.accessToken;
         if (record.eventId && accessToken) {
           sessionStorage.setItem(getAccessKey(record.eventId), accessToken);
@@ -78,7 +84,12 @@ const CheckInPage = () => {
     }
 
     if (!isLoggedIn && !accessToken) {
-      toast.info("Enter the event check-in PIN before checking in guests.");
+      if (record.checkInPinEnabled === false) {
+        toast.info("This wedding has not enabled usher PIN access yet.");
+        return;
+      }
+
+      toast.info("Enter the event PIN before checking in guests.");
       return;
     }
 
@@ -161,7 +172,7 @@ const CheckInPage = () => {
                 </div>
               </div>
 
-              {needsPinAccess && (
+              {shouldShowPinAccess && (
                 <div className="rounded-2xl border border-[#D8B76A]/35 bg-[#D8B76A]/10 p-4 shadow-[0_12px_35px_rgba(216,183,106,0.12)]">
                   <div className="mb-3 flex items-start gap-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/25 bg-[#D8B76A]/15 text-[#D8B76A]">
@@ -172,7 +183,7 @@ const CheckInPage = () => {
                         Usher authorization required
                       </p>
                       <p className="mt-1 text-[11px] leading-relaxed text-white/50">
-                        Enter the event PIN from the couple to unlock check-in on this device.
+                        Enter the event PIN from the couple to unlock check-in on this device, especially when this phone is signed into another wedding.
                       </p>
                     </div>
                   </div>
@@ -189,6 +200,13 @@ const CheckInPage = () => {
                   <p className="mt-2 text-[11px] leading-relaxed text-white/45">
                     Ushers only need the event PIN. This does not give access to the couple dashboard.
                   </p>
+                  <Link
+                    to={staffModePath}
+                    className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#D8B76A]/35 bg-[#070A13]/60 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#D8B76A] transition hover:bg-[#D8B76A]/10 sm:w-auto"
+                  >
+                    <Icon icon="lucide:list-checks" className="h-3.5 w-3.5" />
+                    Open staff mode
+                  </Link>
                 </div>
               )}
 
@@ -200,7 +218,7 @@ const CheckInPage = () => {
                       Check-in access is active on this device.
                     </span>
                     <Link
-                      to={`/check-in/staff?event=${record.eventId}`}
+                      to={staffModePath}
                       className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-100 transition hover:bg-emerald-400/15"
                     >
                       <Icon icon="lucide:list-checks" className="h-3.5 w-3.5" />
@@ -213,11 +231,11 @@ const CheckInPage = () => {
               <button
                 type="button"
                 onClick={handleCheckIn}
-                disabled={checkingIn || record.checkedIn || (needsPinAccess && pinAccessAvailable && pin.trim().length < 4)}
+                disabled={checkingIn || record.checkedIn || (needsPinBeforeCheckIn && pinAccessAvailable && pin.trim().length < 4)}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-[#D8B76A] px-5 py-3 text-xs font-bold uppercase tracking-widest text-[#070A13] transition hover:bg-[#F2D894] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Icon icon={checkingIn ? "lucide:loader-2" : record.checkedIn ? "lucide:check" : "lucide:badge-check"} className={`h-4 w-4 ${checkingIn ? "animate-spin" : ""}`} />
-                {checkingIn ? "Checking In..." : record.checkedIn ? "Checked In" : needsPinAccess ? "Unlock and Check In" : "Check In Guest"}
+                {checkingIn ? "Checking In..." : record.checkedIn ? "Checked In" : needsPinBeforeCheckIn ? "Unlock and Check In" : "Check In Guest"}
               </button>
 
               {!isLoggedIn && (
