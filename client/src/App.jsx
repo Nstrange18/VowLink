@@ -11,6 +11,7 @@ import ThemeToggle from './components/ThemeToggle'
 import SEO from './components/SEO'
 import VowLinkLoader from './components/VowLinkLoader'
 import NetworkStatusBanner from './components/NetworkStatusBanner'
+import { trackVisit } from './utils/visitTracker'
 
 const InvitePage = lazy(() => import('./pages/InvitePage'))
 const CheckInPage = lazy(() => import('./pages/CheckInPage'))
@@ -138,6 +139,13 @@ function AppContent() {
       setTheme(readStoredTheme(APP_THEME_KEY) || 'dark')
     }
   }, [activeThemeKey, isInviteRoute])
+
+  useEffect(() => {
+    trackVisit({
+      pathname: location.pathname,
+      search: location.search,
+    })
+  }, [location.pathname, location.search])
 
   const setThemePreference = useCallback((nextTheme, { savePreference = true } = {}) => {
     if (nextTheme !== 'light' && nextTheme !== 'dark') return

@@ -11,9 +11,30 @@ const getCoupleTierMeta = (tier = "unpaid") => {
   return { label: "Trial", icon: "lucide:timer", className: "border-[#7FA6D9]/25 bg-[#7FA6D9]/15 text-[#B9D4F4]" };
 };
 
+const emptyAnalytics = {
+  range: "7d",
+  totalVisits: 0,
+  uniqueVisitors: 0,
+  todayVisits: 0,
+  todayUniqueVisitors: 0,
+  topPages: [],
+  pageTypes: [],
+  devices: [],
+  referrers: [],
+  daily: [],
+};
+
+const formatPageLabel = (path = "") => {
+  if (path === "/") return "Landing page";
+  if (path.startsWith("/invite/")) return `Invite: ${path.replace("/invite/", "")}`;
+  return path;
+};
+
 const SuperAdminDashboardPage = () => {
   const navigate = useNavigate();
   const [couples, setCouples] = useState([]);
+  const [analytics, setAnalytics] = useState(emptyAnalytics);
+  const [analyticsRange, setAnalyticsRange] = useState("7d");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
   const [coupleToDelete, setCoupleToDelete] = useState(null);
@@ -31,8 +52,12 @@ const SuperAdminDashboardPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/super-admin/couples");
-      setCouples(res.data);
+      const [couplesRes, analyticsRes] = await Promise.all([
+        api.get("/super-admin/couples"),
+        api.get(`/analytics/summary?range=${analyticsRange}`),
+      ]);
+      setCouples(couplesRes.data);
+      setAnalytics({ ...emptyAnalytics, ...analyticsRes.data });
     } catch (err) {
       toast.error(err.response?.data?.message || "Could not load admin data. Please refresh.");
     } finally {
@@ -42,7 +67,7 @@ const SuperAdminDashboardPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [analyticsRange]);
 
   const handleUpdateCoupleTier = async (coupleId, tier) => {
     const actionKey = `couple-tier-${coupleId}`;
@@ -81,6 +106,13 @@ const SuperAdminDashboardPage = () => {
     plus: couples.filter((c) => c.tier === "plus").length,
     pro: couples.filter((c) => c.tier === "pro").length,
   };
+
+  const analyticsStats = [
+    ["Visits", analytics.totalVisits, "lucide:mouse-pointer-click", "text-[#D8B76A]"],
+    ["Unique visitors", analytics.uniqueVisitors, "lucide:users", "text-emerald-300"],
+    ["Today", analytics.todayVisits, "lucide:calendar-days", "text-[#B9D4F4]"],
+    ["Unique today", analytics.todayUniqueVisitors, "lucide:user-check", "text-amber-300"],
+  ];
 
   return (
     <div className="mx-auto min-h-screen max-w-7xl space-y-8 p-4 text-white sm:p-8">
@@ -159,6 +191,107 @@ const SuperAdminDashboardPage = () => {
           </div>
         ))}
       </div>
+
+      <section className="rounded-3xl border border-white/10 bg-[#0D1220] p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/10 pb-5">
+          <div>
+            <span className="text-xs uppercase tracking-[0.3em] text-[#D8B76A]">Site visits</span>
+            <h2 className="mt-1 font-serif text-2xl text-white">Live traffic overview</h2>
+            <p className="mt-1 text-xs text-white/40">Anonymous public-page visits from the landing and invitation pages.</p>
+          </div>
+          <div className="flex rounded-full border border-white/10 bg-white/5 p-1">
+            {[
+              ["24h", "24h"],
+              ["7d", "7 days"],
+              ["30d", "30 days"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setAnalyticsRange(value)}
+                className={`rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${
+                  analyticsRange === value
+                    ? "bg-[#D8B76A] text-[#070A13]"
+                    : "text-white/50 hover:text-white"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {analyticsStats.map(([label, value, icon, tone]) => (
+            <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Icon icon={icon} className={`h-5 w-5 ${tone}`} />
+              <p className="mt-3 font-mono text-2xl font-bold text-white">{value}</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/45">{label}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-xs font-bold uppercase tracking-[0.24em] text-[#D8B76A]">Top pages</h3>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-white/35">Visits / unique</span>
+            </div>
+            <div className="mt-4 space-y-3">
+              {analytics.topPages.length === 0 ? (
+                <p className="rounded-2xl border border-dashed border-white/10 p-5 text-center text-xs text-white/35">No visits tracked yet.</p>
+              ) : (
+                analytics.topPages.map((page) => (
+                  <div key={page.path} className="flex items-center justify-between gap-3 rounded-2xl bg-[#070A13]/70 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">{formatPageLabel(page.path)}</p>
+                      <p className="mt-1 text-[10px] uppercase tracking-wider text-white/35">{page.pageType || "public"}</p>
+                    </div>
+                    <p className="shrink-0 font-mono text-sm font-bold text-[#D8B76A]">
+                      {page.visits}
+                      <span className="text-white/35"> / {page.uniqueVisitors}</span>
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <h3 className="text-xs font-bold uppercase tracking-[0.24em] text-[#D8B76A]">Devices</h3>
+              <div className="mt-4 space-y-2">
+                {analytics.devices.length === 0 ? (
+                  <p className="text-xs text-white/35">No device data yet.</p>
+                ) : (
+                  analytics.devices.map((item) => (
+                    <div key={item.label} className="flex items-center justify-between text-xs">
+                      <span className="capitalize text-white/65">{item.label}</span>
+                      <span className="font-mono font-bold text-white">{item.visits}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <h3 className="text-xs font-bold uppercase tracking-[0.24em] text-[#D8B76A]">Referrers</h3>
+              <div className="mt-4 space-y-2">
+                {analytics.referrers.length === 0 ? (
+                  <p className="text-xs text-white/35">No referral sources yet.</p>
+                ) : (
+                  analytics.referrers.map((item) => (
+                    <div key={item.referrer} className="flex items-center justify-between gap-3 text-xs">
+                      <span className="truncate text-white/65">{item.referrer}</span>
+                      <span className="font-mono font-bold text-white">{item.visits}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#0D1220]">
         <div className="border-b border-white/10 px-5 py-4">
