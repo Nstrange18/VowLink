@@ -57,6 +57,7 @@ const CheckInStaffPage = () => {
   const [scannerStarting, setScannerStarting] = useState(false);
   const [scannerMessage, setScannerMessage] = useState("");
   const [scanChecking, setScanChecking] = useState(false);
+  const [undoGuest, setUndoGuest] = useState(null);
   const videoRef = useRef(null);
   const scanStreamRef = useRef(null);
   const scanFrameRef = useRef(null);
@@ -174,8 +175,6 @@ const CheckInStaffPage = () => {
 
   const handleUndoCheckIn = async (guest) => {
     if (!accessToken || !guest?.checkedIn) return;
-    const confirmed = window.confirm(`Undo check-in for ${guest.guestName}?`);
-    if (!confirmed) return;
 
     setCheckingId(guest._id);
     try {
@@ -183,6 +182,7 @@ const CheckInStaffPage = () => {
       const updated = res.data?.invitation || { ...guest, checkedIn: false, checkedInAt: undefined, checkedInVia: "unknown" };
       setGuests((current) => current.map((item) => (item._id === guest._id ? updated : item)));
       toast.success(res.data?.message || "Guest check-in undone.");
+      setUndoGuest(null);
     } catch (err) {
       toast.error(err.response?.data?.message || "Unable to undo check-in.");
     } finally {
@@ -297,6 +297,43 @@ const CheckInStaffPage = () => {
 
   return (
     <main className="min-h-screen bg-[#070A13] px-4 py-8 text-white">
+      {undoGuest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-[#D8B76A]/25 bg-[#0D1220] p-6 shadow-2xl">
+            <div className="flex items-start gap-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-red-300/20 bg-red-500/10 text-red-200">
+                <Icon icon="lucide:rotate-ccw" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">Undo check-in</p>
+                <h2 className="mt-2 font-serif text-2xl">Undo {undoGuest.guestName}?</h2>
+                <p className="mt-2 text-sm leading-relaxed text-white/55">
+                  This will mark the guest as not checked in again. Their RSVP will stay unchanged, and the undo will be saved in the check-in history.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setUndoGuest(null)}
+                disabled={checkingId === undoGuest._id}
+                className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white/65 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUndoCheckIn(undoGuest)}
+                disabled={checkingId === undoGuest._id}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-red-500 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Icon icon={checkingId === undoGuest._id ? "lucide:loader-2" : "lucide:rotate-ccw"} className={`h-4 w-4 ${checkingId === undoGuest._id ? "animate-spin" : ""}`} />
+                {checkingId === undoGuest._id ? "Undoing..." : "Undo check-in"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="mx-auto max-w-4xl">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -473,7 +510,7 @@ const CheckInStaffPage = () => {
                         </div>
                         <button
                           type="button"
-                          onClick={() => (guest.checkedIn ? handleUndoCheckIn(guest) : handleCheckIn(guest))}
+                          onClick={() => (guest.checkedIn ? setUndoGuest(guest) : handleCheckIn(guest))}
                           disabled={checkingId === guest._id}
                           className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest transition disabled:cursor-not-allowed disabled:opacity-55 ${
                             guest.checkedIn
