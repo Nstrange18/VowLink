@@ -10,6 +10,7 @@ import { invitationSchema } from '../../utils/schemas'
 import AiMessageAssist from '../../components/AiMessageAssist'
 import { Icon } from '@iconify/react'
 import { buildPublicUrl } from '../../utils/siteUrl'
+import { getInvitationLimit, getPlanLabel } from '../../utils/planLimits'
 
 const CATEGORIES = [
   { value: 'Guest', label: 'Guest' },
@@ -45,9 +46,9 @@ const AdminNewInvitationPage = () => {
           navigate('/admin/billing')
           return
         }
-        const limit = tier === 'free' ? 1 : tier === 'plus' ? 100 : 500
+        const limit = getInvitationLimit(tier)
         if (count >= limit) {
-          toast.warning(`You have reached the limit of ${limit} invitation${limit === 1 ? '' : 's'} for the ${tier === 'free' ? 'CLASSIC' : tier.toUpperCase()} plan. Redirecting to billing...`, { toastId: 'limit-reached-redirect' })
+          toast.warning(`${getPlanLabel(tier)} allows ${limit} invitation${limit === 1 ? '' : 's'}. Existing guests stay saved, but creating more requires a higher plan.`, { toastId: 'limit-reached-redirect' })
           navigate('/admin/billing')
         }
       } catch (err) {

@@ -8,6 +8,13 @@ import QRCode from "qrcode";
 import { showConfirmToast } from "../../utils/toastConfirm";
 import { buildPublicUrl } from "../../utils/siteUrl";
 import PageMiniTour from "../../components/PageMiniTour";
+import {
+  canBulkImport,
+  canUseGuestCheckIn,
+  canUseStaffMode,
+  getInvitationLimit,
+  getPlanLabel,
+} from "../../utils/planLimits";
 
 const INVITATIONS_TOUR_STEPS = [
   {
@@ -352,11 +359,14 @@ const AdminInvitationsPage = () => {
 
   const tier = user.tier || "unpaid";
   const isUnpaid = tier === "unpaid";
-  const limit = isUnpaid ? 0 : tier === "free" ? 1 : tier === "plus" ? 100 : 500;
-  const canUseCheckIn = tier === "plus" || tier === "pro";
-  const canUseAdvancedCheckIn = tier === "pro";
+  const planLabel = getPlanLabel(tier);
+  const limit = getInvitationLimit(tier);
+  const canUseCheckIn = canUseGuestCheckIn(tier);
+  const canUseAdvancedCheckIn = canUseStaffMode(tier);
   const count = invitations.length;
   const progressPercent = limit > 0 ? Math.min((count / limit) * 100, 100) : 0;
+  const isAtPlanLimit = limit > 0 && count >= limit;
+  const isOverPlanLimit = limit > 0 && count > limit;
   const checkedInCount = invitations.filter((inv) => inv.checkedIn).length;
   const notCheckedInCount = Math.max(count - checkedInCount, 0);
   const checkInPercent =
@@ -524,12 +534,12 @@ const AdminInvitationsPage = () => {
             Invitations
           </h2>
           {/* Progress meter */}
-          <div className="mt-2 flex items-center gap-3">
+          <div className="mt-2 flex flex-wrap items-center gap-3">
             <div className="h-1.5 w-32 rounded-full bg-white/10 overflow-hidden">
               <div
                 className="h-full bg-[#D8B76A] transition-all duration-300"
                 style={{
-              width: `${limit === Infinity || limit === 0 ? 0 : progressPercent}%`,
+                  width: `${limit === 0 ? 0 : progressPercent}%`,
                 }}
               />
             </div>
@@ -560,11 +570,7 @@ const AdminInvitationsPage = () => {
                 navigate("/admin/billing");
               }}
               title={isUnpaid ? "Choose a paid plan before using staff check-in." : "Staff mode is available on Pro."}
-              className={`inline-flex items-center justify-center gap-2 rounded-full border border-dashed border-white/15 bg-white/5 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white/35 transition whitespace-nowrap ${
-                tier === "free" || isUnpaid
-                  ? "bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed"
-                  : "bg-white/10 text-white hover:bg-white/15"
-              }`}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-dashed border-white/15 bg-white/5 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white/35 transition whitespace-nowrap"
             >
               <Icon icon="lucide:lock" className="h-4 w-4" />
               Staff Mode
@@ -581,11 +587,7 @@ const AdminInvitationsPage = () => {
                   ? "Choose a paid plan before printing QR sheets."
                   : "Printable QR sheets are available on Pro."
             }
-            className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition disabled:cursor-not-allowed ${
-              tier === "free" || isUnpaid
-                ? "bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed"
-                : "bg-white/10 text-white hover:bg-white/15"
-            } disabled:opacity-50 whitespace-nowrap ${
+            className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap ${
               canUseAdvancedCheckIn
                 ? "border border-emerald-400/20 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/15"
                 : "border border-dashed border-white/15 bg-white/5 text-white/35"
@@ -613,17 +615,17 @@ const AdminInvitationsPage = () => {
                   : undefined
             }
             className={`rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition duration-300 whitespace-nowrap ${
-              tier === "free" || isUnpaid
+              !canBulkImport(tier)
                 ? "bg-white/5 border border-dashed border-white/15 text-white/30 cursor-not-allowed"
                 : "bg-white/10 text-white hover:bg-white/15"
             }`}
             onClick={(e) => {
-              if (tier === "free" || isUnpaid) {
+              if (!canBulkImport(tier)) {
                 e.preventDefault();
                 toast.info(
                   isUnpaid
                     ? "Choose a plan to activate your wedding workspace."
-                    : "Bulk creation is a Plus and Pro plan feature! Upgrade to unlock.",
+                    : `Bulk creation is not available on ${planLabel}. Existing guests stay saved, but new bulk imports require Plus or Pro.`,
                 );
                 navigate("/admin/billing");
               }
@@ -632,23 +634,23 @@ const AdminInvitationsPage = () => {
             + Bulk Import
           </Link>
           <Link
-            to={isUnpaid || count >= limit ? "#" : "/admin/invitations/new"}
+            to={isUnpaid || isAtPlanLimit ? "#" : "/admin/invitations/new"}
             id="new-invitation-btn"
             title={
               isUnpaid
                 ? "Choose Classic, Plus, or Pro before creating live invitations."
-                : count >= limit
+                : isAtPlanLimit
                   ? "You have reached this plan's invitation limit."
                   : "Create a new guest invitation."
             }
             onClick={(e) => {
-              if (isUnpaid || count >= limit) {
+              if (isUnpaid || isAtPlanLimit) {
                 e.preventDefault();
                 if (isUnpaid) {
                   toast.info("Choose Classic, Plus, or Pro to activate live invitations.", { toastId: "activate-plan-new" });
                 } else {
                   toast.warning(
-                    `You have reached the limit of ${limit} invitation${limit === 1 ? "" : "s"} for the ${tier === "free" ? "CLASSIC" : tier.toUpperCase()} plan. Please upgrade your plan to create more!`,
+                    `${planLabel} allows ${limit} invitation${limit === 1 ? "" : "s"}. Existing guests stay saved, but creating more requires a higher plan.`,
                     { toastId: "limit-reached-new" },
                   );
                 }
@@ -656,18 +658,48 @@ const AdminInvitationsPage = () => {
               }
             }}
             className={`rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition whitespace-nowrap ${
-              isUnpaid || count >= limit
+              isUnpaid || isAtPlanLimit
                 ? "cursor-not-allowed border border-dashed border-[#D8B76A]/25 bg-[#D8B76A]/10 text-[#D8B76A]/60"
                 : "bg-linear-to-r from-[#D8B76A] to-[#F2D894] text-[#070A13] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(216,183,106,0.3)]"
             }`}
           >
             <span className="inline-flex items-center gap-2">
-              {isUnpaid || count >= limit ? <Icon icon="lucide:lock" className="h-3.5 w-3.5" /> : "+"}
+              {isUnpaid || isAtPlanLimit ? <Icon icon="lucide:lock" className="h-3.5 w-3.5" /> : "+"}
               New Invitation
             </span>
           </Link>
         </div>
       </div>
+
+      {!isUnpaid && isOverPlanLimit && (
+        <div className="mb-6 rounded-3xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 p-5 text-[#F2D894]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/25 bg-[#D8B76A]/10">
+                <Icon icon="lucide:shield-alert" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.25em]">
+                  Plan limit reached
+                </p>
+                <h3 className="mt-1 font-serif text-xl text-white">
+                  Existing guests are preserved
+                </h3>
+                <p className="mt-1 max-w-3xl text-sm leading-relaxed text-white/60">
+                  This workspace has {count} invitations, while {planLabel} allows {limit}. Nothing has been deleted, but new guest links and bulk imports stay locked until the plan supports this guest count.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/admin/billing"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#D8B76A] px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-[#070A13]"
+            >
+              View Plans
+              <Icon icon="lucide:arrow-right" className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div
         data-tour="invitations-checkin"

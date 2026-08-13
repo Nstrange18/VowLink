@@ -120,6 +120,32 @@ const normalizeCustomTextColors = (colors = {}) => {
   }, {});
 };
 
+const CLASSIC_CARD_BACKGROUNDS = [
+  "/templates/Blush Pink Watercolor.webp",
+  "/templates/Cream Floral Elegance.webp",
+  "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_09 AM (1).webp",
+  "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_10 AM (2).webp",
+  "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_14 AM (3).webp",
+  "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_16 AM (4).webp",
+];
+
+const PLUS_CARD_BACKGROUNDS = [
+  "/templates/template_free_1.webp",
+  "/templates/template_plus_1.webp",
+  "/templates/Blush Pink Watercolor.webp",
+  "/templates/Cream Floral Elegance.webp",
+  "/templates/Emerald Eucalyptus Frame.webp",
+  "/templates/Royal Navy Lace Accent.webp",
+  "/templates/elegant_gold_frame_with_navy_backdrop.webp",
+  "/templates/Elegant purple and silver floral.webp",
+];
+
+const normalizeGalleryLimit = (tier) => {
+  if (tier === "pro") return 15;
+  if (tier === "plus") return 5;
+  return 0;
+};
+
 // ── Token helpers ─────────────────────────────────────────────────────────────
 const userPayload = (user) => ({
   id: user._id,
@@ -594,83 +620,77 @@ router.put("/me", protect, async (req, res) => {
       });
     }
 
-    // Apply tier limitations for visual styles
+    // Apply tier limitations without deleting assets created while a higher plan was active.
+    // Downgraded accounts keep published work; lower tiers just cannot replace locked fields.
     if (user.tier === "unpaid") {
-      user.cardTheme = "floral";
-      user.customCardBg = "";
-      user.pageBgTemplate = "";
-      user.galleryPhotos = [];
-      user.musicUrl = "";
-      user.customFontFamily = "classic";
-      user.customTextColor = "#1A2E4A";
-      user.couplePhotoUrl = "";
-      user.coupleOverlayOpacity = 0.45;
       user.registryEnabled = false;
+      if (cardTheme !== undefined || normalizedCustomCardBg !== undefined) {
+        return res.status(403).json({
+          message: "Choose Classic, Plus, or Pro before changing invitation designs. Existing published designs are preserved.",
+        });
+      }
     } else if (user.tier === "free") {
-      const allowedFreeBgs = [
-        "/templates/Blush Pink Watercolor.webp",
-        "/templates/Cream Floral Elegance.webp",
-        "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_09 AM (1).webp",
-        "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_10 AM (2).webp",
-        "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_14 AM (3).webp",
-        "/Free Plan Vowlink/ChatGPT Image Jun 25, 2026, 11_46_16 AM (4).webp"
-      ];
-      // Classic users can use floral/minimalist or the two classic background templates.
-      if (cardTheme === "custom" && normalizedCustomCardBg && allowedFreeBgs.includes(normalizedCustomCardBg)) {
+      if (cardTheme === "custom" && normalizedCustomCardBg && CLASSIC_CARD_BACKGROUNDS.includes(normalizedCustomCardBg)) {
         user.cardTheme = "custom";
         user.customCardBg = normalizedCustomCardBg;
-      } else if (cardTheme && ["floral", "minimalist"].includes(cardTheme)) {
+      } else if (cardTheme && ["floral", "minimalist", "plain"].includes(cardTheme)) {
         user.cardTheme = cardTheme;
         user.customCardBg = "";
-      } else if (cardTheme === "plain") {
-        user.cardTheme = "plain";
-        user.customCardBg = "";
-      } else {
-        user.cardTheme = "floral";
-        user.customCardBg = "";
+      } else if ((cardTheme !== undefined || normalizedCustomCardBg !== undefined) && cardTheme !== user.cardTheme) {
+        return res.status(403).json({
+          message: "This design is locked on Classic. Your existing design stays live, but changing it requires Plus or Pro.",
+        });
       }
-      user.pageBgTemplate = "";
-      user.galleryPhotos = [];
-      user.musicUrl = "";
-      user.customFontFamily = "classic";
-      if (customTextColor !== undefined) {
-        user.customTextColor = customTextColor;
-      } else {
-        user.customTextColor = "#1A2E4A";
+      if (normalizedPageBgTemplate !== undefined && normalizedPageBgTemplate !== user.pageBgTemplate) {
+        return res.status(403).json({
+          message: "Page backgrounds are locked on Classic. Existing backgrounds are preserved.",
+        });
       }
-      user.couplePhotoUrl = "";
-      user.coupleOverlayOpacity = 0.45;
+      if (galleryPhotos !== undefined && JSON.stringify(galleryPhotos || []) !== JSON.stringify(user.galleryPhotos || [])) {
+        return res.status(403).json({
+          message: "Photo gallery changes require Plus or Pro. Existing gallery photos are preserved.",
+        });
+      }
+      if (musicUrl !== undefined && musicUrl !== user.musicUrl) {
+        return res.status(403).json({
+          message: "Background music requires Plus or Pro. Existing music is preserved.",
+        });
+      }
+      if (couplePhotoUrl !== undefined && couplePhotoUrl !== user.couplePhotoUrl) {
+        return res.status(403).json({
+          message: "Couple photo changes require Plus or Pro. Existing photo is preserved.",
+        });
+      }
+      if (customFontFamily !== undefined) user.customFontFamily = customFontFamily;
+      if (customTextColor !== undefined) user.customTextColor = customTextColor;
     } else if (user.tier === "plus") {
-      const allowedPlusBgs = [
-        "/templates/template_free_1.webp",
-        "/templates/Blush Pink Watercolor.webp",
-        "/templates/Cream Floral Elegance.webp",
-        "/templates/Emerald Eucalyptus Frame.webp",
-        "/templates/Royal Navy Lace Accent.webp",
-        "/templates/elegant_gold_frame_with_navy_backdrop.webp",
-        "/templates/Elegant purple and silver floral.webp"
-      ];
-      // Plus tier layout permissions
       if (cardTheme && cardTheme !== "custom" && ["floral", "minimalist", "navy", "plain"].includes(cardTheme)) {
         user.cardTheme = cardTheme;
         user.customCardBg = "";
-      } else if (cardTheme === "custom" && normalizedCustomCardBg && (allowedPlusBgs.includes(normalizedCustomCardBg) || normalizedCustomCardBg.startsWith("/Free Plan Vowlink/") || normalizedCustomCardBg.startsWith("/Plus Plans Vowlink/"))) {
+      } else if (cardTheme === "custom" && normalizedCustomCardBg && (PLUS_CARD_BACKGROUNDS.includes(normalizedCustomCardBg) || normalizedCustomCardBg.startsWith("/Free Plan Vowlink/") || normalizedCustomCardBg.startsWith("/Plus Plans Vowlink/"))) {
         user.cardTheme = "custom";
         user.customCardBg = normalizedCustomCardBg;
-      } else {
-        user.cardTheme = "floral"; // Fallback if custom chosen without approved template
-        user.customCardBg = "";
+      } else if ((cardTheme !== undefined || normalizedCustomCardBg !== undefined) && cardTheme !== user.cardTheme) {
+        return res.status(403).json({
+          message: "This design is locked on Plus. Your existing design stays live, but changing it requires Pro.",
+        });
       }
       if (normalizedPageBgTemplate !== undefined) {
-        if (normalizedPageBgTemplate && allowedPlusBgs.includes(normalizedPageBgTemplate)) {
+        if (
+          normalizedPageBgTemplate === "" ||
+          PLUS_CARD_BACKGROUNDS.includes(normalizedPageBgTemplate) ||
+          normalizedPageBgTemplate.startsWith("/Free Plan Vowlink/") ||
+          normalizedPageBgTemplate.startsWith("/Plus Plans Vowlink/")
+        ) {
           user.pageBgTemplate = normalizedPageBgTemplate;
-        } else if (normalizedPageBgTemplate === "") {
-          user.pageBgTemplate = "";
+        } else if (normalizedPageBgTemplate !== user.pageBgTemplate) {
+          return res.status(403).json({
+            message: "This page background requires Pro. Existing background is preserved.",
+          });
         }
-        // If pageBgTemplate is sent but not in allowed list, preserve existing value
       }
       if (galleryPhotos !== undefined && Array.isArray(galleryPhotos)) {
-        user.galleryPhotos = galleryPhotos.slice(0, 5);
+        user.galleryPhotos = galleryPhotos.slice(0, normalizeGalleryLimit(user.tier));
       }
       if (musicUrl !== undefined) user.musicUrl = musicUrl;
       if (customFontFamily !== undefined) user.customFontFamily = customFontFamily;
@@ -678,10 +698,9 @@ router.put("/me", protect, async (req, res) => {
       if (couplePhotoUrl !== undefined) user.couplePhotoUrl = couplePhotoUrl;
       if (typeof coupleOverlayOpacity === "number") user.coupleOverlayOpacity = coupleOverlayOpacity;
     } else if (user.tier === "pro") {
-      // Pro tier unlocks everything
       if (cardTheme) user.cardTheme = cardTheme;
       if (galleryPhotos !== undefined && Array.isArray(galleryPhotos)) {
-        user.galleryPhotos = galleryPhotos.slice(0, 15);
+        user.galleryPhotos = galleryPhotos.slice(0, normalizeGalleryLimit(user.tier));
       }
       if (musicUrl !== undefined) user.musicUrl = musicUrl;
       if (customFontFamily !== undefined) user.customFontFamily = customFontFamily;

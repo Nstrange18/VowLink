@@ -9,6 +9,7 @@ import {
   normalizeInternationalPhone,
 } from "../../utils/phoneNumbers";
 import { GUEST_CATEGORIES, normalizeGuestCategory } from "../../utils/guestCategories";
+import { canBulkImport, getPlanLabel } from "../../utils/planLimits";
 
 // Robust CSV parser supporting quotes and escaped quotes
 const parseCSVLine = (line) => {
@@ -50,11 +51,11 @@ const AdminBulkInvitationPage = () => {
   const [user] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
 
   useEffect(() => {
-    if (!["plus", "pro"].includes(user.tier)) {
+    if (!canBulkImport(user.tier)) {
       toast.info(
         user.tier === "unpaid"
           ? "Choose a plan to activate your wedding workspace."
-          : "Bulk creation is a Plus and Pro plan feature! Redirecting..."
+          : `Bulk creation is not available on ${getPlanLabel(user.tier)}. Existing guests stay saved, but new bulk imports require Plus or Pro.`
       );
       navigate("/admin/billing");
     }
