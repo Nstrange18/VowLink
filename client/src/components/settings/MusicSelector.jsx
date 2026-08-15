@@ -3,6 +3,45 @@ import { toast } from "react-toastify";
 import { useSettings } from "../../context/SettingsContext";
 import { Icon } from "@iconify/react";
 
+const CURATED_SOUNDTRACKS = [
+  {
+    name: "Lovely Piano Song",
+    url: "https://en.freepd.cn/api/music/526f6d616e63652f4c6f76656c79205069616e6f20536f6e672e6d7033",
+    icon: "mdi:piano",
+    mood: "Soft romance",
+  },
+  {
+    name: "Burt's Requiem",
+    url: "https://en.freepd.cn/api/music/526f6d616e63652f427572742773205265717569656d2e6d7033",
+    icon: "mdi:music-clef-treble",
+    mood: "Classical strings",
+  },
+  {
+    name: "Isolation Waltz",
+    url: "https://en.freepd.cn/api/music/526f6d616e63652f49736f6c6174696f6e2057616c747a2e6d7033",
+    icon: "mdi:music-clef-treble",
+    mood: "Slow waltz",
+  },
+  {
+    name: "Champ de tournesol",
+    url: "https://en.freepd.cn/api/music/526f6d616e63652f4368616d7020646520746f75726e65736f6c2e6d7033",
+    icon: "mdi:flower-tulip-outline",
+    mood: "Romantic classical",
+  },
+  {
+    name: "Horizon Flare",
+    url: "https://en.freepd.cn/api/music/526f6d616e63652f486f72697a6f6e20466c6172652e6d7033",
+    icon: "mdi:violin",
+    mood: "Elegant instrumental",
+  },
+  {
+    name: "Brothers Unite",
+    url: "https://en.freepd.cn/api/music/526f6d616e63652f42726f746865727320556e6974652e6d7033",
+    icon: "lucide:heart",
+    mood: "Processional feel",
+  },
+];
+
 const MusicSelector = () => {
   const {
     galleryPhotos,
@@ -22,14 +61,7 @@ const MusicSelector = () => {
     getSpotifyEmbedUrl,
   } = useSettings();
   const handleCuratedSelect = (url) => {
-    const curatedUrls = [
-      "https://archive.org/download/20-piano-guys-lord-of-the-rings-the-hobbit/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3",
-      "https://archive.org/download/fave2/Ed%20Sheeran%20-%20Perfect.mp3",
-      "https://archive.org/download/fave2/Haley%20Reinhart%20-%20Cant%20Help%20Falling%20In%20Love%20With%20You.mp3",
-      "https://archive.org/download/AlsPlaylistMixedGenre/John%20Legend%20-%20All%20of%20Me.mp3",
-      "https://archive.org/download/AlsPlaylistMixedGenre/Ed%20Sheeran%20-%20Thinking%20Out%20Loud.mp3",
-      "https://archive.org/download/wedding-march/Wedding%20March.mp3"
-    ];
+    const curatedUrls = CURATED_SOUNDTRACKS.map((track) => track.url);
     const isCustom = localAudioUrl || (musicUrl && !curatedUrls.includes(musicUrl));
     if (isCustom) {
       toast.dismiss();
@@ -140,16 +172,9 @@ const MusicSelector = () => {
         <div className="space-y-4">
           {/* Curated MP3 Soundtracks */}
           <div>
-            <label className="block text-[10px] text-white/50 uppercase mb-2">Curated Background Soundtracks (Autoplays)</label>
+            <label className="block text-[10px] text-white/50 uppercase mb-2">Royalty-free Background Soundtracks (Autoplays)</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {[
-                { name: "A Thousand Years (Piano)", url: "https://archive.org/download/20-piano-guys-lord-of-the-rings-the-hobbit/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3", icon: "mdi:piano" },
-                { name: "Perfect (Acoustic Guitar)", url: "https://archive.org/download/fave2/Ed%20Sheeran%20-%20Perfect.mp3", icon: "mdi:guitar-acoustic" },
-                { name: "Can't Help Falling in Love", url: "https://archive.org/download/fave2/Haley%20Reinhart%20-%20Cant%20Help%20Falling%20In%20Love%20With%20You.mp3", icon: "mdi:violin" },
-                { name: "All of Me (Piano Solo)", url: "https://archive.org/download/AlsPlaylistMixedGenre/John%20Legend%20-%20All%20of%20Me.mp3", icon: "lucide:music" },
-                { name: "Thinking Out Loud", url: "https://archive.org/download/AlsPlaylistMixedGenre/Ed%20Sheeran%20-%20Thinking%20Out%20Loud.mp3", icon: "lucide:heart" },
-                { name: "Wedding March (Classical)", url: "https://archive.org/download/wedding-march/Wedding%20March.mp3", icon: "lucide:church" }
-              ].map((p) => {
+              {CURATED_SOUNDTRACKS.map((p) => {
                 const isSelected = musicUrl === p.url;
                 return (
                   <button
@@ -165,12 +190,15 @@ const MusicSelector = () => {
                     <Icon icon={p.icon} className="text-lg text-[#D8B76A] shrink-0" />
                     <div className="min-w-0 truncate">
                       <p className="text-xs font-semibold truncate">{p.name}</p>
-                      <p className="text-[8px] text-white/40 truncate font-mono">wedding cover</p>
+                      <p className="text-[8px] text-white/40 truncate font-mono">{p.mood}</p>
                     </div>
                   </button>
                 );
               })}
             </div>
+            <p className="mt-2 text-[8px] leading-relaxed text-white/35">
+              These presets use FreePD public-domain/CC0-style tracks. For uploaded or linked songs, only use music you have permission to use.
+            </p>
           </div>
 
           {/* Upload from Device */}
@@ -231,6 +259,7 @@ const MusicSelector = () => {
             />
             <p className="text-[8px] text-white/30 mt-1">
               Supports Spotify URLs or direct audio file URLs ending in .mp3, .m4a.
+              Only link music you have permission to use.
             </p>
             {musicUrl && musicUrl.includes("res.cloudinary.com") && (
               <div className="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-500/20 px-2 py-1 rounded-lg w-fit">

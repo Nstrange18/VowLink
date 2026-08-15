@@ -48,12 +48,13 @@ const AdminLayout = () => {
   const [openGroups, setOpenGroups] = useState({ invitations: true })
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const user = JSON.parse(localStorage.getItem('user') || '{}')
+  const isSuperAdmin = user.role === 'admin' && user.email?.toLowerCase() === 'nwubachukwuemelie@gmail.com'
   const tier = user.tier || 'unpaid'
   const isUnpaid = tier === 'unpaid'
   const p1 = user.partner1Name || ''
   const p2 = user.partner2Name || ''
-  const initials = `${getInitials(p1)} & ${getInitials(p2)}`
-  const coupleName = p1 && p2 ? `${p1} & ${p2}` : 'Your Portal'
+  const initials = isSuperAdmin ? 'SA' : `${getInitials(p1)} & ${getInitials(p2)}`
+  const coupleName = isSuperAdmin ? 'Super Admin Workspace' : p1 && p2 ? `${p1} & ${p2}` : 'Your Portal'
 
   useEffect(() => {
     const handleOpenGroup = (event) => {
@@ -108,18 +109,29 @@ const AdminLayout = () => {
           <img src="/vowlink-icon.svg" alt="" className="h-6 w-6 object-contain opacity-90" />
           <span className="font-serif text-lg tracking-wide text-white">Vowlink</span>
         </div>
-        <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-2">Your Wedding</p>
+        <p className="text-xs uppercase tracking-[0.3em] text-[#D8B76A] mb-2">
+          {isSuperAdmin ? 'Platform Control' : 'Your Wedding'}
+        </p>
         <div className="mb-3 flex items-center gap-2">
           <div className="inline-flex items-center justify-center rounded-full border border-[#D8B76A]/40 bg-[#D8B76A]/10 px-3 py-1">
             <span className="text-xs font-medium text-[#D8B76A]">{initials}</span>
           </div>
-          <span className={`text-[9px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full ${getTierBadgeClass(tier)}`}>
-            {getTierLabel(tier)}
-          </span>
+          {isSuperAdmin ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#D8B76A]/25 bg-[#D8B76A]/15 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-[#F2D894]">
+              <Icon icon="lucide:shield-check" className="h-3 w-3" />
+              Admin
+            </span>
+          ) : (
+            <span className={`text-[9px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full ${getTierBadgeClass(tier)}`}>
+              {getTierLabel(tier)}
+            </span>
+          )}
         </div>
         <h2 className="font-serif text-xl leading-tight text-white">{coupleName}</h2>
         <p className="mt-1 text-xs text-white/30 truncate">{user.email}</p>
-        {user.weddingDate && (
+        {isSuperAdmin ? (
+          <p className="mt-1 text-xs text-[#D8B76A]/70">Managing couple accounts</p>
+        ) : user.weddingDate && (
           <p className="mt-1 text-xs text-[#D8B76A]/70">
             {new Date(user.weddingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
           </p>
@@ -238,7 +250,7 @@ const AdminLayout = () => {
 
       {/* Bottom Footer actions (pinned at bottom, with border separator and mt-auto gap) */}
       <div data-tour="admin-sidebar-actions" className="mt-auto border-t border-[#D8B76A]/20 pt-4 bg-[#090D19] shrink-0">
-        {user.role === 'admin' && user.email?.toLowerCase() === 'nwubachukwuemelie@gmail.com' && (
+        {isSuperAdmin && (
           <div className="px-4 pb-3">
             <Link
               to="/super-admin/dashboard"

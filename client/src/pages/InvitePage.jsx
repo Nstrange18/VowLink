@@ -458,6 +458,28 @@ const getInvitedGuestCount = (invitation, plusOnePolicy) => {
   return base;
 };
 
+const timelineIconAliases = {
+  ring: "mdi:ring",
+  rings: "mdi:ring",
+  church: "mdi:church",
+  toast: "mdi:glass-cocktail",
+  cocktail: "mdi:glass-cocktail",
+  cake: "mdi:cake-variant-outline",
+  meal: "mdi:silverware-fork-knife",
+  dinner: "mdi:silverware-fork-knife",
+  camera: "lucide:camera",
+  photo: "lucide:camera",
+  music: "lucide:music",
+  dance: "mdi:music-note",
+};
+
+const resolveTimelineIcon = (icon) => {
+  const value = String(icon || "").trim();
+  if (!value) return "mdi:ring";
+  if (value.includes(":")) return value;
+  return timelineIconAliases[value.toLowerCase()] || "mdi:ring";
+};
+
 const WeddingDayParticles = () => {
   const pieces = Array.from({ length: 40 }).map((_, i) => {
     const left = `${Math.random() * 100}vw`;
@@ -1793,54 +1815,71 @@ const InvitePage = ({ setThemePreference }) => {
         }
       } catch {}
     }
-    // Map old placeholder SoundHelix loops to actual wedding instrumentals
+    // Map old placeholder/commercial preset URLs to royalty-free public-domain style tracks.
     if (
       musicUrl &&
       !musicUrl.startsWith("data:") &&
       (musicUrl ===
         "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" ||
         musicUrl ===
-          "https://archive.org/download/PianoGuysMusic/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3")
+          "https://archive.org/download/PianoGuysMusic/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3" ||
+        musicUrl ===
+          "https://archive.org/download/20-piano-guys-lord-of-the-rings-the-hobbit/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3")
     ) {
       musicUrl =
-        "https://archive.org/download/20-piano-guys-lord-of-the-rings-the-hobbit/20%20Piano%20Guys%20-%20Christina%20Perri%20-%20A%20Thousand%20Years.mp3";
+        "https://en.freepd.cn/api/music/526f6d616e63652f4c6f76656c79205069616e6f20536f6e672e6d7033";
     } else if (
       musicUrl &&
       !musicUrl.startsWith("data:") &&
-      musicUrl ===
-        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+      (musicUrl ===
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" ||
+        musicUrl ===
+          "https://archive.org/download/fave2/Ed%20Sheeran%20-%20Perfect.mp3")
     ) {
       musicUrl =
-        "https://archive.org/download/fave2/Ed%20Sheeran%20-%20Perfect.mp3";
+        "https://en.freepd.cn/api/music/526f6d616e63652f427572742773205265717569656d2e6d7033";
     } else if (
       musicUrl &&
       !musicUrl.startsWith("data:") &&
       (musicUrl ===
         "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" ||
         musicUrl ===
-          "https://archive.org/download/CantHelpFallingInLoveWYou/Cant%20Help%20Falling%20In%20Love%20W%20You.mp3")
+          "https://archive.org/download/CantHelpFallingInLoveWYou/Cant%20Help%20Falling%20In%20Love%20W%20You.mp3" ||
+        musicUrl ===
+          "https://archive.org/download/fave2/Haley%20Reinhart%20-%20Cant%20Help%20Falling%20In%20Love%20With%20You.mp3")
     ) {
       musicUrl =
-        "https://archive.org/download/fave2/Haley%20Reinhart%20-%20Cant%20Help%20Falling%20In%20Love%20With%20You.mp3";
+        "https://en.freepd.cn/api/music/526f6d616e63652f49736f6c6174696f6e2057616c747a2e6d7033";
+    } else if (
+      musicUrl &&
+      !musicUrl.startsWith("data:") &&
+      (musicUrl ===
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" ||
+        musicUrl ===
+          "https://archive.org/download/AlsPlaylistMixedGenre/John%20Legend%20-%20All%20of%20Me.mp3")
+    ) {
+      musicUrl =
+        "https://en.freepd.cn/api/music/526f6d616e63652f4368616d7020646520746f75726e65736f6c2e6d7033";
     } else if (
       musicUrl &&
       !musicUrl.startsWith("data:") &&
       musicUrl ===
-        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+        "https://archive.org/download/AlsPlaylistMixedGenre/Ed%20Sheeran%20-%20Thinking%20Out%20Loud.mp3"
     ) {
       musicUrl =
-        "https://archive.org/download/AlsPlaylistMixedGenre/John%20Legend%20-%20All%20of%20Me.mp3";
+        "https://en.freepd.cn/api/music/526f6d616e63652f42726f746865727320556e6974652e6d7033";
     } else if (
       musicUrl &&
       !musicUrl.startsWith("data:") &&
       (musicUrl ===
         "https://archive.org/download/100ClassicalMusicMasterpieces/18%20Mendelssohn%20-%20Wedding%20March.mp3" ||
         musicUrl ===
-          "https://archive.org/download/ClassicalMusicMidi/Mendelssohn_-_Wedding_March.mp3")
+          "https://archive.org/download/ClassicalMusicMidi/Mendelssohn_-_Wedding_March.mp3" ||
+        musicUrl ===
+          "https://archive.org/download/wedding-march/Wedding%20March.mp3")
     ) {
-      // Remap any old Wedding March URL to the verified working source
       musicUrl =
-        "https://archive.org/download/wedding-march/Wedding%20March.mp3";
+        "https://en.freepd.cn/api/music/526f6d616e63652f486f72697a6f6e20466c6172652e6d7033";
     }
     isDirectAudio = musicUrl && !getSpotifyEmbedUrl(musicUrl);
   }
@@ -4200,8 +4239,11 @@ const InvitePage = ({ setThemePreference }) => {
                         className="relative flex items-start pl-14 group"
                       >
                         {/* Circle Node with icon/emoji */}
-                        <div className="absolute left-3 top-0 h-10 w-10 rounded-full bg-[#0D1220] border border-[#D8B76A]/40 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(216,183,106,0.15)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(216,183,106,0.4)] group-hover:border-[#D8B76A] transition-all duration-300 z-10">
-                          {event.icon}
+                        <div className="absolute left-3 top-0 h-10 w-10 rounded-full bg-[#0D1220] border border-[#D8B76A]/40 flex items-center justify-center text-[#D8B76A] shadow-[0_0_15px_rgba(216,183,106,0.15)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(216,183,106,0.4)] group-hover:border-[#D8B76A] transition-all duration-300 z-10">
+                          <Icon
+                            icon={resolveTimelineIcon(event.icon)}
+                            className="h-5 w-5"
+                          />
                         </div>
 
                         {/* Timeline card details */}

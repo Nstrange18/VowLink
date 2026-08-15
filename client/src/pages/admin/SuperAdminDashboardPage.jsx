@@ -30,6 +30,25 @@ const formatPageLabel = (path = "") => {
   return path;
 };
 
+const formatAccountCreatedAt = (createdAt) => {
+  if (!createdAt) return { date: "Not available", time: "" };
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) return { date: "Not available", time: "" };
+
+  return {
+    date: date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }),
+    time: date.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }),
+  };
+};
+
 const SuperAdminDashboardPage = () => {
   const navigate = useNavigate();
   const [couples, setCouples] = useState([]);
@@ -304,6 +323,7 @@ const SuperAdminDashboardPage = () => {
               <tr className="border-b border-white/10 bg-white/5 text-[10px] uppercase tracking-wider text-white/50">
                 <th className="p-4 font-bold">Couple Names</th>
                 <th className="p-4 font-bold">Email</th>
+                <th className="p-4 font-bold">Created</th>
                 <th className="p-4 font-bold">Wedding Date</th>
                 <th className="p-4 font-bold">Active Tier</th>
                 <th className="p-4 text-right font-bold">Actions</th>
@@ -312,21 +332,26 @@ const SuperAdminDashboardPage = () => {
             <tbody className="divide-y divide-white/5">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-white/30">Loading accounts...</td>
+                  <td colSpan={6} className="p-8 text-center text-white/30">Loading accounts...</td>
                 </tr>
               ) : couples.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-white/30">No couple workspaces active.</td>
+                  <td colSpan={6} className="p-8 text-center text-white/30">No couple workspaces active.</td>
                 </tr>
               ) : (
                 couples.map((couple) => {
                   const tierBusy = !!actionLoading[`couple-tier-${couple._id}`];
                   const tierMeta = getCoupleTierMeta(couple.tier);
+                  const created = formatAccountCreatedAt(couple.createdAt);
 
                   return (
                     <tr key={couple._id} className="transition hover:bg-white/2">
                       <td className="p-4 font-serif text-sm font-medium">{couple.partner1Name} & {couple.partner2Name}</td>
                       <td className="p-4 font-mono text-white/70">{couple.email}</td>
+                      <td className="p-4 text-white/70">
+                        <span className="block whitespace-nowrap font-semibold text-white/80">{created.date}</span>
+                        {created.time && <span className="mt-0.5 block whitespace-nowrap text-[10px] uppercase tracking-wider text-white/35">{created.time}</span>}
+                      </td>
                       <td className="p-4 text-white/70">{couple.weddingDate ? new Date(couple.weddingDate).toLocaleDateString() : "Not set"}</td>
                       <td className="p-4">
                         <div className={`mb-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${tierMeta.className}`}>
