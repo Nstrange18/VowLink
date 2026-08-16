@@ -1,5 +1,6 @@
 const express = require("express");
 const axios = require("axios");
+const crypto = require("crypto");
 const Invitation = require("../models/Invitation");
 const User = require("../models/User");
 const WhatsAppSendLedger = require("../models/WhatsAppSendLedger");
@@ -47,6 +48,36 @@ const requireProWorkspace = async (req, res, next) => {
 };
 
 const buildInviteLink = (invitation) => `${getPublicSiteUrl()}/invite/${invitation.slug}`;
+
+const getWebhookAppSecret = () =>
+  process.env.WHATSAPP_APP_SECRET || process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET || "";
+
+const verifyWhatsAppWebhookSignature = (req) => {
+  const appSecret = getWebhookAppSecret();
+  if (!appSecret) {
+    console.warn("[WHATSAPP WEBHOOK] App secret is not configured; signature verification was skipped.");
+    return true;
+  }
+
+  const signature = String(req.get("x-hub-signature-256") || "");
+  if (!signature.startsWith("sha256=")) return false;
+
+  const rawBody = Buffer.isBuffer(req.rawBody)
+    ? req.rawBody
+    : Buffer.from(JSON.stringify(req.body || {}));
+  const expected = crypto
+    .createHmac("sha256", appSecret)
+    .update(rawBody)
+    .digest("hex");
+  const received = signature.slice("sha256=".length);
+  const expectedBuffer = Buffer.from(expected, "hex");
+  const receivedBuffer = Buffer.from(received, "hex");
+
+  return (
+    expectedBuffer.length === receivedBuffer.length &&
+    crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
+  );
+};
 
 const buildCoupleNames = (user) => {
   const partner1 = user?.partner1Name || "Partner 1";
@@ -141,12 +172,16 @@ router.get("/config-status", protect, requireProWorkspace, (req, res) => {
     configured: status.configured,
     templateName: status.templateName,
     languageCode: status.languageCode,
+    urlButtonIndex: status.urlButtonIndex,
+    urlButtonValueMode: status.urlButtonValueMode,
+    webhookSignatureConfigured: Boolean(getWebhookAppSecret()),
     usage: getWhatsAppUsage(req.currentUser),
     missing: {
       phoneNumberId: !status.phoneNumberId,
       businessAccountId: !status.businessAccountId,
       accessToken: !status.accessToken,
       webhookVerifyToken: !status.webhookVerifyToken,
+      webhookAppSecret: !getWebhookAppSecret(),
     },
   });
 });
@@ -462,6 +497,11 @@ router.get("/webhook", (req, res) => {
 });
 
 router.post("/webhook", async (req, res) => {
+  if (!verifyWhatsAppWebhookSignature(req)) {
+    console.warn("[WHATSAPP WEBHOOK] Rejected update with an invalid Meta signature.");
+    return res.sendStatus(403);
+  }
+
   try {
     const entries = Array.isArray(req.body?.entry) ? req.body.entry : [];
     let statusUpdates = 0;

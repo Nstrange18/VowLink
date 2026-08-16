@@ -6,6 +6,11 @@ const DEFAULT_INVITE_MESSAGE_PARAMETER = "invite_message";
 const DEFAULT_URL_BUTTON_INDEX = "0";
 const DEFAULT_URL_BUTTON_VALUE_MODE = "full";
 
+const getUrlButtonValueMode = () => {
+  const mode = String(process.env.WHATSAPP_URL_BUTTON_VALUE_MODE || DEFAULT_URL_BUTTON_VALUE_MODE).toLowerCase();
+  return ["full", "path", "slug"].includes(mode) ? mode : DEFAULT_URL_BUTTON_VALUE_MODE;
+};
+
 const getWhatsAppConfigStatus = () => {
   const phoneNumberId = Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID);
   const businessAccountId = Boolean(process.env.WHATSAPP_BUSINESS_ACCOUNT_ID);
@@ -26,7 +31,7 @@ const getWhatsAppConfigStatus = () => {
       process.env.WHATSAPP_INVITE_LINK_PARAMETER ||
       DEFAULT_INVITE_MESSAGE_PARAMETER,
     urlButtonIndex: process.env.WHATSAPP_URL_BUTTON_INDEX || DEFAULT_URL_BUTTON_INDEX,
-    urlButtonValueMode: process.env.WHATSAPP_URL_BUTTON_VALUE_MODE || DEFAULT_URL_BUTTON_VALUE_MODE,
+    urlButtonValueMode: getUrlButtonValueMode(),
   };
 };
 

@@ -1358,6 +1358,39 @@ const AdminBulkWhatsAppPage = () => {
                               </div>
                             </div>
                           )}
+                        {cloudConfigured && (
+                          <div className="mt-3 space-y-1 rounded-xl border border-white/10 bg-black/20 p-3 text-[10px] leading-relaxed text-white/55">
+                            <p>
+                              Template:{" "}
+                              <span className="font-semibold text-white/75">
+                                {cloudConfig?.templateName || "vowlink_invitation"}
+                              </span>{" "}
+                              ({cloudConfig?.languageCode || "en"})
+                            </p>
+                            <p>
+                              Button value:{" "}
+                              <span className="font-semibold text-white/75">
+                                {cloudConfig?.urlButtonValueMode || "slug"}
+                              </span>
+                              {cloudConfig?.urlButtonValueMode !== "slug" &&
+                                " - update the template/env before live one-click sends."}
+                            </p>
+                            <p>
+                              Webhook security:{" "}
+                              <span
+                                className={
+                                  cloudConfig?.webhookSignatureConfigured
+                                    ? "font-semibold text-emerald-300"
+                                    : "font-semibold text-amber-300"
+                                }
+                              >
+                                {cloudConfig?.webhookSignatureConfigured
+                                  ? "signature ready"
+                                  : "app secret missing"}
+                              </span>
+                            </p>
+                          </div>
+                        )}
                         {(cloudConfigured || cloudAllowanceExhausted) && (
                           <button
                             type="button"
