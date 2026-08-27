@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "@iconify/react";
 
@@ -91,11 +92,69 @@ const faqs = [
   },
 ];
 
+const getStoredSession = () => {
+  if (typeof window === "undefined") return null;
+
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (!user?._id && !user?.email) return null;
+
+    const partner1 = user.partner1Name || "";
+    const partner2 = user.partner2Name || "";
+    const initials = [partner1, partner2]
+      .filter(Boolean)
+      .map((name) => name.trim()[0])
+      .filter(Boolean)
+      .join(" & ");
+    const isSuperAdmin =
+      user.role === "admin" ||
+      user.email?.toLowerCase() === "nwubachukwuemelie@gmail.com";
+
+    return {
+      dashboardPath: isSuperAdmin ? "/super-admin/dashboard" : "/admin/dashboard",
+      displayName:
+        partner1 && partner2
+          ? `${partner1} & ${partner2}`
+          : user.email || "Your VowLink account",
+      initials: initials || "VL",
+      dashboardLabel: isSuperAdmin ? "Return to Admin" : "Return to Dashboard",
+    };
+  } catch {
+    return null;
+  }
+};
+
 const LandingPage = () => {
+  const session = useMemo(() => getStoredSession(), []);
+
   return (
     <div className="min-h-screen bg-[#070A13] text-white">
       <section className="landing-hero relative flex min-h-screen flex-col items-center justify-center bg-[url('/hero-bg.webp')] bg-cover bg-center bg-no-repeat px-5 py-14 text-center sm:px-6 sm:py-16">
         <div className="absolute inset-0 bg-[#070A13]/60" />
+
+        {session && (
+          <Link
+            to={session.dashboardPath}
+            className="absolute right-4 top-16 z-20 inline-flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-full border border-[#D8B76A]/45 bg-[#070A13]/90 px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-white shadow-2xl shadow-black/25 backdrop-blur-md transition hover:border-[#D8B76A]/75 hover:bg-[#111827] sm:right-6 sm:top-20 sm:max-w-xs sm:px-4"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D8B76A] text-[10px] text-[#070A13]">
+              {session.initials}
+            </span>
+            <span className="hidden min-w-0 flex-col normal-case tracking-normal sm:flex">
+              <span className="truncate text-[11px] text-white/60">
+                {session.displayName}
+              </span>
+              <span className="text-xs uppercase tracking-widest text-[#D8B76A]">
+                {session.dashboardLabel}
+              </span>
+            </span>
+            <span className="sm:hidden">{session.dashboardLabel}</span>
+            <Icon icon="lucide:arrow-right" className="h-3.5 w-3.5 shrink-0" />
+          </Link>
+        )}
 
         <div className="relative z-10 mx-auto max-w-2xl">
           <div className="mb-7 flex items-center justify-center gap-2.5 sm:mb-10 sm:gap-3">
@@ -127,16 +186,16 @@ const LandingPage = () => {
 
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Link
-              to="/signup"
+              to={session ? session.dashboardPath : "/signup"}
               className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-7 py-3.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.4)] sm:w-auto sm:px-10 sm:py-4 sm:text-sm"
             >
-              Get Started Free
+              {session ? session.dashboardLabel : "Get Started Free"}
             </Link>
             <Link
-              to="/admin/login"
+              to={session ? session.dashboardPath : "/admin/login"}
               className="w-full rounded-full border border-white/20 bg-white/5 px-7 py-3.5 text-xs font-semibold uppercase tracking-widest text-white/80 backdrop-blur-sm transition hover:border-white/30 hover:bg-white/10 sm:w-auto sm:px-10 sm:py-4 sm:text-sm"
             >
-              Sign In
+              {session ? "Open Workspace" : "Sign In"}
             </Link>
           </div>
         </div>
@@ -260,10 +319,10 @@ const LandingPage = () => {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                to="/signup"
+                to={session ? session.dashboardPath : "/signup"}
                 className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-8 py-3 text-center text-xs font-bold uppercase tracking-widest text-[#070A13]"
               >
-                Create Your Portal
+                {session ? session.dashboardLabel : "Create Your Portal"}
               </Link>
               <Link
                 to="/features"
@@ -347,19 +406,30 @@ const LandingPage = () => {
           Ready to start?
         </h2>
         <p className="text-white/50 mb-8 text-sm">
-          Create your portal in seconds. No credit card required.
+          {session
+            ? "Your VowLink workspace is still active in this browser."
+            : "Create your portal in seconds. No credit card required."}
         </p>
         <Link
-          to="/signup"
+          to={session ? session.dashboardPath : "/signup"}
           className="inline-block rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-12 py-4 text-sm font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.4)]"
         >
-          Create Your Portal
+          {session ? session.dashboardLabel : "Create Your Portal"}
         </Link>
         <p className="mt-6 text-sm text-white/30">
-          Already have an account?{" "}
-          <Link to="/admin/login" className="text-[#D8B76A] hover:underline">
-            Sign in
-          </Link>
+          {session ? (
+            <>
+              Signed in as{" "}
+              <span className="text-white/60">{session.displayName}</span>
+            </>
+          ) : (
+            <>
+              Already have an account?{" "}
+              <Link to="/admin/login" className="text-[#D8B76A] hover:underline">
+                Sign in
+              </Link>
+            </>
+          )}
         </p>
       </section>
 
@@ -385,10 +455,10 @@ const LandingPage = () => {
                 sharing tools for modern celebrations.
               </p>
               <Link
-                to="/signup"
+                to={session ? session.dashboardPath : "/signup"}
                 className="mt-6 inline-flex rounded-full bg-[#D8B76A] px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:bg-[#F2D894]"
               >
-                Start with Classic
+                {session ? session.dashboardLabel : "Start with Classic"}
               </Link>
             </div>
 
@@ -420,14 +490,17 @@ const LandingPage = () => {
                 Portals
               </p>
               <div className="flex flex-col gap-3 text-sm text-white/55">
-                <Link to="/signup" className="transition hover:text-[#D8B76A]">
-                  Create account
-                </Link>
                 <Link
-                  to="/admin/login"
+                  to={session ? session.dashboardPath : "/signup"}
                   className="transition hover:text-[#D8B76A]"
                 >
-                  Couple login
+                  {session ? "Return to dashboard" : "Create account"}
+                </Link>
+                <Link
+                  to={session ? session.dashboardPath : "/admin/login"}
+                  className="transition hover:text-[#D8B76A]"
+                >
+                  {session ? "Open workspace" : "Couple login"}
                 </Link>
               </div>
             </div>

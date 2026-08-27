@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Invitation = require("../models/Invitation");
 const RSVP = require("../models/RSVP");
+const Table = require("../models/Table");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
 
@@ -161,6 +162,45 @@ const ensureInvitationCheckInToken = async (invitation) => {
   return token;
 };
 
+const normalizeSeatName = (name) => String(name || "").trim().toLowerCase();
+
+const findSeatingAssignment = (tables, guestName) => {
+  const normalizedGuestName = normalizeSeatName(guestName);
+  if (!normalizedGuestName) return null;
+
+  for (const table of tables || []) {
+    const assignedGuests = Array.isArray(table.assignedGuests) ? table.assignedGuests : [];
+    const seatIndex = assignedGuests.findIndex((name) => normalizeSeatName(name) === normalizedGuestName);
+    if (seatIndex !== -1) {
+      return {
+        tableName: table.name || "",
+        tableCapacity: table.capacity || null,
+        seatNumber: seatIndex + 1,
+      };
+    }
+  }
+
+  return null;
+};
+
+const withCheckInContext = async (invitation, tables = null) => {
+  if (!invitation) return invitation;
+
+  const plainInvitation = typeof invitation.toObject === "function" ? invitation.toObject() : { ...invitation };
+  const seatingTables =
+    tables ||
+    (await Table.find({ userId: plainInvitation.userId?._id || plainInvitation.userId }).select("name capacity assignedGuests"));
+  const seating = findSeatingAssignment(seatingTables, plainInvitation.guestName);
+
+  return {
+    ...plainInvitation,
+    partySize: plainInvitation.allowedGuests || 1,
+    tableName: seating?.tableName || "",
+    tableCapacity: seating?.tableCapacity || null,
+    seatNumber: seating?.seatNumber || null,
+  };
+};
+
 const cleanWhatsAppNumber = (phone) => {
   if (!phone) return "";
   const raw = String(phone).trim();
@@ -246,6 +286,8 @@ router.get("/check-in/:token", async (req, res) => {
       return res.status(403).json({ message: "Guest entry QR check-in is available on Plus and Pro plans." });
     }
 
+    const seating = await withCheckInContext(invitation);
+
     res.status(200).json({
       invitationId: invitation._id,
       eventId: invitation.userId?._id || invitation.userId,
@@ -253,6 +295,10 @@ router.get("/check-in/:token", async (req, res) => {
       guestName: invitation.guestName,
       category: invitation.category,
       allowedGuests: invitation.allowedGuests,
+      partySize: seating.partySize,
+      tableName: seating.tableName,
+      tableCapacity: seating.tableCapacity,
+      seatNumber: seating.seatNumber,
       hasRSVPed: invitation.hasRSVPed,
       checkedIn: invitation.checkedIn,
       checkedInAt: invitation.checkedInAt,
@@ -327,7 +373,7 @@ router.post("/check-in/:token", async (req, res) => {
     }
 
     if (invitation.checkedIn) {
-      return res.status(200).json({ message: "Guest was already checked in.", invitation });
+      return res.status(200).json({ message: "Guest was already checked in.", invitation: await withCheckInContext(invitation) });
     }
 
     const eligibilityIssue = await getCheckInEligibilityIssue(invitation);
@@ -348,7 +394,7 @@ router.post("/check-in/:token", async (req, res) => {
     });
     await invitation.save();
 
-    res.status(200).json({ message: "Guest checked in successfully.", invitation });
+    res.status(200).json({ message: "Guest checked in successfully.", invitation: await withCheckInContext(invitation) });
   } catch (error) {
     res.status(500).json({ message: "Failed to check in guest", error: error.message });
   }
@@ -389,8 +435,10 @@ router.post("/check-in/staff/search", async (req, res) => {
       .select("guestName category allowedGuests phoneNumber slug hasRSVPed checkedIn checkedInAt checkedInVia checkInHistory")
       .sort({ checkedIn: 1, guestName: 1 })
       .limit(30);
+    const tables = await Table.find({ userId: eventId }).select("name capacity assignedGuests");
+    const invitationsWithSeating = invitations.map((invitation) => withCheckInContext(invitation, tables));
 
-    res.status(200).json({ invitations });
+    res.status(200).json({ invitations: await Promise.all(invitationsWithSeating) });
   } catch (error) {
     res.status(500).json({ message: "Failed to search check-in guests", error: error.message });
   }
@@ -415,7 +463,7 @@ router.post("/check-in/staff/:id", async (req, res) => {
     }
 
     if (invitation.checkedIn) {
-      return res.status(200).json({ message: "Guest was already checked in.", invitation });
+      return res.status(200).json({ message: "Guest was already checked in.", invitation: await withCheckInContext(invitation) });
     }
 
     const eligibilityIssue = await getCheckInEligibilityIssue(invitation);
@@ -435,7 +483,7 @@ router.post("/check-in/staff/:id", async (req, res) => {
     });
     await invitation.save();
 
-    res.status(200).json({ message: "Guest checked in successfully.", invitation });
+    res.status(200).json({ message: "Guest checked in successfully.", invitation: await withCheckInContext(invitation) });
   } catch (error) {
     res.status(500).json({ message: "Failed to check in guest", error: error.message });
   }
@@ -460,7 +508,7 @@ router.patch("/check-in/staff/:id/undo", async (req, res) => {
     }
 
     if (!invitation.checkedIn) {
-      return res.status(200).json({ message: "Guest is already marked as not checked in.", invitation });
+      return res.status(200).json({ message: "Guest is already marked as not checked in.", invitation: await withCheckInContext(invitation) });
     }
 
     invitation.checkedIn = false;
@@ -475,7 +523,7 @@ router.patch("/check-in/staff/:id/undo", async (req, res) => {
     });
     await invitation.save();
 
-    res.status(200).json({ message: "Guest check-in has been undone.", invitation });
+    res.status(200).json({ message: "Guest check-in has been undone.", invitation: await withCheckInContext(invitation) });
   } catch (error) {
     res.status(500).json({ message: "Failed to undo check-in", error: error.message });
   }

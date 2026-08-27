@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Icon } from "@iconify/react";
 import { toast } from "react-toastify";
 import api from "../utils/api";
+import CheckInSuccessToast from "../components/CheckInSuccessToast";
 
 const formatDateTime = (value) => {
   if (!value) return "";
@@ -98,10 +99,11 @@ const CheckInPage = () => {
       const res = await api.post(`/invitations/check-in/${token}`, { accessToken });
       setRecord((prev) => ({
         ...prev,
+        ...(res.data.invitation || {}),
         checkedIn: true,
         checkedInAt: res.data.invitation?.checkedInAt || new Date().toISOString(),
       }));
-      toast.success(res.data.message || "Guest checked in.");
+      toast.success(<CheckInSuccessToast guest={res.data.invitation || record} message={res.data.message || "Guest checked in."} />);
     } catch (err) {
       toast.error(err.response?.data?.message || "Unable to check in this guest.");
     } finally {
@@ -159,7 +161,13 @@ const CheckInPage = () => {
                   </div>
                   <div className="rounded-xl bg-[#070A13]/70 p-3">
                     <p className="text-[10px] uppercase tracking-wider text-white/35">Guests Allowed</p>
-                    <p className="mt-1 font-semibold">{record.allowedGuests || 1}</p>
+                    <p className="mt-1 font-semibold">{record.partySize || record.allowedGuests || 1}</p>
+                  </div>
+                  <div className="rounded-xl bg-[#070A13]/70 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-white/35">Table</p>
+                    <p className={`mt-1 font-semibold ${record.tableName ? "text-emerald-100" : "text-white/45"}`}>
+                      {record.tableName || "Not assigned"}
+                    </p>
                   </div>
                   <div className="rounded-xl bg-[#070A13]/70 p-3">
                     <p className="text-[10px] uppercase tracking-wider text-white/35">RSVP</p>

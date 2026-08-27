@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Icon } from "@iconify/react";
 import { toast } from "react-toastify";
 import api from "../utils/api";
+import CheckInSuccessToast from "../components/CheckInSuccessToast";
 
 const getAccessKey = (eventId) => `vowlink_checkin_access_${eventId}`;
 
@@ -165,7 +166,7 @@ const CheckInStaffPage = () => {
       const res = await api.post(`/invitations/check-in/staff/${guest._id}`, { accessToken });
       const updated = res.data?.invitation || { ...guest, checkedIn: true, checkedInAt: new Date().toISOString(), checkedInVia: "pin" };
       setGuests((current) => current.map((item) => (item._id === guest._id ? updated : item)));
-      toast.success(res.data?.message || "Guest checked in.");
+      toast.success(<CheckInSuccessToast guest={updated} message={res.data?.message || "Guest checked in."} />);
     } catch (err) {
       toast.error(err.response?.data?.message || "Unable to check in guest.");
     } finally {
@@ -209,8 +210,8 @@ const CheckInStaffPage = () => {
           return current.map((item) => (item._id === updated._id ? updated : item));
         });
       }
-      toast.success(res.data?.message || "Guest checked in.");
-      setScannerMessage(updated?.guestName ? `${updated.guestName} checked in.` : "Guest checked in. Scan the next QR.");
+      toast.success(<CheckInSuccessToast guest={updated} message={res.data?.message || "Guest checked in."} />);
+      setScannerMessage(updated?.guestName ? `${updated.guestName} checked in. Table: ${updated.tableName || "No table assigned"}. Guests: ${updated.partySize || updated.allowedGuests || 1}.` : "Guest checked in. Scan the next QR.");
       searchGuests();
     } catch (err) {
       const message = err.response?.data?.message || "Unable to check in this QR code.";
@@ -504,6 +505,14 @@ const CheckInStaffPage = () => {
                           <p className="mt-1 text-xs text-white/45">
                             {guest.category || "Guest"} · {guest.allowedGuests || 1} guest{guest.allowedGuests === 1 ? "" : "s"} · /invite/{guest.slug}
                           </p>
+                          <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wider">
+                            <span className={`rounded-full border px-2.5 py-1 ${guest.tableName ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200" : "border-white/10 bg-white/5 text-white/45"}`}>
+                              Table: {guest.tableName || "Not assigned"}
+                            </span>
+                            <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/55">
+                              Party: {guest.partySize || guest.allowedGuests || 1}
+                            </span>
+                          </div>
                           {guest.checkedInAt && (
                             <p className="mt-1 text-[11px] text-emerald-300/75">Checked in {formatDateTime(guest.checkedInAt)} via {guest.checkedInVia || "check-in"}</p>
                           )}
