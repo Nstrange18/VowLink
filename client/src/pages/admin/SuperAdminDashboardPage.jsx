@@ -24,10 +24,67 @@ const emptyAnalytics = {
   daily: [],
 };
 
-const formatPageLabel = (path = "") => {
-  if (path === "/") return "Landing page";
-  if (path.startsWith("/invite/")) return `Invite: ${path.replace("/invite/", "")}`;
-  return path;
+const safeDecode = (value = "") => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
+const getTrackingMeta = (params) => {
+  const source = params.get("utm_source");
+  const medium = params.get("utm_medium");
+  const campaign = params.get("utm_campaign") || params.get("utm_content");
+
+  return [
+    source ? `Source: ${safeDecode(source)}` : "",
+    medium ? `Medium: ${safeDecode(medium)}` : "",
+    campaign ? `Campaign: ${safeDecode(campaign)}` : "",
+  ].filter(Boolean).join(" | ");
+};
+
+const getPageDisplay = (path = "") => {
+  const raw = String(path || "/");
+  let pathname = raw;
+  let meta = "";
+
+  try {
+    const parsed = new URL(raw, "https://vowlink.co");
+    pathname = parsed.pathname || "/";
+    meta = getTrackingMeta(parsed.searchParams);
+  } catch {
+    pathname = raw.split("?")[0] || "/";
+  }
+
+  if (pathname === "/") {
+    return { label: "Landing page", meta: meta || "Homepage visit", raw };
+  }
+
+  if (pathname.startsWith("/invite/")) {
+    const slug = safeDecode(pathname.replace("/invite/", "")).replace(/-/g, " ");
+    return { label: `Invite: ${slug || "guest link"}`, meta: meta || "Guest invitation page", raw };
+  }
+
+  if (pathname.startsWith("/check-in/")) {
+    return { label: "Check-in page", meta: meta || "Guest check-in link", raw };
+  }
+
+  return { label: safeDecode(pathname), meta: meta || "Public page", raw };
+};
+
+const formatReferrerLabel = (referrer = "") => {
+  if (!referrer) return "Direct";
+
+  try {
+    const host = new URL(referrer).hostname.replace(/^www\./, "");
+    if (host.includes("instagram")) return "Instagram";
+    if (host.includes("facebook") || host.includes("fb.")) return "Facebook";
+    if (host.includes("whatsapp")) return "WhatsApp";
+    return host;
+  } catch {
+    return referrer;
+  }
 };
 
 const formatAccountCreatedAt = (createdAt) => {
@@ -250,8 +307,8 @@ const SuperAdminDashboardPage = () => {
           ))}
         </div>
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div className="mt-5 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(240px,0.65fr)]">
+          <div className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-4">
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-xs font-bold uppercase tracking-[0.24em] text-[#D8B76A]">Top pages</h3>
               <span className="text-[10px] font-semibold uppercase tracking-wider text-white/35">Visits / unique</span>
@@ -260,23 +317,28 @@ const SuperAdminDashboardPage = () => {
               {analytics.topPages.length === 0 ? (
                 <p className="rounded-2xl border border-dashed border-white/10 p-5 text-center text-xs text-white/35">No visits tracked yet.</p>
               ) : (
-                analytics.topPages.map((page) => (
-                  <div key={page.path} className="flex items-center justify-between gap-3 rounded-2xl bg-[#070A13]/70 px-4 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-white">{formatPageLabel(page.path)}</p>
-                      <p className="mt-1 text-[10px] uppercase tracking-wider text-white/35">{page.pageType || "public"}</p>
+                analytics.topPages.map((page) => {
+                  const pageDisplay = getPageDisplay(page.path);
+
+                  return (
+                    <div key={page.path} title={pageDisplay.raw} className="flex min-w-0 items-center justify-between gap-3 rounded-2xl bg-[#070A13]/70 px-4 py-3">
+                      <div className="min-w-0 flex-1 overflow-hidden">
+                        <p className="truncate text-sm font-semibold text-white">{pageDisplay.label}</p>
+                        <p className="mt-1 truncate text-[10px] uppercase tracking-wider text-white/35">{pageDisplay.meta}</p>
+                        <p className="mt-1 truncate text-[10px] uppercase tracking-wider text-white/25">{page.pageType || "public"}</p>
+                      </div>
+                      <p className="shrink-0 font-mono text-sm font-bold text-[#D8B76A]">
+                        {page.visits}
+                        <span className="text-white/35"> / {page.uniqueVisitors}</span>
+                      </p>
                     </div>
-                    <p className="shrink-0 font-mono text-sm font-bold text-[#D8B76A]">
-                      {page.visits}
-                      <span className="text-white/35"> / {page.uniqueVisitors}</span>
-                    </p>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
 
-          <div className="space-y-5">
+          <div className="min-w-0 space-y-5">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <h3 className="text-xs font-bold uppercase tracking-[0.24em] text-[#D8B76A]">Devices</h3>
               <div className="mt-4 space-y-2">
@@ -300,8 +362,8 @@ const SuperAdminDashboardPage = () => {
                   <p className="text-xs text-white/35">No referral sources yet.</p>
                 ) : (
                   analytics.referrers.map((item) => (
-                    <div key={item.referrer} className="flex items-center justify-between gap-3 text-xs">
-                      <span className="truncate text-white/65">{item.referrer}</span>
+                    <div key={item.referrer} title={item.referrer || "Direct visit"} className="flex min-w-0 items-center justify-between gap-3 text-xs">
+                      <span className="min-w-0 truncate text-white/65">{formatReferrerLabel(item.referrer)}</span>
                       <span className="font-mono font-bold text-white">{item.visits}</span>
                     </div>
                   ))
