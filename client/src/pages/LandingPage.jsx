@@ -1,582 +1,175 @@
-import { useMemo } from "react";
-import { Link } from "react-router-dom";
-import { Icon } from "@iconify/react";
+import { useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Icon } from '@iconify/react';
+import LandingFooter from '../components/landing/LandingFooter';
+import { getStoredSession } from '../components/landing/getLandingSession';
+import { PREMADE_TEMPLATES, getTemplateLayout } from '../utils/templateLayouts';
+import { getPlanLabel } from '../utils/planLimits';
+import './LandingPage.css';
 
-const featureCards = [
-  {
-    icon: "01",
-    title: "Personalized Invites",
-    desc: "Create unique guest links with custom greetings, guest categories, seating counts, and private RSVP tracking.",
-  },
-  {
-    icon: "02",
-    title: "RSVP Management",
-    desc: "See who is attending, capture meal preferences and guest messages, and export your list when you need it.",
-  },
-  {
-    icon: "03",
-    title: "WhatsApp Sharing",
-    desc: "Send each invitation through WhatsApp with prepared messages, phone numbers, and partner sender queues.",
-  },
-  {
-    icon: "04",
-    title: "Design Control",
-    desc: "Choose templates, colors, music, couple photos, galleries, and premium backgrounds that match your wedding style.",
-  },
-  {
-    icon: "05",
-    title: "Guest Categories",
-    desc: "Organize family, friends, colleagues, VIPs, plus-ones, and sender groups so your guest list stays easy to manage.",
-  },
-  {
-    icon: "06",
-    title: "Wedding Tools",
-    desc: "Use RSVP limits, seating charts, timelines, registry details, and dashboard insights from one wedding workspace.",
-  },
+const features = [
+  ['lucide:mail', 'Create your invitation', 'A beautiful beginning. Choose a design and add the details that make your celebration yours.'],
+  ['lucide:users-round', 'Build your guest list', 'Add guests individually, or bring your list together with a CSV import on Plus or Pro.'],
+  ['ri:whatsapp-line', 'Send invites on WhatsApp', 'Share personal invitation links with messages prepared for each guest.'],
+  ['lucide:check-check', 'Track every RSVP', 'See who is attending, who declined, and whose response you are still waiting for.'],
+  ['lucide:armchair', 'Plan your seating', 'Create tables and assign attending guests to their seats with the Pro plan.'],
+  ['lucide:palette', 'Make it yours', 'Personalize your invitation with wedding colors, photos, and the options included in your plan.'],
 ];
-
-const steps = [
-  {
-    title: "Set up your couple portal",
-    desc: "Add your names, wedding date, RSVP deadline, dress code, venue, registry, and invitation preferences.",
-  },
-  {
-    title: "Import or create guests",
-    desc: "Add one guest at a time or bulk import a spreadsheet with categories, phone numbers, and sender groups.",
-  },
-  {
-    title: "Share and track responses",
-    desc: "Send links by WhatsApp, watch RSVPs come in, manage guests, and keep your list organized until the big day.",
-  },
+const journey = [
+  { label: 'Invite', icon: 'ri:whatsapp-line', title: 'Personal invitations. Less back-and-forth.', text: 'Add names one at a time or import a CSV on Plus or Pro. Organize guests into groups, then share their personal links through WhatsApp.', detail: ['Your guest list', 'Personal guest links', 'WhatsApp sharing'] },
+  { label: 'Track', icon: 'lucide:check-check', title: 'Know who’s coming, as replies arrive.', text: 'Guests open their invitation and RSVP from their phone. Review attending, declined, and pending responses in your wedding workspace.', detail: ['Guest opens invitation', 'Guest sends RSVP', 'You review responses'] },
+  { label: 'Organize', icon: 'lucide:armchair', title: 'A place for everyone you love.', text: 'Keep guest categories and plus-ones organized. On Pro, create tables with capacities and assign attending guests as your seating plan takes shape.', detail: ['Attending guests', 'Tables & capacities', 'Seat assignments'] },
 ];
+const showcase = ['Classic Floral', 'Classic Navy, Gold & Cream', 'Royal Emerald Gold Frame'].map((name) => PREMADE_TEMPLATES.find((template) => template.name === name)).filter(Boolean);
 
-const plans = [
-  { name: "Free", detail: "1 invite link, 20 RSVPs, basic templates." },
-  {
-    name: "Plus",
-    detail:
-      "100 guest links, premium templates, music, gallery, and richer invite customization.",
-  },
-  {
-    name: "Pro",
-    detail:
-      "500 guest links, RSVP export, seating chart, WhatsApp queues, and advanced controls.",
-  },
-];
+function SectionLink({ target, children, className = '', onNavigate }) {
+  return <a href={`#${target}`} className={className} onClick={(event) => {
+    const section = document.getElementById(target);
+    if (!section) return;
+    event.preventDefault();
+    onNavigate?.();
+    window.history.replaceState(window.history.state, '', `#${target}`);
+    section.focus({ preventScroll: true });
+    section.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+  }}>{children}</a>;
+}
 
-const faqs = [
-  {
-    question: "Can guests RSVP from their phones?",
-    answer:
-      "Yes. Each guest receives a personal invite link that opens on mobile and lets them view details, RSVP, leave wishes, and follow any wedding instructions you add.",
-  },
-  {
-    question: "Can we send invitations through WhatsApp?",
-    answer:
-      "Yes. VowLink prepares guest-specific invitation links and WhatsApp messages so you can send them without manually copying every detail.",
-  },
-  {
-    question: "Can we control who invited each guest?",
-    answer:
-      "Yes. Guests can be grouped by bride, groom, or both, which keeps sender lists and dashboard counts easier to manage.",
-  },
-  {
-    question: "Do we need a designer to create the invite?",
-    answer:
-      "No. You can choose a template, upload a couple photo, set colors, add music, and update wedding details directly from your couple dashboard.",
-  },
-  {
-    question: "Will private wedding dashboard pages show on Google?",
-    answer:
-      "No. The public marketing pages are prepared for search indexing, while admin, login, dashboard, RSVP response, and guest invite routes are marked as private.",
-  },
-];
+function StartLink({ session, children = 'Get Started', compact = false }) {
+  return <Link className="vl-button" to={session ? session.dashboardPath : '/signup'}>{session ? (compact ? 'Dashboard' : session.dashboardLabel) : children}<Icon icon="lucide:arrow-up-right" aria-hidden="true" /></Link>;
+}
 
-const getStoredSession = () => {
-  if (typeof window === "undefined") return null;
-
-  const token = localStorage.getItem("token");
-  if (!token) return null;
-
-  try {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    if (!user?._id && !user?.email) return null;
-
-    const partner1 = user.partner1Name || "";
-    const partner2 = user.partner2Name || "";
-    const initials = [partner1, partner2]
-      .filter(Boolean)
-      .map((name) => name.trim()[0])
-      .filter(Boolean)
-      .join(" & ");
-    const isSuperAdmin =
-      user.role === "admin" ||
-      user.email?.toLowerCase() === "nwubachukwuemelie@gmail.com";
-
-    return {
-      dashboardPath: isSuperAdmin ? "/super-admin/dashboard" : "/admin/dashboard",
-      displayName:
-        partner1 && partner2
-          ? `${partner1} & ${partner2}`
-          : user.email || "Your VowLink account",
-      initials: initials || "VL",
-      dashboardLabel: isSuperAdmin ? "Return to Admin" : "Return to Dashboard",
-    };
-  } catch {
-    return null;
-  }
-};
-
-const LandingPage = () => {
-  const session = useMemo(() => getStoredSession(), []);
-
-  return (
-    <div className="min-h-screen bg-[#070A13] text-white">
-      <section className="landing-hero relative flex min-h-screen flex-col items-center justify-center bg-[url('/hero-bg.webp')] bg-cover bg-center bg-no-repeat px-5 py-14 text-center sm:px-6 sm:py-16">
-        <div className="absolute inset-0 bg-[#070A13]/60" />
-
-        {session && (
-          <Link
-            to={session.dashboardPath}
-            className="absolute right-4 top-16 z-20 inline-flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-full border border-[#D8B76A]/45 bg-[#070A13]/90 px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-white shadow-2xl shadow-black/25 backdrop-blur-md transition hover:border-[#D8B76A]/75 hover:bg-[#111827] sm:right-6 sm:top-20 sm:max-w-xs sm:px-4"
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D8B76A] text-[10px] text-[#070A13]">
-              {session.initials}
-            </span>
-            <span className="hidden min-w-0 flex-col normal-case tracking-normal sm:flex">
-              <span className="truncate text-[11px] text-white/60">
-                {session.displayName}
-              </span>
-              <span className="text-xs uppercase tracking-widest text-[#D8B76A]">
-                {session.dashboardLabel}
-              </span>
-            </span>
-            <span className="sm:hidden">{session.dashboardLabel}</span>
-            <Icon icon="lucide:arrow-right" className="h-3.5 w-3.5 shrink-0" />
-          </Link>
-        )}
-
-        <div className="relative z-10 mx-auto max-w-2xl">
-          <div className="mb-7 flex items-center justify-center gap-2.5 sm:mb-10 sm:gap-3">
-            <img
-              src="/vowlink-icon.svg"
-              alt="Vowlink"
-              className="h-8 w-8 object-contain sm:h-10 sm:w-10"
-            />
-            <span className="font-serif text-2xl tracking-wide text-white sm:text-3xl">
-              Vowlink
-            </span>
-          </div>
-
-          <p className="mb-4 text-[10px] uppercase tracking-[0.3em] text-[#D8B76A] sm:mb-6 sm:text-xs sm:tracking-[0.4em]">
-            Digital Wedding Invitations
-          </p>
-
-          <h1 className="mb-5 font-serif text-[2.65rem] font-normal leading-[1.08] text-white sm:mb-6 sm:text-6xl sm:leading-tight md:text-7xl">
-            Your Wedding,
-            <br />
-            <span className="text-[#D8B76A]">Beautifully Shared</span>
-          </h1>
-
-          <p className="mx-auto mb-8 max-w-md text-sm leading-7 text-white/80 sm:mb-10 sm:max-w-lg sm:text-lg sm:leading-relaxed">
-            Build your invitation portal, share personal guest links, collect
-            RSVPs, and keep the planning details organized from one elegant
-            workspace.
-          </p>
-
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-            <Link
-              to={session ? session.dashboardPath : "/signup"}
-              className="w-full rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-7 py-3.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.4)] sm:w-auto sm:px-10 sm:py-4 sm:text-sm"
-            >
-              {session ? session.dashboardLabel : "Get Started Free"}
-            </Link>
-            <Link
-              to={session ? session.dashboardPath : "/admin/login"}
-              className="w-full rounded-full border border-white/20 bg-white/5 px-7 py-3.5 text-xs font-semibold uppercase tracking-widest text-white/80 backdrop-blur-sm transition hover:border-white/30 hover:bg-white/10 sm:w-auto sm:px-10 sm:py-4 sm:text-sm"
-            >
-              {session ? "Open Workspace" : "Sign In"}
-            </Link>
-          </div>
-        </div>
-
-        <div className="absolute bottom-4 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-white/50 animate-bounce sm:flex lg:bottom-8">
-          <span className="text-xs uppercase tracking-widest">Scroll</span>
-          <Icon icon="lucide:arrow-down" className="h-4 w-4" />
-        </div>
-      </section>
-
-      <section className="px-6 py-20 sm:py-28 max-w-6xl mx-auto">
-        <p className="text-center text-xs uppercase tracking-[0.4em] text-[#D8B76A] mb-4">
-          Why Vowlink
-        </p>
-        <h2 className="text-center font-serif text-3xl sm:text-4xl text-white mb-5">
-          A calmer way to manage wedding invitations
-        </h2>
-        <p className="text-center text-sm text-white/50 max-w-2xl mx-auto mb-14 leading-relaxed">
-          Vowlink keeps the guest experience beautiful while giving couples
-          practical tools for RSVPs, guest limits, message sharing, and planning
-          decisions.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featureCards.map(({ icon, title, desc }) => (
-            <div
-              key={title}
-              className="rounded-2xl border border-white/10 bg-[#0D1220] p-6 hover:border-[#D8B76A]/30 transition-colors duration-300"
-            >
-              <span className="mb-4 flex h-9 w-9 items-center justify-center rounded-full bg-[#D8B76A]/15 text-xs font-bold text-[#D8B76A]">
-                {icon}
-              </span>
-              <h3 className="font-semibold text-white mb-2">{title}</h3>
-              <p className="text-sm text-white/50 leading-relaxed">{desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="border-y border-white/5 bg-[#0D1220]/40 px-6 py-20">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 lg:grid-cols-12 lg:items-start">
-          <div className="lg:col-span-4">
-            <p className="text-xs uppercase tracking-[0.4em] text-[#D8B76A] mb-4">
-              How It Works
-            </p>
-            <h2 className="font-serif text-3xl sm:text-4xl text-white leading-tight">
-              From guest list to RSVP tracking in three steps
-            </h2>
-          </div>
-          <div className="lg:col-span-8 grid gap-4">
-            {steps.map((step, index) => (
-              <div
-                key={step.title}
-                className="rounded-2xl border border-white/10 bg-[#070A13]/60 p-5"
-              >
-                <div className="flex gap-4">
-                  <span className="text-xs font-bold text-[#D8B76A]">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">
-                      {step.title}
-                    </h3>
-                    <p className="mt-1 text-sm leading-relaxed text-white/50">
-                      {step.desc}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="px-6 py-20 sm:py-24 max-w-6xl mx-auto">
-        <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-[#D8B76A] mb-4">
-              Plans
-            </p>
-            <h2 className="font-serif text-3xl sm:text-4xl text-white">
-              Start with Classic, upgrade when you need more
-            </h2>
-          </div>
-          <Link
-            to="/admin/billing"
-            className="text-sm font-semibold text-[#D8B76A] hover:underline"
-          >
-            View billing after signup
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className="rounded-2xl border border-white/10 bg-[#0D1220] p-6"
-            >
-              <h3 className="font-serif text-2xl text-white">{plan.name}</h3>
-              <p className="mt-2 text-sm text-white/50 leading-relaxed">
-                {plan.detail}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="landing-guest-cta px-6 py-20">
-        <div className="landing-guest-cta-panel mx-auto grid max-w-6xl grid-cols-1 overflow-hidden rounded-4xl border border-[#D8B76A]/20 bg-[#111827] lg:grid-cols-12">
-          <div className="p-8 sm:p-10 lg:col-span-7 lg:p-12">
-            <p className="mb-4 text-xs uppercase tracking-[0.4em] text-[#D8B76A]">
-              For Your Guest List
-            </p>
-            <h2 className="font-serif text-3xl leading-tight text-white sm:text-5xl">
-              Send a polished invitation before the first RSVP reminder
-            </h2>
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/55">
-              Create the invite, assign guest categories, prepare WhatsApp
-              messages, and give guests one beautiful link with the details they
-              need.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to={session ? session.dashboardPath : "/signup"}
-                className="rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-8 py-3 text-center text-xs font-bold uppercase tracking-widest text-[#070A13]"
-              >
-                {session ? session.dashboardLabel : "Create Your Portal"}
-              </Link>
-              <Link
-                to="/features"
-                className="landing-guest-secondary rounded-full border border-white/15 px-8 py-3 text-center text-xs font-semibold uppercase tracking-widest text-white/75"
-              >
-                Explore Features
-              </Link>
-            </div>
-          </div>
-          <div className="landing-guest-cta-list border-t border-white/10 bg-[#070A13]/70 p-8 sm:p-10 lg:col-span-5 lg:border-l lg:border-t-0 lg:p-12">
-            <div className="grid gap-5">
-              {[
-                ["Guest links", "Personalized pages for each invitee"],
-                [
-                  "RSVP totals",
-                  "Clear counts for attending and pending guests",
-                ],
-                ["WhatsApp-ready", "Messages prepared around each guest link"],
-              ].map(([title, text]) => (
-                <div key={title} className="flex gap-4">
-                  <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D8B76A]/15 text-[#D8B76A]">
-                    <Icon icon="lucide:check" className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">
-                      {title}
-                    </h3>
-                    <p className="mt-1 text-sm text-white/45">{text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-faq border-y border-white/5 bg-[#0D1220]/40 px-6 py-20">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 lg:grid-cols-12">
-          <div className="lg:col-span-4">
-            <p className="mb-4 text-xs uppercase tracking-[0.4em] text-[#D8B76A]">
-              FAQ
-            </p>
-            <h2 className="font-serif text-3xl leading-tight text-white sm:text-4xl">
-              Questions before you send the link
-            </h2>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/45">
-              Clear answers for couples setting up their first digital wedding
-              invitation portal.
-            </p>
-          </div>
-          <div className="grid gap-5 lg:col-span-8">
-            {faqs.map((faq, index) => (
-              <article
-                key={faq.question}
-                className="landing-faq-card group rounded-3xl border border-white/10 bg-[#070A13]/60 p-5 transition hover:border-[#D8B76A]/35 sm:p-6"
-              >
-                <div className="flex gap-4">
-                  <span className="landing-faq-index flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8B76A]/25 bg-[#D8B76A]/10 text-[10px] font-bold text-[#D8B76A]">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">
-                      {faq.question}
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-white/50">
-                      {faq.answer}
-                    </p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="px-6 py-20 text-center border-t border-white/5">
-        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#D8B76A]/15 text-sm font-bold text-[#D8B76A]">
-          VL
-        </div>
-        <h2 className="font-serif text-3xl sm:text-4xl text-white mb-4">
-          Ready to start?
-        </h2>
-        <p className="text-white/50 mb-8 text-sm">
-          {session
-            ? "Your VowLink workspace is still active in this browser."
-            : "Create your portal in seconds. No credit card required."}
-        </p>
-        <Link
-          to={session ? session.dashboardPath : "/signup"}
-          className="inline-block rounded-full bg-linear-to-r from-[#D8B76A] to-[#F2D894] px-12 py-4 text-sm font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(216,183,106,0.4)]"
-        >
-          {session ? session.dashboardLabel : "Create Your Portal"}
-        </Link>
-        <p className="mt-6 text-sm text-white/30">
-          {session ? (
-            <>
-              Signed in as{" "}
-              <span className="text-white/60">{session.displayName}</span>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-              <Link to="/admin/login" className="text-[#D8B76A] hover:underline">
-                Sign in
-              </Link>
-            </>
-          )}
-        </p>
-      </section>
-
-      <footer className="landing-footer relative overflow-hidden border-t border-[#D8B76A]/15 bg-[#050814] px-6 py-12">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#D8B76A]/70 to-transparent" />
-        <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-xl -translate-x-1/2 rounded-full bg-[#D8B76A]/8 blur-3xl" />
-
-        <div className="relative mx-auto max-w-6xl">
-          <div className="grid gap-10 md:grid-cols-[1.4fr_0.8fr_0.8fr_0.8fr_1fr]">
-            <div className="max-w-sm">
-              <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#D8B76A]/20 bg-[#D8B76A]/10">
-                  <img
-                    src="/vowlink-icon.svg"
-                    alt=""
-                    className="h-7 w-7 object-contain"
-                  />
-                </span>
-                <span className="font-serif text-2xl text-white">Vowlink</span>
-              </div>
-              <p className="mt-4 text-sm leading-relaxed text-white/50">
-                Digital wedding invitations, RSVP tracking, guest planning, and
-                sharing tools for modern celebrations.
-              </p>
-              <Link
-                to={session ? session.dashboardPath : "/signup"}
-                className="mt-6 inline-flex rounded-full bg-[#D8B76A] px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-[#070A13] transition hover:-translate-y-0.5 hover:bg-[#F2D894]"
-              >
-                {session ? session.dashboardLabel : "Start with Classic"}
-              </Link>
-            </div>
-
-            <div>
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">
-                Explore
-              </p>
-              <div className="flex flex-col gap-3 text-sm text-white/55">
-                <Link
-                  to="/features"
-                  className="transition hover:text-[#D8B76A]"
-                >
-                  Features
-                </Link>
-                <Link
-                  to="/templates"
-                  className="transition hover:text-[#D8B76A]"
-                >
-                  Templates
-                </Link>
-                <Link to="/pricing" className="transition hover:text-[#D8B76A]">
-                  Pricing
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">
-                Portals
-              </p>
-              <div className="flex flex-col gap-3 text-sm text-white/55">
-                <Link
-                  to={session ? session.dashboardPath : "/signup"}
-                  className="transition hover:text-[#D8B76A]"
-                >
-                  {session ? "Return to dashboard" : "Create account"}
-                </Link>
-                <Link
-                  to={session ? session.dashboardPath : "/admin/login"}
-                  className="transition hover:text-[#D8B76A]"
-                >
-                  {session ? "Open workspace" : "Couple login"}
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">
-                Legal
-              </p>
-              <div className="flex flex-col gap-3 text-sm text-white/55">
-                <Link to="/privacy" className="transition hover:text-[#D8B76A]">
-                  Privacy Policy
-                </Link>
-                <Link to="/terms" className="transition hover:text-[#D8B76A]">
-                  Terms of Service
-                </Link>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-white/3 p-5">
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8B76A]">
-                Contact Us
-              </p>
-              <div className="flex flex-col gap-3 text-sm text-white/60">
-                <a
-                  href="mailto:hello@vowlink.co"
-                  className="group flex items-center gap-3 transition hover:text-[#D8B76A]"
-                >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition group-hover:bg-[#D8B76A] group-hover:text-[#070A13]">
-                    <Icon icon="lucide:mail" className="h-4 w-4" />
-                  </span>
-                  <span>hello@vowlink.co</span>
-                </a>
-                <a
-                  href="https://wa.me/2349127315930"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group flex items-center gap-3 transition hover:text-[#D8B76A]"
-                >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition group-hover:bg-[#D8B76A] group-hover:text-[#070A13]">
-                    <Icon icon="ri:whatsapp-line" className="h-4 w-4" />
-                  </span>
-                  <span>+ 2349127315930</span>
-                </a>
-                <a
-                  href="https://instagram.com/vowlink.co"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group flex items-center gap-3 transition hover:text-[#D8B76A]"
-                >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition group-hover:bg-[#D8B76A] group-hover:text-[#070A13]">
-                    <Icon icon="ri:instagram-line" className="h-4 w-4" />
-                  </span>
-                  <span>@vowlink.co</span>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/35 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1">
-              <p>© {new Date().getFullYear()} Vowlink. All rights reserved.</p>
-              <p>VowLink is owned and operated by First and Last Venture.</p>
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-              <Link to="/privacy" className="transition hover:text-[#D8B76A]">
-                Privacy
-              </Link>
-              <Link to="/terms" className="transition hover:text-[#D8B76A]">
-                Terms
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+function LandingNav({ session }) {
+  const [open, setOpen] = useState(false);
+  const menuButton = useRef(null);
+  return <header className="vl-header" onKeyDown={(event) => {
+    if (event.key === 'Escape' && open) { setOpen(false); menuButton.current?.focus(); }
+  }} onBlur={(event) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+  }}>
+    <div className="vl-nav-shell">
+      <Link to="/" className="vl-brand" aria-label="VowLink home"><img src="/vowlink-icon.svg" alt="" width="30" height="30" />VowLink</Link>
+      <nav id="landing-navigation" className={`vl-nav-links ${open ? 'is-open' : ''}`} aria-label="Main navigation">
+        <SectionLink target="features" onNavigate={() => setOpen(false)}>Features</SectionLink>
+        <SectionLink target="how-it-works" onNavigate={() => setOpen(false)}>How it works</SectionLink>
+        <SectionLink target="templates" onNavigate={() => setOpen(false)}>Templates</SectionLink>
+        <Link to="/pricing">Pricing</Link>
+        <Link className="vl-mobile-login" to={session ? session.dashboardPath : '/admin/login'}>{session ? 'Your workspace' : 'Log in'}</Link>
+      </nav>
+      <div className="vl-nav-actions">
+        <Link className="vl-desktop-login" to={session ? session.dashboardPath : '/admin/login'}>{session ? 'Workspace' : 'Log in'}</Link>
+        <StartLink session={session} compact />
+        <button ref={menuButton} className="vl-menu-toggle" type="button" aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open} aria-controls="landing-navigation" onClick={() => setOpen(!open)}><Icon icon={open ? 'lucide:x' : 'lucide:menu'} aria-hidden="true" /></button>
+      </div>
     </div>
-  );
-};
+  </header>;
+}
 
-export default LandingPage;
+// Presentation sample using actual catalog artwork and its existing text colors.
+// No account context, real guest data, or invitation API calls are needed here.
+function InvitationSample({ template, priority = false }) {
+  const layout = getTemplateLayout('custom', template.url);
+  return <div className="vl-invitation" style={{ '--sample-ink': layout.textColorConfig.title, '--sample-detail': layout.textColorConfig.details, '--sample-shadow': layout.textShadow }}>
+    <img src={template.preview} alt={`${template.name} invitation artwork`} loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : 'auto'} width="576" height="1024" />
+    <div className="vl-invitation-copy">
+      <span className="vl-invitation-small">Together with our families</span>
+      <span className="vl-invitation-names">Amara<span>&</span>Chidi</span>
+      <span className="vl-invitation-small">Invite you to celebrate<br />our wedding</span>
+      <span className="vl-invitation-rule" />
+      <span className="vl-invitation-date">19 · 12 · 2026</span>
+      <span className="vl-invitation-small">Lagos, Nigeria</span>
+    </div>
+  </div>;
+}
+
+function LandingHero({ session }) {
+  return <section className="vl-hero vl-container" aria-labelledby="hero-title">
+    <div className="vl-hero-copy">
+      <p className="vl-eyebrow">Wedding invitations & guest management</p>
+      <h1 id="hero-title">Your wedding.<br />Your guests.<br /><em>One beautiful link.</em></h1>
+      <p className="vl-hero-description">Create your invitation, manage your guest list, send invites on WhatsApp, track RSVPs and organize seating — all from one place.</p>
+      <div className="vl-hero-actions"><StartLink session={session} /><SectionLink target="features" className="vl-text-link">Explore VowLink <Icon icon="lucide:arrow-down" aria-hidden="true" /></SectionLink></div>
+      <ul className="vl-capabilities" aria-label="VowLink capabilities">{['Beautiful invitations', 'WhatsApp invites', 'RSVP tracking', 'Guests & seating'].map((label) => <li key={label}><Icon icon="lucide:check" aria-hidden="true" />{label}</li>)}</ul>
+    </div>
+    <figure className="vl-hero-visual">
+      <div className="vl-hero-photo" />
+      <div className="vl-hero-invitation"><InvitationSample template={showcase[1]} priority /></div>
+      <figcaption><span>A little glimpse of your big day</span><span>Sample invitation · {getPlanLabel(showcase[1].tier)} template</span></figcaption>
+    </figure>
+  </section>;
+}
+
+function FeatureOverview() {
+  return <section id="features" tabIndex={-1} className="vl-features vl-container" aria-labelledby="features-title">
+    <div className="vl-section-heading"><div><p className="vl-eyebrow">From the first invite to the last seat</p><h2 id="features-title">Everything you need<br />for your wedding guests.</h2></div><p>Everything between “You’re invited”<br />and “See you there.”</p></div>
+    <div className="vl-feature-grid">{features.map(([icon, title, text], index) => <article className="vl-feature" key={title}><div className="vl-feature-top"><Icon icon={icon} aria-hidden="true" /><span>0{index + 1}</span></div><h3>{title}</h3><p>{text}</p></article>)}</div>
+  </section>;
+}
+
+function ProductStory() {
+  const [selected, setSelected] = useState(0);
+  const step = journey[selected];
+  return <section className="vl-story-band">
+    <div className="vl-container vl-story">
+      <div className="vl-story-intro"><p className="vl-eyebrow">Beautiful for them. Organized for you.</p><h2>The invitation is<br /><em>just the beginning.</em></h2><p>Behind every beautiful link is a simpler way to look after your guests.</p>
+        <div className="vl-story-select" role="group" aria-label="Explore the guest journey">{journey.map((item, index) => <button key={item.label} type="button" aria-pressed={selected === index} aria-controls="guest-journey" onClick={() => setSelected(index)}><span>0{index + 1}</span>{item.label}<Icon icon="lucide:arrow-right" aria-hidden="true" /></button>)}</div>
+      </div>
+      <div id="guest-journey" className="vl-story-panel" aria-live="polite" aria-atomic="true">
+        <Icon className="vl-story-icon" icon={step.icon} aria-hidden="true" /><p className="vl-eyebrow">{step.label} with VowLink</p><h3>{step.title}</h3><p>{step.text}</p>
+        <ol className="vl-workflow" aria-label={`${step.label} workflow`}>{step.detail.map((detail, index) => <li key={detail}><span>{String(index + 1).padStart(2, '0')}</span>{detail}{index < 2 && <Icon icon="lucide:arrow-down" aria-hidden="true" />}</li>)}</ol>
+        <Link to="/features" className="vl-text-link">Explore all features <Icon icon="lucide:arrow-up-right" aria-hidden="true" /></Link>
+      </div>
+    </div>
+  </section>;
+}
+
+function ConversionCTA({ session, final = false }) {
+  return <section className={`vl-conversion vl-container ${final ? 'vl-conversion-final' : ''}`} aria-labelledby={final ? 'final-title' : 'conversion-title'}>
+    <p className="vl-eyebrow">{final ? 'Make room for the celebration' : 'Less planning admin. More wedding joy.'}</p>
+    <h2 id={final ? 'final-title' : 'conversion-title'}>{final ? <>One link. Every guest.<br /><em>Everything organized.</em></> : <>Your guest list is complicated enough.<br /><em>Planning it shouldn’t be.</em></>}</h2>
+    <p>{final ? 'Bring your invitation and your guest list together with VowLink.' : 'Create your wedding experience with VowLink.'}</p>
+    <StartLink session={session}>{final ? 'Create Your Invitation' : 'Get Started'}</StartLink>
+    {!session && <p className="vl-login-note">Already have an account? <Link to="/admin/login">Log in</Link></p>}
+  </section>;
+}
+
+function TemplateShowcase({ session }) {
+  const dialog = useRef(null);
+  const trigger = useRef(null);
+  const [preview, setPreview] = useState(showcase[0]);
+  const openPreview = (template, event) => { setPreview(template); trigger.current = event.currentTarget; dialog.current.showModal(); };
+  return <section id="templates" tabIndex={-1} className="vl-templates vl-container" aria-labelledby="templates-title">
+    <div className="vl-section-heading"><div><p className="vl-eyebrow">Made to feel like you</p><h2 id="templates-title">A wedding this personal<br />deserves a beautiful invitation.</h2></div><p>Your colors. Your details. Your kind of celebration.<br />Explore a few designs from our template collection.</p></div>
+    <div className="vl-template-grid">{showcase.map((template) => <article className="vl-template" key={template.name}>
+      <button type="button" className="vl-template-preview" onClick={(event) => openPreview(template, event)} aria-label={`Preview ${template.name}`} aria-haspopup="dialog"><InvitationSample template={template} /><span className="vl-preview-label">Preview design <Icon icon="lucide:expand" aria-hidden="true" /></span></button>
+      <div className="vl-template-caption"><h3>{template.name}</h3><span>{getPlanLabel(template.tier)}</span></div>
+    </article>)}</div>
+    <div className="vl-template-note"><p>Sample invitation text shown. Template availability varies by plan.</p><Link to="/templates" className="vl-text-link">More about templates <Icon icon="lucide:arrow-up-right" aria-hidden="true" /></Link></div>
+    <dialog ref={dialog} className="vl-preview-dialog" aria-labelledby="preview-title" onClose={() => trigger.current?.focus()} onClick={(event) => { if (event.target === event.currentTarget) dialog.current.close(); }}>
+      <div className="vl-dialog-content"><button type="button" className="vl-dialog-close" aria-label="Close template preview" onClick={() => dialog.current.close()} autoFocus><Icon icon="lucide:x" aria-hidden="true" /></button><p className="vl-eyebrow">{getPlanLabel(preview.tier)} template · Sample invitation</p><h2 id="preview-title">{preview.name}</h2><InvitationSample template={preview} /><StartLink session={session}>Create Your Invitation</StartLink></div>
+    </dialog>
+  </section>;
+}
+
+function HowItWorks() {
+  const steps = [['Create your invitation', 'Choose your style and add your wedding details.'], ['Add your guests', 'Build your list individually or import on Plus or Pro.'], ['Send your links', 'Share personalized invitations through WhatsApp.'], ['Track & organize', 'Follow RSVPs and arrange seating on Pro.']];
+  return <section id="how-it-works" tabIndex={-1} className="vl-how vl-container" aria-labelledby="how-title"><p className="vl-eyebrow">A few steps to “You’re invited”</p><h2 id="how-title">From your idea to their inbox.</h2><ol className="vl-steps">{steps.map(([title, text], index) => <li key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{text}</p></li>)}</ol></section>;
+}
+
+function LandingFAQ() {
+  return <section className="vl-faq vl-container" aria-labelledby="faq-title"><div><p className="vl-eyebrow">A little reassurance</p><h2 id="faq-title">Less admin.<br />More celebration.</h2><p>Made for couples who want an invitation that feels personal and a guest list that feels manageable.</p></div><div className="vl-faq-list">
+    {[
+      ['Can guests RSVP on their phones?', 'Yes. Guests open their invitation link in a browser to see the wedding details and send their RSVP.'],
+      ['How does WhatsApp sharing work?', 'VowLink prepares guest-specific links and messages for sharing through WhatsApp. Queue and sending options depend on your plan.'],
+      ['Which plan includes guest import and seating?', 'Bulk guest import is available on Plus and Pro. Seating charts are available on Pro. Compare plans to choose what fits your celebration.'],
+    ].map(([question, answer]) => <article key={question}><h3>{question}</h3><p>{answer}</p></article>)}
+    <Link to="/pricing" className="vl-text-link">Compare plans <Icon icon="lucide:arrow-up-right" aria-hidden="true" /></Link>
+  </div></section>;
+}
+
+export default function LandingPage() {
+  const session = useMemo(() => getStoredSession(), []);
+  return <div className="vl-landing"><a className="vl-skip" href="#main-content">Skip to content</a><LandingNav session={session} />
+    <main id="main-content" tabIndex={-1}><LandingHero session={session} /><FeatureOverview /><ProductStory /><ConversionCTA session={session} /><TemplateShowcase session={session} /><HowItWorks /><LandingFAQ /><ConversionCTA session={session} final /></main>
+    <LandingFooter session={session} />
+  </div>;
+}
