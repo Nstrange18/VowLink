@@ -272,7 +272,7 @@ const userPublic = (user) => ({
 
 // ── Email helper ──────────────────────────────────────────────────────────────
 const sendResetEmail = async (email, resetUrl) => {
-  console.log("[sendResetEmail] Attempting to send reset email to:", email);
+  console.log("[sendResetEmail] Attempting to send reset email");
 
   if (!process.env.SENDGRID_API_KEY) {
     console.error("[sendResetEmail] SendGrid API key missing");
@@ -296,10 +296,9 @@ const sendResetEmail = async (email, resetUrl) => {
       `,
     });
 
-    console.log("[sendResetEmail] Email sent successfully to:", email);
+    console.log("[sendResetEmail] Email sent successfully");
   } catch (error) {
     console.error("[sendResetEmail] Failed to send email");
-    console.error("[sendResetEmail] Error:", error.message);
     throw error;
   }
 };
@@ -819,7 +818,7 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
     const email = String(req.body?.email || "")
       .trim()
       .toLowerCase();
-    console.log("[forgot-password] Request received for email:", email);
+    console.log("[forgot-password] Reset request received");
 
     if (!email) return res.status(400).json({ message: "Email is required." });
 
@@ -827,7 +826,7 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
     console.log("[forgot-password] User found:", !!user);
 
     if (!user) {
-      console.log("[forgot-password] Email not in database:", email);
+      console.log("[forgot-password] No matching account; reset email not sent");
       return res
         .status(200)
         .json({ message: "If that email exists, a reset link has been sent." });
@@ -841,26 +840,16 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
 
     const clientUrl = (process.env.PUBLIC_SITE_URL || process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://vowlink.co").replace(/\/+$/, "");
     const resetUrl = `${clientUrl}/admin/reset-password/${token}`;
-    console.log("[forgot-password] Reset URL:", resetUrl);
 
     if (!process.env.SENDGRID_API_KEY) {
-      console.log(
-        `[forgot-password] SendGrid not configured. Reset link for ${email}: ${resetUrl}`,
-      );
+      console.warn("[forgot-password] SendGrid not configured; reset email not sent");
     } else {
       try {
         console.log("[forgot-password] Calling sendResetEmail()...");
         await sendResetEmail(email, resetUrl);
         console.log("[forgot-password] Email sent successfully");
-      } catch (mailError) {
-        console.error(
-          "[forgot-password] Failed to send reset email for",
-          email,
-        );
-        console.error(
-          "[forgot-password] Error:",
-          mailError?.message || mailError,
-        );
+      } catch {
+        console.error("[forgot-password] Failed to send reset email");
       }
     }
 
@@ -868,7 +857,7 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
       .status(200)
       .json({ message: "If that email exists, a reset link has been sent." });
   } catch (error) {
-    console.error("[forgot-password] Unexpected error:", error);
+    console.error("[forgot-password] Unexpected password-reset processing failure");
     res
       .status(500)
       .json({ message: "Failed to process request.", error: error.message });
