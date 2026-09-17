@@ -791,6 +791,9 @@ router.post("/upgrade", protect, async (req, res) => {
 
 // ── POST /api/auth/make-admin-dev — Dev local admin seeding ──────────────────────
 router.post("/make-admin-dev", async (req, res) => {
+  if (process.env.NODE_ENV !== "development") {
+    return res.status(403).json({ message: "Development admin seeding is disabled." });
+  }
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required." });
