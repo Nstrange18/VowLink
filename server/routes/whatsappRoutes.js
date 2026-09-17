@@ -54,13 +54,13 @@ const getWebhookAppSecret = () =>
 
 const verifyWhatsAppWebhookSignature = (req) => {
   const appSecret = getWebhookAppSecret();
-  if (!appSecret) {
-    console.warn("[WHATSAPP WEBHOOK] App secret is not configured; signature verification was skipped.");
-    return true;
+  if (!appSecret.trim()) {
+    console.warn("[WHATSAPP WEBHOOK] App secret is not configured; webhook verification was rejected.");
+    return false;
   }
 
   const signature = String(req.get("x-hub-signature-256") || "");
-  if (!signature.startsWith("sha256=")) return false;
+  if (!/^sha256=[a-fA-F0-9]{64}$/.test(signature)) return false;
 
   const rawBody = Buffer.isBuffer(req.rawBody)
     ? req.rawBody
