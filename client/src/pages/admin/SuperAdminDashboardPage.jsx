@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "@iconify/react";
@@ -125,7 +125,7 @@ const SuperAdminDashboardPage = () => {
     });
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [couplesRes, analyticsRes] = await Promise.all([
@@ -139,11 +139,11 @@ const SuperAdminDashboardPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [analyticsRange]);
 
   useEffect(() => {
     fetchData();
-  }, [analyticsRange]);
+  }, [fetchData]);
 
   const handleUpdateCoupleTier = async (coupleId, tier) => {
     const actionKey = `couple-tier-${coupleId}`;

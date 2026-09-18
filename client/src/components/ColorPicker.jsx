@@ -258,9 +258,9 @@ const ColorPicker = ({
   const visibleColors = filteredColors.slice(0, visibleColorCount);
   const hasMoreColors = visibleColorCount < filteredColors.length;
 
+  const currentColor = `${selected[activeRole] || selected[selected.length - 1] || ""}`;
   const similarShades = useMemo(() => {
-    const current = selected[activeRole] || selected[selected.length - 1];
-    const meta = getColorMeta(current);
+    const meta = getColorMeta(currentColor);
     const mapped = SIMILAR_SHADE_MAP[meta.name] || WEDDING_COLORS
       .filter((color) => color.name !== meta.name && color.tags?.some((tag) => meta.tags?.includes(tag)))
       .slice(0, 5)
@@ -268,7 +268,7 @@ const ColorPicker = ({
     return mapped
       .map((name) => WEDDING_COLORS.find((color) => color.name === name))
       .filter(Boolean);
-  }, [activeRole, selected]);
+  }, [currentColor]);
 
   const confirmCustom = () => {
     if (!isHexColor(customPreviewHex)) return;

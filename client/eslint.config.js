@@ -43,7 +43,7 @@ export default defineConfig([
         ...globals.node,
         ...globals.commonjs,
       },
-      sourceType: 'commonjs',
+      sourceType: 'module',
     },
   },
 ])

@@ -340,7 +340,6 @@ const AdminSettingsPageContent = () => {
     isUnpaid,
     isFree,
     isPlus,
-    isPro,
 
     customBgInputRef,
     couplePhotoInputRef,
