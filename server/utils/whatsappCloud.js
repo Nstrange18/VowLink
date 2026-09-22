@@ -1,3 +1,4 @@
+const { metaDiagnostics, retainDiagnostics } = require("./whatsappSendDiagnostics");
 const GRAPH_API_VERSION = process.env.WHATSAPP_GRAPH_API_VERSION || "v20.0";
 const DEFAULT_TEMPLATE_NAME = "vowlink_invitation";
 const DEFAULT_LANGUAGE_CODE = "en";
@@ -53,7 +54,7 @@ const normalizeWhatsAppPhone = (phone) => {
   return cleaned;
 };
 
-const parseCloudApiError = async (response) => {
+const parseCloudApiError = async (response, sensitiveValues) => {
   let payload = {};
   try {
     payload = await response.json();
@@ -63,7 +64,10 @@ const parseCloudApiError = async (response) => {
 
   const metaMessage = payload?.error?.message;
   const metaDetails = payload?.error?.error_data?.details;
-  return metaDetails || metaMessage || `WhatsApp Cloud API request failed with status ${response.status}`;
+  return retainDiagnostics(
+    new Error(metaDetails || metaMessage || `WhatsApp Cloud API request failed with status ${response.status}`),
+    metaDiagnostics(response, payload, sensitiveValues),
+  );
 };
 
 const buildInviteMessage = (coupleNames) =>
@@ -160,23 +164,44 @@ const sendInvitationTemplate = async ({ to, guestName, coupleNames, inviteLink }
     urlButtonValueMode: status.urlButtonValueMode,
   });
 
-  const response = await fetch(
-    `https://graph.facebook.com/${GRAPH_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(await parseCloudApiError(response));
+  let response;
+  try {
+    response = await fetch(
+      `https://graph.facebook.com/${GRAPH_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+  } catch (error) {
+    retainDiagnostics(error, {
+      failureSource: "no_http_response",
+      metaMessage: "No HTTP response received; delivery to Meta is unknown.",
+    });
+    throw error;
   }
 
-  const data = await response.json();
+  if (!response.ok) {
+    throw await parseCloudApiError(response, [to, normalizedPhone, guestName, coupleNames,
+      ...String(coupleNames || "").split(" and "), inviteLink,
+      ...String(inviteLink || "").split(/[/?#=&]/).filter(Boolean)]);
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch (error) {
+    retainDiagnostics(error, {
+      failureSource: "application_after_meta_http_response",
+      httpStatus: response.status,
+      metaMessage: "Could not process Meta HTTP response; send acceptance is unknown.",
+    });
+    throw error;
+  }
   return {
     messageId: data?.messages?.[0]?.id || "",
     response: data,

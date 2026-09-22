@@ -1,6 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const crypto = require("crypto");
+const { getSendDiagnostics } = require("../utils/whatsappSendDiagnostics");
 const Invitation = require("../models/Invitation");
 const User = require("../models/User");
 const WhatsAppSendLedger = require("../models/WhatsAppSendLedger");
@@ -458,6 +459,7 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
         logCloudSendAccepted(result, invitation);
         results.push({ id: invitation._id, status: "queued", data: invitation });
       } catch (error) {
+        console.error("[WHATSAPP SEND] Individual bulk send failed.", getSendDiagnostics(error, metaAccepted));
         failed++;
         if (creditReserved && !metaAccepted) {
           latestUsage = await refundWhatsAppSendCredit(req.user.id);
