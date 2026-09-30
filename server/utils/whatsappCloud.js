@@ -1,8 +1,8 @@
 const { metaDiagnostics, retainDiagnostics } = require("./whatsappSendDiagnostics");
 const GRAPH_API_VERSION = process.env.WHATSAPP_GRAPH_API_VERSION || "v20.0";
 const DEFAULT_TEMPLATE_NAME = "vowlink_invitation";
-// Existing public PNG also used as the invitation share-preview fallback.
-const INVITATION_HEADER_IMAGE_URL = "https://vowlink.co/vowlink-logo.png";
+// Public image served from client/public for the approved image-header template.
+const INVITATION_HEADER_IMAGE_URL = "https://vowlink.co/vowlink-logo.jpg";
 const DEFAULT_LANGUAGE_CODE = "en";
 const DEFAULT_GUEST_NAME_PARAMETER = "guest_name";
 const DEFAULT_INVITE_MESSAGE_PARAMETER = "invite_message";

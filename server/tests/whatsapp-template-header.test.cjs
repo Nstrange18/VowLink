@@ -36,10 +36,10 @@ describe("approved invitation template image header", () => {
     return JSON.parse(global.fetch.mock.calls[0][1].body).template;
   };
 
-  test("includes exactly one header with exactly one image from the existing public PNG asset", async () => {
+  test("includes exactly one header with exactly one image from the public JPEG asset", async () => {
     const template = await send();
     expect(template.components.filter((component) => component.type === "header")).toEqual([{
-      type: "header", parameters: [{ type: "image", image: { link: "https://vowlink.co/vowlink-logo.png" } }],
+      type: "header", parameters: [{ type: "image", image: { link: "https://vowlink.co/vowlink-logo.jpg" } }],
     }]);
   });
 
