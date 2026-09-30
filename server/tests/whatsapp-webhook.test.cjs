@@ -94,6 +94,83 @@ describe("WhatsApp POST webhook signature verification", () => {
     expect(invitation.whatsappStatus).toBe("delivered");
   };
 
+  const postStatuses = (statuses) => {
+    const body = JSON.stringify({ entry: [{ changes: [{
+      field: "messages", value: { statuses },
+    }] }] }, null, 2);
+    return request(server).post("/api/whatsapp/webhook")
+      .set("Content-Type", "application/json")
+      .set("x-hub-signature-256", signatureFor(secret, body))
+      .send(body);
+  };
+
+  test.each([
+    ["sent", "whatsappSentAt"],
+    ["delivered", "whatsappDeliveredAt"],
+    ["read", "whatsappReadAt"],
+    ["failed", "whatsappFailedAt"],
+  ])("applies signed messages-field %s status to the invitation matched by wamid", async (status, timestampField) => {
+    invitation.whatsappStatus = "queued";
+    const started = Date.now();
+    const response = await postStatuses([{
+      id: "wamid.synthetic-status", status, timestamp: "1600000000",
+      errors: status === "failed" ? [{ code: 131000, message: "Synthetic delivery failure" }] : undefined,
+    }]);
+    expect(response.status).toBe(200);
+    expect(response.text).toBe("OK");
+    expect(Invitation.findOne).toHaveBeenCalledTimes(1);
+    expect(Invitation.findOne).toHaveBeenCalledWith({ whatsappMessageId: "wamid.synthetic-status" });
+    expect(invitation.save).toHaveBeenCalledTimes(1);
+    expect(invitation.whatsappStatus).toBe(status);
+    expect(invitation.whatsappProvider).toBe("cloud_api");
+    expect(invitation[timestampField]).toBeInstanceOf(Date);
+    expect(invitation[timestampField].getTime()).toBeGreaterThanOrEqual(started);
+    expect(invitation[timestampField].getTime()).toBeLessThanOrEqual(Date.now());
+    if (status === "sent") {
+      expect(invitation.whatsappSentBy).toBe("WhatsApp Cloud API");
+      expect(invitation.whatsappFailureReason).toBe("");
+    }
+    if (status === "failed") {
+      expect(invitation.whatsappFailureReason).toBe("We could not send this invite. Please try again.");
+    }
+  });
+
+  test("preserves an existing sent timestamp when Meta reports sent", async () => {
+    const original = new Date("2025-01-01T12:00:00Z");
+    invitation.whatsappSentAt = original;
+    invitation.whatsappFailureReason = "Previous failure";
+    expect((await postStatuses([{ id: "wamid.synthetic-sent", status: "sent" }])).status).toBe(200);
+    expect(invitation.whatsappSentAt).toBe(original);
+    expect(invitation.whatsappFailureReason).toBe("");
+  });
+
+  test("acknowledges an unmatched wamid without saving an invitation", async () => {
+    Invitation.findOne.mockResolvedValue(null);
+    const response = await postStatuses([{ id: "wamid.unmatched", status: "delivered" }]);
+    expect(response.status).toBe(200);
+    expect(response.text).toBe("OK");
+    expect(Invitation.findOne).toHaveBeenCalledWith({ whatsappMessageId: "wamid.unmatched" });
+    expect(invitation.save).not.toHaveBeenCalled();
+    expect(invitation.whatsappStatus).toBe("sent");
+    expect(warning).toHaveBeenCalledWith(
+      "[WHATSAPP WEBHOOK] Status update did not match an invitation.",
+      expect.objectContaining({ messageId: "wamid.unmatched", status: "delivered" }),
+    );
+  });
+
+  test("continues to match later statuses after an unmatched wamid in the same notification", async () => {
+    Invitation.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(invitation);
+    const response = await postStatuses([
+      { id: "wamid.unmatched", status: "sent" },
+      { id: "wamid.matched", status: "read" },
+    ]);
+    expect(response.status).toBe(200);
+    expect(Invitation.findOne).toHaveBeenNthCalledWith(1, { whatsappMessageId: "wamid.unmatched" });
+    expect(Invitation.findOne).toHaveBeenNthCalledWith(2, { whatsappMessageId: "wamid.matched" });
+    expect(invitation.save).toHaveBeenCalledTimes(1);
+    expect(invitation.whatsappStatus).toBe("read");
+  });
+
   const expectRejected = async (pending) => {
     const response = await pending;
     expect(response.status).toBe(403);
