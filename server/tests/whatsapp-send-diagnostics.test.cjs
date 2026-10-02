@@ -7,7 +7,7 @@ jest.mock("axios", () => ({}));
 jest.mock("../middleware/auth", () => ({ protect: (req, _res, next) => {
   req.user = { id: "synthetic-user" }; next();
 } }));
-jest.mock("../models/Invitation", () => ({ find: jest.fn() }));
+jest.mock("../models/Invitation", () => ({ find: jest.fn(), findOne: jest.fn() }));
 jest.mock("../models/User", () => ({ findById: jest.fn() }));
 jest.mock("../models/WhatsAppSendLedger", () => ({}));
 jest.mock("../utils/whatsappCredits", () => ({
@@ -30,6 +30,7 @@ const environment = {
   FACEBOOK_APP_SECRET: "synthetic-facebook-secret",
   WHATSAPP_WEBHOOK_VERIFY_TOKEN: "synthetic-webhook-secret",
   PUBLIC_SITE_URL: "https://example.invalid",
+  WHATSAPP_URL_BUTTON_VALUE_MODE: "slug",
 };
 const privateData = {
   to: "2348000000001", guestName: "Synthetic Guest",
@@ -64,6 +65,7 @@ describe("WhatsApp send diagnostics", () => {
       save: jest.fn().mockResolvedValue(undefined),
     };
     Invitation.find.mockResolvedValue([invitation]);
+    Invitation.findOne.mockResolvedValue(invitation);
     User.findById.mockReturnValue({ select: jest.fn().mockResolvedValue({
       tier: "pro", partner1Name: "Synthetic Partner One", partner2Name: "Synthetic Partner Two",
     }) });
@@ -117,6 +119,7 @@ describe("WhatsApp send diagnostics", () => {
       failureSource: "meta_http_error", httpStatus: status, metaCode: 131042,
       metaSubcode: 2494010, metaType: "OAuthException",
       metaMessage: "Business eligibility payment issue", fbtrace_id: "SyntheticTrace_123",
+      metaDetails: "Meta rejected the send; provider text withheld for privacy.",
     });
     expect(log).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -164,7 +167,7 @@ describe("WhatsApp send diagnostics", () => {
     expect(diagnostic().metaType).toBeUndefined();
     expect(diagnostic().fbtrace_id).toBeUndefined();
     expect(Object.keys(diagnostic()).sort()).toEqual([
-      "failureSource", "httpStatus", "metaCode", "metaSubcode", "metaType", "metaMessage", "fbtrace_id",
+      "failureSource", "httpStatus", "metaCode", "metaSubcode", "metaType", "metaMessage", "metaDetails", "fbtrace_id",
     ].sort());
   });
 
@@ -230,5 +233,55 @@ describe("WhatsApp send diagnostics", () => {
   test("does not trust arbitrary diagnostic properties on application errors", () => {
     const error = Object.assign(new Error("private text"), { diagnostics: { metaMessage: "secret" }, response: { token: "secret" } });
     expect(getSendDiagnostics(error)).toEqual({ failureSource: "application_before_meta_response", metaMessage: "Application processing failed." });
+  });
+
+  test("retains distinct provider message and component details only in private diagnostics", async () => {
+    metaFailure(400, {
+      code: 132012, error_subcode: 123,
+      message: "Parameter format does not match format in the created template",
+      error_data: { details: "header: Format mismatch, expected IMAGE, received UNKNOWN" },
+    });
+    const response = await post();
+    expectPublicFailure(response);
+    expect(diagnostic()).toMatchObject({
+      metaMessage: "Parameter format does not match format in the created template",
+      metaDetails: "header: Format mismatch, expected IMAGE, received UNKNOWN",
+      metaCode: 132012, metaSubcode: 123, fbtrace_id: "SyntheticTrace_123",
+    });
+    expect(JSON.stringify(response.body)).not.toMatch(/Format mismatch|132012|SyntheticTrace/);
+  });
+
+  test("redacts known identities, tokens, URLs, emails and phone numbers from both text fields", async () => {
+    const echoed = `Could not deliver to ${privateData.guestName} (${privateData.to}); ${privateData.inviteLink}; person@example.invalid; ${environment.WHATSAPP_APP_SECRET}`;
+    metaFailure(400, { message: echoed, error_data: { details: echoed } });
+    await post();
+    const output = JSON.stringify(log.mock.calls);
+    for (const value of [privateData.guestName, privateData.to, privateData.inviteLink,
+      "private-invite-token", "person@example.invalid", environment.WHATSAPP_APP_SECRET]) expect(output).not.toContain(value);
+    expect(diagnostic().metaMessage).toContain("Could not deliver to [REDACTED]");
+    expect(diagnostic().metaDetails).toContain("Could not deliver to [REDACTED]");
+  });
+
+  test("logs sanitized structured diagnostics for single sends without leaking provider text publicly", async () => {
+    metaFailure(400, { message: "Error validating access token", error_data: { details: "Synthetic diagnostic detail" } });
+    const response = await request(server).post("/api/whatsapp/send/synthetic-invitation").send({});
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ message: "We could not send this invite. Please try again." });
+    expect(log).toHaveBeenCalledWith("[WHATSAPP SEND] Single invite failed:", expect.objectContaining({
+      metaMessage: "Error validating access token", metaDetails: "Synthetic diagnostic detail", metaCode: 131042,
+    }));
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(credits.refundWhatsAppSendCredit).toHaveBeenCalledTimes(1);
+  });
+
+  test("invalid slug failure keeps bulk results generic and refunds without making a Meta request", async () => {
+    invitation.slug = "{{1}}invalid";
+    const response = await post();
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ submitted: 0, failed: 1,
+      results: [{ message: "We could not send this invite. Please try again." }] });
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(credits.refundWhatsAppSendCredit).toHaveBeenCalledTimes(1);
+    expect(diagnostic().failureSource).toBe("application_before_meta_response");
   });
 });

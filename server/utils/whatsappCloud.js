@@ -7,7 +7,7 @@ const DEFAULT_LANGUAGE_CODE = "en";
 const DEFAULT_GUEST_NAME_PARAMETER = "guest_name";
 const DEFAULT_INVITE_MESSAGE_PARAMETER = "invite_message";
 const DEFAULT_URL_BUTTON_INDEX = "0";
-const DEFAULT_URL_BUTTON_VALUE_MODE = "full";
+const DEFAULT_URL_BUTTON_VALUE_MODE = "slug";
 
 const getUrlButtonValueMode = () => {
   const mode = String(process.env.WHATSAPP_URL_BUTTON_VALUE_MODE || DEFAULT_URL_BUTTON_VALUE_MODE).toLowerCase();
@@ -76,6 +76,20 @@ const buildInviteMessage = (coupleNames) =>
   `you are specially invited to celebrate the wedding of ${coupleNames || "the couple"}.`;
 
 const buildUrlButtonValue = (inviteLink, mode = DEFAULT_URL_BUTTON_VALUE_MODE) => {
+  if (mode === "slug") {
+    try {
+      const url = new URL(inviteLink);
+      const match = url.pathname.match(/^\/invite\/([a-z0-9-]+)\/?$/);
+      if (["https:", "http:"].includes(url.protocol) && !url.username && !url.password &&
+        !url.search && !url.hash && match && /[a-z0-9]/.test(match[1]) &&
+        !/%|\{|\}|\\/.test(String(inviteLink))) {
+        return match[1];
+      }
+    } catch {
+      // Invalid links must never fall back to a full URL in slug mode.
+    }
+    throw new Error("Invalid invitation URL for WhatsApp sending.");
+  }
   if (!inviteLink) return "";
   if (mode === "full") return inviteLink;
 
@@ -83,7 +97,6 @@ const buildUrlButtonValue = (inviteLink, mode = DEFAULT_URL_BUTTON_VALUE_MODE) =
     const url = new URL(inviteLink);
     const cleanPath = url.pathname.replace(/^\/+/, "");
     if (mode === "path") return cleanPath;
-    if (mode === "slug") return cleanPath.split("/").filter(Boolean).pop() || cleanPath;
   } catch {
     return inviteLink;
   }

@@ -1,12 +1,4 @@
-// Provider text is untrusted: retain only known, non-personal messages.
-const SAFE_MESSAGES = new Set([
-  "Invalid parameter",
-  "Unsupported post request",
-  "Message failed to send because there were one or more errors related to your payment method.",
-  "Business eligibility payment issue",
-  "Service temporarily unavailable",
-]);
-
+// Preserve diagnostic text while removing known secrets and request identities.
 const privateValues = (values) => [
   ...values,
   ...Object.entries(process.env)
@@ -16,6 +8,24 @@ const privateValues = (values) => [
 
 const containsPrivateValue = (text, values) =>
   privateValues(values).some((value) => text.toLowerCase().includes(value.toLowerCase()));
+
+const sanitizeProviderText = (value, sensitiveValues) => {
+  const fallback = "Meta rejected the send; provider text withheld for privacy.";
+  if (typeof value !== "string" || !value.trim()) return fallback;
+  // Do not attempt to salvage serialized requests, credentials or header dumps.
+  if (/authorization|bearer\s|(?:access[_ -]?token|app[_ -]?secret|password|credential)\s*[=:]|[{}]/i.test(value)) return fallback;
+  let text = value;
+  for (const privateValue of privateValues(sensitiveValues).sort((a, b) => b.length - a.length)) {
+    const escaped = privateValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    text = text.replace(new RegExp(escaped, "gi"), "[REDACTED]");
+  }
+  return text
+    .replace(/https?:\/\/[^\s<>"']+/gi, "[REDACTED URL]")
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[REDACTED EMAIL]")
+    .replace(/\+?\d(?:[\s().-]*\d){6,}/g, "[REDACTED NUMBER]")
+    .replace(/[\r\n\t\x00-\x1f\x7f]/g, " ")
+    .slice(0, 2000);
+};
 
 const metaDiagnostics = (response, payload, sensitiveValues) => {
   const error = payload?.error;
@@ -30,8 +40,8 @@ const metaDiagnostics = (response, payload, sensitiveValues) => {
     metaCode: integer(error?.code),
     metaSubcode: integer(error?.error_subcode),
     metaType: safeIdentifier(error?.type, /^[A-Za-z]+(?:Exception|Error)$/),
-    metaMessage: SAFE_MESSAGES.has(message) && !containsPrivateValue(message, sensitiveValues)
-      ? message : "Meta rejected the send; provider text withheld for privacy.",
+    metaMessage: sanitizeProviderText(message, sensitiveValues),
+    metaDetails: sanitizeProviderText(error?.error_data?.details, sensitiveValues),
     fbtrace_id: safeIdentifier(error?.fbtrace_id, /^(?!.*\d{7})[A-Za-z0-9_-]{8,100}$/),
   };
 };

@@ -374,7 +374,7 @@ router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
     if (creditReserved && !metaAccepted) {
       await refundWhatsAppSendCredit(req.user.id);
     }
-    console.error("[WHATSAPP SEND] Single invite failed:", error.response?.data || error.message);
+    console.error("[WHATSAPP SEND] Single invite failed:", getSendDiagnostics(error, metaAccepted));
     return res.status(500).json({ message: getPublicWhatsAppError(error) });
   }
 });

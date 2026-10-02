@@ -26,10 +26,10 @@ describe("approved invitation template image header", () => {
     }
   });
 
-  const send = async () => {
+  const send = async (inviteLink = "https://vowlink.co/invite/synthetic-slug") => {
     await sendInvitationTemplate({
       to: "2348000000001", guestName: "Synthetic Guest",
-      coupleNames: "Synthetic Couple", inviteLink: "https://vowlink.co/invite/synthetic-slug",
+      coupleNames: "Synthetic Couple", inviteLink,
     });
     expect(jest.isMockFunction(global.fetch)).toBe(true);
     expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -68,6 +68,39 @@ describe("approved invitation template image header", () => {
     delete process.env.WHATSAPP_INVITE_TEMPLATE_NAME;
     expect((await send()).components.filter((component) => component.type === "header")).toHaveLength(1);
   });
+
+  test.each([undefined, "", "unrecognized"])("defaults to strict slug mode for configuration %s", async (mode) => {
+    if (mode === undefined) delete process.env.WHATSAPP_URL_BUTTON_VALUE_MODE;
+    else process.env.WHATSAPP_URL_BUTTON_VALUE_MODE = mode;
+    const template = await send();
+    expect(template.components.find((component) => component.type === "button").parameters[0].text).toBe("synthetic-slug");
+  });
+
+  test("extracts only the invitation slug with an optional trailing slash", async () => {
+    const template = await send("https://vowlink.co/invite/synthetic--slug-123/");
+    expect(template.components.find((component) => component.type === "button").parameters[0].text).toBe("synthetic--slug-123");
+  });
+
+  test.each([
+    "", "synthetic-slug", "/invite/synthetic-slug", "not a URL",
+    "https://vowlink.co/other/synthetic-slug", "https://vowlink.co/invite/",
+    "https://vowlink.co/invite/---", "https://vowlink.co/invite/slug/extra",
+    "https://vowlink.co/invite/{{1}}slug", "https://vowlink.co/invite/%7B%7B1%7D%7Dslug",
+    "https://vowlink.co/invite/slug?token=private", "https://vowlink.co/invite/slug#private",
+    "https://user:password@vowlink.co/invite/slug", "ftp://vowlink.co/invite/slug",
+    "https://vowlink.co/invite/slug%2Fextra", "https://vowlink.co/invite/slug\\extra",
+  ])("rejects an invalid invitation link before Meta fetch: %s", async (inviteLink) => {
+    await expect(send(inviteLink)).rejects.toThrow("Invalid invitation URL for WhatsApp sending.");
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  test.each([["full", "https://vowlink.co/invite/synthetic-slug"], ["path", "invite/synthetic-slug"]])(
+    "preserves the explicit legacy %s mode", async (mode, expected) => {
+      process.env.WHATSAPP_URL_BUTTON_VALUE_MODE = mode;
+      const template = await send();
+      expect(template.components.find((component) => component.type === "button").parameters[0].text).toBe(expected);
+    },
+  );
 
   test("does not impose an image header on a differently configured template", async () => {
     process.env.WHATSAPP_INVITE_TEMPLATE_NAME = "synthetic_other_template";
