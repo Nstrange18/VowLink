@@ -1,4 +1,4 @@
-// Preserve diagnostic text while removing known secrets and request identities.
+// Preserve provider diagnostics; redact credential values, not diagnostic vocabulary.
 const privateValues = (values) => [
   ...values,
   ...Object.entries(process.env)
@@ -12,19 +12,16 @@ const containsPrivateValue = (text, values) =>
 const sanitizeProviderText = (value, sensitiveValues) => {
   const fallback = "Meta rejected the send; provider text withheld for privacy.";
   if (typeof value !== "string" || !value.trim()) return fallback;
-  // Do not attempt to salvage serialized requests, credentials or header dumps.
-  if (/authorization|bearer\s|(?:access[_ -]?token|app[_ -]?secret|password|credential)\s*[=:]|[{}]/i.test(value)) return fallback;
   let text = value;
   for (const privateValue of privateValues(sensitiveValues).sort((a, b) => b.length - a.length)) {
     const escaped = privateValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    text = text.replace(new RegExp(escaped, "gi"), "[REDACTED]");
+    text = text.replace(new RegExp(`(?<![a-z0-9_])${escaped}(?![a-z0-9_])`, "gi"), "[REDACTED]");
   }
   return text
-    .replace(/https?:\/\/[^\s<>"']+/gi, "[REDACTED URL]")
-    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[REDACTED EMAIL]")
-    .replace(/\+?\d(?:[\s().-]*\d){6,}/g, "[REDACTED NUMBER]")
-    .replace(/[\r\n\t\x00-\x1f\x7f]/g, " ")
-    .slice(0, 2000);
+    .replace(/(["']?authorization["']?\s*[:=]\s*)(?:"[^"\r\n]*"|'[^'\r\n]*'|[^,;\r\n}]+)/gi, "$1[REDACTED]")
+    .replace(/\bBearer\s+[^\s,;"'}]+/gi, "Bearer [REDACTED]")
+    .replace(/(["']?(?:access[_ -]?token|app[_ -]?secret|webhook[_ -]?secret|verify[_ -]?token|password|credential|api[_ -]?key)["']?\s*[:=]\s*)(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\s,;"'}]+)/gi, "$1[REDACTED]")
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[REDACTED EMAIL]");
 };
 
 const metaDiagnostics = (response, payload, sensitiveValues) => {
@@ -42,7 +39,7 @@ const metaDiagnostics = (response, payload, sensitiveValues) => {
     metaType: safeIdentifier(error?.type, /^[A-Za-z]+(?:Exception|Error)$/),
     metaMessage: sanitizeProviderText(message, sensitiveValues),
     metaDetails: sanitizeProviderText(error?.error_data?.details, sensitiveValues),
-    fbtrace_id: safeIdentifier(error?.fbtrace_id, /^(?!.*\d{7})[A-Za-z0-9_-]{8,100}$/),
+    fbtrace_id: safeIdentifier(error?.fbtrace_id, /^[A-Za-z0-9_-]{8,100}$/),
   };
 };
 

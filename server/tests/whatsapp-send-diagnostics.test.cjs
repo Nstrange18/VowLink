@@ -159,11 +159,13 @@ describe("WhatsApp send diagnostics", () => {
     });
     await post();
     const output = JSON.stringify(log.mock.calls);
-    for (const value of [...Object.values(environment), ...Object.values(privateData),
-      "private-invite-token", "person@example.invalid", "confidential", "unknown-sensitive-text"]) {
+    for (const value of [environment.WHATSAPP_ACCESS_TOKEN, environment.WHATSAPP_APP_SECRET,
+      environment.META_APP_SECRET, environment.FACEBOOK_APP_SECRET, environment.WHATSAPP_WEBHOOK_VERIFY_TOKEN,
+      ...Object.values(privateData), "private-invite-token", "person@example.invalid", "confidential"]) {
       expect(output).not.toContain(value);
     }
-    expect(diagnostic().metaMessage).toBe("Meta rejected the send; provider text withheld for privacy.");
+    expect(diagnostic().metaMessage).toContain("synthetic-phone-id");
+    expect(diagnostic().metaMessage).not.toBe("Meta rejected the send; provider text withheld for privacy.");
     expect(diagnostic().metaType).toBeUndefined();
     expect(diagnostic().fbtrace_id).toBeUndefined();
     expect(Object.keys(diagnostic()).sort()).toEqual([
@@ -180,7 +182,7 @@ describe("WhatsApp send diagnostics", () => {
     expect(credits.refundWhatsAppSendCredit).toHaveBeenCalledTimes(1);
   });
 
-  test.each([privateData.to, "2348000000009", "SyntheticGuest", "person@example.invalid", "private-invite-token"])(
+  test.each([privateData.to, "SyntheticGuest", "person@example.invalid", "private-invite-token"])(
     "withholds personal or private trace values: %s", async (trace) => {
       const guestName = trace === "SyntheticGuest" ? trace : privateData.guestName;
       metaFailure(400, { fbtrace_id: trace });
@@ -283,5 +285,34 @@ describe("WhatsApp send diagnostics", () => {
     expect(global.fetch).not.toHaveBeenCalled();
     expect(credits.refundWhatsAppSendCredit).toHaveBeenCalledTimes(1);
     expect(diagnostic().failureSource).toBe("application_before_meta_response");
+  });
+
+  test("preserves ordinary Meta text, braces, parameter names and phone-number IDs exactly", async () => {
+    const message = "Parameter format does not match format in the created template";
+    const details = "vowlink_invitation: guest_name, invite_message; {{1}}; phone_number_id=1494125895857096; authorization parameter is missing";
+    metaFailure(400, { message, error_data: { details }, code: 100, error_subcode: 33,
+      type: "OAuthException", fbtrace_id: "AKTyFA7d90kpBqQt8nraJIG" });
+    const response = await post();
+    expect(response.status).toBe(200);
+    expect(response.body.results[0].message).toBe("Check this guest's WhatsApp number and try again.");
+    expect(diagnostic()).toMatchObject({ metaMessage: message, metaDetails: details,
+      metaCode: 100, metaSubcode: 33, metaType: "OAuthException", fbtrace_id: "AKTyFA7d90kpBqQt8nraJIG" });
+    expect(JSON.stringify(response.body)).not.toContain(details);
+  });
+
+  test("redacts credential values inside text without discarding the surrounding diagnostic", async () => {
+    const message = 'Invalid parameter {"access_token":"synthetic-unknown-access","app_secret":"synthetic-unknown-app","webhook_secret":"synthetic-unknown-webhook"}; guest_name is required';
+    const details = 'Request rejected; Authorization: Bearer synthetic-unknown-bearer; invite_message is required';
+    metaFailure(400, { message, error_data: { details } });
+    await post();
+    expect(diagnostic().metaMessage).toBe('Invalid parameter {"access_token":[REDACTED],"app_secret":[REDACTED],"webhook_secret":[REDACTED]}; guest_name is required');
+    expect(diagnostic().metaDetails).toBe('Request rejected; Authorization: [REDACTED]; invite_message is required');
+    expect(JSON.stringify(log.mock.calls)).not.toMatch(/synthetic-unknown-(access|app|webhook|bearer)/);
+  });
+
+  test("preserves long numeric trace IDs rather than treating them as phone numbers", async () => {
+    metaFailure(400, { fbtrace_id: "Trace1494125895857096" });
+    await post();
+    expect(diagnostic().fbtrace_id).toBe("Trace1494125895857096");
   });
 });
