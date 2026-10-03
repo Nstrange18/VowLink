@@ -192,6 +192,7 @@ function AppContent() {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           {/* Default route */}
+          {/* Commit message route */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/features" element={<MarketingPage page="features" />} />
           <Route path="/pricing" element={<MarketingPage page="pricing" />} />
