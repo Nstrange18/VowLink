@@ -163,7 +163,7 @@ const getHistoryStatusLabel = (status) => {
 };
 
 const getHistoryStatusClass = (status) => {
-  if (status === "marketing_limited") return "border-amber-400/25 bg-amber-400/12 text-amber-200";
+  if (status === "marketing_limited") return "border-amber-400/25 bg-amber-700/12 text-amber-800";
   if (failureMessages[status]) return "border-red-400/25 bg-red-400/12 text-red-200";
   if (status === "read") return "border-emerald-400/25 bg-emerald-400/12 text-emerald-200";
   if (status === "delivered") return "border-teal-400/25 bg-teal-400/12 text-teal-200";
@@ -1571,7 +1571,7 @@ const AdminBulkWhatsAppPage = () => {
                       )}
                     </div>
                     {failureMessages[deliveryState(item.status, item.failureReason)] && (
-                      <p className="mt-2 text-[10px] leading-relaxed text-red-300/75">
+                      <p className="mt-2 text-[11px] leading-relaxed text-red-500/60">
                         {getStatusHelpText(item.status, item.failureReason)}
                       </p>
                     )}
@@ -1835,7 +1835,7 @@ const AdminBulkWhatsAppPage = () => {
                               <div
                                 className={`mx-auto mt-1 block max-w-32 text-[9px] leading-relaxed ${
                                   guest.whatsappStatus === "failed"
-                                    ? "text-red-300/75"
+                                    ? "text-red-700/40"
                                     : "text-white/40"
                                 }`}
                               >
