@@ -2,6 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const crypto = require("crypto");
 const { getSendDiagnostics } = require("../utils/whatsappSendDiagnostics");
+const { classifyDeliveryFailure, failureMessages } = require("../utils/whatsappDelivery");
 const Invitation = require("../models/Invitation");
 const User = require("../models/User");
 const WhatsAppSendLedger = require("../models/WhatsAppSendLedger");
@@ -104,7 +105,7 @@ const getPublicWhatsAppError = (error) => {
 };
 
 const markInvitationFailure = async (invitation, reason) => {
-  invitation.whatsappStatus = "failed";
+  invitation.whatsappStatus = "technical_failure";
   invitation.whatsappProvider = "cloud_api";
   invitation.whatsappFailedAt = new Date();
   invitation.whatsappFailureReason = getPublicWhatsAppError(reason);
@@ -138,6 +139,8 @@ const recordAcceptedSend = async ({ userId, invitation, phone, result }) => {
 };
 
 const applyCloudStatus = (invitation, status, failureReason = "") => {
+  if (invitation.whatsappStatus === "read" && status !== "read") return;
+  if (invitation.whatsappStatus === "delivered" && !["delivered", "read"].includes(status)) return;
   const now = new Date();
   invitation.whatsappProvider = "cloud_api";
 
@@ -159,11 +162,9 @@ const applyCloudStatus = (invitation, status, failureReason = "") => {
   }
 
   if (status === "failed") {
-    invitation.whatsappStatus = "failed";
+    invitation.whatsappStatus = classifyDeliveryFailure(failureReason);
     invitation.whatsappFailedAt = now;
-    invitation.whatsappFailureReason = getPublicWhatsAppError(
-      failureReason || "WhatsApp delivery failed.",
-    );
+    invitation.whatsappFailureReason = failureMessages[invitation.whatsappStatus];
   }
 };
 
@@ -525,7 +526,9 @@ router.post("/webhook", async (req, res) => {
         const statuses = Array.isArray(change?.value?.statuses) ? change.value.statuses : [];
         for (const update of statuses) {
           statusUpdates++;
-          const failureReason = update?.errors?.[0]?.message || update?.errors?.[0]?.title || "";
+          const failureReason = (Array.isArray(update?.errors) ? update.errors : []).flatMap((error) =>
+            [error?.message, error?.title, error?.error_data?.details].filter((value) => typeof value === "string"),
+          ).join("; ");
           const invitation = await Invitation.findOne({ whatsappMessageId: update.id });
           if (!invitation) {
             console.warn("[WHATSAPP WEBHOOK] Status update did not match an invitation.", {

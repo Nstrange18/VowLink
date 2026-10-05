@@ -104,7 +104,7 @@ describe("WhatsApp send diagnostics", () => {
         message: "We could not send this invite. Please try again.",
         data: {
           _id: invitation._id, guestName: privateData.guestName, phoneNumber: privateData.to,
-          slug: "private-invite-token", whatsappStatus: "failed", whatsappProvider: "cloud_api",
+          slug: "private-invite-token", whatsappStatus: "technical_failure", whatsappProvider: "cloud_api",
           whatsappFailedAt: expect.any(String),
           whatsappFailureReason: "We could not send this invite. Please try again.",
         },

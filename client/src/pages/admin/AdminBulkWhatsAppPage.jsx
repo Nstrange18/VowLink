@@ -9,6 +9,8 @@ import { buildPublicUrl } from "../../utils/siteUrl";
 import PageMiniTour from "../../components/PageMiniTour";
 import { normalizeInternationalPhone } from "../../utils/phoneNumbers";
 
+import { deliveryState, failureMessages, failureLabel, isMarketingLimited } from "../../utils/whatsappDelivery";
+
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY?.trim();
 
 const WHATSAPP_TOUR_STEPS = [
@@ -141,6 +143,8 @@ const getFriendlyFailureReason = (reason) => {
 };
 
 const getStatusHelpText = (status, failureReason) => {
+  const state = deliveryState(status, failureReason);
+  if (failureMessages[state]) return failureMessages[state];
   if (status === "queued") return "Waiting for delivery update";
   if (status === "sent") return "Sent by WhatsApp";
   if (status === "delivered") return "Delivered to guest";
@@ -150,6 +154,7 @@ const getStatusHelpText = (status, failureReason) => {
 };
 
 const getHistoryStatusLabel = (status) => {
+  if (failureLabel(deliveryState(status))) return failureLabel(deliveryState(status));
   if (status === "read") return "Opened";
   if (status === "delivered") return "Delivered";
   if (status === "sent") return "Sent";
@@ -158,6 +163,8 @@ const getHistoryStatusLabel = (status) => {
 };
 
 const getHistoryStatusClass = (status) => {
+  if (status === "marketing_limited") return "border-amber-400/25 bg-amber-400/12 text-amber-200";
+  if (failureMessages[status]) return "border-red-400/25 bg-red-400/12 text-red-200";
   if (status === "read") return "border-emerald-400/25 bg-emerald-400/12 text-emerald-200";
   if (status === "delivered") return "border-teal-400/25 bg-teal-400/12 text-teal-200";
   if (status === "sent") return "border-emerald-400/20 bg-emerald-400/10 text-emerald-300";
@@ -251,11 +258,13 @@ const AdminBulkWhatsAppPage = () => {
       !cleanPhone(guest?.phoneNumber) ||
       guest?.whatsappStatus === "missing_number";
     return Boolean(
-      guest && !isMissing && !sentStatuses.has(guest.whatsappStatus),
+      guest && !isMissing && !sentStatuses.has(guest.whatsappStatus) && !isMarketingLimited(guest),
     );
   };
 
   const getStatusLabel = (guest) => {
+    const failure = failureLabel(deliveryState(guest.whatsappStatus, guest.whatsappFailureReason));
+    if (failure) return failure;
     if (
       !cleanPhone(guest.phoneNumber) ||
       guest.whatsappStatus === "missing_number"
@@ -272,6 +281,8 @@ const AdminBulkWhatsAppPage = () => {
 
   const getStatusClass = (status, isMissing) => {
     if (isMissing) return "bg-red-500/15 text-red-400 border-red-500/25";
+    if (status === "marketing_limited") return "bg-amber-500/15 text-amber-300 border-amber-500/25";
+    if (failureMessages[status]) return "bg-red-500/15 text-red-300 border-red-500/25";
     if (status === "read")
       return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
     if (status === "delivered")
@@ -589,7 +600,8 @@ const AdminBulkWhatsAppPage = () => {
       if (
         guest &&
         guest.phoneNumber &&
-        !sentStatuses.has(guest.whatsappStatus)
+        !sentStatuses.has(guest.whatsappStatus) &&
+        !isMarketingLimited(guest)
       ) {
         try {
           const res = await api.patch(`/invitations/${id}/whatsapp-status`, {
@@ -822,7 +834,7 @@ const AdminBulkWhatsAppPage = () => {
       const isMissing =
         !cleanPhone(guest?.phoneNumber) ||
         guest?.whatsappStatus === "missing_number";
-      return guest && !isMissing && !sentStatuses.has(guest.whatsappStatus);
+      return guest && !isMissing && !sentStatuses.has(guest.whatsappStatus) && !isMarketingLimited(guest);
     });
 
     if (sendableIds.length === 0) {
@@ -1545,9 +1557,9 @@ const AdminBulkWhatsAppPage = () => {
                         </p>
                       </div>
                       <span
-                        className={`shrink-0 rounded-full border px-2 py-1 text-[9px] font-bold uppercase tracking-wider ${getHistoryStatusClass(item.status)}`}
+                        className={`shrink-0 rounded-full border px-2 py-1 text-[9px] font-bold uppercase tracking-wider ${getHistoryStatusClass(deliveryState(item.status, item.failureReason))}`}
                       >
-                        {getHistoryStatusLabel(item.status)}
+                        {getHistoryStatusLabel(deliveryState(item.status, item.failureReason))}
                       </span>
                     </div>
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-white/35">
@@ -1558,9 +1570,9 @@ const AdminBulkWhatsAppPage = () => {
                         </span>
                       )}
                     </div>
-                    {item.status === "failed" && item.failureReason && (
+                    {failureMessages[deliveryState(item.status, item.failureReason)] && (
                       <p className="mt-2 text-[10px] leading-relaxed text-red-300/75">
-                        {getFriendlyFailureReason(item.failureReason)}
+                        {getStatusHelpText(item.status, item.failureReason)}
                       </p>
                     )}
                   </div>
@@ -1812,7 +1824,7 @@ const AdminBulkWhatsAppPage = () => {
                           {/* Status Badge */}
                           <td className="px-4 py-4 text-center">
                             <span
-                              className={`inline-block px-2.5 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border ${getStatusClass(guest.whatsappStatus, isMissing)}`}
+                              className={`inline-block px-2.5 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border ${getStatusClass(deliveryState(guest.whatsappStatus, guest.whatsappFailureReason), isMissing)}`}
                             >
                               {getStatusLabel(guest)}
                             </span>
@@ -1860,7 +1872,7 @@ const AdminBulkWhatsAppPage = () => {
 
                               {!isMissing &&
                                 cloudConfigured &&
-                                !sentStatuses.has(guest.whatsappStatus) && (
+                                !sentStatuses.has(guest.whatsappStatus) && !isMarketingLimited(guest) && (
                                   <button
                                     onClick={
                                       cloudAllowanceExhausted

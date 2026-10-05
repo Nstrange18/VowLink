@@ -121,7 +121,7 @@ describe("WhatsApp POST webhook signature verification", () => {
     expect(Invitation.findOne).toHaveBeenCalledTimes(1);
     expect(Invitation.findOne).toHaveBeenCalledWith({ whatsappMessageId: "wamid.synthetic-status" });
     expect(invitation.save).toHaveBeenCalledTimes(1);
-    expect(invitation.whatsappStatus).toBe(status);
+    expect(invitation.whatsappStatus).toBe(status === "failed" ? "technical_failure" : status);
     expect(invitation.whatsappProvider).toBe("cloud_api");
     expect(invitation[timestampField]).toBeInstanceOf(Date);
     expect(invitation[timestampField].getTime()).toBeGreaterThanOrEqual(started);
@@ -142,6 +142,37 @@ describe("WhatsApp POST webhook signature verification", () => {
     expect((await postStatuses([{ id: "wamid.synthetic-sent", status: "sent" }])).status).toBe(200);
     expect(invitation.whatsappSentAt).toBe(original);
     expect(invitation.whatsappFailureReason).toBe("");
+  });
+
+  test.each([
+    [{ message: "This message was not delivered to maintain healthy ecosystem engagement." }, "marketing_limited", "WhatsApp temporarily limited marketing delivery to this recipient. Try again later or use manual WhatsApp sharing."],
+    [{ title: "Business eligibility payment issue" }, "payment_issue", "WhatsApp could not complete delivery because of a business billing or eligibility issue."],
+    [{ error_data: { details: "BUSINESS ELIGIBILITY issue" } }, "payment_issue", "WhatsApp could not complete delivery because of a business billing or eligibility issue."],
+    [{ message: "Payment required" }, "payment_issue", "WhatsApp could not complete delivery because of a business billing or eligibility issue."],
+    [{ message: "Unknown technical error" }, "technical_failure", "We could not send this invite. Please try again."],
+    [undefined, "technical_failure", "We could not send this invite. Please try again."],
+  ])("classifies delivery failure %j as %s", async (error, state, message) => {
+    const response = await postStatuses([{ id: "wamid.failure", status: "failed", errors: error ? [error] : [] }]);
+    expect(response.status).toBe(200);
+    expect(invitation.whatsappStatus).toBe(state);
+    expect(invitation.whatsappFailureReason).toBe(message);
+    expect(invitation.save).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([
+    ["delivered", "sent"], ["delivered", "failed"],
+    ["read", "sent"], ["read", "delivered"], ["read", "failed"],
+  ])("preserves %s after a late %s notification", async (current, incoming) => {
+    invitation.whatsappStatus = current;
+    await postStatuses([{ id: "wamid.late", status: incoming, errors: [{ message: "Payment issue" }] }]);
+    expect(invitation.whatsappStatus).toBe(current);
+    expect(invitation.whatsappFailedAt).toBeUndefined();
+  });
+
+  test("allows delivered to advance to read", async () => {
+    invitation.whatsappStatus = "delivered";
+    await postStatuses([{ id: "wamid.read", status: "read" }]);
+    expect(invitation.whatsappStatus).toBe("read");
   });
 
   test("acknowledges an unmatched wamid without saving an invitation", async () => {
