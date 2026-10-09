@@ -26,10 +26,10 @@ describe("approved invitation template image header", () => {
     }
   });
 
-  const send = async (inviteLink = "https://vowlink.co/invite/synthetic-slug") => {
+  const send = async (inviteLink = "https://vowlink.co/invite/synthetic-slug", couplePhotoUrl) => {
     await sendInvitationTemplate({
       to: "2348000000001", guestName: "Synthetic Guest",
-      coupleNames: "Synthetic Couple", inviteLink,
+      coupleNames: "Synthetic Couple", inviteLink, couplePhotoUrl,
     });
     expect(jest.isMockFunction(global.fetch)).toBe(true);
     expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -42,6 +42,24 @@ describe("approved invitation template image header", () => {
       type: "header", parameters: [{ type: "image", image: { link: "https://vowlink.co/vowlink-logo.jpg" } }],
     }]);
   });
+
+  test("uses the existing uploaded couple photo as a bounded JPEG image header", async () => {
+    const template = await send(undefined, "https://res.cloudinary.com/synthetic/image/upload/v123/couple.png");
+    expect(template.components.filter((component) => component.type === "header")).toEqual([{
+      type: "header", parameters: [{ type: "image", image: {
+        link: "https://res.cloudinary.com/synthetic/image/upload/f_jpg,q_auto,w_1200,h_630,c_fit/v123/couple.png",
+      } }],
+    }]);
+    expect(template.components.find((component) => component.type === "button").parameters[0].text).toBe("synthetic-slug");
+    expect(template.components.find((component) => component.type === "body").parameters.map((p) => p.parameter_name)).toEqual(["guest_name", "invite_message"]);
+  });
+
+  test.each(["", "data:image/png;base64,synthetic", "/couple.jpg", "http://res.cloudinary.com/synthetic/image/upload/couple.jpg", "https://localhost/couple.jpg", "https://res.cloudinary.com.evil.invalid/image/upload/couple.jpg", "https://res.cloudinary.com/synthetic/image/private/couple.jpg", "https://user:password@res.cloudinary.com/synthetic/image/upload/couple.jpg", "https://res.cloudinary.com/synthetic/image/upload/couple.jpg?token=private"])(
+    "keeps the public logo fallback for unsuitable photo %s", async (photo) => {
+      const template = await send(undefined, photo);
+      expect(template.components.find((component) => component.type === "header").parameters[0].image.link).toBe("https://vowlink.co/vowlink-logo.jpg");
+    },
+  );
 
   test("preserves template, language, two named body parameters and their order", async () => {
     const template = await send();

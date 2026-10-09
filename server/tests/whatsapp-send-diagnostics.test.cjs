@@ -87,6 +87,24 @@ describe("WhatsApp send diagnostics", () => {
 
   const post = () => request(server).post("/api/whatsapp/send-bulk")
     .send({ invitationIds: ["synthetic-invitation"] });
+  test.each(["single", "bulk"])("%s sends use the owner's uploaded photo without changing submission behavior", async (mode) => {
+    User.findById.mockReturnValue({ select: jest.fn().mockResolvedValue({
+      tier: "pro", partner1Name: "Synthetic Partner One", partner2Name: "Synthetic Partner Two",
+      couplePhotoUrl: "https://res.cloudinary.com/synthetic/image/upload/v123/couple.png",
+    }) });
+    global.fetch.mockResolvedValue({ ok: true, json: async () => ({ messages: [{ id: "synthetic-photo-message" }] }) });
+    const response = mode === "bulk" ? await post() : await request(server).post("/api/whatsapp/send/synthetic-invitation").send({});
+    expect(response.status).toBe(200);
+    const payload = JSON.parse(global.fetch.mock.calls[0][1].body);
+    expect(payload.template.components.find((c) => c.type === "header").parameters[0].image.link)
+      .toBe("https://res.cloudinary.com/synthetic/image/upload/f_jpg,q_auto,w_1200,h_630,c_fit/v123/couple.png");
+    expect(payload.template.components.find((c) => c.type === "button").parameters[0].text).toBe("private-invite-token");
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(credits.reserveWhatsAppSendCredit).toHaveBeenCalledTimes(1);
+    expect(credits.refundWhatsAppSendCredit).not.toHaveBeenCalled();
+    expect(invitation.whatsappStatus).toBe("queued");
+    expect(invitation.whatsappMessageId).toBe("synthetic-photo-message");
+  });
   const metaFailure = (status = 400, error = {}) => {
     global.fetch.mockResolvedValue({ ok: false, status, json: jest.fn().mockResolvedValue({ error: {
       message: "Business eligibility payment issue", code: 131042, error_subcode: 2494010,

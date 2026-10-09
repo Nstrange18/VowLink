@@ -33,7 +33,7 @@ const getPublicSiteUrl = () =>
 const requireProWorkspace = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select(
-      "partner1Name partner2Name email tier whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed",
+      "partner1Name partner2Name email tier couplePhotoUrl whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed",
     );
     if (!user) {
       return res.status(404).json({ message: "User not found." });
@@ -351,6 +351,7 @@ router.post("/send/:id", protect, requireProWorkspace, async (req, res) => {
       guestName: invitation.guestName,
       coupleNames: buildCoupleNames(req.currentUser),
       inviteLink: buildInviteLink(invitation),
+      couplePhotoUrl: req.currentUser.couplePhotoUrl,
     });
     metaAccepted = true;
 
@@ -446,6 +447,7 @@ router.post("/send-bulk", protect, requireProWorkspace, async (req, res) => {
           guestName: invitation.guestName,
           coupleNames: buildCoupleNames(req.currentUser),
           inviteLink: buildInviteLink(invitation),
+          couplePhotoUrl: req.currentUser.couplePhotoUrl,
         });
         metaAccepted = true;
 

@@ -3,6 +3,16 @@ const GRAPH_API_VERSION = process.env.WHATSAPP_GRAPH_API_VERSION || "v20.0";
 const DEFAULT_TEMPLATE_NAME = "vowlink_invitation";
 // Public image served from client/public for the approved image-header template.
 const INVITATION_HEADER_IMAGE_URL = "https://vowlink.co/vowlink-logo.jpg";
+// Settings uploads use public Cloudinary images. Keep the logo for unsuitable URLs.
+const getInvitationHeaderImageUrl = (couplePhotoUrl) => {
+  try {
+    const url = new URL(couplePhotoUrl);
+    if (url.protocol !== "https:" || url.hostname !== "res.cloudinary.com" ||
+        url.port || url.username || url.password || url.search || url.hash ||
+        !url.pathname.includes("/image/upload/")) return INVITATION_HEADER_IMAGE_URL;
+    return url.href.replace("/upload/", "/upload/f_jpg,q_auto,w_1200,h_630,c_fit/");
+  } catch { return INVITATION_HEADER_IMAGE_URL; }
+};
 const DEFAULT_LANGUAGE_CODE = "en";
 const DEFAULT_GUEST_NAME_PARAMETER = "guest_name";
 const DEFAULT_INVITE_MESSAGE_PARAMETER = "invite_message";
@@ -115,6 +125,7 @@ const buildInvitationTemplatePayload = ({
   inviteMessageParameter,
   urlButtonIndex,
   urlButtonValueMode,
+  couplePhotoUrl,
 }) => ({
   messaging_product: "whatsapp",
   to,
@@ -128,7 +139,7 @@ const buildInvitationTemplatePayload = ({
       ...((templateName || process.env.WHATSAPP_INVITE_TEMPLATE_NAME || DEFAULT_TEMPLATE_NAME) === DEFAULT_TEMPLATE_NAME
         ? [{
           type: "header",
-          parameters: [{ type: "image", image: { link: INVITATION_HEADER_IMAGE_URL } }],
+          parameters: [{ type: "image", image: { link: getInvitationHeaderImageUrl(couplePhotoUrl) } }],
         }]
         : []),
       {
@@ -161,7 +172,7 @@ const buildInvitationTemplatePayload = ({
   },
 });
 
-const sendInvitationTemplate = async ({ to, guestName, coupleNames, inviteLink }) => {
+const sendInvitationTemplate = async ({ to, guestName, coupleNames, inviteLink, couplePhotoUrl }) => {
   const status = getWhatsAppConfigStatus();
   if (!status.configured) {
     throw new Error("WhatsApp Cloud API is not configured.");
@@ -177,6 +188,7 @@ const sendInvitationTemplate = async ({ to, guestName, coupleNames, inviteLink }
     guestName,
     inviteMessage: buildInviteMessage(coupleNames),
     inviteLink,
+    couplePhotoUrl,
     templateName: status.templateName,
     languageCode: status.languageCode,
     guestNameParameter: status.guestNameParameter,
@@ -208,6 +220,7 @@ const sendInvitationTemplate = async ({ to, guestName, coupleNames, inviteLink }
 
   if (!response.ok) {
     throw await parseCloudApiError(response, [to, normalizedPhone, guestName, coupleNames,
+      couplePhotoUrl, getInvitationHeaderImageUrl(couplePhotoUrl),
       ...String(coupleNames || "").split(" and "), inviteLink,
       ...String(inviteLink || "").split(/[/?#=&]/).filter(Boolean)]);
   }
