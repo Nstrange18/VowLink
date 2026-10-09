@@ -111,6 +111,7 @@ const SuperAdminDashboardPage = () => {
   const [couples, setCouples] = useState([]);
   const [analytics, setAnalytics] = useState(emptyAnalytics);
   const [analyticsRange, setAnalyticsRange] = useState("7d");
+  const [topPagesVisible, setTopPagesVisible] = useState(5);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
   const [coupleToDelete, setCoupleToDelete] = useState(null);
@@ -128,6 +129,7 @@ const SuperAdminDashboardPage = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      setTopPagesVisible(5);
       const [couplesRes, analyticsRes] = await Promise.all([
         api.get("/super-admin/couples"),
         api.get(`/analytics/summary?range=${analyticsRange}`),
@@ -317,7 +319,7 @@ const SuperAdminDashboardPage = () => {
               {analytics.topPages.length === 0 ? (
                 <p className="rounded-2xl border border-dashed border-white/10 p-5 text-center text-xs text-white/35">No visits tracked yet.</p>
               ) : (
-                analytics.topPages.map((page) => {
+                analytics.topPages.slice(0, topPagesVisible).map((page) => {
                   const pageDisplay = getPageDisplay(page.path);
 
                   return (
@@ -336,6 +338,7 @@ const SuperAdminDashboardPage = () => {
                 })
               )}
             </div>
+            {analytics.topPages.length > 5 && <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs"><span className="text-white/60">Showing {Math.min(topPagesVisible, analytics.topPages.length)} of {analytics.topPages.length} pages</span><div className="flex flex-wrap gap-3">{topPagesVisible < analytics.topPages.length && <button type="button" onClick={() => setTopPagesVisible((count) => count + 5)} className="rounded-lg border border-[#D8B76A]/30 px-4 py-2 text-[#D8B76A]">Show 5 more pages</button>}{topPagesVisible > 5 && <button type="button" onClick={() => setTopPagesVisible(5)} className="rounded-lg border border-white/20 px-4 py-2">Show fewer pages</button>}</div></div>}
           </div>
 
           <div className="min-w-0 space-y-5">

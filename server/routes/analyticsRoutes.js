@@ -109,7 +109,7 @@ router.get("/summary", protect, protectAdmin, async (req, res) => {
         { $group: { _id: "$path", visits: { $sum: 1 }, uniqueVisitors: { $addToSet: "$visitorId" }, pageType: { $first: "$pageType" } } },
         { $project: { path: "$_id", pageType: 1, visits: 1, uniqueVisitors: { $size: "$uniqueVisitors" }, _id: 0 } },
         { $sort: { visits: -1 } },
-        { $limit: 8 },
+        { $limit: 100 },
       ]),
       SiteVisit.aggregate([
         { $match: { createdAt: { $gte: since } } },

@@ -1,5 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
-import { render, screen, within, waitFor } from "@testing-library/react";
+import { act, render, screen, within, waitFor } from "@testing-library/react";
+import { toast } from "react-toastify";
 import userEvent from "@testing-library/user-event";
 import api from "../utils/api";
 import RsvpReminderPanel from "./RsvpReminderPanel";
@@ -35,8 +36,40 @@ test("shows pending guests only, hiding both Yes and No respondents", async () =
 test("single reminder sends a request key and blocks duplicate accepted submissions", async () => {
   const actor = await open(); await actor.click(screen.getByRole("button", { name: "Send RSVP Reminder", exact: true }));
   expect(api.post).toHaveBeenCalledWith("/whatsapp/reminders/send/pending-guest", {}, { headers: { "Idempotency-Key": expect.any(String) } });
+  expect(toast.success).toHaveBeenCalledWith("1 RSVP reminder submitted.");
   await waitFor(() => expect(screen.getByRole("button", { name: "Send RSVP Reminder", exact: true }).disabled).toBe(true));
   expect(screen.getByText("Reminder: queued")).not.toBeNull();
+});
+
+test("shows pending guests in groups of ten without losing selection", async () => {
+  const list = Array.from({ length: 21 }, (_, index) => ({ _id: `guest-${index}`, guestName: `Guest ${index}`, phoneNumber: "2348000000001", hasRSVPed: false }));
+  render(<RsvpReminderPanel invitations={list} user={owner} />);
+  const actor = userEvent.setup();
+  await actor.click(screen.getByRole("button", { name: "RSVP reminders" }));
+  await waitFor(() => expect(screen.queryByText("Loading reminder history…")).toBeNull());
+  expect(screen.queryByText("Guest 10")).toBeNull();
+  await actor.click(screen.getByRole("checkbox", { name: "Select Guest 0 for RSVP reminder" }));
+  await actor.click(screen.getByRole("button", { name: "Show 10 more guests" }));
+  expect(screen.getByText("Guest 19")).not.toBeNull();
+  expect(screen.queryByText("Guest 20")).toBeNull();
+  await actor.click(screen.getByRole("button", { name: "Show fewer guests" }));
+  expect(screen.queryByText("Guest 10")).toBeNull();
+  expect(screen.getByRole("checkbox", { name: "Select Guest 0 for RSVP reminder" }).checked).toBe(true);
+});
+
+test("refreshes queued reminders to delivered without resending and stops on collapse", async () => {
+  const interval = vi.spyOn(globalThis, "setInterval").mockReturnValue(123);
+  const clear = vi.spyOn(globalThis, "clearInterval");
+  try {
+    const actor = await open();
+    const poll = interval.mock.calls.find((call) => call[1] === 10000)[0];
+    api.get.mockResolvedValue({ data: { history: [{ id: "reminder-1", invitationId: "pending-guest", sendStatus: "accepted", deliveryStatus: "delivered", retryAfter: "2030-01-02" }] } });
+    await act(async () => { await poll(); });
+    expect(screen.getByText("Reminder: delivered")).not.toBeNull();
+    expect(api.post).not.toHaveBeenCalled();
+    await actor.click(screen.getByRole("button", { name: "RSVP reminders" }));
+    expect(clear).toHaveBeenCalledWith(123);
+  } finally { interval.mockRestore(); clear.mockRestore(); }
 });
 test("bulk sends selected pending guests only", async () => {
   api.post.mockResolvedValue({ data: { results: [{ id: "pending-guest", data: { id: "reminder-1", invitationId: "pending-guest", sendStatus: "accepted", deliveryStatus: "queued", retryAfter: "2030-01-02" } }] } });
@@ -56,8 +89,37 @@ test.each(["unknown", "sending", "preparing"])("blocks %s reminders loaded from 
   await open(); expect(screen.getByRole("button", { name: "Send RSVP Reminder", exact: true }).disabled).toBe(true);
 });
 test("requires a future deadline", async () => {
-  await open({ tier: "pro" }); expect(screen.getByText(/Set a future RSVP deadline/)).not.toBeNull();
+  await open({ tier: "pro" }); expect(screen.getByText("Set a future RSVP deadline in Settings before sending reminders.")).not.toBeNull();
   expect(screen.getByRole("button", { name: "Send RSVP Reminder", exact: true }).disabled).toBe(true);
+  expect(screen.getByRole("link", { name: "Set RSVP deadline" }).getAttribute("href")).toBe("/admin/settings");
+  expect(screen.getByRole("checkbox", { name: "Select Pending Guest for RSVP reminder" }).disabled).toBe(true);
+});
+
+test("makes expansion clear and supports collapsing the guest list", async () => {
+  render(<RsvpReminderPanel invitations={guests} user={owner} />);
+  const actor = userEvent.setup();
+  const toggle = screen.getByRole("button", { name: "RSVP reminders" });
+  expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  expect(screen.getByText("Show guests")).not.toBeNull();
+  await actor.click(toggle);
+  expect(toggle.getAttribute("aria-expanded")).toBe("true");
+  expect(screen.getByText("Hide guests")).not.toBeNull();
+  await actor.click(toggle);
+  expect(screen.queryByText("Pending Guest")).toBeNull();
+  expect(api.post).not.toHaveBeenCalled();
+});
+
+test("select all includes only eligible pending guests and explains missing phones", async () => {
+  render(<RsvpReminderPanel invitations={[...guests, { _id: "no-phone", guestName: "Missing Phone", hasRSVPed: false }]} user={owner} />);
+  const actor = userEvent.setup();
+  await actor.click(screen.getByRole("button", { name: "RSVP reminders" }));
+  await waitFor(() => expect(screen.queryByText("Loading reminder history…")).toBeNull());
+  expect(screen.getByText("Add a phone number to send a reminder.")).not.toBeNull();
+  await actor.click(screen.getByRole("checkbox", { name: "Select all eligible pending guests" }));
+  expect(screen.getByRole("checkbox", { name: "Select Pending Guest for RSVP reminder" }).checked).toBe(true);
+  expect(screen.getByRole("checkbox", { name: "Select Missing Phone for RSVP reminder" }).checked).toBe(false);
+  expect(screen.getByText("Send reminders (1 selected)")).not.toBeNull();
+  expect(api.post).not.toHaveBeenCalled();
 });
 test("history failure disables sending until a successful refresh", async () => {
   api.get.mockRejectedValueOnce(new Error("history unavailable")); const actor = await open();
