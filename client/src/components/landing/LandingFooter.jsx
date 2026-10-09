@@ -104,7 +104,7 @@ export default function LandingFooter({ session }) {
                   <span>hello@vowlink.co</span>
                 </a>
                 <a
-                  href="https://wa.me/2349116443591"
+                  href="https://wa.me/2348050833768"
                   target="_blank"
                   rel="noreferrer"
                   className="group flex items-center gap-3 transition hover:text-[#D8B76A]"
@@ -112,7 +112,7 @@ export default function LandingFooter({ session }) {
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/10 text-[#D8B76A] transition group-hover:bg-[#D8B76A] group-hover:text-[#070A13]">
                     <Icon icon="ri:whatsapp-line" className="h-4 w-4" />
                   </span>
-                  <span>+234 911 644 3591</span>
+                  <span>+234 805 083 3768</span>
                 </a>
                 <a
                   href="https://instagram.com/vowlink.co"

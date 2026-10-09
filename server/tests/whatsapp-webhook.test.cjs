@@ -6,6 +6,7 @@ const { allowTestServer } = require("./setup.cjs");
 
 jest.mock("axios", () => ({}));
 jest.mock("../models/Invitation", () => ({ findOne: jest.fn() }));
+jest.mock("../models/WhatsAppReminder", () => ({ findOne: jest.fn().mockResolvedValue(null) }));
 jest.mock("../models/User", () => ({}));
 jest.mock("../models/WhatsAppSendLedger", () => ({}));
 jest.mock("../utils/whatsappCloud", () => ({}));

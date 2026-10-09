@@ -60,7 +60,18 @@ const getWhatsAppUsage = (user = {}) => {
   };
 };
 
-const reserveWhatsAppSendCredit = async (userId) => {
+const reserveWhatsAppSendCredit = async (userId, { atomic = true } = {}) => {
+  if (atomic) {
+    const user = await User.findOneAndUpdate({
+      _id: userId, tier: "pro",
+      $expr: { $lt: [
+        { $ifNull: ["$whatsappCloudSendsUsed", 0] },
+        { $add: [{ $ifNull: ["$whatsappCloudIncludedSends", DEFAULT_INCLUDED_WHATSAPP_SENDS] }, { $ifNull: ["$whatsappCloudExtraSends", 0] }] },
+      ] },
+    }, { $inc: { whatsappCloudSendsUsed: 1 } }, { new: true });
+    const balance = user || await User.findById(userId).select("tier whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed");
+    return { reserved: Boolean(user), user, usage: getWhatsAppUsage(balance || {}) };
+  }
   const current = await User.findById(userId).select(
     "tier whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed",
   );
@@ -99,7 +110,13 @@ const reserveWhatsAppSendCredit = async (userId) => {
   };
 };
 
-const refundWhatsAppSendCredit = async (userId) => {
+const refundWhatsAppSendCredit = async (userId, { atomic = true } = {}) => {
+  if (atomic) {
+    const user = await User.findOneAndUpdate({ _id: userId, whatsappCloudSendsUsed: { $gt: 0 } },
+      { $inc: { whatsappCloudSendsUsed: -1 } }, { new: true });
+    const balance = user || await User.findById(userId).select("whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed");
+    return getWhatsAppUsage(balance || {});
+  }
   const current = await User.findById(userId).select(
     "whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed",
   );
@@ -150,19 +167,10 @@ const addWhatsAppExtraSends = async (userId, sends) => {
     throw new Error("Invalid WhatsApp send pack quantity.");
   }
 
-  const current = await User.findById(userId).select(
-    "whatsappCloudIncludedSends whatsappCloudExtraSends whatsappCloudSendsUsed",
-  );
-  const usage = getWhatsAppUsage(current || {});
-
   const user = await User.findByIdAndUpdate(
     userId,
     {
-      $set: {
-        whatsappCloudIncludedSends: usage.included,
-        whatsappCloudExtraSends: usage.extra + quantity,
-        whatsappCloudSendsUsed: usage.used,
-      },
+      $inc: { whatsappCloudExtraSends: quantity },
     },
     { new: true },
   );

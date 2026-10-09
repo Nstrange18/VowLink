@@ -7,6 +7,7 @@ import { showConfirmToast } from "../../utils/toastConfirm";
 import { Icon } from "@iconify/react";
 import { buildPublicUrl } from "../../utils/siteUrl";
 import PageMiniTour from "../../components/PageMiniTour";
+import RsvpReminderPanel from "../../components/RsvpReminderPanel";
 import { normalizeInternationalPhone } from "../../utils/phoneNumbers";
 
 import { deliveryState, failureMessages, failureLabel, isMarketingLimited } from "../../utils/whatsappDelivery";
@@ -1081,6 +1082,8 @@ const AdminBulkWhatsAppPage = () => {
           steps={WHATSAPP_TOUR_STEPS}
         />
       </div>
+
+      <RsvpReminderPanel invitations={invitations} user={user} onChanged={fetchCloudConfig} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Template & Presets Column */}

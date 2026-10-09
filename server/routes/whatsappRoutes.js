@@ -51,6 +51,8 @@ const requireProWorkspace = async (req, res, next) => {
 
 const buildInviteLink = (invitation) => `${getPublicSiteUrl()}/invite/${invitation.slug}`;
 
+router.use("/reminders", require("./whatsappReminderRoutes")(requireProWorkspace));
+
 const getWebhookAppSecret = () =>
   process.env.WHATSAPP_APP_SECRET || process.env.META_APP_SECRET || process.env.FACEBOOK_APP_SECRET || "";
 
@@ -529,6 +531,10 @@ router.post("/webhook", async (req, res) => {
           const failureReason = (Array.isArray(update?.errors) ? update.errors : []).flatMap((error) =>
             [error?.message, error?.title, error?.error_data?.details].filter((value) => typeof value === "string"),
           ).join("; ");
+          if (await require("../services/whatsappReminders").applyReminderWebhook(update.id, update.status, failureReason)) {
+            matchedUpdates++;
+            continue;
+          }
           const invitation = await Invitation.findOne({ whatsappMessageId: update.id });
           if (!invitation) {
             console.warn("[WHATSAPP WEBHOOK] Status update did not match an invitation.", {
