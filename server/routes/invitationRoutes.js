@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Invitation = require("../models/Invitation");
 const RSVP = require("../models/RSVP");
+const { currentSort, findCurrentRsvp, currentRsvps, hasCurrentRsvp, checkInRsvpIssue } = require("../utils/rsvpState");
 const Table = require("../models/Table");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
@@ -61,16 +62,7 @@ const normalizeGuestCategory = (value) => {
 };
 
 const getCheckInEligibilityIssue = async (invitation) => {
-  if (!invitation?.hasRSVPed) {
-    return "This guest has not submitted their RSVP yet. Ask them to RSVP before checking them in.";
-  }
-
-  const rsvp = await RSVP.findOne({ invitationId: invitation._id }).sort({ createdAt: -1 });
-  if (rsvp?.attending === "No") {
-    return "This guest RSVP'd that they are not attending, so they cannot be checked in.";
-  }
-
-  return "";
+  return checkInRsvpIssue(invitation._id);
 };
 
 const getOptionalUserFromRequest = (req) => {
@@ -194,6 +186,7 @@ const withCheckInContext = async (invitation, tables = null) => {
 
   return {
     ...plainInvitation,
+    hasRSVPed: await hasCurrentRsvp(plainInvitation._id),
     partySize: plainInvitation.allowedGuests || 1,
     tableName: seating?.tableName || "",
     tableCapacity: seating?.tableCapacity || null,
@@ -236,7 +229,11 @@ router.get("/slug/:slug", async (req, res) => {
 
     await ensureInvitationCheckInToken(invitation);
 
-    res.status(200).json(invitation);
+    const rsvp = await findCurrentRsvp(invitation._id);
+    res.status(200).json({ ...invitation.toObject(), hasRSVPed: Boolean(rsvp),
+      rsvp: rsvp ? { guestName: rsvp.guestName, guestEmail: rsvp.guestEmail, phone: rsvp.phone,
+        attending: rsvp.attending, numberOfGuests: rsvp.numberOfGuests, headcountConfirmed: rsvp.headcountConfirmed,
+        mealPreference: rsvp.mealPreference, message: rsvp.message } : null });
   } catch (error) {
     res
       .status(500)
@@ -260,11 +257,10 @@ router.get("/slug/:slug/wishes", async (req, res) => {
     const RSVP = require("../models/RSVP");
     const wishes = await RSVP.find({
       invitationId: { $in: invitationIds },
-      attending: "Yes",
-      message: { $ne: "", $exists: true }
-    }).select("guestName message createdAt").sort({ createdAt: -1 });
+    }).select("invitationId currentKey updatedAt guestName message attending createdAt").sort(currentSort);
 
-    res.status(200).json(wishes);
+    res.status(200).json(currentRsvps(wishes).filter((rsvp) => rsvp.attending === "Yes" && rsvp.message)
+      .map((rsvp) => ({ guestName: rsvp.guestName, message: rsvp.message, createdAt: rsvp.createdAt })));
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch wishes", error: error.message });
   }
@@ -299,7 +295,7 @@ router.get("/check-in/:token", async (req, res) => {
       tableName: seating.tableName,
       tableCapacity: seating.tableCapacity,
       seatNumber: seating.seatNumber,
-      hasRSVPed: invitation.hasRSVPed,
+      hasRSVPed: seating.hasRSVPed,
       checkedIn: invitation.checkedIn,
       checkedInAt: invitation.checkedInAt,
       couple: invitation.userId
@@ -709,8 +705,10 @@ router.get("/", protect, async (req, res) => {
     });
     await Promise.all(invitations.map((inv) => ensureInvitationCheckInToken(inv)));
 
+    const respondedIds = new Set((await RSVP.distinct("invitationId", { invitationId: { $in: invitations.map((inv) => inv._id) } })).map(String));
     const updatedInvitations = invitations.map(inv => {
       const doc = inv.toObject();
+      doc.hasRSVPed = respondedIds.has(String(inv._id));
       if (!doc.senderGroup) doc.senderGroup = "general";
       if (!doc.whatsappStatus) {
         doc.whatsappStatus = doc.phoneNumber ? "not_sent" : "missing_number";

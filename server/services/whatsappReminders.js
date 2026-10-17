@@ -1,5 +1,5 @@
 const Invitation = require("../models/Invitation");
-const RSVP = require("../models/RSVP");
+const { hasCurrentRsvp } = require("../utils/rsvpState");
 const User = require("../models/User");
 const Reminder = require("../models/WhatsAppReminder");
 const { reserveWhatsAppSendCredit, refundWhatsAppSendCredit } = require("../utils/whatsappCredits");
@@ -12,7 +12,7 @@ const fail = (status, message) => Object.assign(new Error(message), { status });
 const assertPending = async (userId, invitationId) => {
   const invitation = await Invitation.findOne({ _id: invitationId, userId });
   if (!invitation) throw fail(404, "Invitation not found.");
-  if (invitation.hasRSVPed || await RSVP.exists({ invitationId })) {
+  if (await hasCurrentRsvp(invitationId)) {
     throw fail(409, "This guest has already RSVP’d.");
   }
   return invitation;

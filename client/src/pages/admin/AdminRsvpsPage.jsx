@@ -307,7 +307,7 @@ const AdminRsvpsPage = () => {
                         {r.attending}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-white/60">{r.numberOfGuests}</td>
+                    <td className="px-4 py-4 text-white/60">{r.numberOfGuests}{r.attending === 'Yes' && !r.headcountConfirmed && <span className="block text-xs text-amber-300">Legacy estimate; not confirmed</span>}</td>
                     <td className="px-4 py-4">
                       <span className="inline-flex min-w-30 items-center justify-center whitespace-nowrap rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-3 py-1 text-xs text-[#D8B76A]/80">
                         {r.mealPreference || 'No Preference'}
@@ -346,7 +346,7 @@ const AdminRsvpsPage = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-white/50 mt-3">
                   <div><span className="text-white/30">Phone</span><br />{r.phone}</div>
-                  <div><span className="text-white/30">Guests</span><br />{r.numberOfGuests}</div>
+                  <div><span className="text-white/30">Guests</span><br />{r.numberOfGuests}{r.attending === 'Yes' && !r.headcountConfirmed && <span className="block text-xs text-amber-300">Legacy estimate; not confirmed</span>}</div>
                 </div>
                 <div className="mt-2">
                   <span className="inline-flex max-w-full rounded-full border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-3 py-1 text-xs text-[#D8B76A]/80">

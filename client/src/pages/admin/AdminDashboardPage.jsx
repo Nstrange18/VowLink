@@ -731,7 +731,9 @@ const AdminDashboardPage = () => {
     );
   }
 
-  const attending = rsvps.filter((r) => r.attending === "Yes").length;
+  // Old responses stored the maximum allowance, not an explicitly confirmed party size.
+  const confirmedCount = (rsvp) => rsvp.headcountConfirmed && Number.isInteger(rsvp.numberOfGuests) && rsvp.numberOfGuests > 0 ? rsvp.numberOfGuests : 1;
+  const attending = rsvps.filter((r) => r.attending === "Yes").reduce((total, rsvp) => total + confirmedCount(rsvp), 0);
   const notAttending = rsvps.filter((r) => r.attending === "No").length;
 
   const isDeadlinePassed =
@@ -752,14 +754,14 @@ const AdminDashboardPage = () => {
       ? Math.round((checkedInCount / invitations.length) * 100)
       : 0;
 
-  const countBySenderGroup = (items, getSenderGroup) =>
+  const countBySenderGroup = (items, getSenderGroup, getCount = () => 1) =>
     items.reduce(
       (acc, item) => {
         const senderGroup = getSenderGroup(item) || "general";
-        if (senderGroup === "bride") acc.bride += 1;
-        else if (senderGroup === "groom") acc.groom += 1;
-        else if (senderGroup === "both") acc.both += 1;
-        else acc.general += 1;
+        if (senderGroup === "bride") acc.bride += getCount(item);
+        else if (senderGroup === "groom") acc.groom += getCount(item);
+        else if (senderGroup === "both") acc.both += getCount(item);
+        else acc.general += getCount(item);
         return acc;
       },
       { bride: 0, groom: 0, both: 0, general: 0 },
@@ -787,6 +789,7 @@ const AdminDashboardPage = () => {
     countBySenderGroup(
       attendingRsvps,
       (rsvp) => rsvp.invitationId?.senderGroup,
+      confirmedCount,
     ),
   );
   const notAttendingBreakdown = makeSenderBreakdown(

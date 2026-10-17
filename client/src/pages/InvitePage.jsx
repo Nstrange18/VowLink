@@ -2154,6 +2154,7 @@ const InvitePage = ({ setThemePreference }) => {
       guestName: "",
       phone: "",
       attending: "Yes",
+      numberOfGuests: 1,
       mealPreference: "No Preference",
       message: "",
     },
@@ -2183,6 +2184,12 @@ const InvitePage = ({ setThemePreference }) => {
           }
         } catch {}
         setValue("guestName", res.data.guestName);
+        if (res.data.rsvp) {
+          for (const key of ["guestName", "guestEmail", "phone", "attending", "mealPreference", "message"]) {
+            if (res.data.rsvp[key] != null) setValue(key, res.data.rsvp[key]);
+          }
+          setValue("numberOfGuests", res.data.rsvp.headcountConfirmed ? Math.max(1, res.data.rsvp.numberOfGuests || 1) : 1);
+        }
       })
       .catch((err) => {
         if (err.response?.status === 404) setNotFound(true);
@@ -2235,6 +2242,7 @@ const InvitePage = ({ setThemePreference }) => {
         guestEmail: data.guestEmail || "",
         phone: data.phone,
         attending: data.attending,
+        numberOfGuests: data.attending === "Yes" ? data.numberOfGuests : 0,
         mealPreference: data.mealPreference,
         message: data.message,
       });
@@ -4046,6 +4054,7 @@ const InvitePage = ({ setThemePreference }) => {
                 <Icon icon="lucide:check" className="h-4 w-4" />
                 We've received your RSVP. Thank you!
               </p>
+              {!deadlinePassed && <button type="button" onClick={() => setShowForm(true)} className="mt-3 rounded-full border border-emerald-400/30 px-4 py-2 text-sm text-emerald-400">Update RSVP</button>}
             </div>
           ) : deadlinePassed ? (
             <div className="invite-rsvp-status invite-rsvp-status-closed rounded-2xl border border-red-400/20 bg-red-400/10 px-8 py-4 download-exclude">
@@ -4622,14 +4631,12 @@ const InvitePage = ({ setThemePreference }) => {
                       Your invitation
                     </p>
                     <p className="text-sm text-[#1A2E4A]">
-                      {plusOnePolicy === "plus_one_allowed"
-                        ? `You're confirming attendance for ${invitedCount} guest${
-                            invitedCount === 1 ? "" : "s"
-                          } (${invitation.allowedGuests || 1} on your invitation + 1 plus one).`
-                        : `You're confirming attendance for ${invitedCount} guest${
-                            invitedCount === 1 ? "" : "s"
-                          } as listed on your invitation.`}
+                      Your invitation allows up to {invitedCount} guest{invitedCount === 1 ? "" : "s"}, including you. Confirm only the people who will attend.
                     </p>
+                    <label htmlFor="rsvp-guest-count" className="mt-3 block text-sm text-[#1A2E4A]">How many people will attend, including you?</label>
+                    <select id="rsvp-guest-count" {...register("numberOfGuests")} className={`${inputClass} mt-2`}>
+                      {Array.from({ length: invitedCount }, (_, index) => <option key={index + 1} value={index + 1}>{index + 1}</option>)}
+                    </select>
                   </div>
                 )}
 

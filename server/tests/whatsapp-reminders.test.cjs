@@ -106,8 +106,8 @@ test.each(["Yes", "No"])("excludes an existing %s RSVP even if the invitation fl
   expect((await single()).status).toBe(409);
   expect(credits.reserveWhatsAppSendCredit).not.toHaveBeenCalled(); expect(global.fetch).not.toHaveBeenCalled();
 });
-test("excludes a guest with hasRSVPed set", async () => {
-  invitation.hasRSVPed = true; expect((await single()).status).toBe(409); expect(global.fetch).not.toHaveBeenCalled();
+test("stale true flag without an RSVP does not exclude an eligible guest", async () => {
+  invitation.hasRSVPed = true; expect((await single()).status).toBe(200); expect(global.fetch).toHaveBeenCalledTimes(1);
 });
 test("checks ownership", async () => {
   invitation.userId = otherId; expect((await single()).status).toBe(404); expect(global.fetch).not.toHaveBeenCalled();
@@ -116,7 +116,7 @@ test.each([null, new Date("2000-01-01")])("rejects missing/expired deadline %s",
   owner.rsvpDeadline = deadline; expect((await single()).status).toBe(409); expect(global.fetch).not.toHaveBeenCalled();
 });
 test("RSVP arriving during credit reservation stops sending and refunds", async () => {
-  credits.reserveWhatsAppSendCredit.mockImplementation(async () => { invitation.hasRSVPed = true; return { reserved: true }; });
+  credits.reserveWhatsAppSendCredit.mockImplementation(async () => { RSVP.exists.mockResolvedValue({ _id: otherId }); return { reserved: true }; });
   expect((await single()).status).toBe(409);
   expect(global.fetch).not.toHaveBeenCalled(); expect(credits.refundWhatsAppSendCredit).toHaveBeenCalledWith(ownerId, { atomic: true });
   expect(records[0].creditState).toBe("refunded");

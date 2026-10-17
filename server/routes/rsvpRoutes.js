@@ -1,7 +1,9 @@
 const express = require("express");
 const RSVP = require("../models/RSVP");
 const Invitation = require("../models/Invitation");
-const User = require("../models/User");
+const mongoose = require("mongoose");
+const { currentSort, findCurrentRsvp, currentRsvps } = require("../utils/rsvpState");
+const { persistRsvp } = require("../services/rsvpPersistence");
 const { protect } = require("../middleware/auth");
 const rateLimit = require("express-rate-limit");
 const { sendRsvpCoupleAlert, sendRsvpGuestConfirmation, sendRsvpLimitReachedAlert } = require("../utils/email");
@@ -40,12 +42,24 @@ router.post("/", rsvpLimiter, async (req, res) => {
       });
     }
 
-    const invitation = await Invitation.findById(invitationId).populate("userId", "plusOnePolicy email partner1Name partner2Name weddingDate venue tier");
+    if (!mongoose.isValidObjectId(invitationId) || !["Yes", "No"].includes(attending) ||
+        typeof guestName !== "string" || !guestName.trim() || typeof phone !== "string" || !phone.trim() ||
+        (mealPreference && !["No Preference", "Chicken", "Fish", "Vegetarian", "Vegan"].includes(mealPreference))) {
+      return res.status(400).json({ message: "Invalid RSVP details." });
+    }
+
+    const invitation = await Invitation.findById(invitationId).populate("userId", "plusOnePolicy email partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue tier");
     if (!invitation) {
       return res.status(404).json({ message: "Invitation not found." });
     }
 
     const couple = invitation.userId;
+    if (!couple) return res.status(404).json({ message: "Invitation not found." });
+    const deadline = couple.rsvpDeadline == null ? null : new Date(couple.rsvpDeadline).getTime();
+    if (deadline !== null && (!Number.isFinite(deadline) || Date.now() > deadline)) {
+      return res.status(403).json({ message: "RSVP is now closed. Please contact the couple." });
+    }
+    const existing = await findCurrentRsvp(invitationId);
     let currentRsvpCount = 0;
     if (couple) {
       if ((couple.tier || "unpaid") === "unpaid") {
@@ -56,19 +70,19 @@ router.post("/", rsvpLimiter, async (req, res) => {
 
       const coupleInvitations = await Invitation.find({ userId: couple._id }).select("_id");
       const invitationIds = coupleInvitations.map((i) => i._id);
-      currentRsvpCount = await RSVP.countDocuments({ invitationId: { $in: invitationIds } });
+      currentRsvpCount = (await RSVP.distinct("invitationId", { invitationId: { $in: invitationIds } })).length;
 
-      if (couple.tier === "free" && currentRsvpCount >= 20) {
+      if (!existing && couple.tier === "free" && currentRsvpCount >= 20) {
         return res.status(403).json({
           message: "This wedding invitation has reached the maximum limit of 20 RSVP responses for the Classic plan. To accept more RSVPs, the couple needs to upgrade their plan.",
         });
       }
-      if (couple.tier === "plus" && currentRsvpCount >= 100) {
+      if (!existing && couple.tier === "plus" && currentRsvpCount >= 100) {
         return res.status(403).json({
           message: "This wedding invitation has reached the maximum limit of 100 RSVP responses for the Plus plan. To accept more RSVPs, the couple needs to upgrade their plan.",
         });
       }
-      if (couple.tier === "pro" && currentRsvpCount >= 500) {
+      if (!existing && couple.tier === "pro" && currentRsvpCount >= 500) {
         return res.status(403).json({
           message: "This wedding invitation has reached the maximum limit of 500 RSVP responses.",
         });
@@ -76,22 +90,25 @@ router.post("/", rsvpLimiter, async (req, res) => {
     }
 
     const plusOnePolicy = invitation.userId?.plusOnePolicy || "invitation_only";
-    const numberOfGuests =
-      attending === "Yes" ? getInvitedGuestCount(invitation, plusOnePolicy) : 0;
+    const submittedCount = req.body.numberOfGuests ?? 1;
+    if (attending === "Yes" && (!Number.isInteger(submittedCount) || submittedCount < 1 || submittedCount > getInvitedGuestCount(invitation, plusOnePolicy))) {
+      return res.status(400).json({ message: "Confirmed guest count must be within your invitation allowance." });
+    }
+    const numberOfGuests = attending === "Yes" ? submittedCount : 0;
 
-    const rsvp = await RSVP.create({
+    const values = {
+      currentKey: String(invitation._id),
       invitationId,
       guestName,
       guestEmail: guestEmail || "",
       phone,
       attending,
       numberOfGuests,
+      headcountConfirmed: true,
       mealPreference: mealPreference || "No Preference",
       message,
-    });
-
-    invitation.hasRSVPed = true;
-    await invitation.save();
+    };
+    const rsvp = await persistRsvp({ invitationId: invitation._id, values });
 
     // ── Fire emails async (don't block response) ──────────────────────────
     if (couple) {
@@ -121,7 +138,7 @@ router.post("/", rsvpLimiter, async (req, res) => {
 
       // Check if RSVP limit is reached with this submission
       const limit = couple.tier === "free" ? 20 : couple.tier === "plus" ? 100 : 500;
-      if ((couple.tier === "free" || couple.tier === "plus") && currentRsvpCount + 1 === limit) {
+      if (!existing && (couple.tier === "free" || couple.tier === "plus") && currentRsvpCount + 1 === limit) {
         sendRsvpLimitReachedAlert({
           coupleEmail: couple.email,
           coupleName,
@@ -133,6 +150,7 @@ router.post("/", rsvpLimiter, async (req, res) => {
 
     res.status(201).json({ message: "RSVP submitted successfully", data: rsvp });
   } catch (error) {
+    if (error.status) return res.status(error.status).json({ message: error.message });
     res.status(500).json({ message: "Failed to submit RSVP", error: error.message });
   }
 });
@@ -146,9 +164,9 @@ router.get("/", protect, async (req, res) => {
 
     const rsvps = await RSVP.find({ invitationId: { $in: invitationIds } })
       .populate("invitationId", "guestName slug category allowedGuests senderGroup")
-      .sort({ createdAt: -1 });
+      .sort(currentSort);
 
-    res.status(200).json(rsvps);
+    res.status(200).json(currentRsvps(rsvps));
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch RSVPs", error: error.message });
   }

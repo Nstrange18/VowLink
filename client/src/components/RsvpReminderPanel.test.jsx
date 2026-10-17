@@ -91,7 +91,7 @@ test.each(["unknown", "sending", "preparing"])("blocks %s reminders loaded from 
 test("requires a future deadline", async () => {
   await open({ tier: "pro" }); expect(screen.getByText("Set a future RSVP deadline in Settings before sending reminders.")).not.toBeNull();
   expect(screen.getByRole("button", { name: "Send RSVP Reminder", exact: true }).disabled).toBe(true);
-  expect(screen.getByRole("link", { name: "Set RSVP deadline" }).getAttribute("href")).toBe("/admin/settings");
+  expect(screen.getByRole("link", { name: "Set RSVP deadline" }).getAttribute("href")).toBe("/admin/settings?tab=general");
   expect(screen.getByRole("checkbox", { name: "Select Pending Guest for RSVP reminder" }).disabled).toBe(true);
 });
 

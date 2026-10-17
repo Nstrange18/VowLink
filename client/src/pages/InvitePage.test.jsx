@@ -69,6 +69,34 @@ describe('public invitation experience', () => {
     vi.mocked(toast.error).mockClear()
   })
 
+  test('confirms submitted headcount instead of maximum allowance', async () => {
+    api.get.mockImplementation((url) => Promise.resolve({ data: url === invitationPath ? { ...makeInvitation(), allowedGuests: 4 } : [] }))
+    api.post.mockResolvedValue({ data: {} })
+    const { user } = renderInvitation()
+    await openRsvp(user)
+    await user.type(screen.getByPlaceholderText('+234 800 000 0000'), '+2348000000000')
+    await user.selectOptions(screen.getByLabelText('How many people will attend, including you?'), '2')
+    await user.click(screen.getByRole('button', { name: 'Submit RSVP' }))
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/rsvps', expect.objectContaining({ numberOfGuests: 2 })))
+  })
+
+  test('prefills a previous response and permits editing while open', async () => {
+    api.get.mockImplementation((url) => Promise.resolve({ data: url === invitationPath ? {
+      ...makeInvitation(), hasRSVPed: true, allowedGuests: 3,
+      rsvp: { guestName: 'Taylor Guest', phone: '+2348000000000', attending: 'Yes', numberOfGuests: 2, headcountConfirmed: true, mealPreference: 'Fish', message: 'Previous wish' },
+    } : [] }))
+    api.post.mockResolvedValue({ data: {} })
+    const { user } = renderInvitation()
+    await user.click(await screen.findByRole('button', { name: /^open$/i }))
+    await waitForElementToBeRemoved(() => screen.queryByRole('button', { name: /^open$/i }), { timeout: 2500 })
+    await user.click(screen.getByRole('button', { name: 'Update RSVP' }))
+    expect(screen.getByDisplayValue('Previous wish')).not.toBeNull()
+    expect(screen.getByLabelText('How many people will attend, including you?').value).toBe('2')
+    await user.click(screen.getByRole('button', { name: 'No', exact: true }))
+    await user.click(screen.getByRole('button', { name: 'Submit RSVP' }))
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/rsvps', expect.objectContaining({ attending: 'No', numberOfGuests: 0, mealPreference: 'Fish', message: 'Previous wish' })))
+  })
+
   test('shows the loading state while the invitation request is pending', () => {
     api.get.mockImplementation((url) => {
       if (url === invitationPath) return new Promise(() => {})
@@ -142,6 +170,7 @@ describe('public invitation experience', () => {
       guestEmail: 'taylor@example.test',
       phone: '+2348000000000',
       attending,
+      numberOfGuests: attending === 'Yes' ? 1 : 0,
       mealPreference: 'No Preference',
       message: 'Congratulations!',
     })

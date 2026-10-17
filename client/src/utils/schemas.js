@@ -109,6 +109,7 @@ export const rsvpSchema = z.object({
   phone: z.string().min(7, "Enter a valid phone number"),
   guestEmail: z.union([z.string().email("Enter a valid email"), z.literal("")]).optional(),
   attending: z.enum(["Yes", "No"]),
+  numberOfGuests: z.coerce.number().int().min(1).max(10).optional().default(1),
   mealPreference: z.string().optional(),
   message: z.string().optional(),
 });

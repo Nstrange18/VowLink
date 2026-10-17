@@ -55,6 +55,8 @@ const invitationSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Changes on every RSVP write so flag repairs contend with concurrent submissions.
+    rsvpRevision: { type: Number, default: 0 },
     phoneNumber: {
       type: String,
       trim: true,
