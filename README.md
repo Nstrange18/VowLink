@@ -27,7 +27,7 @@ VowLink is a full-stack wedding invitation platform for couples, guests, and ven
 | Database | MongoDB |
 | Auth | JWT, bcryptjs |
 | Media | Cloudinary |
-| Email | SendGrid |
+| Email | Brevo transactional HTTPS API |
 | Payments | Paystack |
 | AI | OpenAI |
 
@@ -57,7 +57,7 @@ VowLink/
 - Node.js 18 or newer
 - MongoDB database
 - Cloudinary account for uploads
-- SendGrid API key for email delivery
+- Brevo transactional API key and an approved custom-domain sender
 - Paystack keys for payments
 - OpenAI API key for AI features
 
@@ -71,8 +71,14 @@ MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_access_token_secret
 JWT_REFRESH_SECRET=your_refresh_token_secret
 CLIENT_URL=http://localhost:5173
+PUBLIC_SITE_URL=http://localhost:5173
+FRONTEND_URL=
 
-SENDGRID_API_KEY=your_sendgrid_api_key
+BREVO_API_KEY=
+EMAIL_FROM_ADDRESS=
+EMAIL_FROM_NAME=VowLink
+EMAIL_REPLY_TO=
+EMAIL_ADMIN_ADDRESS=
 CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
@@ -152,3 +158,31 @@ After deploying the server, update the frontend `VITE_API_URL` to point to the d
 - Anything placed in `client/public` is shipped publicly.
 - Public invite guest theme preferences are stored per invite in localStorage.
 - Run `npm run lint` and `npm run build` in `client` before shipping frontend changes.
+
+
+## Transactional email
+
+Email uses Brevo HTTPS (`POST https://api.brevo.com/v3/smtp/email`), not SMTP.
+Set `BREVO_API_KEY` and `EMAIL_FROM_ADDRESS` on the backend. The sender must be
+approved in Brevo; there is no fallback sender. `EMAIL_FROM_NAME` defaults to
+`VowLink`. `EMAIL_REPLY_TO` is optional. `EMAIL_ADMIN_ADDRESS` optionally overrides
+the existing venue-admin recipient; leaving it blank preserves that recipient.
+Never put the API key in frontend variables or commit it.
+
+Production links use `PUBLIC_SITE_URL=https://vowlink.co`, falling back to
+`CLIENT_URL`, then `FRONTEND_URL`, then the production URL. Local development
+should use `PUBLIC_SITE_URL=http://localhost:5173`.
+
+Requests time out after 10 seconds and are not automatically retried. Rate limits
+are reported as `EMAIL_RATE_LIMITED`; operational logs omit email contents,
+recipients, credentials, and provider response bodies. Account quotas and API-key
+IP restrictions must be checked in Brevo before cutover.
+
+Password resets retain their one-hour link and generic public response. RSVP
+emails run after commit and cannot undo a saved RSVP. Wedding-day checks run on
+startup and every 12 hours: the sent flag is set only after provider acceptance.
+Acceptance does not guarantee inbox delivery. Failed or unconfigured sends remain
+eligible for the next check; restart/multiple-instance or flag-save failures can
+still cause duplicate wedding emails. There is no durable email queue or delivery
+webhook in this migration. The venue-admin helper is retained without adding a
+new trigger. Existing sent flags are not backfilled or reset during migration.

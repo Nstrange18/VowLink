@@ -78,6 +78,15 @@ test("transaction commits both writes before email delivery", async () => {
   expect(RSVP.findOneAndUpdate.mock.calls[0][2].session).toBe(session);
   expect(Invitation.updateOne.mock.calls[0][2].session).toBe(session);
 });
+
+test("email failure cannot roll back an already committed RSVP", async () => {
+  email.sendRsvpCoupleAlert.mockRejectedValue(new Error("Synthetic provider failure"));
+  email.sendRsvpGuestConfirmation.mockRejectedValue(new Error("Synthetic provider failure"));
+  expect((await submit({ guestEmail: "synthetic@example.test" })).status).toBe(201);
+  expect(records).toHaveLength(1);
+  expect(invitation.hasRSVPed).toBe(true);
+  expect(transaction).toHaveBeenCalledTimes(1);
+});
 test("transaction callback retries cannot send emails before the final commit", async () => {
   transaction.mockImplementationOnce(async (work) => {
     await work(session); records.length = 0; invitation.hasRSVPed = false;

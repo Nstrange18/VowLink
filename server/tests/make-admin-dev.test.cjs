@@ -6,7 +6,6 @@ const { allowTestServer } = require("./setup.cjs");
 
 // Import the actual router without loading database models or provider clients.
 jest.mock("../models/User", () => ({ findOne: jest.fn() }));
-jest.mock("@sendgrid/mail", () => ({ setApiKey: jest.fn() }));
 jest.mock("../utils/email", () => ({}));
 jest.mock("axios", () => ({}));
 jest.mock("cloudinary", () => ({ v2: { config: jest.fn() } }));

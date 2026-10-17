@@ -1,10 +1,5 @@
-﻿const sgMail = require("@sendgrid/mail");
+const { sendTransactionalEmail } = require("../services/transactionalEmail");
 
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
-
-const FROM_EMAIL = "noreplybiru556@gmail.com";
 const BRAND_NAME = "VowLink";
 const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://vowlink.co").replace(/\/+$/, "");
 
@@ -34,7 +29,7 @@ const wrapEmail = (bodyHtml) => `
 // ── 1. Couple RSVP Alert ─────────────────────────────────────────────────────
 // Sent to the couple when any guest RSVPs
 const sendRsvpCoupleAlert = async ({ coupleEmail, coupleName, guestName, attending, guestCount, weddingDate }) => {
-  if (!process.env.SENDGRID_API_KEY || !coupleEmail) return;
+  if (!coupleEmail) return { accepted: false };
 
   const isAttending = attending === "Yes";
   const statusColor = isAttending ? "#34D399" : "#F87171";
@@ -60,22 +55,22 @@ const sendRsvpCoupleAlert = async ({ coupleEmail, coupleName, guestName, attendi
   `;
 
   try {
-    await sgMail.send({
+    const result = await sendTransactionalEmail({
       to: coupleEmail,
-      from: FROM_EMAIL,
       subject: `${guestName} just RSVPed to your wedding!`,
       html: wrapEmail(body),
     });
-    console.log(`RSVP couple alert sent to ${coupleEmail}`);
-  } catch (err) {
-    console.error("SendGrid RSVP couple alert error:", err.response?.body || err.message);
+    return result;
+  } catch {
+    // Transport logs only safe operational metadata. Notifications never undo product writes.
+    return { accepted: false };
   }
 };
 
 // ── 2. Guest RSVP Confirmation ───────────────────────────────────────────────
 // Sent to the guest (only if guestEmail provided)
 const sendRsvpGuestConfirmation = async ({ guestEmail, guestName, coupleName, attending, weddingDate, venue }) => {
-  if (!process.env.SENDGRID_API_KEY || !guestEmail) return;
+  if (!guestEmail) return { accepted: false };
 
   const isAttending = attending === "Yes";
   const formattedDate = weddingDate ? new Date(weddingDate).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : null;
@@ -107,21 +102,21 @@ const sendRsvpGuestConfirmation = async ({ guestEmail, guestName, coupleName, at
   `;
 
   try {
-    await sgMail.send({
+    const result = await sendTransactionalEmail({
       to: guestEmail,
-      from: FROM_EMAIL,
       subject: `RSVP Confirmed — ${coupleName}'s Wedding`,
       html: wrapEmail(body),
     });
-    console.log(`RSVP guest confirmation sent to ${guestEmail}`);
-  } catch (err) {
-    console.error("SendGrid RSVP guest confirmation error:", err.response?.body || err.message);
+    return result;
+  } catch {
+    // Transport logs only safe operational metadata. Notifications never undo product writes.
+    return { accepted: false };
   }
 };
 
 // ── 3. Honeymoon Target Reached Alert ──────────────────────────────────────────
 const sendHoneymoonGoalReachedNotification = async ({ coupleEmail, coupleName, targetAmount, currentAmount }) => {
-  if (!process.env.SENDGRID_API_KEY || !coupleEmail) return;
+  if (!coupleEmail) return { accepted: false };
 
   const formattedTarget = targetAmount.toLocaleString();
   const formattedCurrent = currentAmount.toLocaleString();
@@ -146,21 +141,21 @@ const sendHoneymoonGoalReachedNotification = async ({ coupleEmail, coupleName, t
   `;
 
   try {
-    await sgMail.send({
+    const result = await sendTransactionalEmail({
       to: coupleEmail,
-      from: FROM_EMAIL,
       subject: `VowLink Alert: Your Honeymoon Fund Target has been reached!`,
       html: wrapEmail(body),
     });
-    console.log(`Honeymoon fund target alert sent to ${coupleEmail}`);
-  } catch (err) {
-    console.error("SendGrid honeymoon target alert error:", err.response?.body || err.message);
+    return result;
+  } catch {
+    // Transport logs only safe operational metadata. Notifications never undo product writes.
+    return { accepted: false };
   }
 };
 
 // ── 4. Wedding Day Congratulations Email ──────────────────────────────────────
 const sendWeddingDayCongratulationsEmail = async ({ coupleEmail, coupleName }) => {
-  if (!process.env.SENDGRID_API_KEY || !coupleEmail) return;
+  if (!coupleEmail) return { accepted: false };
 
   const body = `
     <h2 style="margin:0 0 8px 0;color:#D8B76A;font-size:24px;font-weight:400;text-align:center;">Happy Wedding Day!</h2>
@@ -182,22 +177,21 @@ const sendWeddingDayCongratulationsEmail = async ({ coupleEmail, coupleName }) =
   `;
 
   try {
-    await sgMail.send({
+    const result = await sendTransactionalEmail({
       to: coupleEmail,
-      from: FROM_EMAIL,
       subject: `Happy Wedding Day, ${coupleName}! `,
       html: wrapEmail(body),
     });
-    console.log(`Wedding day congratulations email sent to ${coupleEmail}`);
-  } catch (err) {
-    console.error("SendGrid wedding day congratulations email error:", err.response?.body || err.message);
+    return result;
+  } catch {
+    // Transport logs only safe operational metadata. Notifications never undo product writes.
+    return { accepted: false };
   }
 };
 
 // ── 5. New Venue Registration Alert to Admin ───────────────────────────────
 const sendNewVenueRegistrationAdminAlert = async (venue) => {
-  const adminEmail = "nwubachukwuemelie@gmail.com";
-  if (!process.env.SENDGRID_API_KEY) return;
+  const adminEmail = process.env.EMAIL_ADMIN_ADDRESS?.trim() || "nwubachukwuemelie@gmail.com";
 
   const formatBool = (val) => (val ? "Yes" : "No");
 
@@ -231,21 +225,21 @@ const sendNewVenueRegistrationAdminAlert = async (venue) => {
   `;
 
   try {
-    await sgMail.send({
+    const result = await sendTransactionalEmail({
       to: adminEmail,
-      from: FROM_EMAIL,
       subject: `VowLink Alerts: New Venue Account Created — ${venue.name}`,
       html: wrapEmail(body),
     });
-    console.log(`Admin venue registration alert sent to ${adminEmail}`);
-  } catch (err) {
-    console.error("SendGrid admin venue registration alert error:", err.response?.body || err.message);
+    return result;
+  } catch {
+    // Transport logs only safe operational metadata. Notifications never undo product writes.
+    return { accepted: false };
   }
 };
 
 // ── 6. Couple RSVP Limit Reached Alert ──────────────────────────────────────────
 const sendRsvpLimitReachedAlert = async ({ coupleEmail, coupleName, tier, limit }) => {
-  if (!process.env.SENDGRID_API_KEY || !coupleEmail) return;
+  if (!coupleEmail) return { accepted: false };
 
   const body = `
     <h2 style="margin:0 0 8px 0;color:#F87171;font-size:22px;font-weight:400;">RSVP Limit Reached</h2>
@@ -276,15 +270,15 @@ const sendRsvpLimitReachedAlert = async ({ coupleEmail, coupleName, tier, limit 
   `;
 
   try {
-    await sgMail.send({
+    const result = await sendTransactionalEmail({
       to: coupleEmail,
-      from: FROM_EMAIL,
       subject: `VowLink Alert: Your RSVP limit has been reached! (${tier.toUpperCase()} Plan)`,
       html: wrapEmail(body),
     });
-    console.log(`RSVP limit reached alert sent to ${coupleEmail}`);
-  } catch (err) {
-    console.error("SendGrid RSVP limit reached alert error:", err.response?.body || err.message);
+    return result;
+  } catch {
+    // Transport logs only safe operational metadata. Notifications never undo product writes.
+    return { accepted: false };
   }
 };
 

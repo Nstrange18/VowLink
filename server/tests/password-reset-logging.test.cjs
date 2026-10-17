@@ -7,7 +7,7 @@ const request = require("supertest");
 const { allowTestServer } = require("./setup.cjs");
 
 jest.mock("../models/User", () => ({ findOne: jest.fn() }));
-jest.mock("@sendgrid/mail", () => ({ setApiKey: jest.fn(), send: jest.fn() }));
+jest.mock("../services/transactionalEmail", () => ({ sendTransactionalEmail: jest.fn(), isEmailConfigured: () => Boolean(process.env.BREVO_API_KEY && process.env.EMAIL_FROM_ADDRESS) }));
 jest.mock("../utils/email", () => ({}));
 jest.mock("axios", () => ({}));
 jest.mock("cloudinary", () => ({ v2: { config: jest.fn() } }));
@@ -16,7 +16,7 @@ jest.mock("../utils/whatsappCredits", () => ({}));
 jest.mock("express-rate-limit", () => () => (_req, _res, next) => next());
 
 const User = require("../models/User");
-const sgMail = require("@sendgrid/mail");
+const { sendTransactionalEmail } = require("../services/transactionalEmail");
 const authRoutes = require("../routes/authRoutes");
 const email = "reset-user@example.test";
 const tokenBytes = Buffer.alloc(32, 0xab);
@@ -25,7 +25,7 @@ const resetUrl = `https://reset.example.test/admin/reset-password/${token}`;
 const providerDetail = "synthetic-private-provider-body";
 const now = 1_800_000_000_000;
 const genericResponse = { message: "If that email exists, a reset link has been sent." };
-const envNames = ["NODE_ENV", "SENDGRID_API_KEY", "PUBLIC_SITE_URL", "CLIENT_URL", "FRONTEND_URL"];
+const envNames = ["NODE_ENV", "BREVO_API_KEY", "EMAIL_FROM_ADDRESS", "PUBLIC_SITE_URL", "CLIENT_URL", "FRONTEND_URL"];
 
 describe("password-reset logging", () => {
   let server;
@@ -51,11 +51,12 @@ describe("password-reset logging", () => {
     priorEnv = envNames.map((name) => process.env[name]);
     envNames.forEach((name) => delete process.env[name]);
     process.env.NODE_ENV = "test";
-    process.env.SENDGRID_API_KEY = "synthetic-test-key";
+    process.env.BREVO_API_KEY = "synthetic-test-key";
+    process.env.EMAIL_FROM_ADDRESS = "sender@example.test";
     process.env.PUBLIC_SITE_URL = "https://reset.example.test/";
     user = { email, save: jest.fn().mockResolvedValue(undefined) };
     User.findOne.mockReset().mockResolvedValue(user);
-    sgMail.send.mockReset().mockResolvedValue([{ statusCode: 202 }]);
+    sendTransactionalEmail.mockReset().mockResolvedValue({ accepted: true, messageId: "synthetic-reset-message" });
     logs = ["log", "warn", "error", "info", "debug"].map((method) =>
       jest.spyOn(console, method).mockImplementation(() => {}),
     );
@@ -92,8 +93,8 @@ describe("password-reset logging", () => {
     expect(user.resetPasswordToken).toBe(token);
     expect(user.resetPasswordExpires).toEqual(new Date(now + 60 * 60 * 1000));
     expect(user.save).toHaveBeenCalledTimes(1);
-    expect(sgMail.send).toHaveBeenCalledTimes(1);
-    expect(sgMail.send).toHaveBeenCalledWith(expect.objectContaining({
+    expect(sendTransactionalEmail).toHaveBeenCalledTimes(1);
+    expect(sendTransactionalEmail).toHaveBeenCalledWith(expect.objectContaining({
       to: email,
       subject: "Reset your VowLink password",
       html: expect.stringContaining(`href="${resetUrl}"`),
@@ -101,7 +102,7 @@ describe("password-reset logging", () => {
   });
 
   test("preserves token storage and generic success when email is unconfigured", async () => {
-    delete process.env.SENDGRID_API_KEY;
+    delete process.env.BREVO_API_KEY;
 
     const response = await forgot();
 
@@ -109,7 +110,7 @@ describe("password-reset logging", () => {
     expect(response.body).toEqual(genericResponse);
     expect(user.resetPasswordToken).toBe(token);
     expect(user.save).toHaveBeenCalledTimes(1);
-    expect(sgMail.send).not.toHaveBeenCalled();
+    expect(sendTransactionalEmail).not.toHaveBeenCalled();
   });
 
   test("a delivered token still resets the password and clears reset fields", async () => {
@@ -142,13 +143,13 @@ describe("password-reset logging", () => {
       "database error object",
     ])("keeps operational logs without sensitive data: %s", async (scenario) => {
       process.env.NODE_ENV = environment;
-      if (scenario === "email unconfigured") delete process.env.SENDGRID_API_KEY;
+      if (scenario === "email unconfigured") delete process.env.BREVO_API_KEY;
       if (scenario === "unknown account") User.findOne.mockResolvedValue(null);
       if (scenario === "provider error message") {
-        sgMail.send.mockRejectedValue(new Error(`${email} ${resetUrl} ${providerDetail}`));
+        sendTransactionalEmail.mockRejectedValue(new Error(`${email} ${resetUrl} ${providerDetail}`));
       }
       if (scenario === "provider error object") {
-        sgMail.send.mockRejectedValue({ response: { body: { email, token, resetUrl, providerDetail } } });
+        sendTransactionalEmail.mockRejectedValue({ response: { body: { email, token, resetUrl, providerDetail } } });
       }
       if (scenario === "database error object") {
         User.findOne.mockRejectedValue(Object.assign(new Error("Synthetic database failure"), {

@@ -5,7 +5,7 @@ const crypto = require("crypto");
 const rateLimit = require("express-rate-limit");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
-const sgMail = require("@sendgrid/mail");
+const { sendTransactionalEmail, isEmailConfigured } = require("../services/transactionalEmail");
 const { sendHoneymoonGoalReachedNotification } = require("../utils/email");
 const axios = require("axios");
 const cloudinary = require("cloudinary").v2;
@@ -90,8 +90,6 @@ const resetPasswordLimiter = rateLimit({
   },
 });
 
-// Set SendGrid API key
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const normalizePublicImageUrl = (url) => {
   if (typeof url !== "string" || !url.startsWith("/")) return url || "";
@@ -274,15 +272,9 @@ const userPublic = (user) => ({
 const sendResetEmail = async (email, resetUrl) => {
   console.log("[sendResetEmail] Attempting to send reset email");
 
-  if (!process.env.SENDGRID_API_KEY) {
-    console.error("[sendResetEmail] SendGrid API key missing");
-    throw new Error("SendGrid API key not configured");
-  }
-
   try {
-    await sgMail.send({
+    await sendTransactionalEmail({
       to: email,
-      from: "noreplybiru556@gmail.com",
       subject: "Reset your VowLink password",
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;background:#fdf8f0;border-radius:16px">
@@ -841,8 +833,8 @@ router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
     const clientUrl = (process.env.PUBLIC_SITE_URL || process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://vowlink.co").replace(/\/+$/, "");
     const resetUrl = `${clientUrl}/admin/reset-password/${token}`;
 
-    if (!process.env.SENDGRID_API_KEY) {
-      console.warn("[forgot-password] SendGrid not configured; reset email not sent");
+    if (!isEmailConfigured()) {
+      console.warn("[forgot-password] Transactional email not configured; reset email not sent");
     } else {
       try {
         console.log("[forgot-password] Calling sendResetEmail()...");
