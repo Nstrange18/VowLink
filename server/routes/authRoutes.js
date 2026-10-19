@@ -8,6 +8,7 @@ const { protect } = require("../middleware/auth");
 const { sendTransactionalEmail, isEmailConfigured } = require("../services/transactionalEmail");
 const { sendHoneymoonGoalReachedNotification } = require("../utils/email");
 const axios = require("axios");
+const { PLAN_PRICES_NGN } = require("../utils/planPricing");
 const cloudinary = require("cloudinary").v2;
 const {
   applyWhatsAppSendPackPurchase,
@@ -1007,12 +1008,7 @@ router.post("/upgrade/verify", protect, async (req, res) => {
     const paystackAmount = paystackData.amount;
     const paystackCurrency = paystackData.currency;
 
-    const planPricesNgn = {
-      free: 30000,
-      plus: 68000,
-      pro: 120000,
-    };
-    const baseNgn = planPricesNgn[tier];
+    const baseNgn = PLAN_PRICES_NGN[tier];
     const priceInUsd = baseNgn / 1500;
 
     let expectedAmount = 0;
@@ -1037,7 +1033,9 @@ router.post("/upgrade/verify", protect, async (req, res) => {
     }
 
     let isValidAmount = false;
-    if (expectedAmount > 0) {
+    if (tier === "pro" && paystackCurrency === "NGN") {
+      isValidAmount = paystackAmount === expectedAmount;
+    } else if (expectedAmount > 0) {
       const minAllowed = expectedAmount * 0.95;
       const maxAllowed = expectedAmount * 1.05;
       isValidAmount = paystackAmount >= minAllowed && paystackAmount <= maxAllowed;
@@ -1186,7 +1184,6 @@ router.post("/paystack/webhook", async (req, res) => {
       const targetTier = metadata?.tier;
       
       if (paymentType === "couple_upgrade" && targetTier && ["free", "plus", "pro"].includes(targetTier)) {
-        const expectedAmounts = { free: 3000000, plus: 6800000, pro: 12000000 };
         const user = metadata?.userId
           ? await User.findById(metadata.userId)
           : await User.findOne({ email: email.toLowerCase() });
@@ -1194,7 +1191,7 @@ router.post("/paystack/webhook", async (req, res) => {
           user &&
           user.email.toLowerCase() === email.toLowerCase() &&
           event.data.currency === "NGN" &&
-          event.data.amount === expectedAmounts[targetTier];
+          event.data.amount === PLAN_PRICES_NGN[targetTier] * 100;
         if (paymentMatches) {
           user.tier = targetTier;
           await user.save();

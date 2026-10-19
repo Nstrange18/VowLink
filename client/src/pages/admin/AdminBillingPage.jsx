@@ -86,8 +86,8 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro Plan",
-    priceInUsd: 80,
-    priceInNgn: 120000,
+    priceInUsd: 80000 / 1500,
+    priceInNgn: 80000,
     period: "one-time",
     description: "Ultimate wedding invitation and planning experience.",
     color: "border-[#D8B76A]/40 bg-[#D8B76A]/5 hover:border-[#D8B76A] shadow-[0_0_25px_rgba(216,183,106,0.15)]",
@@ -591,7 +591,7 @@ const AdminBillingPage = () => {
           ["Trial", "Account preview. Compare plans and activate billing."],
           ["Classic", "NGN 30,000. 1 invite, 20 RSVPs, 6 Classic templates, no check-in."],
           ["Plus", "NGN 68,000. 100 guests, personalized links, QR codes, event PIN check-in."],
-          ["Pro", `NGN 120,000. Staff mode, seating, exports, custom design, and ${INCLUDED_WHATSAPP_SENDS} one-click WhatsApp sends.`],
+          ["Pro", `NGN 80,000. Staff mode, seating, exports, custom design, and ${INCLUDED_WHATSAPP_SENDS} one-click WhatsApp sends.`],
         ].map(([label, copy]) => (
           <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#D8B76A]">{label}</p>
