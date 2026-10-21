@@ -159,6 +159,45 @@ After deploying the server, update the frontend `VITE_API_URL` to point to the d
 - Public invite guest theme preferences are stored per invite in localStorage.
 - Run `npm run lint` and `npm run build` in `client` before shipping frontend changes.
 
+## CI checks
+
+GitHub Actions runs `Backend checks` and `Frontend checks` on pull requests and
+pushes to `master`, using Node.js 22 and separate npm caches for each lockfile.
+The root package has no check scripts and is not installed by CI. No production
+secrets are required: test setup supplies synthetic credentials and blocks external
+network calls. CI does not start the server, deploy, send messages, or migrate data.
+Vercel/Render settings are not modified. Requiring successful checks before
+deployment is a separate repository/provider setting.
+
+To run the same checks locally with Node.js 22, set `CI=true` (`export CI=true`
+in Bash or `$env:CI = 'true'` in PowerShell), then run each block from the
+repository root:
+
+```sh
+cd server
+npm ci
+node --check server.js
+node --check routes/authRoutes.js
+npm test -- --testTimeout=15000
+cd ..
+```
+
+```sh
+cd client
+npm ci
+npm test -- --pool=threads --maxWorkers=1 --testTimeout=60000
+npm run lint
+npm run build
+cd ..
+```
+
+Frontend CI uses one worker, a 60-second per-test timeout, and a CI-only 10-second
+Testing Library UI wait because worker startup and UI waits have intermittently
+timed out under load. Backend tests use a 15-second per-test timeout. Assertions
+are unchanged; failures are not retried or ignored. Unset `CI` afterward
+(PowerShell: `Remove-Item Env:CI`). Future branch protection can require the two
+job names above; this workflow does not change repository settings.
+
 
 ## Transactional email
 

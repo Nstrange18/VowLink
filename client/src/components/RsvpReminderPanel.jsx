@@ -362,7 +362,7 @@ export default function RsvpReminderPanel({ invitations, user, onChanged }) {
                     }
                   />
                   <div className="min-w-0 flex-1">
-                    <span className="block break-words text-sm font-semibold">
+                    <span className="block wrap-break-word text-sm font-semibold">
                       {guest.guestName}
                     </span>
                     <p
@@ -386,7 +386,7 @@ export default function RsvpReminderPanel({ invitations, user, onChanged }) {
                       >{`Reminder: ${record.deliveryStatus === "not_sent" ? record.sendStatus : record.deliveryStatus}`}</span>
                       {(failureMessages[record.deliveryStatus] ||
                         record.failureReason) && (
-                        <p className="min-w-0 break-words text-white/60">
+                        <p className="min-w-0 wrap-break-word text-white/60">
                           {failureMessages[record.deliveryStatus] ||
                             record.failureReason}
                         </p>

@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+env:
+  CI: "true"
+
+jobs:
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22.x"
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - name: Check syntax without starting the server
+        run: |
+          node --check server.js
+          node --check routes/authRoutes.js
+      - name: Run backend tests
+        run: npm test -- --testTimeout=15000
+
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22.x"
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      # One worker limits startup contention; longer waits still fail broken assertions.
+      - name: Run frontend tests
+        run: npm test -- --pool=threads --maxWorkers=1 --testTimeout=60000
+      - run: npm run lint
+      - run: npm run build

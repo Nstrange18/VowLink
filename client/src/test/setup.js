@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, vi } from 'vitest'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { Socket } from 'node:net'
+import { env } from 'node:process'
+
+// Shared CI runners can miss the default 1-second UI wait. Keep assertions intact
+// and leave local defaults unchanged; a broken UI still fails after this bound.
+if (env.CI === 'true') configure({ asyncUtilTimeout: 10000 })
 
 beforeEach(() => {
   localStorage.clear()
