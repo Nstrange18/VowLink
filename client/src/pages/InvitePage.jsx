@@ -1,3 +1,4 @@
+import FAQSection from "../components/invitation/FAQSection";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -2090,6 +2091,8 @@ const InvitePage = ({ setThemePreference }) => {
           kidsAllowed={kidsAllowed}
           setMapSelectAddress={setMapSelectAddress}
         />
+
+        <FAQSection faq={invitation.userId?.weddingSite?.faq} />
 
         {/* RSVP MODAL */}
         {showForm && (

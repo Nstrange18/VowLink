@@ -1,3 +1,5 @@
+import SettingsTabGuide from "../../components/settings/SettingsTabGuide";
+import WeddingFAQEditor from "../../components/settings/WeddingFAQEditor";
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Controller } from "react-hook-form";
@@ -58,6 +60,13 @@ const getTemplateColourDefaults = (cardTheme, customCardBg = "") => {
 };
 
 const SETTINGS_TAB_GUIDES = {
+  faq: {
+    icon: "lucide:circle-help",
+    eyebrow: "Wedding FAQ",
+    title: "Help guests prepare for your wedding.",
+    body: "Save and publish answers to common questions on your invitation page.",
+    steps: ["Add questions and answers.", "Enable publishing when ready.", "Save your FAQ independently of invitation settings."],
+  },
   details: {
     icon: "lucide:calendar-heart",
     eyebrow: "Wedding details",
@@ -122,53 +131,7 @@ const SETTINGS_TAB_GUIDES = {
   },
 };
 
-const SettingsTabGuide = ({ guide }) => {
-  if (!guide) return null;
 
-  return (
-    <section className="settings-tab-guide mb-6 rounded-3xl border border-[#D8B76A]/18 bg-[#0D1220]/70 p-4 shadow-2xl shadow-black/10 sm:p-5">
-      <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-start 2xl:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#D8B76A]/25 bg-[#D8B76A]/10 text-[#D8B76A]">
-            <Icon icon={guide.icon} className="h-5 w-5" />
-          </span>
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D8B76A]">
-              {guide.eyebrow}
-            </p>
-            <h3 className="mt-2 font-serif text-2xl leading-tight text-white sm:text-3xl">
-              {guide.title}
-            </h3>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
-              {guide.body}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-2 sm:grid-cols-3 2xl:w-[46%]">
-          {guide.steps.map((step, index) => (
-            <div
-              key={step}
-              className="flex min-w-0 items-start gap-2 rounded-2xl border border-white/10 bg-white/5 p-3 sm:block"
-            >
-              <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-[#D8B76A]">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <p className="text-xs leading-relaxed text-white/75 sm:mt-2">
-                {step}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-4 flex items-start gap-2 rounded-2xl border border-emerald-300/15 bg-emerald-500/8 px-3 py-2.5 text-xs leading-relaxed text-emerald-500">
-        <Icon icon="lucide:info" className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        <span>{guide.reminder}</span>
-      </div>
-    </section>
-  );
-};
 
 const TIMELINE_ICONS = [
   { icon: "mdi:church", label: "Church/Ceremony" },
@@ -608,6 +571,12 @@ const AdminSettingsPageContent = () => {
               icon: "lucide:gift",
             },
             {
+              id: "faq",
+              label: "FAQ",
+              fullLabel: "Wedding FAQ",
+              icon: "lucide:circle-help",
+            },
+            {
               id: "security",
               label: "Security",
               fullLabel: "Security & Danger Zone",
@@ -640,7 +609,7 @@ const AdminSettingsPageContent = () => {
       </div>
 
       {/* Mobile Live Preview Indicator */}
-      {activeTab !== "security" && (
+      {activeTab !== "security" && activeTab !== "faq" && (
         <div className="mb-6 flex min-w-0 items-start justify-between gap-3 rounded-xl border border-[#D8B76A]/20 bg-[#D8B76A]/5 px-3 py-3 text-xs text-white/80 animate-pulse lg:hidden">
           <div className="flex min-w-0 items-start gap-2">
             <Icon
@@ -681,9 +650,10 @@ const AdminSettingsPageContent = () => {
       >
         {/* LEFT COLUMN: Tabs/Forms container */}
         <div
-          className={`col-span-12 ${activeTab === "security" ? "lg:col-span-12" : "lg:col-span-6"} space-y-6 min-w-0 lg:pr-2`}
+          className={`col-span-12 ${["security", "faq"].includes(activeTab) ? "lg:col-span-12" : "lg:col-span-6"} space-y-6 min-w-0 lg:pr-2`}
         >
           <SettingsTabGuide guide={activeSettingsGuide} />
+          {activeTab === "faq" && <WeddingFAQEditor />}
 
           {/* Main Form for Details, Design, Media, and Registry settings */}
           {(activeTab === "details" ||
@@ -1775,11 +1745,11 @@ const AdminSettingsPageContent = () => {
         </div>
 
         {/* RIGHT COLUMN: Live Card Preview & Quick Upload Design (Pro Only) */}
-        {activeTab !== "security" && <InvitationCardPreview />}
+        {activeTab !== "security" && activeTab !== "faq" && <InvitationCardPreview />}
       </div>
 
       {/* Reset Confirmation Modal */}
-      {activeTab !== "security" && hasUnsavedSettingsChanges && (
+      {activeTab !== "security" && activeTab !== "faq" && hasUnsavedSettingsChanges && (
         <div className="sticky-action-bar fixed inset-x-0 bottom-0 z-60 border-t border-[#D8B76A]/25 bg-[#070A13]/95 px-4 py-3 text-white shadow-[0_-18px_45px_rgba(0,0,0,0.35)] backdrop-blur-xl">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-2.5">

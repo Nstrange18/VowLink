@@ -1,7 +1,23 @@
 const mongoose = require("mongoose");
 
+const { FAQ_LIMITS } = require("../utils/weddingSite");
+const faqItemSchema = new mongoose.Schema({
+  question: { type: String, required: true, trim: true, maxlength: FAQ_LIMITS.question },
+  answer: { type: String, required: true, trim: true, maxlength: FAQ_LIMITS.answer },
+}, { _id: false });
+const weddingSiteSchema = new mongoose.Schema({
+  faq: {
+    enabled: { type: Boolean, default: false },
+    items: { type: [faqItemSchema], default: [], validate: {
+      validator: (items) => items.length <= FAQ_LIMITS.items,
+      message: "Wedding FAQ supports up to 10 items.",
+    } },
+  },
+}, { _id: false });
+
 const userSchema = new mongoose.Schema(
   {
+    weddingSite: { type: weddingSiteSchema, default: undefined },
     partner1Name: { type: String, required: true, trim: true },
     partner2Name: { type: String, required: true, trim: true },
     couplePhone: { type: String, trim: true, default: "" },

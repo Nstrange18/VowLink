@@ -55,6 +55,13 @@ async function mountInvitation() {
 }
 
 describe('invitation template and section contracts', () => {
+  test('published FAQ sits after wedding details and outside the downloadable card', async () => {
+    currentInvitation.userId.weddingSite = { faq: { enabled: true, items: [{ question: 'Parking?', answer: 'Beside the venue.' }] } }
+    const { container } = await mountInvitation()
+    const faq = screen.getByRole('region', { name: 'Wedding FAQ' })
+    expect(container.querySelector('.download-card-section').contains(faq)).toBe(false)
+    expect(screen.getAllByText('Garden Hall')[0].compareDocumentPosition(faq) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
   const templates = [
     ...['floral', 'minimalist', 'navy', 'stardust', 'forest'].map(cardTheme => ({ name: cardTheme, cardTheme })),
     ...PREMADE_TEMPLATES.map(t => ({ name: t.name, cardTheme: 'custom', customCardBg: t.url })),

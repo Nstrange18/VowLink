@@ -1,4 +1,5 @@
 ﻿const express = require("express");
+const { parseWeddingSitePatch } = require("../utils/weddingSite");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -543,6 +544,21 @@ router.put("/me", protect, async (req, res) => {
 
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
+    if (Object.hasOwn(req.body, "weddingSite")) {
+      let patch;
+      try { patch = parseWeddingSitePatch(req.body.weddingSite); }
+      catch (error) { return res.status(400).json({ message: error.message }); }
+      for (const [key, value] of Object.entries(patch)) user.set(`weddingSite.faq.${key}`, value);
+      // A dedicated FAQ save must not normalize unrelated legacy plan settings.
+      if (Object.keys(req.body).length === 1) {
+        await user.save();
+        return res.status(200).json({
+          message: "Profile updated",
+          accessToken: generateAccessToken(user),
+          user: userPublic(user),
+        });
+      }
+    }
     const normalizedCustomCardBg = customCardBg !== undefined ? normalizePublicImageUrl(customCardBg) : undefined;
     const normalizedPageBgTemplate = pageBgTemplate !== undefined ? normalizePublicImageUrl(pageBgTemplate) : undefined;
 

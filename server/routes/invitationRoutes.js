@@ -1,3 +1,4 @@
+const { publicWeddingSite } = require("../utils/weddingSite");
 const express = require("express");
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
@@ -216,7 +217,7 @@ router.get("/slug/:slug", async (req, res) => {
       slug: req.params.slug,
     }).populate(
       "userId",
-      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue venueName receptionLocation receptionName dressCode weddingColors plusOnePolicy kidsAllowed cardTheme defaultGuestTheme customCardBg pageBgTemplate customTextColor customTextColors userHasCustomTextColor customFontFamily customVerticalOffset customTextSize customTextSizeTitle customTextSizeSubtitle customTextSizeCoupleNames customTextSizeGreeting customTextSizeMessage customTextSizeDetails customTextSizeReception customTextSizeColors customTextBoldness couplePhotoUrl customShareMessage coupleOverlayOpacity musicUrl galleryPhotos tier registryEnabled registryBankName registryAccountName registryAccountNumber registryNotes honeymoonFundTarget honeymoonFundCurrent timeline customTextAlign userHasCustomAlignment customHorizontalOffset smartLayoutEnabled email",
+      "partner1Name partner2Name weddingDate weddingTime rsvpDeadline venue venueName receptionLocation receptionName dressCode weddingColors plusOnePolicy kidsAllowed cardTheme defaultGuestTheme customCardBg pageBgTemplate customTextColor customTextColors userHasCustomTextColor customFontFamily customVerticalOffset customTextSize customTextSizeTitle customTextSizeSubtitle customTextSizeCoupleNames customTextSizeGreeting customTextSizeMessage customTextSizeDetails customTextSizeReception customTextSizeColors customTextBoldness couplePhotoUrl customShareMessage coupleOverlayOpacity musicUrl galleryPhotos tier registryEnabled registryBankName registryAccountName registryAccountNumber registryNotes honeymoonFundTarget honeymoonFundCurrent timeline customTextAlign userHasCustomAlignment customHorizontalOffset smartLayoutEnabled email weddingSite",
     );
 
     if (!invitation) {
@@ -230,7 +231,13 @@ router.get("/slug/:slug", async (req, res) => {
     await ensureInvitationCheckInToken(invitation);
 
     const rsvp = await findCurrentRsvp(invitation._id);
-    res.status(200).json({ ...invitation.toObject(), hasRSVPed: Boolean(rsvp),
+    const publicInvitation = invitation.toObject();
+    if (publicInvitation.userId) {
+      const site = publicWeddingSite(publicInvitation.userId.weddingSite);
+      delete publicInvitation.userId.weddingSite;
+      if (site) publicInvitation.userId.weddingSite = site;
+    }
+    res.status(200).json({ ...publicInvitation, hasRSVPed: Boolean(rsvp),
       rsvp: rsvp ? { guestName: rsvp.guestName, guestEmail: rsvp.guestEmail, phone: rsvp.phone,
         attending: rsvp.attending, numberOfGuests: rsvp.numberOfGuests, headcountConfirmed: rsvp.headcountConfirmed,
         mealPreference: rsvp.mealPreference, message: rsvp.message } : null });
