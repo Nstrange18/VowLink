@@ -437,8 +437,7 @@ const AdminBillingPage = () => {
               </option>
             ))}
           </select>
-          <p className="text-xs text-white/60">Checkout is charged in NGN. Other currencies are estimates; your bank sets its exchange rate.</p>
-          <a className="text-xs text-white/50 underline" href={RATE_SOURCE} target="_blank" rel="noreferrer">Rates by ExchangeRate-API · {RATE_DATE}</a>
+          <p className="text-xs text-white/60">Checkout is charged in NGN. Other currencies are estimates; your bank sets its exchange rate. <a className="rounded-sm text-white/50 underline underline-offset-2 hover:text-white/75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D8B76A]" href={RATE_SOURCE} target="_blank" rel="noreferrer" aria-label="Exchange rates provided by ExchangeRate-API" title={`ExchangeRate-API · rates verified ${RATE_DATE}`}>Exchange rates</a></p>
         </div>
         </div>
       </div>

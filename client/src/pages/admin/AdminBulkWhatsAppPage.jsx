@@ -969,7 +969,7 @@ const AdminBulkWhatsAppPage = () => {
             </div>
 
             <div className="p-5 pb-7 sm:p-6">
-              <p className="mb-4 text-xs text-white/55">Foreign-currency prices are estimates; checkout charges NGN. <a className="underline" href={RATE_SOURCE} target="_blank" rel="noreferrer">Rates by ExchangeRate-API · {RATE_DATE}</a></p>
+              <p className="mb-4 text-xs text-white/55">Foreign-currency prices are estimates; checkout charges NGN. <a className="rounded-sm underline underline-offset-2 hover:text-white/75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D8B76A]" href={RATE_SOURCE} target="_blank" rel="noreferrer" aria-label="Exchange rates provided by ExchangeRate-API" title={`ExchangeRate-API · rates verified ${RATE_DATE}`}>Exchange rates</a></p>
               {whatsappLimit !== null && whatsappRemaining !== null && (
                 <div className="mb-5 rounded-2xl border border-white/10 bg-[#070A13]/70 p-4">
                   <div className="mb-2 flex items-center justify-between gap-3 text-xs font-semibold text-white/65">
