@@ -9,7 +9,7 @@ const { protect } = require("../middleware/auth");
 const { sendTransactionalEmail, isEmailConfigured } = require("../services/transactionalEmail");
 const { sendHoneymoonGoalReachedNotification } = require("../utils/email");
 const axios = require("axios");
-const { PLAN_PRICES_NGN } = require("../utils/planPricing");
+const { PLAN_PRICES_NGN, PRICING_VERSION, PRICING_CUTOVER_AT, quoteSignature, planPaymentMatches, retainPurchasedTier } = require("../utils/planPricing");
 const cloudinary = require("cloudinary").v2;
 const {
   applyWhatsAppSendPackPurchase,
@@ -969,6 +969,45 @@ router.delete("/delete-account", protect, async (req, res) => {
   }
 });
 
+// Public, read-only release verification. No credentials or customer data.
+router.get("/pricing", (_req, res) => {
+  res.set("Cache-Control", "no-store").json({ version: PRICING_VERSION, currency: "NGN", prices: PLAN_PRICES_NGN,
+    amounts: Object.fromEntries(Object.entries(PLAN_PRICES_NGN).map(([tier, amount]) => [tier, amount * 100])),
+    checkoutConfigured: /^sk_(test|live)_/.test(process.env.PAYSTACK_SECRET_KEY?.trim() || ""),
+    legacyCutoverAt: PRICING_CUTOVER_AT, release: process.env.RENDER_GIT_COMMIT || null });
+});
+router.post("/upgrade/initialize", protect, async (req, res) => {
+  try {
+    const { tier, currency = "NGN" } = req.body || {};
+    if (!Object.hasOwn(PLAN_PRICES_NGN, tier) || currency !== "NGN" ||
+        Object.keys(req.body || {}).some(key => !["tier", "currency"].includes(key))) {
+      return res.status(400).json({ message: "Choose a valid plan. Checkout amounts are determined by the server in NGN." });
+    }
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found." });
+    if (retainPurchasedTier(user.tier, tier) === user.tier) return res.status(409).json({ message: "Your current plan already includes this plan." });
+    const secret = getPaystackSecretKey();
+    const amount = PLAN_PRICES_NGN[tier] * 100;
+    const reference = `vowlink-plan-${crypto.randomUUID()}`;
+    const metadata = { paymentType: "couple_upgrade", tier, userId: String(user._id), pricingVersion: PRICING_VERSION,
+      priceSignature: quoteSignature(secret, { tier, userId: user._id, email: user.email, reference, amount }) };
+    const site = (process.env.PUBLIC_SITE_URL || process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://vowlink.co").replace(/\/+$/, "");
+    const initialized = await axios.post("https://api.paystack.co/transaction/initialize", {
+      email: user.email, amount, currency: "NGN", reference, metadata,
+      callback_url: `${site}/admin/billing?paymentTier=${tier}`,
+    }, { headers: { Authorization: `Bearer ${secret}` }, timeout: 15000 });
+    const data = initialized.data?.data;
+    if (initialized.data?.status !== true || data?.reference !== reference || !data.access_code ||
+        !/^https:\/\/checkout\.paystack\.com\/[a-zA-Z0-9_-]+$/.test(data.authorization_url || "")) {
+      return res.status(502).json({ message: "Could not initialize checkout. Please retry." });
+    }
+    res.set("Cache-Control", "no-store").json({ reference, amount, currency: "NGN", accessCode: data.access_code,
+      authorizationUrl: data.authorization_url, version: PRICING_VERSION });
+  } catch (error) {
+    res.status(error.statusCode || 502).json({ message: "Payments are temporarily unavailable. No plan has been changed." });
+  }
+});
+
 // ── POST /api/auth/upgrade/verify — actual Paystack verification ──────────────
 router.post("/upgrade/verify", protect, async (req, res) => {
   try {
@@ -1021,56 +1060,18 @@ router.post("/upgrade/verify", protect, async (req, res) => {
     ) {
       return res.status(400).json({ message: "Payment details do not match this account or plan." });
     }
-    const paystackAmount = paystackData.amount;
-    const paystackCurrency = paystackData.currency;
-
-    const baseNgn = PLAN_PRICES_NGN[tier];
-    const priceInUsd = baseNgn / 1500;
-
-    let expectedAmount = 0;
-    if (paystackCurrency === "NGN") {
-      expectedAmount = baseNgn * 100;
-    } else if (paystackCurrency === "USD") {
-      expectedAmount = priceInUsd * 1.0 * 100;
-    } else if (paystackCurrency === "GHS") {
-      expectedAmount = priceInUsd * 14.5 * 100;
-    } else if (paystackCurrency === "KES") {
-      expectedAmount = priceInUsd * 130 * 100;
-    } else if (paystackCurrency === "ZAR") {
-      expectedAmount = priceInUsd * 18.5 * 100;
-    } else if (paystackCurrency === "EUR") {
-      expectedAmount = priceInUsd * 0.92 * 100;
-    } else if (paystackCurrency === "GBP") {
-      expectedAmount = priceInUsd * 0.79 * 100;
-    } else if (paystackCurrency === "CAD") {
-      expectedAmount = priceInUsd * 1.36 * 100;
-    } else if (paystackCurrency === "AUD") {
-      expectedAmount = priceInUsd * 1.5 * 100;
-    }
-
-    let isValidAmount = false;
-    if (tier === "pro" && paystackCurrency === "NGN") {
-      isValidAmount = paystackAmount === expectedAmount;
-    } else if (expectedAmount > 0) {
-      const minAllowed = expectedAmount * 0.95;
-      const maxAllowed = expectedAmount * 1.05;
-      isValidAmount = paystackAmount >= minAllowed && paystackAmount <= maxAllowed;
-    } else {
-      isValidAmount = paystackAmount > 0;
-    }
-
-    if (!isValidAmount) {
+    if (paystackData.reference !== reference || !planPaymentMatches(paystackData, { tier, userId: req.user.id, email: req.user.email, secret: secretKey })) {
       return res.status(400).json({ message: `Payment amount mismatch. Expected amount for ${tier.toUpperCase()}.` });
     }
 
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    user.tier = tier;
+    user.tier = retainPurchasedTier(user.tier, tier);
     await user.save();
 
     res.status(200).json({
-      message: `Successfully verified and upgraded to ${tier === "free" ? "CLASSIC" : tier.toUpperCase()} tier! `,
+      message: `Successfully verified and upgraded to ${user.tier === "free" ? "CLASSIC" : user.tier.toUpperCase()} tier! `,
       accessToken: generateAccessToken(user),
       user: userPublic(user),
     });
@@ -1203,13 +1204,9 @@ router.post("/paystack/webhook", async (req, res) => {
         const user = metadata?.userId
           ? await User.findById(metadata.userId)
           : await User.findOne({ email: email.toLowerCase() });
-        const paymentMatches =
-          user &&
-          user.email.toLowerCase() === email.toLowerCase() &&
-          event.data.currency === "NGN" &&
-          event.data.amount === PLAN_PRICES_NGN[targetTier] * 100;
+        const paymentMatches = user && planPaymentMatches(event.data, { tier: targetTier, userId: user._id, email: user.email, secret: secretKey });
         if (paymentMatches) {
-          user.tier = targetTier;
+          user.tier = retainPurchasedTier(user.tier, targetTier);
           await user.save();
           console.log(`[PAYSTACK WEBHOOK] Upgraded couple ${email} to ${targetTier}`);
         }

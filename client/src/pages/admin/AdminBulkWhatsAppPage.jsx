@@ -9,6 +9,7 @@ import { buildPublicUrl } from "../../utils/siteUrl";
 import PageMiniTour from "../../components/PageMiniTour";
 import RsvpReminderPanel from "../../components/RsvpReminderPanel";
 import { normalizeInternationalPhone } from "../../utils/phoneNumbers";
+import { CURRENCIES, RATE_DATE, RATE_SOURCE, formatNgnPrice } from "../../utils/pricingCurrencies";
 
 import { deliveryState, failureMessages, failureLabel, isMarketingLimited } from "../../utils/whatsappDelivery";
 
@@ -44,18 +45,6 @@ const WHATSAPP_TOUR_STEPS = [
 
 const cleanPhone = (phone) => normalizeInternationalPhone(phone);
 const BILLING_CURRENCY_STORAGE_KEY = "vowlink-billing-currency";
-
-const CURRENCIES = {
-  USD: { symbol: "$", rate: 1.0, label: "USD ($) - United States Dollar" },
-  EUR: { symbol: "EUR ", rate: 0.92, label: "EUR - Euro" },
-  GBP: { symbol: "GBP ", rate: 0.79, label: "GBP - British Pound" },
-  NGN: { symbol: "NGN ", rate: 1500, label: "NGN - Nigerian Naira" },
-  GHS: { symbol: "GHS ", rate: 14.5, label: "GHS - Ghanaian Cedi" },
-  KES: { symbol: "KSh", rate: 130, label: "KES (KSh) - Kenyan Shilling" },
-  ZAR: { symbol: "R", rate: 18.5, label: "ZAR (R) - South African Rand" },
-  CAD: { symbol: "C$", rate: 1.36, label: "CAD (C$) - Canadian Dollar" },
-  AUD: { symbol: "A$", rate: 1.5, label: "AUD (A$) - Australian Dollar" },
-};
 
 const FALLBACK_WHATSAPP_SEND_PACKS = [
   {
@@ -96,17 +85,6 @@ const loadPaystackScript = () =>
     script.onerror = () => resolve(false);
     document.body.appendChild(script);
   });
-
-const formatNgnPrice = (amount, currency = "USD") => {
-  const baseNgn = Number(amount || 0);
-  const conf = CURRENCIES[currency] || CURRENCIES.USD;
-  if (!baseNgn) return `${conf.symbol}0`;
-  if (currency === "NGN") return `NGN ${baseNgn.toLocaleString()}`;
-
-  const priceInUsd = baseNgn / CURRENCIES.NGN.rate;
-  const converted = priceInUsd * conf.rate;
-  return `${conf.symbol}${converted.toFixed(2)}`;
-};
 
 const getFriendlyErrorMessage = (error, fallback = "Something went wrong. Please try again.") => {
   const raw = String(error?.response?.data?.message || error?.message || "");
@@ -991,6 +969,7 @@ const AdminBulkWhatsAppPage = () => {
             </div>
 
             <div className="p-5 pb-7 sm:p-6">
+              <p className="mb-4 text-xs text-white/55">Foreign-currency prices are estimates; checkout charges NGN. <a className="underline" href={RATE_SOURCE} target="_blank" rel="noreferrer">Rates by ExchangeRate-API · {RATE_DATE}</a></p>
               {whatsappLimit !== null && whatsappRemaining !== null && (
                 <div className="mb-5 rounded-2xl border border-white/10 bg-[#070A13]/70 p-4">
                   <div className="mb-2 flex items-center justify-between gap-3 text-xs font-semibold text-white/65">

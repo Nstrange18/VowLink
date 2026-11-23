@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { Icon } from "@iconify/react";
+import { CURRENCIES, RATE_DATE, RATE_SOURCE, formatNgnPrice } from "../../utils/pricingCurrencies";
 
 const INCLUDED_WHATSAPP_SENDS = 100;
 const BILLING_CURRENCY_STORAGE_KEY = "vowlink-billing-currency";
@@ -36,8 +37,7 @@ const PLANS = [
   {
     id: "free",
     name: "Classic Plan",
-    priceInUsd: 20,
-    priceInNgn: 30000,
+    priceInNgn: 1500,
     period: "one-time",
     description: "A polished starter invitation package for intimate weddings.",
     color: "border-white/10 bg-white/5",
@@ -58,8 +58,7 @@ const PLANS = [
   {
     id: "plus",
     name: "Plus Plan",
-    priceInUsd: 45.33,
-    priceInNgn: 68000,
+    priceInNgn: 2000,
     period: "one-time",
     description: "Unlock richer guest tools, premium templates, and stronger sharing controls.",
     color: "border-[#7FA6D9]/30 bg-[#7FA6D9]/5 hover:border-[#7FA6D9]/60",
@@ -86,8 +85,7 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro Plan",
-    priceInUsd: 80000 / 1500,
-    priceInNgn: 80000,
+    priceInNgn: 3000,
     period: "one-time",
     description: "Ultimate wedding invitation and planning experience.",
     color: "border-[#D8B76A]/40 bg-[#D8B76A]/5 hover:border-[#D8B76A] shadow-[0_0_25px_rgba(216,183,106,0.15)]",
@@ -112,18 +110,6 @@ const PLANS = [
     ],
   },
 ];
-
-const CURRENCIES = {
-  USD: { symbol: "$", rate: 1.0, label: "USD ($) - United States Dollar" },
-  EUR: { symbol: "EUR ", rate: 0.92, label: "EUR - Euro" },
-  GBP: { symbol: "GBP ", rate: 0.79, label: "GBP - British Pound" },
-  NGN: { symbol: "NGN ", rate: 1500, label: "NGN - Nigerian Naira (Paystack Main)" },
-  GHS: { symbol: "GHS ", rate: 14.5, label: "GHS - Ghanaian Cedi" },
-  KES: { symbol: "KSh", rate: 130, label: "KES (KSh) - Kenyan Shilling" },
-  ZAR: { symbol: "R", rate: 18.5, label: "ZAR (R) - South African Rand" },
-  CAD: { symbol: "C$", rate: 1.36, label: "CAD (C$) - Canadian Dollar" },
-  AUD: { symbol: "A$", rate: 1.5, label: "AUD (A$) - Australian Dollar" },
-};
 
 const loadPaystackScript = () => {
   return new Promise((resolve) => {
@@ -172,7 +158,10 @@ const AdminBillingPage = () => {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("user") || "{}")
   );
-  const [currency, setCurrency] = useState(() => localStorage.getItem(BILLING_CURRENCY_STORAGE_KEY) || "USD");
+  const [currency, setCurrency] = useState(() => {
+    const stored = localStorage.getItem(BILLING_CURRENCY_STORAGE_KEY);
+    return Object.hasOwn(CURRENCIES, stored) ? stored : "NGN";
+  });
   const [loadingPaystack, setLoadingPaystack] = useState(false);
   const [checkoutLocked, setCheckoutLocked] = useState(false);
   const checkoutSubmittingRef = useRef(false);
@@ -182,6 +171,31 @@ const AdminBillingPage = () => {
   const [whatsappPackUsage, setWhatsappPackUsage] = useState(null);
 
   const currentTier = user.tier || "unpaid";
+  const callbackHandled = useRef(false);
+  const activatePlan = useCallback(async (tier, reference) => {
+    const plan = PLANS.find(item => item.id === tier);
+    if (!plan) throw new Error("Invalid payment plan.");
+    const res = await api.post("/auth/upgrade/verify", { reference, tier });
+    const callbackUrl = new URL(window.location.href);
+    if (callbackUrl.searchParams.get("reference") === reference || callbackUrl.searchParams.get("trxref") === reference) {
+      for (const key of ["reference", "trxref", "paymentTier"]) callbackUrl.searchParams.delete(key);
+      window.history.replaceState(null, "", callbackUrl.pathname + callbackUrl.search);
+    }
+    localStorage.setItem("token", res.data.accessToken);
+    localStorage.setItem("user", JSON.stringify(res.data.user));
+    sessionStorage.setItem("vowlink-plan-activated", JSON.stringify({ tier, name: plan.name, ...(ACTIVATION_COPY[tier] || {}) }));
+    setUser(res.data.user);
+    toast.success(`${plan.name} activated.`);
+    window.location.reload();
+  }, []);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get("reference") || params.get("trxref");
+    const tier = params.get("paymentTier");
+    if (!reference || !PLANS.some(plan => plan.id === tier) || callbackHandled.current) return;
+    callbackHandled.current = true;
+    activatePlan(tier, reference).catch(error => toast.error(error.response?.data?.message || `Payment verification is pending. Refresh to retry, or contact support with reference ${reference}.`));
+  }, [activatePlan]);
 
   useEffect(() => {
     const stored = sessionStorage.getItem("vowlink-plan-activated");
@@ -215,31 +229,12 @@ const AdminBillingPage = () => {
     localStorage.setItem(BILLING_CURRENCY_STORAGE_KEY, currency);
   }, [currency]);
 
-  const getFormattedNgnPrice = (priceInNgn) => {
-    if (!priceInNgn) {
-      return CURRENCIES[currency].symbol + "0";
-    }
-    const baseNgn = priceInNgn;
-    const ngnRate = CURRENCIES["NGN"].rate;
-    const priceInUsd = baseNgn / ngnRate;
-
-    const conf = CURRENCIES[currency];
-    const converted = priceInUsd * conf.rate;
-    if (currency === "NGN") {
-      return `NGN ${baseNgn.toLocaleString()}`;
-    }
-    return `${conf.symbol}${converted.toFixed(2)}`;
-  };
+  const getFormattedNgnPrice = (priceInNgn) => formatNgnPrice(priceInNgn, currency);
 
   const getFormattedPrice = (plan) => getFormattedNgnPrice(plan.priceInNgn);
 
   const handleOpenCheckout = async (plan) => {
     if (checkoutSubmittingRef.current) return;
-
-    if (!PAYSTACK_PUBLIC_KEY?.startsWith("pk_")) {
-      toast.error("Payments are temporarily unavailable. Please contact support.");
-      return;
-    }
 
     if (plan.id === currentTier) {
       toast.info(`You are already subscribed to the ${plan.name}.`);
@@ -249,56 +244,24 @@ const AdminBillingPage = () => {
     checkoutSubmittingRef.current = true;
     setCheckoutLocked(true);
     setLoadingPaystack(true);
-    const loaded = await loadPaystackScript();
-    setLoadingPaystack(false);
-
-    if (!loaded) {
-      checkoutSubmittingRef.current = false;
-      setCheckoutLocked(false);
-      toast.error("Could not open checkout. Check your connection.");
-      return;
-    }
-
     const releaseCheckout = () => {
       checkoutSubmittingRef.current = false;
       setCheckoutLocked(false);
+      setLoadingPaystack(false);
     };
-
-    // Paystack account is registered in Nigeria; we must transact in NGN to ensure checkout success.
-    // International cards will still pay the NGN equivalent automatically converted by their bank.
-    const paystackCurrency = "NGN";
-    const amountInMinor = plan.priceInNgn * 100; // Native NGN amount in kobo
-
-    const paystackOptions = {
-      key: PAYSTACK_PUBLIC_KEY,
-      email: user.email,
-      amount: amountInMinor,
-      currency: paystackCurrency,
-      metadata: {
-        paymentType: "couple_upgrade",
-        tier: plan.id,
-        userId: user.id || user._id,
-      },
+    try {
+      const { data: checkout } = await api.post("/auth/upgrade/initialize", { tier: plan.id });
+      // A stale cached page must not charge an amount different from its display.
+      if (checkout.currency !== "NGN" || checkout.amount !== plan.priceInNgn * 100) {
+        throw new Error("Prices have changed. Reload this page before paying.");
+      }
+      const loaded = await loadPaystackScript();
+      setLoadingPaystack(false);
+      const callbacks = {
       onSuccess: async (transaction) => {
         toast.info("Payment received. Activating your plan...");
         try {
-          const res = await api.post("/auth/upgrade/verify", {
-            reference: transaction.reference,
-            tier: plan.id,
-          });
-          localStorage.setItem("token", res.data.accessToken);
-          localStorage.setItem("user", JSON.stringify(res.data.user));
-          sessionStorage.setItem(
-            "vowlink-plan-activated",
-            JSON.stringify({
-              tier: plan.id,
-              name: plan.name,
-              ...(ACTIVATION_COPY[plan.id] || {}),
-            }),
-          );
-          setUser(res.data.user);
-          toast.success(`${plan.name} activated.`);
-          window.location.reload();
+          await activatePlan(plan.id, transaction.reference);
         } catch (err) {
           toast.error(err.response?.data?.message || "Payment was received, but the plan was not activated yet. Please contact support.");
           releaseCheckout();
@@ -308,29 +271,21 @@ const AdminBillingPage = () => {
         releaseCheckout();
         toast.info("Payment cancelled.");
       },
+      onError: () => { releaseCheckout(); toast.error("Could not open checkout. Please retry."); },
     };
-
-    // Version-resilient wrapper to handle both v1 (setup) and v2 (new constructor)
-    if (typeof window.PaystackPop === "function") {
-      try {
+      if (loaded && typeof window.PaystackPop === "function") {
         const paystack = new window.PaystackPop();
-        paystack.newTransaction(paystackOptions);
-        return;
-      } catch (e) {
-        console.warn("Paystack Pop V2 instantiation failed, falling back to V1 setup", e);
+        if (typeof paystack.resumeTransaction === "function") {
+          paystack.resumeTransaction(checkout.accessCode, callbacks);
+          return;
+        }
       }
-    }
-
-    if (window.PaystackPop && typeof window.PaystackPop.setup === "function") {
-      const handler = window.PaystackPop.setup({
-        ...paystackOptions,
-        callback: paystackOptions.onSuccess,
-        onClose: paystackOptions.onCancel
-      });
-      handler.openIframe();
-    } else {
+      // Old SDKs use the same server-created transaction via hosted checkout.
+      if (!/^https:\/\/checkout\.paystack\.com\/[a-zA-Z0-9_-]+$/.test(checkout.authorizationUrl || "")) throw new Error("Checkout is not ready. Please retry.");
+      window.open(checkout.authorizationUrl, "_self");
+    } catch (error) {
       releaseCheckout();
-      toast.error("Checkout is not ready. Please refresh and try again.");
+      toast.error(error.response?.data?.message || error.message || "Could not initialize checkout. Please retry.");
     }
   };
 
@@ -470,7 +425,7 @@ const AdminBillingPage = () => {
       </div>
       <div className="flex flex-col gap-3">
         <div className="bg-[#090D19] border border-white/10 p-4 rounded-2xl flex flex-col gap-1.5 min-w-44">
-          <label className="block text-[10px] uppercase tracking-wider text-white/50 font-bold">Select Currency</label>
+          <label className="block text-[10px] uppercase tracking-wider text-white/50 font-bold">Display currency</label>
           <select
             className="w-full rounded-xl border border-white/10 bg-[#070A13] px-3 py-2 text-xs text-white outline-none focus:border-[#D8B76A]/60"
             value={currency}
@@ -482,6 +437,8 @@ const AdminBillingPage = () => {
               </option>
             ))}
           </select>
+          <p className="text-xs text-white/60">Checkout is charged in NGN. Other currencies are estimates; your bank sets its exchange rate.</p>
+          <a className="text-xs text-white/50 underline" href={RATE_SOURCE} target="_blank" rel="noreferrer">Rates by ExchangeRate-API · {RATE_DATE}</a>
         </div>
         </div>
       </div>
@@ -589,9 +546,9 @@ const AdminBillingPage = () => {
       <div className="mb-6 grid gap-3 md:grid-cols-4">
         {[
           ["Trial", "Account preview. Compare plans and activate billing."],
-          ["Classic", "NGN 30,000. 1 invite, 20 RSVPs, 6 Classic templates, no check-in."],
-          ["Plus", "NGN 68,000. 100 guests, personalized links, QR codes, event PIN check-in."],
-          ["Pro", `NGN 80,000. Staff mode, seating, exports, custom design, and ${INCLUDED_WHATSAPP_SENDS} one-click WhatsApp sends.`],
+          ["Classic", "NGN 1,500. 1 invite, 20 RSVPs, 6 Classic templates, no check-in."],
+          ["Plus", "NGN 2,000. 100 guests, personalized links, QR codes, event PIN check-in."],
+          ["Pro", `NGN 3,000. Staff mode, seating, exports, custom design, and ${INCLUDED_WHATSAPP_SENDS} one-click WhatsApp sends.`],
         ].map(([label, copy]) => (
           <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#D8B76A]">{label}</p>
@@ -604,6 +561,7 @@ const AdminBillingPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {PLANS.map((plan) => {
           const isActive = plan.id === currentTier;
+          const isIncluded = PLANS.findIndex(item => item.id === currentTier) > PLANS.findIndex(item => item.id === plan.id);
           return (
             <div
               key={plan.id}
@@ -627,7 +585,7 @@ const AdminBillingPage = () => {
                   </span>
                   <span className="text-white/40 text-xs">/ {plan.period}</span>
                 </div>
-
+                {currency !== "NGN" && <p className="mb-6 text-sm text-white/60">Estimated conversion · charged {formatNgnPrice(plan.priceInNgn, "NGN")}</p>}
                 <hr className="border-white/10 mb-6" />
 
                 {/* Features */}
@@ -649,7 +607,7 @@ const AdminBillingPage = () => {
               <div className="space-y-2">
                 <button
                   onClick={() => handleOpenCheckout(plan)}
-                  disabled={checkoutLocked || isActive}
+                  disabled={checkoutLocked || isActive || isIncluded}
                   className={`w-full py-3 rounded-full text-xs font-semibold uppercase tracking-widest transition duration-300 ${
                     isActive
                       ? "bg-[#D8B76A]/10 border border-[#D8B76A]/30 text-[#D8B76A] cursor-default"
@@ -658,7 +616,7 @@ const AdminBillingPage = () => {
                       : "bg-white/10 text-white hover:bg-white/15"
                   }`}
                 >
-                  {isActive ? "Current Plan" : `Upgrade to ${plan.name}`}
+                  {isActive ? "Current Plan" : isIncluded ? "Included in your plan" : `Upgrade to ${plan.name}`}
                 </button>
 
                 {/* Dev Bypass Quick Trigger */}
