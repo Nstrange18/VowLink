@@ -42,19 +42,19 @@ const webhook = data => {
   const signature = crypto.createHmac("sha512", key).update(JSON.stringify(body)).digest("hex");
   return request(server).post("/api/auth/paystack/webhook").set("x-paystack-signature", signature).send(body);
 };
-test("current plan prices are Pro 3000, Plus 2000, Free/Classic 1500", () => {
-  expect(PLAN_PRICES_NGN).toEqual({ free: 1500, plus: 2000, pro: 3000 });
+test("current plan prices are Pro 5000, Plus 2000, Free/Classic 1500", () => {
+  expect(PLAN_PRICES_NGN).toEqual({ free: 1500, plus: 2000, pro: 5000 });
 });
-test.each([["pro", 300000], ["plus", 200000], ["free", 150000]])("callback accepts correct %s price", async (tier, amount) => {
+test.each([["pro", 500000], ["plus", 200000], ["free", 150000]])("callback accepts correct %s price", async (tier, amount) => {
   expect((await verify(tier, amount)).status).toBe(200); expect(user.tier).toBe(tier === "free" ? "plus" : tier); expect(user.save).toHaveBeenCalledTimes(1);
 });
-test.each([299999, 300001, 285000, 315000, 12000000])("callback rejects incorrect Pro amount %i", async amount => {
+test.each([300000, 499999, 500001, 475000, 525000, 12000000])("callback rejects incorrect Pro amount %i", async amount => {
   expect((await verify("pro", amount)).status).toBe(400); expect(user.tier).toBe("plus"); expect(user.save).not.toHaveBeenCalled();
 });
-test.each([["pro", 300000], ["plus", 200000], ["free", 150000]])("signed webhook activates %s at its correct price", async (tier, amount) => {
+test.each([["pro", 500000], ["plus", 200000], ["free", 150000]])("signed webhook activates %s at its correct price", async (tier, amount) => {
   expect((await webhook(transaction(tier, amount))).status).toBe(200); expect(user.tier).toBe(tier === "free" ? "plus" : tier); expect(user.save).toHaveBeenCalledTimes(1); expect(axios.get).not.toHaveBeenCalled();
 });
-test.each([299999, 300001, 12000000])("signed webhook does not activate incorrect Pro amount %i", async amount => {
+test.each([300000, 499999, 500001, 12000000])("signed webhook does not activate incorrect Pro amount %i", async amount => {
   expect((await webhook(transaction("pro", amount))).status).toBe(200); expect(user.tier).toBe("plus"); expect(user.save).not.toHaveBeenCalled();
 });
 test("historical successful amount is not rewritten and an existing Pro user remains Pro", async () => {
@@ -85,8 +85,28 @@ test.each(["free", "plus"])("replaying a valid older %s purchase never downgrade
 test("public catalog exposes current amounts without credentials", async () => {
   const response = await request(server).get("/api/auth/pricing");
   expect(response.status).toBe(200); expect(response.headers["cache-control"]).toBe("no-store");
-  expect(response.body.amounts).toEqual({ free: 150000, plus: 200000, pro: 300000 });
+  expect(response.body.amounts).toEqual({ free: 150000, plus: 200000, pro: 500000 });
   expect(JSON.stringify(response.body)).not.toContain(key);
+});
+
+test.each([["free", 150000], ["plus", 200000], ["pro", 300000]])("honors a previously server-signed %s checkout at its original price", async (tier, amount) => {
+  const data = transaction(tier, amount);
+  data.metadata.pricingVersion = "2026-11-23";
+  data.metadata.priceSignature = quoteSignature(key, { tier, userId: user._id, email: user.email,
+    reference: data.reference, amount, pricingVersion: data.metadata.pricingVersion });
+  axios.get.mockResolvedValue({ data: { status: true, data } });
+  expect((await request(server).post("/api/auth/upgrade/verify").send({ tier, reference: data.reference })).status).toBe(200);
+  await webhook(data);
+  expect(user.tier).toBe(tier === "free" ? "plus" : tier);
+});
+
+test("claiming the previous pricing version without its valid server signature cannot buy Pro for 3000", async () => {
+  const data = transaction("pro", 300000);
+  data.metadata.pricingVersion = "2026-11-23";
+  axios.get.mockResolvedValue({ data: { status: true, data } });
+  expect((await request(server).post("/api/auth/upgrade/verify").send({ tier: "pro", reference: data.reference })).status).toBe(400);
+  await webhook(data);
+  expect(user.save).not.toHaveBeenCalled();
 });
 test.each(["free", "plus", "pro"])("server initializes %s from the authoritative catalog and signs its quote", async tier => {
   user.tier = "unpaid"; user.whatsappCloudExtraSends = 250;
@@ -117,12 +137,12 @@ test.each(["free", "plus", "pro"])("rejects one-kobo under/overpayment for %s in
   expect(user.save).not.toHaveBeenCalled();
 });
 test.each(["USD", "EUR", "GBP", "GHS", "KES", "ZAR", "CAD", "AUD", "XYZ"])("callback and webhook reject %s even with a valid quote", async currency => {
-  const data = { ...transaction("pro", 300000), currency }; axios.get.mockResolvedValue({ data: { status: true, data } });
+  const data = { ...transaction("pro", 500000), currency }; axios.get.mockResolvedValue({ data: { status: true, data } });
   expect((await request(server).post("/api/auth/upgrade/verify").send({ tier: "pro", reference: data.reference })).status).toBe(400);
   await webhook(data); expect(user.save).not.toHaveBeenCalled();
 });
 test.each(["owner", "signature", "version", "mode", "status"])("callback and webhook reject tampered %s", async field => {
-  const data = transaction("pro", 300000);
+  const data = transaction("pro", 500000);
   if (field === "owner") data.metadata.userId = "foreign";
   if (field === "signature") data.metadata.priceSignature = "a".repeat(64);
   if (field === "version") data.metadata.pricingVersion = "forged";
